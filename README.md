@@ -1,4 +1,4 @@
-# ⚡ ArchPulse — Arc Testnet Infrastructure & Execution Suite
+#  ArchPulse — Arc Testnet Infrastructure & Execution Suite
 
 > **Built by ProManas** for the Circle [Arc Network](https://www.arc.io/) Builder Ecosystem.
 
@@ -6,18 +6,18 @@
 
 ---
 
-## 🌟 Key Features
+##  Key Features
 
-* 📊 **Arc Monitor System**: Live telemetry feed tracking block height, real-time TPS throughput, gas prices (fixed $0.001 USDC), and institutional validator health (Circle, BlackRock, Visa, DTCC).
-* 🔄 **Arc DEX Swap**: Instant stablecoin exchange (USDC, EURC, ARC, USYC) with zero price impact, live exchange rate calculator, and slippage controls.
-* 🔥 **Daily Quests & Points**: Interactive task execution system with streak tracking and ArchPulse points rewards for active testnet participation.
-* 👛 **Multi-Wallet Integration**: Built-in support for MetaMask, Coinbase Wallet, WalletConnect, and OKX Wallet powered by Ethers.js.
-* 🧭 **Multi-Page Router View**: Dedicated full-page views for Monitor, Swap, Quests, and About sections for a seamless single-page application (SPA) experience.
-* 🔗 **Arc Resources Hub**: Slide-out drawer menu linking directly to [Arc Docs](https://docs.arc.io/), [Circle Testnet Faucet](https://faucet.circle.com/), and [Thirdweb Arc Hub](https://thirdweb.com/arc-testnet).
+*  **Arc Monitor System**: Live telemetry feed tracking block height, real-time TPS throughput, gas prices (fixed $0.001 USDC), and institutional validator health (Circle, BlackRock, Visa, DTCC).
+*  **Arc DEX Swap**: Instant stablecoin exchange (USDC, EURC, ARC, USYC) with zero price impact, live exchange rate calculator, and slippage controls.
+*  **Daily Quests & Points**: Interactive task execution system with streak tracking and ArchPulse points rewards for active testnet participation.
+*  **Multi-Wallet Integration**: Built-in support for MetaMask, Coinbase Wallet, WalletConnect, and OKX Wallet powered by Ethers.js.
+*  **Multi-Page Router View**: Dedicated full-page views for Monitor, Swap, Quests, and About sections for a seamless single-page application (SPA) experience.
+*  **Arc Resources Hub**: Slide-out drawer menu linking directly to [Arc Docs](https://docs.arc.io/), [Circle Testnet Faucet](https://faucet.circle.com/), and [Thirdweb Arc Hub](https://thirdweb.com/arc-testnet).
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 * **Frontend**: HTML5, Modern CSS3 (Glassmorphism, CSS Grid, Custom Keyframe Animations)
 * **Web3 Integration**: Ethers.js v6, Web3 Provider (MetaMask / EIP-1193)
@@ -26,7 +26,7 @@
 
 ---
 
-## 🚀 Quick Start & Local Setup
+##  Quick Start & Local Setup
 
 1. **Clone the repository**:
    ```bash

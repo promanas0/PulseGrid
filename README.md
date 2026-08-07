@@ -32,4 +32,4 @@
    ```bash
    git clone [https://github.com/your-username/archpulse.git](https://github.com/your-username/archpulse.git)
    cd archpulse# archpulse
-High-performance Web3 infrastructure suite built for Circle's Arc Testnet. Featuring real-time network telemetry monitoring, instant stablecoin DEX swaps, daily builder quests, and multi-wallet support. Built by ProManas 
+High-performance Web3 infrastructure suite built for Circle's Arc Testnet. Featuring real-time network telemetry monitoring, instant stablecoin DEX swaps, daily builder quests, and multi-wallet support. Built by ProManas. 

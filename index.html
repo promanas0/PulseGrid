@@ -2356,6 +2356,8 @@
                 }
 
                 if (window.ethereum) {
+                    const routerAddress = customDexRouterAddress;
+                    const receiveValEstimated = document.getElementById('receiveAmountInput').value;
                     labelBtn.innerText = 'Step 1: Requesting Spending Cap...';
 
                     // Step 1: ERC-20 Spending Cap Request (Screenshot 1: Spending cap request)

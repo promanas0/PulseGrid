@@ -2107,21 +2107,46 @@
             }
         }
 
-        // Telemetry Counter
-        let currentBlock = 14892104;
-        setInterval(() => {
-            currentBlock += 1;
-            document.getElementById('statBlockHeight').innerText = `#${currentBlock.toLocaleString()}`;
-            const jitter = Math.floor(Math.random() * 30) - 15;
-            document.getElementById('statTps').innerText = `${(1420 + jitter).toLocaleString()} TPS`;
-        }, 450);
+        // Real Live Telemetry Fetcher from Arc Testnet RPC
+        async function fetchRealArcTelemetry() {
+            try {
+                let blockHex = null;
+                const startTime = Date.now();
+                
+                if (window.ethereum) {
+                    blockHex = await window.ethereum.request({ method: 'eth_blockNumber' });
+                } else {
+                    const res = await fetch('https://rpc.testnet.arc.io', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_blockNumber', params: [], id: 1 })
+                    });
+                    const data = await res.json();
+                    if (data && data.result) blockHex = data.result;
+                }
+
+                const latency = Date.now() - startTime;
+
+                if (blockHex) {
+                    const realBlockNum = parseInt(blockHex, 16);
+                    const blockElem = document.getElementById('statBlockHeight');
+                    if (blockElem) blockElem.innerText = `#${realBlockNum.toLocaleString()}`;
+                }
+            } catch (err) {
+                console.warn("Real telemetry fetch notice:", err);
+            }
+        }
+
+        setInterval(fetchRealArcTelemetry, 2500);
+        fetchRealArcTelemetry();
 
         function refreshTelemetry() {
             const icon = document.getElementById('refreshIcon');
-            icon.classList.add('animate-spin');
+            if (icon) icon.classList.add('animate-spin');
+            fetchRealArcTelemetry();
             setTimeout(() => {
-                icon.classList.remove('animate-spin');
-                showToast('Telemetry Refreshed', 'Latest Arc L1 stats updated', 'info');
+                if (icon) icon.classList.remove('animate-spin');
+                showToast('Live Telemetry Refreshed', 'Real Arc L1 block telemetry updated from RPC', 'info');
             }, 600);
         }
 

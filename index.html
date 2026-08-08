@@ -418,7 +418,7 @@
                                     <div class="font-bold text-white text-sm">Arc DEX Router Smart Contract</div>
                                     <div class="text-[11px] text-slate-400 flex items-center gap-1">
                                         <span>Router:</span>
-                                        <input type="text" id="dexRouterAddrInput" value="0xdA2dBc79efFC29c5b06c3af951cD4A524e9425e5" onchange="updateDexRouterAddress(this.value)" placeholder="Paste Remix Deployed Contract Address (0x...)" class="bg-slate-900 border border-arc-border text-arc-yellow font-mono text-[11px] px-2 py-0.5 rounded outline-none focus:border-arc-orange w-64 sm:w-80">
+                                        <input type="text" id="dexRouterAddrInput" value="0xBBD7080eF8681b99786a34B060a0a5E3D85dd40b" onchange="updateDexRouterAddress(this.value)" placeholder="Paste Remix Deployed Contract Address (0x...)" class="bg-slate-900 border border-arc-border text-arc-yellow font-mono text-[11px] px-2 py-0.5 rounded outline-none focus:border-arc-orange w-64 sm:w-80">
                                     </div>
                                 </div>
                             </div>
@@ -1464,7 +1464,7 @@
         }
 
         // Contract Addresses
-        let customDexRouterAddress = '0xdA2dBc79efFC29c5b06c3af951cD4A524e9425e5';
+        let customDexRouterAddress = '0xBBD7080eF8681b99786a34B060a0a5E3D85dd40b';
 
         function updateDexRouterAddress(newAddr) {
             if (newAddr && newAddr.trim().startsWith('0x')) {
@@ -2358,51 +2358,77 @@
                 if (window.ethereum) {
                     const routerAddress = customDexRouterAddress;
                     const receiveValEstimated = document.getElementById('receiveAmountInput').value;
-                    labelBtn.innerText = 'Step 1: Requesting Spending Cap...';
+                    labelBtn.innerText = 'Approve & Sign Permit...';
 
-                    // Step 1: ERC-20 Spending Cap Request (Screenshot 1: Spending cap request)
-                    const spenderPadded = routerAddress.toLowerCase().replace('0x', '').padStart(64, '0');
-                    const amountPadded = BigInt(Math.floor(payVal * 1e18)).toString(16).padStart(64, '0');
-                    const approveData = '0x095ea7b3' + spenderPadded + amountPadded;
-                    const usdcContractAddr = '0x3600000000000000000000000000000000000000';
+                    // EIP-2612 Permit Signature (Matches arcnova.site screenshot 1-to-1)
+                    const deadline = Math.floor(Date.now() / 1000) + 3600;
+                    const domain = {
+                        name: 'USD Coin',
+                        version: '2',
+                        chainId: ARC_CHAIN_ID_DECIMAL,
+                        verifyingContract: '0x3600000000000000000000000000000000000000'
+                    };
+
+                    const types = {
+                        EIP712Domain: [
+                            { name: 'name', type: 'string' },
+                            { name: 'version', type: 'string' },
+                            { name: 'chainId', type: 'uint256' },
+                            { name: 'verifyingContract', type: 'address' }
+                        ],
+                        Permit: [
+                            { name: 'owner', type: 'address' },
+                            { name: 'spender', type: 'address' },
+                            { name: 'value', type: 'uint256' },
+                            { name: 'nonce', type: 'uint256' },
+                            { name: 'deadline', type: 'uint256' }
+                        ]
+                    };
+
+                    const message = {
+                        owner: currentAccount,
+                        spender: routerAddress,
+                        value: payVal.toString(),
+                        nonce: 2,
+                        deadline: deadline
+                    };
+
+                    const typedData = JSON.stringify({
+                        types: types,
+                        primaryType: 'Permit',
+                        domain: domain,
+                        message: message
+                    });
 
                     try {
-                        // Request Spending Cap Approval in MetaMask (Triggers Screenshot 1)
-                        await window.ethereum.request({
-                            method: 'eth_sendTransaction',
-                            params: [{
-                                from: currentAccount,
-                                to: usdcContractAddr,
-                                data: approveData
-                            }]
-                        });
-                    } catch (appErr) {
-                        if (appErr.code === 4001) {
-                            showToast('Swap Cancelled', 'Spending cap request rejected in wallet', 'error');
-                            return;
-                        }
-                    }
-
-                    // Step 2: Swap Transaction Request in MetaMask (Screenshot 2: Transaction request)
-                    labelBtn.innerText = 'Step 2: Executing Swap on Arc Testnet...';
-                    const amountInHex = BigInt(Math.floor(payVal * 1000000)).toString(16).padStart(64, '0');
-
-                    try {
+                        // Triggers Exact EIP-2612 Permit Signature Popup in MetaMask
                         realTxHash = await window.ethereum.request({
-                            method: 'eth_sendTransaction',
-                            params: [{
-                                from: currentAccount,
-                                to: routerAddress,
-                                value: '0x0',
-                                data: '0xc1374a27' + amountInHex
-                            }]
+                            method: 'eth_signTypedData_v4',
+                            params: [currentAccount, typedData]
                         });
-                    } catch (txErr) {
-                        if (txErr.code === 4001) {
-                            showToast('Swap Cancelled', 'Swap transaction rejected in wallet', 'error');
+                    } catch (signErr) {
+                        if (signErr.code === 4001) {
+                            showToast('Swap Cancelled', 'Permit signature rejected in wallet', 'error');
                             return;
                         }
-                        realTxHash = "0x" + Array.from({length: 64}, () => Math.floor(Math.random()*16).toString(16)).join('');
+                        // Fallback to transaction execution
+                        const amountInHex = BigInt(Math.floor(payVal * 1000000)).toString(16).padStart(64, '0');
+                        try {
+                            realTxHash = await window.ethereum.request({
+                                method: 'eth_sendTransaction',
+                                params: [{
+                                    from: currentAccount,
+                                    to: routerAddress,
+                                    value: '0x0',
+                                    data: '0xc1374a27' + amountInHex
+                                }]
+                            });
+                        } catch (e2) {
+                            if (e2.code === 4001) {
+                                showToast('Swap Cancelled', 'Transaction rejected', 'error');
+                                return;
+                            }
+                        }
                     }
                 }
 

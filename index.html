@@ -2356,26 +2356,61 @@
                 }
 
                 if (window.ethereum) {
-                    const receiveValEstimated = document.getElementById('receiveAmountInput').value;
-                    const routerAddress = customDexRouterAddress;
-                    
-                    // Real EVM Contract Call for ArcNativeDEXRouter.swap(uint256 amountIn) [selector: 0xc1374a27]
+                    labelBtn.innerText = 'Step 1: Requesting Spending Cap...';
+
+                    // Step 1: ERC-20 Spending Cap Request (approve(address spender, uint256 value) -> selector: 0x095ea7b3)
+                    const spenderPadded = routerAddress.toLowerCase().replace('0x', '').padStart(64, '0');
+                    const amountPadded = BigInt(Math.floor(payVal * 1e18)).toString(16).padStart(64, '0');
+                    const approveData = '0x095ea7b3' + spenderPadded + amountPadded;
+
+                    // USDC Token Address on Arc Testnet
+                    const usdcContractAddr = '0x3600000000000000000000000000000000000000';
+
+                    try {
+                        // Request Spending Cap Approval in MetaMask (matches Circle App Kit flow)
+                        await window.ethereum.request({
+                            method: 'eth_sendTransaction',
+                            params: [{
+                                from: currentAccount,
+                                to: usdcContractAddr,
+                                data: approveData
+                            }]
+                        });
+                    } catch (appErr) {
+                        try {
+                            await window.ethereum.request({
+                                method: 'eth_sendTransaction',
+                                params: [{
+                                    from: currentAccount,
+                                    to: routerAddress,
+                                    data: approveData
+                                }]
+                            });
+                        } catch (e2) {
+                            if (e2.code === 4001 || (appErr && appErr.code === 4001)) {
+                                showToast('Swap Cancelled', 'Spending cap request rejected in wallet', 'error');
+                                return;
+                            }
+                        }
+                    }
+
+                    // Step 2: Execute Swap / Permit Signature Broadcast
+                    labelBtn.innerText = 'Step 2: Executing Swap on Arc Testnet...';
                     const amountInHex = BigInt(Math.floor(payVal * 1000000)).toString(16).padStart(64, '0');
-                    const txParams = {
-                        from: currentAccount,
-                        to: routerAddress,
-                        value: payToken.symbol === 'USDC' ? '0x' + BigInt(Math.floor(payVal * 1e18)).toString(16) : '0x0',
-                        data: '0xc1374a27' + amountInHex
-                    };
 
                     try {
                         realTxHash = await window.ethereum.request({
                             method: 'eth_sendTransaction',
-                            params: [txParams]
+                            params: [{
+                                from: currentAccount,
+                                to: routerAddress,
+                                value: '0x0',
+                                data: '0xc1374a27' + amountInHex
+                            }]
                         });
                     } catch (txErr) {
                         if (txErr.code === 4001) {
-                            showToast('Swap Cancelled', 'Wallet transaction rejected', 'error');
+                            showToast('Swap Cancelled', 'Swap transaction rejected', 'error');
                             return;
                         }
                         console.warn("Real transaction fallback notice:", txErr);

@@ -418,7 +418,7 @@
                                     <div class="font-bold text-white text-sm">Arc DEX Router Smart Contract</div>
                                     <div class="text-[11px] text-slate-400 flex items-center gap-1">
                                         <span>Router:</span>
-                                        <input type="text" id="dexRouterAddrInput" value="0xBBD7080eF8681b99786a34B060a0a5E3D85dd40b" onchange="updateDexRouterAddress(this.value)" placeholder="Paste Remix Deployed Contract Address (0x...)" class="bg-slate-900 border border-arc-border text-arc-yellow font-mono text-[11px] px-2 py-0.5 rounded outline-none focus:border-arc-orange w-64 sm:w-80">
+                                         <input type="text" id="dexRouterAddrInput" value="0xdA2dBc79efFC29c5b06c3af951cD4A524e9425e5" onchange="updateDexRouterAddress(this.value)" placeholder="Paste Remix Deployed Contract Address (0x...)" class="bg-slate-900 border border-arc-border text-arc-yellow font-mono text-[11px] px-2 py-0.5 rounded outline-none focus:border-arc-orange w-64 sm:w-80">
                                     </div>
                                 </div>
                             </div>
@@ -1464,7 +1464,7 @@
         }
 
         // Contract Addresses
-        let customDexRouterAddress = '0xBBD7080eF8681b99786a34B060a0a5E3D85dd40b';
+        let customDexRouterAddress = '0xdA2dBc79efFC29c5b06c3af951cD4A524e9425e5';
 
         function updateDexRouterAddress(newAddr) {
             if (newAddr && newAddr.trim().startsWith('0x')) {

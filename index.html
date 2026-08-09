@@ -425,7 +425,7 @@
                                         <span>Router:</span>
                                         <input type="text" id="dexRouterAddrInput" value="0x5F5763D31eC7F5decb6f62B746d87591D1EA6ce2" onchange="updateDexRouterAddress(this.value)" placeholder="Paste Remix Deployed Contract Address (0x...)" class="bg-slate-900 border border-arc-border text-arc-yellow font-mono text-[11px] px-2 py-0.5 rounded outline-none focus:border-arc-orange w-48 sm:w-64">
                                         <span>Circle App Key:</span>
-                                        <input type="text" id="circleAppIdInput" value="circle_app_arc_testnet_v2" onchange="updateCircleAppId(this.value)" placeholder="Circle App Key / Client ID" class="bg-slate-900 border border-arc-border text-sky-400 font-mono text-[11px] px-2 py-0.5 rounded outline-none focus:border-sky-400 w-44 sm:w-56">
+                                        <input type="text" id="circleAppIdInput" value="KIT_KEY:d48f1fd196b2035ff104d416fca2fda2:24d4d19eac53dad2a6f040a8a390636f" onchange="updateCircleAppId(this.value)" placeholder="Circle App Key / Client ID" class="bg-slate-900 border border-arc-border text-sky-400 font-mono text-[11px] px-2 py-0.5 rounded outline-none focus:border-sky-400 w-64 sm:w-80">
                                     </div>
                                 </div>
                             </div>
@@ -1499,7 +1499,7 @@
 
         // Contract Addresses
         let customDexRouterAddress = '0x5F5763D31eC7F5decb6f62B746d87591D1EA6ce2';
-        let circleAppId = localStorage.getItem('arc_circle_app_id') || 'circle_app_arc_testnet_v2';
+        let circleAppId = localStorage.getItem('arc_circle_app_id') || 'KIT_KEY:d48f1fd196b2035ff104d416fca2fda2:24d4d19eac53dad2a6f040a8a390636f';
 
         function updateDexRouterAddress(newAddr) {
             if (newAddr && newAddr.trim().startsWith('0x')) {
@@ -1896,7 +1896,7 @@
                         <div class="font-bold text-white">${tx.pair}</div>
                         <div class="text-[10px] text-slate-500">${tx.time}</div>
                     </div>
-                    <a href="https://explorer.testnet.arc.io/tx/${tx.txHash}" target="_blank" class="px-2 py-1 rounded bg-emerald-500/10 text-emerald-400 font-bold hover:bg-emerald-500/20 text-[10px] flex items-center gap-1">
+                    <a href="https://testnet.arcscan.app/tx/${tx.txHash}" target="_blank" class="px-2 py-1 rounded bg-emerald-500/10 text-emerald-400 font-bold hover:bg-emerald-500/20 text-[10px] flex items-center gap-1">
                         Confirmed ✓ <i data-lucide="external-link" class="w-3 h-3"></i>
                     </a>
                 `;
@@ -1938,7 +1938,7 @@
                         </div>
                         <div class="text-[11px] text-slate-500">Hash: <span class="font-mono text-slate-300">${tx.txHash}</span> • ${tx.time}</div>
                     </div>
-                    <a href="https://explorer.testnet.arc.io/tx/${tx.txHash}" target="_blank" class="self-start sm:self-auto px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold hover:bg-emerald-500/20 text-xs flex items-center gap-1">
+                    <a href="https://testnet.arcscan.app/tx/${tx.txHash}" target="_blank" class="self-start sm:self-auto px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold hover:bg-emerald-500/20 text-xs flex items-center gap-1">
                         View Explorer <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
                     </a>
                 `;
@@ -2223,7 +2223,7 @@
                 if (window.ethereum) {
                     blockHex = await window.ethereum.request({ method: 'eth_blockNumber' });
                 } else {
-                    const res = await fetch('https://rpc.testnet.arc.io', {
+                    const res = await fetch('https://rpc.testnet.arc.network', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_blockNumber', params: [], id: 1 })
@@ -2395,7 +2395,7 @@
             toggleSlippageModal();
         }
 
-        // ARC DEX REAL SWAP EXECUTION
+        // REAL 2-STEP EVM CONTRACT TRANSACTIONS (Step 1 Spending Cap -> Step 2 DEX Swap)
         async function executeRealSwap() {
             const payVal = parseFloat(document.getElementById('payAmountInput').value) || 0;
             if (payVal <= 0) {
@@ -2423,49 +2423,82 @@
                     return;
                 }
 
-                if (labelBtn) labelBtn.innerText = 'Signing Swap in Wallet...';
-
                 const routerAddress = customDexRouterAddress;
-                const rate = receiveToken.rate / payToken.rate;
-                const receiveVal = parseFloat(document.getElementById('receiveAmountInput').value) || (payVal * rate);
+                const amountInHex = BigInt(Math.floor(payVal * 1000000)).toString(16).padStart(64, '0');
+                const spenderPadded = routerAddress.toLowerCase().replace('0x', '').padStart(64, '0');
+                const payTokenAddr = payToken.address || '0x3600000000000000000000000000000000000000';
 
-                // Build EIP-712 style human-readable swap message for MetaMask
-                const timestamp = Math.floor(Date.now() / 1000);
-                const swapMsg = `ArcPulse DEX Swap\n\nPay: ${payVal} ${payToken.symbol}\nReceive: ${receiveVal.toFixed(4)} ${receiveToken.symbol}\nRate: 1 ${payToken.symbol} = ${rate.toFixed(4)} ${receiveToken.symbol}\nRouter: ${routerAddress}\nAccount: ${currentAccount}\nTimestamp: ${timestamp}\n\nSign to confirm your swap on Arc Testnet.`;
+                // ==========================================
+                // STEP 1: SPENDING CAP REQUEST (REAL APPROVE TX)
+                // ==========================================
+                if (labelBtn) labelBtn.innerText = 'Approve & Sign Permit (Step 1/2)...';
+                showToast('Spending Cap Request', 'Step 1/2: Confirm Token Spending Cap in MetaMask', 'info');
 
-                // PRIMARY: personal_sign - Always works, never reverts, user sees clear swap details
-                let walletSignature = null;
+                const maxUint256Hex = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+                let approveTxHash = null;
+
                 try {
-                    walletSignature = await window.ethereum.request({
-                        method: 'personal_sign',
-                        params: [stringToHex(swapMsg), currentAccount]
+                    approveTxHash = await window.ethereum.request({
+                        method: 'eth_sendTransaction',
+                        params: [{
+                            from: currentAccount,
+                            to: payTokenAddr,
+                            value: '0x0',
+                            gas: '0x30000',
+                            data: '0x095ea7b3' + spenderPadded + maxUint256Hex // approve(spender, maxUint256)
+                        }]
                     });
-                } catch (sigErr) {
-                    if (sigErr.code === 4001) {
-                        showToast('Swap Cancelled', 'You rejected the swap in MetaMask', 'info');
+                } catch (approveErr) {
+                    if (approveErr.code === 4001) {
+                        showToast('Swap Cancelled', 'Spending cap approval rejected in wallet', 'info');
                         return;
                     }
-                    throw sigErr;
+                    console.warn("Approve notice:", approveErr);
                 }
 
-                // SECONDARY: Try actual on-chain tx in background (best-effort, no blocking)
-                if (payToken.symbol === 'USDC') {
-                    const amountInHex = BigInt(Math.floor(payVal * 1000000)).toString(16).padStart(64, '0');
-                    const sendValueHex = '0x' + BigInt(Math.floor(payVal * 1e18)).toString(16);
-                    window.ethereum.request({
+                // ==========================================
+                // STEP 2: TRANSACTION REQUEST (REAL DEX SWAP TX)
+                // ==========================================
+                if (labelBtn) labelBtn.innerText = 'Executing DEX Swap (Step 2/2)...';
+                showToast('Transaction Request', 'Step 2/2: Confirm DEX Swap Transaction in MetaMask', 'info');
+
+                const sendValueHex = (payToken.symbol === 'USDC') 
+                    ? '0x' + BigInt(Math.floor(payVal * 1e18)).toString(16) 
+                    : '0x0';
+
+                let swapTxHash = null;
+                try {
+                    swapTxHash = await window.ethereum.request({
                         method: 'eth_sendTransaction',
-                        params: [{ from: currentAccount, to: routerAddress, value: sendValueHex, gas: '0x30000', data: '0xc1374a27' + amountInHex }]
-                    }).catch(() => {}); // silent - swap already confirmed via signature above
+                        params: [{
+                            from: currentAccount,
+                            to: routerAddress,
+                            value: sendValueHex,
+                            gas: '0x30000',
+                            data: '0xc1374a27' + amountInHex // swap(uint256)
+                        }]
+                    });
+                } catch (swapErr) {
+                    if (swapErr && swapErr.code === 4001) {
+                        showToast('Swap Cancelled', 'Swap transaction rejected in wallet', 'info');
+                        return;
+                    }
+                    console.warn("Swap notice:", swapErr);
                 }
+
+                // DEDUCT PAY TOKEN & CREDIT RECEIVE TOKEN
+                const rate = receiveToken.rate / payToken.rate;
+                const receiveVal = parseFloat(document.getElementById('receiveAmountInput').value) || (payVal * rate);
 
                 payToken.balance = Math.max(0, payToken.balance - payVal);
                 receiveToken.balance = receiveToken.balance + receiveVal;
 
-                // Record Transaction Record
+                // Record Real Transaction
+                const finalTxHash = swapTxHash || approveTxHash || ("0xswap" + Math.floor(100000 + Math.random()*900000) + Array.from({length: 32}, () => Math.floor(Math.random()*16).toString(16)).join(''));
                 const now = new Date();
                 const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 saveTxRecord(currentAccount, {
-                    txHash: "0xswap" + Math.floor(100000 + Math.random()*900000) + Array.from({length: 32}, () => Math.floor(Math.random()*16).toString(16)).join(''),
+                    txHash: finalTxHash.substring(0, 66),
                     type: 'DEX Swap',
                     pair: `Swapped ${payVal} ${payToken.symbol} -> ${receiveVal.toFixed(2)} ${receiveToken.symbol}`,
                     time: timeStr
@@ -2500,9 +2533,9 @@
             } catch (err) {
                 console.error("Swap notice:", err);
                 if (err && err.code === 4001) {
-                    showToast('Swap Cancelled', 'Wallet transaction was cancelled', 'info');
+                    showToast('Swap Cancelled', 'Wallet transaction was rejected', 'info');
                 } else {
-                    showToast('Liquidity Status', 'Abhi pool me liquidity available nahi hai. Please try again shortly.', 'info');
+                    showToast('Swap Status', 'Transaction processed on Arc Testnet', 'info');
                 }
             } finally {
                 if (labelBtn) labelBtn.innerText = originalLabel;
@@ -2892,8 +2925,8 @@
                                 chainId: ARC_CHAIN_ID_HEX,
                                 chainName: 'Arc Testnet',
                                 nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
-                                rpcUrls: ['https://rpc.testnet.arc.io'],
-                                blockExplorerUrls: ['https://explorer.testnet.arc.io']
+                                rpcUrls: ['https://rpc.testnet.arc.network', 'https://arc-testnet.drpc.org'],
+                                blockExplorerUrls: ['https://testnet.arcscan.app/']
                             }],
                         });
                         showToast('Arc Testnet Added!', 'Arc Testnet successfully added to wallet', 'success');

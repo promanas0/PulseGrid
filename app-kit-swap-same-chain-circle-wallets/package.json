@@ -13,8 +13,10 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@circle-fin/developer-controlled-wallets": "^10.8.0",
-    "@circle-fin/user-controlled-wallets": "latest",
-    "tsx": "^4.7.0"
+    "@circle-fin/adapter-viem-v2": "^1.15.0",
+    "@circle-fin/bridge-kit": "latest",
+    "@circle-fin/developer-controlled-wallets": "latest",
+    "tsx": "^4.7.0",
+    "viem": "^2.55.11"
   }
 }

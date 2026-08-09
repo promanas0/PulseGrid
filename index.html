@@ -2498,11 +2498,14 @@
             const labelBtn      = document.getElementById('swapBtnLabel');
             const originalLabel = labelBtn ? labelBtn.innerText : 'Execute Arc Web3 Swap';
 
-            // Ensure wallet is connected to Arc Testnet (Chain ID 5042002)
+            // Ensure wallet is connected to Arc Testnet (Supports both 5042002 & 5042010)
             try {
-                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-                if (parseInt(chainId, 16) !== ARC_CHAIN_ID_DECIMAL) {
-                    showToast('Switching Network', 'Switching wallet to Arc Testnet (Chain ID 5042002)…', 'info');
+                const currentChainHex = await window.ethereum.request({ method: 'eth_chainId' });
+                const currentChainDec = parseInt(currentChainHex, 16);
+                const isArcTestnet = (currentChainDec === 5042002 || currentChainDec === 5042010);
+
+                if (!isArcTestnet) {
+                    showToast('Switching Network', 'Switching wallet to Arc Testnet…', 'info');
                     try {
                         await window.ethereum.request({
                             method: 'wallet_switchEthereumChain',
@@ -2525,50 +2528,88 @@
                 }
             } catch(e) {}
 
-            // Official Arc Testnet token addresses (from docs.arc.network)
-            const EURC_ADDR = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a'; // ERC-20
-
-            const rate       = receiveToken.rate / payToken.rate;
-            const receiveVal = parseFloat(document.getElementById('receiveAmountInput').value) || +(payVal * rate).toFixed(6);
-
-            // EVM Native USDC is 18 decimals (wei), ERC-20 EURC is 6 decimals
-            const units18   = BigInt(Math.round(payVal * 1e18));
-            const units6    = BigInt(Math.round(payVal * 1_000_000));
-            const paySymbol = payToken.symbol.toUpperCase();
-            const isUSDC    = paySymbol === 'USDC';
-
             try {
+                const USDC_ADDR = '0x3600000000000000000000000000000000000000'; // ERC-20 USDC
+                const EURC_ADDR = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a'; // ERC-20 EURC
+
+                const rate       = receiveToken.rate / payToken.rate;
+                const receiveVal = parseFloat(document.getElementById('receiveAmountInput').value) || +(payVal * rate).toFixed(6);
+
+                const units18   = BigInt(Math.round(payVal * 1e18));
+                const units6    = BigInt(Math.round(payVal * 1_000_000));
+                const paySymbol = payToken.symbol.toUpperCase();
+                const isUSDC    = paySymbol === 'USDC';
+
                 let txHash = null;
 
-                // ArcPulseDEX contract address — set via UI setting or stored in localStorage
                 const DEX = (customDexRouterAddress && /^0x[0-9a-fA-F]{40}$/.test(customDexRouterAddress))
                              ? customDexRouterAddress : null;
 
                 if (isUSDC) {
                     // ══════════════════════════════════════════════════════════════
-                    // USDC → EURC
-                    // Send native USDC (18 decimals in wei) to swapUSDCtoEURC()
-                    //   → Contract calculates 6-decimal EURC & transfers real EURC!
+                    // USDC → EURC (ERC-20 Spender Model & Native Fallback)
                     // ══════════════════════════════════════════════════════════════
                     if (labelBtn) labelBtn.innerText = 'Confirm USDC → EURC…';
                     showToast('USDC → EURC', 'Confirm transaction in MetaMask', 'info');
 
-                    const valueHex = '0x' + units18.toString(16); // 18 decimal native EVM wei
+                    const amtPad = units6.toString(16).padStart(64,'0');
+                    const dexPad = DEX ? DEX.toLowerCase().replace('0x','').padStart(64,'0') : '';
+                    const maxU256 = 'f'.repeat(64);
 
                     if (DEX) {
-                        // Real DEX swap — swapUSDCtoEURC() selector = 0xe89fdb69
-                        txHash = await window.ethereum.request({
-                            method: 'eth_sendTransaction',
-                            params: [{
-                                from:  currentAccount,
-                                to:    DEX,
-                                value: valueHex,       // send USDC native (wei) as value
-                                data:  '0xe89fdb69'    // swapUSDCtoEURC()
-                            }]
-                        });
+                        // Step 1: Approve DEX Spender on ERC-20 USDC contract
+                        if (labelBtn) labelBtn.innerText = 'Approve USDC (1/2)…';
+                        showToast('Step 1/2', 'Approve USDC spending in MetaMask', 'info');
+
+                        try {
+                            await window.ethereum.request({
+                                method: 'eth_sendTransaction',
+                                params: [{
+                                    from: currentAccount,
+                                    to:   USDC_ADDR,
+                                    value:'0x0',
+                                    data: '0x095ea7b3' + dexPad + maxU256 // approve(dex, max)
+                                }]
+                            });
+                            showToast('Approved ✓', 'Sending swap transaction…', 'success');
+                        } catch(ae) {
+                            if (ae.code === 4001) {
+                                showToast('Cancelled', 'Approval rejected', 'info');
+                                if (labelBtn) labelBtn.innerText = originalLabel;
+                                return;
+                            }
+                        }
+
+                        // Step 2: Call swapUSDCtoEURC(uint256) selector = 0xb4e1f727
+                        if (labelBtn) labelBtn.innerText = 'Swap USDC → EURC (2/2)…';
+                        showToast('Step 2/2', 'Confirm USDC swap in MetaMask', 'info');
+
+                        try {
+                            txHash = await window.ethereum.request({
+                                method: 'eth_sendTransaction',
+                                params: [{
+                                    from:  currentAccount,
+                                    to:    DEX,
+                                    value: '0x0',
+                                    data:  '0xb4e1f727' + amtPad // swapUSDCtoEURC(uint256)
+                                }]
+                            });
+                        } catch(err2) {
+                            // Native USDC msg.value fallback if ERC-20 swap selector fails
+                            const valueHex = '0x' + units18.toString(16);
+                            txHash = await window.ethereum.request({
+                                method: 'eth_sendTransaction',
+                                params: [{
+                                    from:  currentAccount,
+                                    to:    DEX,
+                                    value: valueHex,
+                                    data:  '0xe89fdb69' // swapUSDCtoEURC() native
+                                }]
+                            });
+                        }
                     } else {
                         // Fallback native USDC transfer
-                        showToast('Fallback Mode', 'DEX address unlinked. To receive EURC tokens, deploy ArcPulseDEX and link its address in DEX Settings.', 'info');
+                        const valueHex = '0x' + units18.toString(16);
                         txHash = await window.ethereum.request({
                             method: 'eth_sendTransaction',
                             params: [{

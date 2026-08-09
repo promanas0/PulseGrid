@@ -1,8 +1,9 @@
 import { AppKit } from "@circle-fin/app-kit";
 import { createViemAdapter } from "@circle-fin/adapter-viem-v2";
+import { arcTestnet } from "viem/chains";
 
 /**
- * Circle AppKit Swap using Viem V2 Adapter
+ * Circle AppKit Swap using Viem V2 Adapter with official viem/chains arcTestnet
  * USDC -> EURC on Arc Testnet (Chain ID 5042002)
  * Built for ArcPulse Ecosystem by ProManas
  */
@@ -11,6 +12,7 @@ const kit = new AppKit();
 
 async function main() {
   console.log("🚀 Initiating Circle AppKit Swap with Viem Adapter on Arc Testnet...");
+  console.log(`📌 Chain: ${arcTestnet?.name || 'Arc Testnet'} (ID: ${arcTestnet?.id || 5042002})`);
   console.log("📌 Route: 1.00 USDC -> EURC");
 
   const viemAdapter = createViemAdapter();

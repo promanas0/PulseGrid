@@ -1,4 +1,5 @@
 import type { EIP1193Provider } from "viem";
+import { arcTestnet } from "viem/chains";
 import { createViemAdapterFromProvider } from "@circle-fin/adapter-viem-v2";
 import { AppKit } from "@circle-fin/app-kit";
 import type { SendParams } from "@circle-fin/app-kit";
@@ -101,6 +102,8 @@ async function sendUSDCWithBrowserWallet(recipientAddress: string, amountStr: st
     token: "USDC",
   };
 
+  console.log(`🚀 Estimating & Sending via Viem Chain: ${arcTestnet?.name || 'Arc Testnet'} (ID: ${arcTestnet?.id || 5042002})`);
+
   const estimate = await kit.estimateSend(sendParams);
   const result = await kit.send(sendParams);
 
@@ -132,7 +135,7 @@ sendBtn?.addEventListener("click", async () => {
     return;
   }
 
-  if (statusLog) statusLog.innerText = "🚀 Connecting Browser Wallet & Estimating Send on Arc Testnet...";
+  if (statusLog) statusLog.innerText = `🚀 Connecting Browser Wallet (${arcTestnet?.name || 'Arc Testnet'}) & Estimating Send...`;
 
   try {
     const { estimate, result, walletName, connectedAddress } = await sendUSDCWithBrowserWallet(recipient, amount);

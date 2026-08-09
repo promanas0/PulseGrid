@@ -6,8 +6,8 @@ import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-
  * Built for ArcPulse Ecosystem by ProManas
  */
 
-const apiKey = process.env.API_KEY || "TEST_API_KEY:ebb3ad72232624921abc4b162148bb84:019ef3358ef9cd6d08fc32csfe89a68d";
-const entitySecret = process.env.ENTITY_SECRET || "";
+const apiKey = process.env.CIRCLE_API_KEY || "TEST_API_KEY:ebb3ad72232624921abc4b162148bb84:019ef3358ef9cd6d08fc32csfe89a68d";
+const entitySecret = process.env.CIRCLE_ENTITY_SECRET || "";
 
 const client = initiateDeveloperControlledWalletsClient({
   apiKey: apiKey,
@@ -21,7 +21,7 @@ async function createWallet() {
       accountType: "SCA",
       blockchains: ["ARC-TESTNET"],
       count: 1,
-      walletSetId: process.env.WALLET_SET_ID || "",
+      walletSetId: process.env.CIRCLE_WALLET_SET_ID || process.env.WALLET_SET_ID || "",
     });
 
     console.log("✅ Circle Wallet Created Successfully!");

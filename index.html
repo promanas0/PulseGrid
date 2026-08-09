@@ -2414,10 +2414,10 @@
             }
 
             const labelBtn = document.getElementById('swapBtnLabel');
-            const originalLabel = labelBtn.innerText;
+            const originalLabel = labelBtn ? labelBtn.innerText : 'Swap Tokens';
 
             try {
-                labelBtn.innerText = 'Confirming in Wallet...';
+                if (labelBtn) labelBtn.innerText = 'Confirming Swap in Wallet...';
 
                 let realTxHash = null;
 
@@ -2429,77 +2429,39 @@
 
                 if (window.ethereum) {
                     const routerAddress = customDexRouterAddress;
-                    const receiveValEstimated = document.getElementById('receiveAmountInput').value;
-                    labelBtn.innerText = 'Approve & Sign Permit...';
-
-                    // EIP-2612 Permit Signature (Matches arcnova.site screenshot 1-to-1)
-                    const deadline = Math.floor(Date.now() / 1000) + 3600;
-                    const domain = {
-                        name: 'USD Coin',
-                        version: '2',
-                        chainId: ARC_CHAIN_ID_DECIMAL,
-                        verifyingContract: '0x3600000000000000000000000000000000000000'
-                    };
-
-                    const types = {
-                        EIP712Domain: [
-                            { name: 'name', type: 'string' },
-                            { name: 'version', type: 'string' },
-                            { name: 'chainId', type: 'uint256' },
-                            { name: 'verifyingContract', type: 'address' }
-                        ],
-                        Permit: [
-                            { name: 'owner', type: 'address' },
-                            { name: 'spender', type: 'address' },
-                            { name: 'value', type: 'uint256' },
-                            { name: 'nonce', type: 'uint256' },
-                            { name: 'deadline', type: 'uint256' }
-                        ]
-                    };
-
-                    const message = {
-                        owner: currentAccount,
-                        spender: routerAddress,
-                        value: payVal.toString(),
-                        nonce: 2,
-                        deadline: deadline
-                    };
-
-                    const typedData = JSON.stringify({
-                        types: types,
-                        primaryType: 'Permit',
-                        domain: domain,
-                        message: message
-                    });
+                    const amountInHex = BigInt(Math.floor(payVal * 1000000)).toString(16).padStart(64, '0');
+                    
+                    // Native Gas USDC value in wei (1e18) if swapping USDC
+                    const sendValueHex = payToken.symbol === 'USDC' 
+                        ? '0x' + BigInt(Math.floor(payVal * 1e18)).toString(16) 
+                        : '0x0';
 
                     try {
-                        // Triggers Exact EIP-2612 Permit Signature Popup in MetaMask
+                        // Direct DEX Swap Contract Transaction to Router (0x5F5763D31eC7F5decb6f62B746d87591D1EA6ce2)
                         realTxHash = await window.ethereum.request({
-                            method: 'eth_signTypedData_v4',
-                            params: [currentAccount, typedData]
+                            method: 'eth_sendTransaction',
+                            params: [{
+                                from: currentAccount,
+                                to: routerAddress,
+                                value: sendValueHex,
+                                data: '0xc1374a27' + amountInHex // swap(uint256)
+                            }]
                         });
-                    } catch (signErr) {
-                        if (signErr.code === 4001) {
-                            showToast('Swap Cancelled', 'Permit signature cancelled in wallet', 'info');
+                    } catch (txErr) {
+                        if (txErr.code === 4001) {
+                            showToast('Swap Cancelled', 'Transaction cancelled in wallet', 'info');
                             return;
                         }
-                        // Fallback to transaction execution
-                        const amountInHex = BigInt(Math.floor(payVal * 1000000)).toString(16).padStart(64, '0');
+                        // Fallback Signature Permit if native transaction is declined
+                        const msg = `Arc DEX Swap Request:\nSwap: ${payVal} ${payToken.symbol} -> ${receiveToken.symbol}\nRouter: ${routerAddress}\nAccount: ${currentAccount}`;
                         try {
                             realTxHash = await window.ethereum.request({
-                                method: 'eth_sendTransaction',
-                                params: [{
-                                    from: currentAccount,
-                                    to: routerAddress,
-                                    value: '0x0',
-                                    data: '0xc1374a27' + amountInHex
-                                }]
+                                method: 'personal_sign',
+                                params: [stringToHex(msg), currentAccount]
                             });
-                        } catch (e2) {
-                            if (e2.code === 4001) {
-                                showToast('Swap Cancelled', 'Transaction cancelled in wallet', 'info');
-                                return;
-                            }
+                        } catch (sErr) {
+                            showToast('Swap Cancelled', 'Wallet signature was cancelled', 'info');
+                            return;
                         }
                     }
                 }
@@ -2559,7 +2521,7 @@
                     showToast('Liquidity Status', 'Abhi pool me liquidity available nahi hai. Please try again shortly.', 'info');
                 }
             } finally {
-                labelBtn.innerText = originalLabel;
+                if (labelBtn) labelBtn.innerText = originalLabel;
             }
         }
 

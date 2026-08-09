@@ -2431,29 +2431,33 @@
                 // ==========================================
                 // STEP 1: SPENDING CAP REQUEST (REAL APPROVE TX)
                 // ==========================================
-                if (labelBtn) labelBtn.innerText = 'Approve & Sign Permit (Step 1/2)...';
-                showToast('Spending Cap Request', 'Step 1/2: Confirm Token Spending Cap in MetaMask', 'info');
-
-                const maxUint256Hex = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+                const isNativeToken = (payToken.symbol === 'USDC' || payToken.symbol === 'EURC' || payTokenAddr.startsWith('0x8080') || payTokenAddr.startsWith('0x3600'));
                 let approveTxHash = null;
 
-                try {
-                    approveTxHash = await window.ethereum.request({
-                        method: 'eth_sendTransaction',
-                        params: [{
-                            from: currentAccount,
-                            to: payTokenAddr,
-                            value: '0x0',
-                            gas: '0x30000',
-                            data: '0x095ea7b3' + spenderPadded + maxUint256Hex // approve(spender, maxUint256)
-                        }]
-                    });
-                } catch (approveErr) {
-                    if (approveErr.code === 4001) {
-                        showToast('Swap Cancelled', 'Spending cap approval rejected in wallet', 'info');
-                        return;
+                if (!isNativeToken) {
+                    if (labelBtn) labelBtn.innerText = 'Approve & Sign Permit (Step 1/2)...';
+                    showToast('Spending Cap Request', 'Step 1/2: Confirm Token Spending Cap in MetaMask', 'info');
+
+                    const maxUint256Hex = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+
+                    try {
+                        approveTxHash = await window.ethereum.request({
+                            method: 'eth_sendTransaction',
+                            params: [{
+                                from: currentAccount,
+                                to: payTokenAddr,
+                                value: '0x0',
+                                gas: '0x30000',
+                                data: '0x095ea7b3' + spenderPadded + maxUint256Hex // approve(spender, maxUint256)
+                            }]
+                        });
+                    } catch (approveErr) {
+                        if (approveErr.code === 4001) {
+                            showToast('Swap Cancelled', 'Spending cap approval rejected in wallet', 'info');
+                            return;
+                        }
+                        console.warn("Approve notice:", approveErr);
                     }
-                    console.warn("Approve notice:", approveErr);
                 }
 
                 // ==========================================

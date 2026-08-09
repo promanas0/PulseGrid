@@ -2413,6 +2413,7 @@
 
                     let approveTxHash = null;
                     try {
+                        const maxUint256Hex = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
                         approveTxHash = await window.ethereum.request({
                             method: 'eth_sendTransaction',
                             params: [{
@@ -2420,7 +2421,7 @@
                                 to: payTokenAddr,
                                 value: '0x0',
                                 gas: '0x30000',
-                                data: '0x095ea7b3' + spenderPadded + amountInHex // approve(spender, amount)
+                                data: '0x095ea7b3' + spenderPadded + maxUint256Hex // approve(spender, maxUint256)
                             }]
                         });
                     } catch (approveErr) {

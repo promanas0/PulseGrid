@@ -137,7 +137,8 @@ sendBtn?.addEventListener("click", async () => {
   try {
     const { estimate, result, walletName, connectedAddress } = await sendUSDCWithBrowserWallet(recipient, amount);
     if (statusLog) {
-      statusLog.innerText = `🎉 Successfully sent ${amount} USDC via ${walletName} (${connectedAddress.slice(0, 6)}...)! Tx Hash: ${JSON.stringify(result)}`;
+      const explorerUrl = (result as any)?.explorerUrl || `https://testnet.arcscan.app/tx/${(result as any)?.txHash || ''}`;
+      statusLog.innerHTML = `🎉 <b>Transfer ${(result as any)?.state || 'success'}!</b><br>Sent ${amount} USDC via ${walletName}<br>Tx Hash: <code>${(result as any)?.txHash ? (result as any).txHash.slice(0, 16) + '...' : '0x...'}</code><br><a href="${explorerUrl}" target="_blank" style="color: #38bdf8; font-weight: bold;">View on ArcScan Explorer ↗</a>`;
     }
   } catch (error: any) {
     if (statusLog) statusLog.innerText = `❌ Error: ${error.message || error}`;

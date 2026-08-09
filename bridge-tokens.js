@@ -1,11 +1,9 @@
-import { AppKit, type BridgeResult } from "@circle-fin/app-kit";
+import { AppKit } from "@circle-fin/app-kit";
 import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
 
 /**
- * Circle AppKit - Cross-Chain CCTP Bridge to Arc Testnet
- * Transfer 1.00 USDC from Ethereum Sepolia -> Arc Testnet
+ * Circle AppKit - Cross-Chain CCTP Bridge to Arc Testnet (ES Module)
  * Handles Step-by-Step CCTP Inspection & Selective Retry on Error
- * Built for ArcPulse Ecosystem by ProManas
  */
 
 const kit = new AppKit();
@@ -23,9 +21,9 @@ const destinationAdapter = sourceAdapter;
 /**
  * Helper function to locate the specific step that encountered an error
  */
-const findErrorStep = (result: BridgeResult | any) => {
+const findErrorStep = (result) => {
   if (result?.state === "error" || result?.state === "FAILED") {
-    return result?.steps?.find((step: any) => step?.state === "error" || step?.status === "FAILED" || step?.error);
+    return result?.steps?.find((step) => step?.state === "error" || step?.status === "FAILED" || step?.error);
   }
   return null;
 };
@@ -35,7 +33,7 @@ async function main() {
   console.log("📌 Route: Ethereum_Sepolia -> Arc_Testnet (1.00 USDC)");
 
   try {
-    const result: any = await kit.bridge({
+    const result = await kit.bridge({
       from: { adapter: sourceAdapter, chain: "Ethereum_Sepolia" },
       to: { adapter: destinationAdapter, chain: "Arc_Testnet" },
       amount: "1.00",
@@ -53,13 +51,13 @@ async function main() {
 
       // Selective retry if the error is recoverable (e.g. gas allowance, temporary RPC failure, attestation delay)
       if (
-        !errorMessage || 
+        !errorMessage ||
         errorMessage.includes("gas required exceeds allowance") ||
         errorMessage.includes("nonce") ||
         errorMessage.includes("timeout")
       ) {
         console.log("🔄 Triggering kit.retry() with updated destination adapter...");
-        const retryResult: any = await kit.retry(result, {
+        const retryResult = await kit.retry(result, {
           from: sourceAdapter,
           to: destinationAdapter,
         });
@@ -70,11 +68,11 @@ async function main() {
       console.log("✅ Bridge transfer completed successfully!");
     }
 
-  } catch (error: any) {
-    console.error("📌 Circle Bridge Execution Status:", error?.message || error);
+  } catch (error) {
+    console.error("📌 Circle Bridge Execution Status:", error.message || error);
   }
 }
 
-main().catch((err: any) => {
+main().catch((err) => {
   console.error("❌ Error:", err.message || err);
 });

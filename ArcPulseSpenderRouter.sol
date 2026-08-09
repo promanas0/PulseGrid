@@ -3,8 +3,8 @@ pragma solidity ^0.8.20;
 
 /**
  * @title ArcPulseSpenderRouter
- * @dev Official Uniswap V2-style Spender Router Contract for Arc Testnet (Chain ID 5042002).
- * Works alongside ArcPulseFactory to execute atomic swaps and manage liquidity.
+ * @dev Official ERC-20 (USDC & EURC) & Native AMM DEX Spender Router for Arc Testnet (Chain ID 5042002).
+ * Supports both ERC-20 USDC (0x3600000000000000000000000000000000000000) & Native USDC.
  * Built by ProManas (ProBuilder Studio) for ArcPulse Ecosystem.
  */
 
@@ -17,21 +17,18 @@ interface IERC20 {
     function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
 }
 
-interface IArcPulseFactory {
-    function getPair(address tokenA, address tokenB) external view returns (address pair);
-    function createPair(address tokenA, address tokenB) external returns (address pair);
-}
-
 contract ArcPulseSpenderRouter {
-    string public name = "ArcPulse DEX Spender Router";
-    string public symbol = "ARC-ROUTER-V2";
+    string public name = "ArcPulse Universal Spender Router";
+    string public symbol = "ARC-SPENDER-V4";
     address public owner;
     address public factory;
 
-    // Official Arc Testnet EURC Token Address (ERC-20, 6 decimals)
-    address public constant EURC_ADDRESS = 0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a;
+    // Official Arc Testnet Token Addresses
+    address public constant USDC_ADDRESS = 0x3600000000000000000000000000000000000000; // ERC-20 USDC (6 dec)
+    address public constant EURC_ADDRESS = 0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a; // ERC-20 EURC (6 dec)
 
-    // Rates: 1 USDC = 0.924 EURC | 1 EURC = 1.082 USDC (Scale: 1000)
+    // Exchange Rates (Scale: 1000)
+    // 1 USDC = 0.924 EURC | 1 EURC = 1.082 USDC
     uint256 public rateUSDCtoEURC = 924;
     uint256 public rateEURCtoUSDC = 1082;
 
@@ -60,19 +57,42 @@ contract ArcPulseSpenderRouter {
     }
 
     /**
+     * @notice Swap ERC-20 USDC Tokens (6 decimals) for EURC Tokens (6 decimals)
+     * Requires IERC20(USDC_ADDRESS).approve(address(this), amountUSDC) prior to swap.
+     * Selector: 0xb4e1f727
+     */
+    function swapUSDCtoEURC(uint256 amountUSDC) external returns (uint256 eurcOut) {
+        require(amountUSDC > 0, "Must specify USDC amount");
+
+        // Pull ERC-20 USDC tokens from user using Spender approval
+        bool pulled = IERC20(USDC_ADDRESS).transferFrom(msg.sender, address(this), amountUSDC);
+        require(pulled, "ERC-20 USDC transferFrom failed. Check Spender approval.");
+
+        // Calculate 6-decimal EURC output
+        eurcOut = (amountUSDC * rateUSDCtoEURC) / 1000;
+
+        uint256 dexEURCBal = IERC20(EURC_ADDRESS).balanceOf(address(this));
+        if (dexEURCBal > 0) {
+            uint256 toSend = eurcOut > dexEURCBal ? dexEURCBal : eurcOut;
+            IERC20(EURC_ADDRESS).transfer(msg.sender, toSend);
+        }
+
+        emit SwapUSDCforEURC(msg.sender, amountUSDC, eurcOut);
+        return eurcOut;
+    }
+
+    /**
      * @notice Swap Native USDC (18 decimals in wei) for EURC Tokens (6 decimals)
-     * User sends native USDC as msg.value. Spender Router transfers real EURC to user.
-     * Function Selector: 0xe89fdb69
+     * User sends native USDC as msg.value.
+     * Selector: 0xe89fdb69
      */
     function swapUSDCtoEURC() external payable returns (uint256 eurcOut) {
         uint256 usdcInWei = msg.value;
-        require(usdcInWei > 0, "ArcPulseSpenderRouter: Must send native USDC");
+        require(usdcInWei > 0, "Must send native USDC");
 
-        // Convert 18-decimal wei to 6-decimal USDC scale
         uint256 usdc6 = usdcInWei / 10**12;
         if (usdc6 == 0) usdc6 = 1;
 
-        // Calculate 6-decimal EURC output
         eurcOut = (usdc6 * rateUSDCtoEURC) / 1000;
 
         uint256 dexEURCBal = IERC20(EURC_ADDRESS).balanceOf(address(this));
@@ -86,47 +106,55 @@ contract ArcPulseSpenderRouter {
     }
 
     /**
-     * @notice Swap EURC Tokens (6 decimals) for Native USDC (18 decimals in wei)
-     * Uses Spender allowance: IERC20(EURC).transferFrom(msg.sender, address(this), amountEURC)
-     * Function Selector: 0x0bdd4f29
+     * @notice Swap EURC Tokens (6 decimals) for USDC Tokens (6 decimals or Native)
+     * Requires IERC20(EURC_ADDRESS).approve(address(this), amountEURC) prior to swap.
+     * Selector: 0x0bdd4f29
      */
-    function swapEURCtoUSDC(uint256 amountEURC) external returns (uint256 usdcOutWei) {
-        require(amountEURC > 0, "ArcPulseSpenderRouter: Must specify EURC amount");
+    function swapEURCtoUSDC(uint256 amountEURC) external returns (uint256 usdcOut) {
+        require(amountEURC > 0, "Must specify EURC amount");
 
         // Pull EURC from user using Spender approval
         bool pulled = IERC20(EURC_ADDRESS).transferFrom(msg.sender, address(this), amountEURC);
-        require(pulled, "ArcPulseSpenderRouter: EURC transferFrom failed. Check Spender approval.");
+        require(pulled, "EURC transferFrom failed. Check Spender approval.");
 
-        // Calculate 18-decimal native USDC wei output (1 EURC = 1.082 USDC)
-        usdcOutWei = ((amountEURC * 10**12) * rateEURCtoUSDC) / 1000;
+        // Calculate 6-decimal USDC output
+        usdcOut = (amountEURC * rateEURCtoUSDC) / 1000;
 
-        if (address(this).balance >= usdcOutWei) {
-            payable(msg.sender).transfer(usdcOutWei);
-        } else if (address(this).balance > 0) {
-            payable(msg.sender).transfer(address(this).balance);
+        uint256 dexUSDCBal = IERC20(USDC_ADDRESS).balanceOf(address(this));
+        if (dexUSDCBal >= usdcOut) {
+            IERC20(USDC_ADDRESS).transfer(msg.sender, usdcOut);
+        } else if (address(this).balance >= (usdcOut * 10**12)) {
+            payable(msg.sender).transfer(usdcOut * 10**12);
         }
 
-        emit SwapEURCforUSDC(msg.sender, amountEURC, usdcOutWei);
-        return usdcOutWei;
+        emit SwapEURCforUSDC(msg.sender, amountEURC, usdcOut);
+        return usdcOut;
     }
 
     /**
      * @notice Add Liquidity to Spender Router Pool
      */
-    function addLiquidity(uint256 eurcAmount) external payable {
+    function addLiquidity(uint256 usdcAmount, uint256 eurcAmount) external payable {
+        if (usdcAmount > 0) {
+            IERC20(USDC_ADDRESS).transferFrom(msg.sender, address(this), usdcAmount);
+        }
         if (eurcAmount > 0) {
             IERC20(EURC_ADDRESS).transferFrom(msg.sender, address(this), eurcAmount);
         }
-        emit LiquidityAdded(msg.sender, msg.value, eurcAmount);
+        emit LiquidityAdded(msg.sender, usdcAmount > 0 ? usdcAmount : msg.value, eurcAmount);
     }
 
-    function getReserves() external view returns (uint256 usdcReserveWei, uint256 eurcReserveUnits) {
-        return (address(this).balance, IERC20(EURC_ADDRESS).balanceOf(address(this)));
+    function getReserves() external view returns (uint256 usdcErc20Units, uint256 nativeWei, uint256 eurcUnits) {
+        return (IERC20(USDC_ADDRESS).balanceOf(address(this)), address(this).balance, IERC20(EURC_ADDRESS).balanceOf(address(this)));
     }
 
     function withdrawAll() external onlyOwner {
         if (address(this).balance > 0) {
             payable(owner).transfer(address(this).balance);
+        }
+        uint256 uBal = IERC20(USDC_ADDRESS).balanceOf(address(this));
+        if (uBal > 0) {
+            IERC20(USDC_ADDRESS).transfer(owner, uBal);
         }
         uint256 eBal = IERC20(EURC_ADDRESS).balanceOf(address(this));
         if (eBal > 0) {

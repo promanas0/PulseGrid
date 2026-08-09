@@ -11,6 +11,12 @@ async function main() {
   const rpcUrl = process.env.ARC_TESTNET_RPC_ALT || "https://rpc.testnet.arc.io";
   const provider = new ethers.JsonRpcProvider(rpcUrl);
 
+  const network = await provider.getNetwork();
+  console.log(`📌 Connected Network: ${network.name} (Chain ID: ${network.chainId})`);
+  if (network.chainId !== 5042002n) {
+    console.warn(`⚠️ Warning: Provider connected to chain ID ${network.chainId}, expected 5042002n`);
+  }
+
   const privateKey = process.env.PRIVATE_KEY;
   const recipient = process.env.DESTINATION_ADDRESS || "0xe45f8f8b39414578b871ed196edcba9d2822a432";
 

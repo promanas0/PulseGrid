@@ -12,6 +12,8 @@
     "send-kit:ts": "tsx --env-file=.env send-kit.ts",
     "send-circle-wallets": "node --env-file=.env send-circle-wallets.js",
     "send-circle-wallets:ts": "tsx --env-file=.env send-circle-wallets.ts",
+    "supported-chains": "node --env-file=.env supported-chains.js",
+    "supported-chains:ts": "tsx --env-file=.env supported-chains.ts",
     "bridge-tokens": "node --env-file=.env bridge-tokens.js",
     "bridge-tokens:ts": "tsx --env-file=.env bridge-tokens.ts",
     "swap-viem": "node --env-file=.env swap-viem.js",
@@ -35,12 +37,14 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@circle-fin/developer-controlled-wallets": "latest",
+    "@circle-fin/adapter-circle-wallets": "latest",
     "@circle-fin/adapter-viem-v2": "latest",
+    "@circle-fin/app-kit": "^1.12.0",
     "@circle-fin/bridge-kit": "latest",
+    "@circle-fin/developer-controlled-wallets": "latest",
     "@circle-fin/swap-kit": "latest",
     "connectkit": "^1.7.3",
-    "wagmi": "^2.5.0",
-    "viem": "^2.21.0"
+    "viem": "^2.21.0",
+    "wagmi": "^2.5.0"
   }
 }

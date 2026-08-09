@@ -1520,7 +1520,12 @@
             customDexRouterAddress = DEFAULT_DEX_ADDRESS;
             localStorage.setItem('arcpulse_dex_router_address', DEFAULT_DEX_ADDRESS);
         }
-        let circleAppId = localStorage.getItem('arc_circle_app_id') || 'KIT_KEY:d48f1fd196b2035ff104d416fca2fda2:24d4d19eac53dad2a6f040a8a390636f';
+        const DEFAULT_CIRCLE_API_KEY = 'TEST_API_KEY:ebb3ad72232624921abc4b162148bb84:019ef3358ef9cd6d08fc32csfe89a68d';
+        let circleAppId = localStorage.getItem('arc_circle_app_id') || DEFAULT_CIRCLE_API_KEY;
+        if (!circleAppId || circleAppId.includes('d48f1fd196b2035ff104d416fca2fda2')) {
+            circleAppId = DEFAULT_CIRCLE_API_KEY;
+            localStorage.setItem('arc_circle_app_id', DEFAULT_CIRCLE_API_KEY);
+        }
 
         function updateDexRouterAddress(newAddr) {
             if (newAddr && newAddr.trim().startsWith('0x')) {

@@ -4,7 +4,8 @@
   "description": "Circle App Kit Swap Same Chain Circle Wallets Integration for Arc Testnet",
   "type": "module",
   "scripts": {
-    "start": "node --env-file=.env index.js"
+    "start": "node --env-file=.env index.js",
+    "send-tokens": "tsx --env-file=.env send-tokens.ts"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",

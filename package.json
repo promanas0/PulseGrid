@@ -5,6 +5,8 @@
   "main": "index.html",
   "scripts": {
     "create-wallet": "node --env-file=.env create-wallet.js",
+    "send-tokens": "node --env-file=.env send-tokens.js",
+    "send-tokens:ts": "tsx --env-file=.env send-tokens.ts",
     "build": "echo 'Build complete'"
   },
   "keywords": [

@@ -1,5 +1,7 @@
 import type { EIP1193Provider } from "viem";
 import { createViemAdapterFromProvider } from "@circle-fin/adapter-viem-v2";
+import { AppKit } from "@circle-fin/app-kit";
+import type { SendParams } from "@circle-fin/app-kit";
 
 type EIP6963ProviderInfo = {
   uuid: string;
@@ -83,6 +85,33 @@ async function connectBrowserWallet() {
   };
 }
 
+const kit = new AppKit();
+
+/**
+ * Circle AppKit Send USDC via Browser Wallet
+ */
+async function sendUSDCWithBrowserWallet(recipientAddress: string, amountStr: string) {
+  const { adapter, connectedAddress, walletName } =
+    await connectBrowserWallet();
+
+  const sendParams: SendParams = {
+    from: { adapter, chain: "Arc_Testnet" },
+    to: recipientAddress,
+    amount: amountStr,
+    token: "USDC",
+  };
+
+  const estimate = await kit.estimateSend(sendParams);
+  const result = await kit.send(sendParams);
+
+  console.log(`Submitted send with ${walletName}`, {
+    connectedAddress,
+    estimate,
+    result,
+  });
+  return { estimate, result, walletName, connectedAddress };
+}
+
 const statusLog = document.getElementById("statusLog") as HTMLDivElement;
 const sendBtn = document.getElementById("sendBtn") as HTMLButtonElement;
 
@@ -103,12 +132,12 @@ sendBtn?.addEventListener("click", async () => {
     return;
   }
 
-  if (statusLog) statusLog.innerText = "🚀 Connecting Browser Wallet on Arc Testnet...";
+  if (statusLog) statusLog.innerText = "🚀 Connecting Browser Wallet & Estimating Send on Arc Testnet...";
 
   try {
-    const { adapter, connectedAddress, walletName } = await connectBrowserWallet();
+    const { estimate, result, walletName, connectedAddress } = await sendUSDCWithBrowserWallet(recipient, amount);
     if (statusLog) {
-      statusLog.innerText = `✅ Connected to ${walletName} (${connectedAddress.slice(0, 6)}...${connectedAddress.slice(-4)})! Viem Adapter initialized.`;
+      statusLog.innerText = `🎉 Successfully sent ${amount} USDC via ${walletName} (${connectedAddress.slice(0, 6)}...)! Tx Hash: ${JSON.stringify(result)}`;
     }
   } catch (error: any) {
     if (statusLog) statusLog.innerText = `❌ Error: ${error.message || error}`;

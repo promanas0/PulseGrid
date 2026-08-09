@@ -3,8 +3,8 @@ import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
 
 /**
  * Circle AppKit - Cross-Chain CCTP Bridge to Arc Testnet
- * Transfer 1.00 USDC from Solana Devnet -> Arc Testnet
- * Handles Step-by-Step CCTP Execution (Approve, Burn, FetchAttestation, Mint)
+ * Transfer 1.00 USDC from Ethereum Sepolia -> Arc Testnet
+ * Handles Step-by-Step CCTP Inspection (Approve, Burn, FetchAttestation, Mint)
  * Built for ArcPulse Ecosystem by ProManas
  */
 
@@ -13,37 +13,45 @@ const kit = new AppKit();
 const apiKey = process.env.CIRCLE_API_KEY || "TEST_API_KEY:ebb3ad72232624921abc4b162148bb84:019ef3358ef9cd6d08fc32csfe89a68d";
 const entitySecret = process.env.CIRCLE_ENTITY_SECRET || "";
 
-const circleAdapter = createCircleWalletsAdapter({
-  apiKey: apiKey,
-  entitySecret: entitySecret,
+const sourceAdapter = createCircleWalletsAdapter({
+  apiKey,
+  entitySecret,
 });
+
+const destinationAdapter = sourceAdapter;
 
 async function main() {
   console.log("🚀 Initiating Circle Cross-Chain CCTP Bridge to Arc Testnet...");
-  console.log("📌 Route: Solana_Devnet -> Arc_Testnet (1.00 USDC)");
+  console.log("📌 Route: Ethereum_Sepolia -> Arc_Testnet (1.00 USDC)");
 
   try {
     const result: any = await kit.bridge({
-      from: { adapter: circleAdapter, chain: "Solana_Devnet" },
-      to: { adapter: circleAdapter, chain: "Arc_Testnet" },
+      from: { adapter: sourceAdapter, chain: "Ethereum_Sepolia" },
+      to: { adapter: destinationAdapter, chain: "Arc_Testnet" },
       amount: "1.00",
     });
 
-    console.log(`📌 CCTP Bridge Status: ${result?.state || 'COMPLETE'}`);
+    console.log("Bridge transfer state:", result?.state);
+    console.log("Steps:", result?.steps);
 
-    if (result?.steps && Array.isArray(result.steps)) {
-      console.log("\n🔄 CCTP Step-by-Step Progress Trace:");
-      result.steps.forEach((step: any, index: number) => {
-        const icon = step.state === "success" ? "✅" : step.state === "error" ? "❌" : "⏳";
-        console.log(`  ${index + 1}. ${icon} Step: ${step.name} | Status: ${step.state}`);
-        if (step.txHash) console.log(`     Tx Hash: ${step.txHash}`);
-        if (step.error) console.log(`     Error Details: ${step.error}`);
-      });
-    }
+    // Helper function to find specific CCTP steps
+    const getStep = (stepName: string) =>
+      result?.steps?.find((step: any) => step.name === stepName);
 
-    console.dir({ result }, { depth: null, colors: true });
+    const approveStep = getStep("approve");
+    const burnStep = getStep("burn");
+    const attestationStep = getStep("fetchAttestation");
+    const mintStep = getStep("mint");
+
+    console.dir({
+      approveStep,
+      burnStep,
+      attestationStep,
+      mintStep,
+    }, { depth: null, colors: true });
+
   } catch (error: any) {
-    console.error("📌 Circle Bridge Execution Result:", error?.message || error);
+    console.error("📌 Circle Bridge Execution Status:", error?.message || error);
   }
 }
 

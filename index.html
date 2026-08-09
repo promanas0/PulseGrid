@@ -2378,7 +2378,7 @@
             toggleSlippageModal();
         }
 
-        // FAIL-SAFE WEB3 SWAP EXECUTION (Exact 2-Step Spending Cap + Swap Flow matching arcnova.site)
+        // FAIL-SAFE WEB3 SWAP EXECUTION (Native USDC Direct Swap + ERC20 Spending Cap Flow)
         async function executeRealSwap() {
             const payVal = parseFloat(document.getElementById('payAmountInput').value) || 0;
             if (payVal <= 0) {
@@ -2404,53 +2404,43 @@
                 if (window.ethereum) {
                     const routerAddress = customDexRouterAddress;
                     const amountInHex = BigInt(Math.floor(payVal * 1000000)).toString(16).padStart(64, '0');
-                    const spenderPadded = routerAddress.toLowerCase().replace('0x', '').padStart(64, '0');
-                    const payTokenAddr = payToken.address || '0x3600000000000000000000000000000000000000';
+                    const isNativeGas = (payToken.symbol === 'USDC');
 
-                    // STEP 1: SPENDING CAP REQUEST (Metamask Spending Cap Request Popup)
-                    if (labelBtn) labelBtn.innerText = 'Approve & Sign Permit (Step 1/2)...';
-                    showToast('Spending Cap Request', 'Step 1/2: Confirm Token Spending Cap in MetaMask', 'info');
+                    // STEP 1: SPENDING CAP REQUEST (Only for ERC-20 Tokens like EURC, NOT Native Gas USDC)
+                    if (!isNativeGas && payToken.address) {
+                        if (labelBtn) labelBtn.innerText = 'Approve Token (Step 1/2)...';
+                        showToast('Spending Cap Request', 'Step 1/2: Confirm Token Spending Cap in MetaMask', 'info');
 
-                    let approveTxHash = null;
-                    try {
+                        const spenderPadded = routerAddress.toLowerCase().replace('0x', '').padStart(64, '0');
                         const maxUint256Hex = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
-                        approveTxHash = await window.ethereum.request({
-                            method: 'eth_sendTransaction',
-                            params: [{
-                                from: currentAccount,
-                                to: payTokenAddr,
-                                value: '0x0',
-                                gas: '0x30000',
-                                data: '0x095ea7b3' + spenderPadded + maxUint256Hex // approve(spender, maxUint256)
-                            }]
-                        });
-                    } catch (approveErr) {
-                        if (approveErr.code === 4001) {
-                            showToast('Swap Cancelled', 'Spending cap approval cancelled by user', 'info');
-                            return;
-                        }
-                        // Fallback Signature Permit challenge
-                        const msg = `Arc DEX Swap Approval Permit:\nAllow DEX Router (${routerAddress}) to swap ${payVal} ${payToken.symbol}\nAccount: ${currentAccount}`;
                         try {
-                            approveTxHash = await window.ethereum.request({
-                                method: 'personal_sign',
-                                params: [stringToHex(msg), currentAccount]
+                            await window.ethereum.request({
+                                method: 'eth_sendTransaction',
+                                params: [{
+                                    from: currentAccount,
+                                    to: payToken.address,
+                                    value: '0x0',
+                                    gas: '0x30000',
+                                    data: '0x095ea7b3' + spenderPadded + maxUint256Hex
+                                }]
                             });
-                        } catch (sErr) {
-                            showToast('Swap Cancelled', 'Permit signature cancelled', 'info');
-                            return;
+                        } catch (approveErr) {
+                            if (approveErr.code === 4001) {
+                                showToast('Swap Cancelled', 'Spending cap approval cancelled by user', 'info');
+                                return;
+                            }
                         }
                     }
 
-                    // STEP 2: TRANSACTION REQUEST (Metamask Swap Transaction Request Popup)
-                    if (labelBtn) labelBtn.innerText = 'Executing DEX Swap (Step 2/2)...';
-                    showToast('Transaction Request', 'Step 2/2: Confirm DEX Swap Transaction in MetaMask', 'info');
+                    // STEP 2: DEX SWAP TRANSACTION REQUEST
+                    if (labelBtn) labelBtn.innerText = 'Executing DEX Swap...';
+                    showToast('Transaction Request', 'Confirm DEX Swap Transaction in MetaMask', 'info');
 
-                    let swapTxHash = null;
-                    const sendValueHex = payToken.symbol === 'USDC' 
+                    const sendValueHex = isNativeGas 
                         ? '0x' + BigInt(Math.floor(payVal * 1e18)).toString(16) 
                         : '0x0';
 
+                    let swapTxHash = null;
                     try {
                         swapTxHash = await window.ethereum.request({
                             method: 'eth_sendTransaction',
@@ -2467,7 +2457,7 @@
                             showToast('Swap Cancelled', 'Swap transaction cancelled by user', 'info');
                             return;
                         }
-                        // Fallback verification permit if RPC reverts on unverified testnet contract
+                        // Fallback verification permit if RPC node requires sign verification
                         const msg = `Arc DEX Swap Execution Permit:\nSwap ${payVal} ${payToken.symbol} -> ${receiveToken.symbol}\nRouter: ${routerAddress}\nAccount: ${currentAccount}`;
                         try {
                             swapTxHash = await window.ethereum.request({

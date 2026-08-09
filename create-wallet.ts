@@ -1,34 +1,42 @@
 import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
 
 /**
- * Circle Developer Controlled Wallet Creation Script
+ * Circle Developer Controlled Wallet & WalletSet Creation Script
  * For Arc Testnet (Chain ID 5042002)
  * Built for ArcPulse Ecosystem by ProManas
  */
 
-const apiKey = process.env.CIRCLE_API_KEY || "TEST_API_KEY:ebb3ad72232624921abc4b162148bb84:019ef3358ef9cd6d08fc32csfe89a68d";
-const entitySecret = process.env.CIRCLE_ENTITY_SECRET || "";
-
 const client = initiateDeveloperControlledWalletsClient({
-  apiKey: apiKey,
-  entitySecret: entitySecret,
+  apiKey: process.env.CIRCLE_API_KEY || "TEST_API_KEY:ebb3ad72232624921abc4b162148bb84:019ef3358ef9cd6d08fc32csfe89a68d",
+  entitySecret: process.env.CIRCLE_ENTITY_SECRET || "",
 });
 
-async function createWallet() {
-  console.log("🚀 Initiating Circle Developer Controlled Wallet on Arc Testnet...");
-  try {
-    const response = await client.createWallets({
-      accountType: "SCA",
-      blockchains: ["ARC-TESTNET"],
-      count: 1,
-      walletSetId: process.env.CIRCLE_WALLET_SET_ID || process.env.WALLET_SET_ID || "",
-    });
+async function main() {
+  console.log("🚀 Creating Circle WalletSet & Developer-Controlled Wallet on Arc Testnet...");
+  
+  const walletSetResponse = await client.createWalletSet({
+    name: "My First Dev-Controlled Wallet Set",
+  });
 
-    console.log("✅ Circle Wallet Created Successfully!");
-    console.log(JSON.stringify(response.data, null, 2));
-  } catch (error) {
-    console.error("❌ Error creating Circle wallet:", error);
+  const walletSet = walletSetResponse.data?.walletSet;
+  if (!walletSet?.id) {
+    throw new Error("Wallet set creation failed: no ID returned");
   }
+
+  console.log(`✅ WalletSet Created! ID: ${walletSet.id}`);
+
+  const walletResponse = await client.createWallets({
+    walletSetId: walletSet.id,
+    blockchains: ["ARC-TESTNET"], // Arc Testnet L1 Blockchain
+    count: 1,
+    accountType: "EOA", // Can be EOA or SCA
+  });
+
+  console.log("🎉 Wallet Set Response:", JSON.stringify(walletSetResponse.data, null, 2));
+  console.log("🚀 Wallet Creation Response:", JSON.stringify(walletResponse.data, null, 2));
 }
 
-createWallet();
+main().catch((err) => {
+  console.error("❌ Error:", err.message || err);
+  process.exit(1);
+});

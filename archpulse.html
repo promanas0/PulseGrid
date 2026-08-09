@@ -2283,8 +2283,8 @@
             }, 600);
         }
 
-        // Swap Calculation Logic
-        function calculateSwap() {
+        // Swap Calculation Logic with Circle AppKit estimateSwap support
+        async function calculateSwap() {
             const payVal = parseFloat(document.getElementById('payAmountInput').value) || 0;
             if (payVal <= 0) {
                 document.getElementById('receiveAmountInput').value = '';
@@ -2292,7 +2292,25 @@
             }
 
             const rate = receiveToken.rate / payToken.rate;
-            const receiveVal = payVal * rate;
+            let receiveVal = payVal * rate;
+
+            // Circle AppKit estimateSwap Integration
+            if (window.circleKit && typeof window.circleKit.estimateSwap === 'function') {
+                try {
+                    const estimateRes = await window.circleKit.estimateSwap({
+                        from: { chain: "Arc_Testnet", address: currentAccount },
+                        tokenIn: payToken.symbol.toUpperCase(),
+                        tokenOut: receiveToken.symbol.toUpperCase(),
+                        amountIn: payVal.toString(),
+                    });
+                    if (estimateRes?.estimate?.estimatedOutput?.amount) {
+                        receiveVal = parseFloat(estimateRes.estimate.estimatedOutput.amount);
+                    }
+                } catch (e) {
+                    console.warn("Circle AppKit estimateSwap fallback to DEX rate:", e);
+                }
+            }
+
             document.getElementById('receiveAmountInput').value = receiveVal.toFixed(4);
             document.getElementById('exchangeRateText').innerText = `1 ${payToken.symbol} ≈ ${(rate).toFixed(3)} ${receiveToken.symbol}`;
         }

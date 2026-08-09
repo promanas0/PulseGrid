@@ -26,6 +26,8 @@ const swapParams: SwapParams = {
   tokenOut: "EURC",
   amountIn: "1.00",
   config: {
+    slippageBps: 300, // 3% — default recommended
+    allowanceStrategy: "approve", // Explicit ERC-20 on-chain approval strategy
     kitKey: process.env.KIT_KEY as string, // optional — configure for production or high-volume usage
   },
 };

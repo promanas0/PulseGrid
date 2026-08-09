@@ -28,6 +28,8 @@
     "swap-viem:ts": "tsx --env-file=.env swap-viem.ts",
     "wagmi-config": "node --env-file=.env wagmi-config.js",
     "wagmi-config:ts": "tsx --env-file=.env wagmi-config.ts",
+    "balance-checker": "node --env-file=.env balance-checker.js",
+    "balance-checker:ts": "tsx --env-file=.env balance-checker.ts",
     "server": "node server.mjs",
     "build": "echo 'Build complete'"
   },

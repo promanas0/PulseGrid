@@ -3,7 +3,7 @@ import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
 
 /**
  * Circle AppKit - Cross-Chain CCTP Bridge to Arc Testnet (ES Module)
- * Handles Step-by-Step CCTP Inspection (Approve, Burn, FetchAttestation, Mint)
+ * Handles Step-by-Step CCTP Inspection & Selective Retry on Error
  */
 
 const kit = new AppKit();
@@ -18,6 +18,16 @@ const sourceAdapter = createCircleWalletsAdapter({
 
 const destinationAdapter = sourceAdapter;
 
+/**
+ * Helper function to locate the specific step that encountered an error
+ */
+const findErrorStep = (result) => {
+  if (result?.state === "error" || result?.state === "FAILED") {
+    return result?.steps?.find((step) => step?.state === "error" || step?.status === "FAILED" || step?.error);
+  }
+  return null;
+};
+
 async function main() {
   console.log("🚀 Initiating Circle Cross-Chain CCTP Bridge to Arc Testnet...");
   console.log("📌 Route: Ethereum_Sepolia -> Arc_Testnet (1.00 USDC)");
@@ -29,24 +39,34 @@ async function main() {
       amount: "1.00",
     });
 
-    console.log("Bridge transfer state:", result?.state);
-    console.log("Steps:", result?.steps);
+    console.log("📌 INITIAL RESULT");
+    console.dir(result, { depth: null, colors: true });
 
-    // Helper function to find specific CCTP steps
-    const getStep = (stepName) =>
-      result?.steps?.find((step) => step.name === stepName);
+    if (result?.state === "error" || result?.state === "FAILED") {
+      const errorStep = findErrorStep(result);
+      console.warn("⚠️ Bridge transfer failed at step:", errorStep?.name || "unknown");
 
-    const approveStep = getStep("approve");
-    const burnStep = getStep("burn");
-    const attestationStep = getStep("fetchAttestation");
-    const mintStep = getStep("mint");
+      const errorMessage = errorStep?.errorMessage || errorStep?.error?.message || "";
+      console.warn("📌 Error Details:", errorMessage || "No detailed error message");
 
-    console.dir({
-      approveStep,
-      burnStep,
-      attestationStep,
-      mintStep,
-    }, { depth: null, colors: true });
+      // Selective retry if the error is recoverable (e.g. gas allowance, temporary RPC failure, attestation delay)
+      if (
+        !errorMessage ||
+        errorMessage.includes("gas required exceeds allowance") ||
+        errorMessage.includes("nonce") ||
+        errorMessage.includes("timeout")
+      ) {
+        console.log("🔄 Triggering kit.retry() with updated destination adapter...");
+        const retryResult = await kit.retry(result, {
+          from: sourceAdapter,
+          to: destinationAdapter,
+        });
+        console.log("📌 RETRY RESULT");
+        console.dir(retryResult, { depth: null, colors: true });
+      }
+    } else {
+      console.log("✅ Bridge transfer completed successfully!");
+    }
 
   } catch (error) {
     console.error("📌 Circle Bridge Execution Status:", error.message || error);

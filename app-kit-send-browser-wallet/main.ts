@@ -1,5 +1,5 @@
 import type { EIP1193Provider } from "viem";
-import { createViemAdapter } from "@circle-fin/adapter-viem-v2";
+import { createViemAdapterFromProvider } from "@circle-fin/adapter-viem-v2";
 
 type EIP6963ProviderInfo = {
   uuid: string;
@@ -46,6 +46,43 @@ async function discoverBrowserWallets(): Promise<EIP6963ProviderDetail[]> {
   return [...providers.values()];
 }
 
+/**
+ * Connect to EIP-1193 Browser Wallet Provider
+ */
+async function connectWallet(provider: EIP1193Provider) {
+  const accounts = (await provider.request({
+    method: "eth_requestAccounts",
+  })) as string[];
+  return { connectedAddress: accounts[0] };
+}
+
+/**
+ * Connect Browser Wallet and Create Viem Adapter
+ */
+async function connectBrowserWallet() {
+  const providers = await discoverBrowserWallets();
+  const selectedWallet =
+    providers.find(
+      ({ info }) => info.rdns === "io.metamask" || info.name === "MetaMask",
+    ) ?? providers[0];
+
+  if (!selectedWallet) {
+    throw new Error("No EIP-6963 browser wallet found");
+  }
+
+  const { connectedAddress } = await connectWallet(selectedWallet.provider);
+
+  const adapter = await createViemAdapterFromProvider({
+    provider: selectedWallet.provider,
+  });
+
+  return {
+    adapter,
+    connectedAddress,
+    walletName: selectedWallet.info.name,
+  };
+}
+
 const statusLog = document.getElementById("statusLog") as HTMLDivElement;
 const sendBtn = document.getElementById("sendBtn") as HTMLButtonElement;
 
@@ -69,11 +106,10 @@ sendBtn?.addEventListener("click", async () => {
   if (statusLog) statusLog.innerText = "🚀 Connecting Browser Wallet on Arc Testnet...";
 
   try {
-    const discoveredWallets = await discoverBrowserWallets();
-    const activeProvider = discoveredWallets[0]?.provider || (window as any).ethereum;
-
-    const viemAdapter = createViemAdapter();
-    if (statusLog) statusLog.innerText = `✅ EIP-6963 Wallet & Viem Adapter initialized! Sending ${amount} USDC to ${recipient.slice(0, 8)}...`;
+    const { adapter, connectedAddress, walletName } = await connectBrowserWallet();
+    if (statusLog) {
+      statusLog.innerText = `✅ Connected to ${walletName} (${connectedAddress.slice(0, 6)}...${connectedAddress.slice(-4)})! Viem Adapter initialized.`;
+    }
   } catch (error: any) {
     if (statusLog) statusLog.innerText = `❌ Error: ${error.message || error}`;
   }

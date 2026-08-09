@@ -2207,6 +2207,21 @@
         });
         window.dispatchEvent(new Event("eip6963:requestProvider"));
 
+        // Create Viem Adapter from Browser Wallet Provider
+        async function createViemAdapterFromBrowserWallet() {
+            let provider = window.ethereum;
+            if (window.eip6963Providers && window.eip6963Providers.size > 0) {
+                const selectedWallet = Array.from(window.eip6963Providers.values()).find(p => p.info.rdns === 'io.metamask' || p.info.name === 'MetaMask') || Array.from(window.eip6963Providers.values())[0];
+                provider = selectedWallet.provider;
+            }
+            if (!provider) throw new Error("No EIP-6963 browser wallet found");
+            
+            if (typeof window.createViemAdapterFromProvider === 'function') {
+                return await window.createViemAdapterFromProvider({ provider });
+            }
+            return provider;
+        }
+
         function markCheckInBtnCompleted() {
             const btn = document.getElementById('questCheckInBtn');
             if (btn) {

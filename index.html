@@ -2528,8 +2528,22 @@
                 }
             } catch(e) {}
 
+            try {
                 const USDC_ADDR = '0x3600000000000000000000000000000000000000'; // ERC-20 USDC
                 const EURC_ADDR = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a'; // ERC-20 EURC
+
+                const rate       = receiveToken.rate / payToken.rate;
+                const receiveVal = parseFloat(document.getElementById('receiveAmountInput').value) || +(payVal * rate).toFixed(6);
+
+                const units18   = BigInt(Math.round(payVal * 1e18));
+                const units6    = BigInt(Math.round(payVal * 1_000_000));
+                const paySymbol = payToken.symbol.toUpperCase();
+                const isUSDC    = paySymbol === 'USDC';
+
+                let txHash = null;
+
+                const DEX = (customDexRouterAddress && /^0x[0-9a-fA-F]{40}$/.test(customDexRouterAddress))
+                             ? customDexRouterAddress : null;
 
                 if (isUSDC) {
                     // ══════════════════════════════════════════════════════════════

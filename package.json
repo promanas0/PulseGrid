@@ -4,6 +4,7 @@
   "description": "ArcPulse - High-performance Web3 DEX & Circle W3S Engine for Arc Testnet",
   "main": "index.html",
   "scripts": {
+    "start": "node server.mjs",
     "create-wallet": "node --env-file=.env create-wallet.js",
     "send-tokens": "node --env-file=.env send-tokens.js",
     "send-tokens:ts": "tsx --env-file=.env send-tokens.ts",

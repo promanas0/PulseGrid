@@ -16,6 +16,8 @@
     "supported-chains:ts": "tsx --env-file=.env supported-chains.ts",
     "unified-balance-chains": "node --env-file=.env unified-balance-chains.js",
     "unified-balance-chains:ts": "tsx --env-file=.env unified-balance-chains.ts",
+    "chain-filters": "node --env-file=.env chain-filters.js",
+    "chain-filters:ts": "tsx --env-file=.env chain-filters.ts",
     "bridge-tokens": "node --env-file=.env bridge-tokens.js",
     "bridge-tokens:ts": "tsx --env-file=.env bridge-tokens.ts",
     "swap-viem": "node --env-file=.env swap-viem.js",

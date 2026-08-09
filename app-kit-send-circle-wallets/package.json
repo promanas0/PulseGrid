@@ -1,0 +1,18 @@
+{
+  "name": "app-kit-send-circle-wallets",
+  "version": "1.0.0",
+  "description": "Circle App Kit Send with Circle Wallets Integration for Arc Testnet",
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file=.env index.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@circle-fin/developer-controlled-wallets": "latest",
+    "@circle-fin/adapter-circle-wallets": "latest",
+    "tsx": "^4.7.0"
+  }
+}

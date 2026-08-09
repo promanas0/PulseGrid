@@ -23,6 +23,8 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@circle-fin/developer-controlled-wallets": "latest"
+    "@circle-fin/developer-controlled-wallets": "latest",
+    "@circle-fin/adapter-viem-v2": "latest",
+    "viem": "^2.21.0"
   }
 }

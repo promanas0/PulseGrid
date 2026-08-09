@@ -1507,6 +1507,9 @@
         // Arc Testnet Config (Official Circle Arc Testnet Chain ID 5042002)
         const ARC_CHAIN_ID_HEX = '0x4cef02'; // 5042002
         const ARC_CHAIN_ID_DECIMAL = 5042002;
+        const ARC_RPC_URL = 'https://rpc.testnet.arc.network';
+        const ARC_RPC_URL_ALT = 'https://rpc.testnet.arc.io';
+        const ARC_WSS_URL = 'wss://rpc.testnet.arc.io';
 
         // Helper to convert plain string to 0x-prefixed hex string for EIP-1474 personal_sign
         function stringToHex(str) {
@@ -2197,6 +2200,31 @@
             if (strk) strk.innerText = `${userStreak} Days`;
         }
 
+        // EIP-6963 Multi-Injected Provider Discovery
+        window.eip6963Providers = new Map();
+        window.addEventListener("eip6963:announceProvider", (event) => {
+            if (event.detail && event.detail.info) {
+                window.eip6963Providers.set(event.detail.info.uuid, event.detail);
+                console.log("🔍 EIP-6963 Browser Wallet Discovered:", event.detail.info.name);
+            }
+        });
+        window.dispatchEvent(new Event("eip6963:requestProvider"));
+
+        // Create Viem Adapter from Browser Wallet Provider
+        async function createViemAdapterFromBrowserWallet() {
+            let provider = window.ethereum;
+            if (window.eip6963Providers && window.eip6963Providers.size > 0) {
+                const selectedWallet = Array.from(window.eip6963Providers.values()).find(p => p.info.rdns === 'io.metamask' || p.info.name === 'MetaMask') || Array.from(window.eip6963Providers.values())[0];
+                provider = selectedWallet.provider;
+            }
+            if (!provider) throw new Error("No EIP-6963 browser wallet found");
+            
+            if (typeof window.createViemAdapterFromProvider === 'function') {
+                return await window.createViemAdapterFromProvider({ provider });
+            }
+            return provider;
+        }
+
         function markCheckInBtnCompleted() {
             const btn = document.getElementById('questCheckInBtn');
             if (btn) {
@@ -2542,7 +2570,7 @@
                                     chainId: ARC_CHAIN_ID_HEX,
                                     chainName: 'Arc Testnet',
                                     nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
-                                    rpcUrls: ['https://rpc.testnet.arc.network'],
+                                    rpcUrls: ['https://rpc.testnet.arc.network', 'https://rpc.testnet.arc.io'],
                                     blockExplorerUrls: ['https://testnet.arcscan.app/']
                                 }]
                             });

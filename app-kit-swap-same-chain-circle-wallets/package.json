@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "node --env-file=.env index.js",
-    "send-tokens": "tsx --env-file=.env send-tokens.ts"
+    "send-tokens": "tsx --env-file=.env send-tokens.ts",
+    "bridge-tokens": "tsx --env-file=.env bridge-tokens.ts"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",

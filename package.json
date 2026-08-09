@@ -7,6 +7,8 @@
     "create-wallet": "node --env-file=.env create-wallet.js",
     "send-tokens": "node --env-file=.env send-tokens.js",
     "send-tokens:ts": "tsx --env-file=.env send-tokens.ts",
+    "bridge-tokens": "node --env-file=.env bridge-tokens.js",
+    "bridge-tokens:ts": "tsx --env-file=.env bridge-tokens.ts",
     "build": "echo 'Build complete'"
   },
   "keywords": [
@@ -23,8 +25,8 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
+    "@circle-fin/adapter-viem-v2": "^1.15.0",
     "@circle-fin/developer-controlled-wallets": "latest",
-    "@circle-fin/adapter-viem-v2": "latest",
-    "viem": "^2.21.0"
+    "viem": "^2.55.11"
   }
 }

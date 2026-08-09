@@ -1461,8 +1461,13 @@
 
     <!-- Native Web3 Application JavaScript Logic -->
     <script>
-        // Initialize Lucide Icons
-        lucide.createIcons();
+        // Safe Lucide Icons Initializer
+        function safeInitIcons() {
+            if (typeof lucide !== 'undefined' && lucide && typeof lucide.createIcons === 'function') {
+                try { lucide.createIcons(); } catch(e) {}
+            }
+        }
+        safeInitIcons();
 
         // Application State
         let currentAccount = null;
@@ -1922,7 +1927,7 @@
                 `;
                 container.appendChild(item);
             });
-            lucide.createIcons();
+            safeInitIcons();
         }
 
         // Connect Provider
@@ -2841,7 +2846,7 @@
                 saveUserDataState();
 
                 showToast('Funds Released!', `USDC released to beneficiary (+250 PTS)`, 'success');
-                lucide.createIcons();
+                safeInitIcons();
             }, 1500);
         }
 
@@ -2895,7 +2900,7 @@
                     select.appendChild(opt);
                 }
             });
-            lucide.createIcons();
+            safeInitIcons();
         }
 
         function switchSwapMode(mode) {
@@ -2998,6 +3003,8 @@
                 const val = parseFloat(eurcInput.value) || 0;
                 usdcInput.value = (val / 0.924).toFixed(2);
             }
+        }
+
         // Approve ERC-20 Token spending for DEX Router Contract (0x5F5763D31eC7F5decb6f62B746d87591D1EA6ce2)
         async function approveTokenForPool(tokenSymbol) {
             if (!currentAccount) {
@@ -3210,7 +3217,7 @@
                 `;
                 container.appendChild(card);
             });
-            lucide.createIcons();
+            safeInitIcons();
         }
 
         function searchCircleMarketplace() {
@@ -3258,13 +3265,22 @@
             }
         }
 
-        // Initial setup
-        updateTokenBalancesUI();
-        updateUserPointsUI();
-        renderAgentRoster();
-        renderJobBoard();
-        renderEscrowList();
-        renderCircleMarketplace();
+        // Initial setup safely executed
+        function initAppSafe() {
+            try { updateTokenBalancesUI(); } catch(e) {}
+            try { updateUserPointsUI(); } catch(e) {}
+            try { renderAgentRoster(); } catch(e) {}
+            try { renderJobBoard(); } catch(e) {}
+            try { renderEscrowList(); } catch(e) {}
+            try { renderCircleMarketplace(); } catch(e) {}
+            safeInitIcons();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initAppSafe);
+        } else {
+            initAppSafe();
+        }
     </script>
 </body>
 </html>

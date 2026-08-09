@@ -13,6 +13,7 @@
     "bridge-tokens:ts": "tsx --env-file=.env bridge-tokens.ts",
     "swap-viem": "node --env-file=.env swap-viem.js",
     "swap-viem:ts": "tsx --env-file=.env swap-viem.ts",
+    "server": "node server.mjs",
     "build": "echo 'Build complete'"
   },
   "keywords": [

@@ -7,6 +7,8 @@
     "create-wallet": "node --env-file=.env create-wallet.js",
     "send-tokens": "node --env-file=.env send-tokens.js",
     "send-tokens:ts": "tsx --env-file=.env send-tokens.ts",
+    "send-kit": "node --env-file=.env send-kit.js",
+    "send-kit:ts": "tsx --env-file=.env send-kit.ts",
     "bridge-tokens": "node --env-file=.env bridge-tokens.js",
     "bridge-tokens:ts": "tsx --env-file=.env bridge-tokens.ts",
     "swap-viem": "node --env-file=.env swap-viem.js",

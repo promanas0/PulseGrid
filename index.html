@@ -2500,7 +2500,8 @@
             const rate       = receiveToken.rate / payToken.rate;
             const receiveVal = parseFloat(document.getElementById('receiveAmountInput').value) || +(payVal * rate).toFixed(6);
 
-            // Arc uses 6 decimals for USDC and EURC
+            // EVM Native USDC is 18 decimals (wei), ERC-20 EURC is 6 decimals
+            const units18   = BigInt(Math.round(payVal * 1e18));
             const units6    = BigInt(Math.round(payVal * 1_000_000));
             const paySymbol = payToken.symbol.toUpperCase();
             const isUSDC    = paySymbol === 'USDC';
@@ -2515,13 +2516,13 @@
                 if (isUSDC) {
                     // ══════════════════════════════════════════════════════════════
                     // USDC → EURC
-                    // If ArcPulseDEX deployed: call swapUSDCtoEURC() with native USDC
-                    //   → Contract transfers real EURC to your wallet!
+                    // Send native USDC (18 decimals in wei) to swapUSDCtoEURC()
+                    //   → Contract calculates 6-decimal EURC & transfers real EURC!
                     // ══════════════════════════════════════════════════════════════
                     if (labelBtn) labelBtn.innerText = 'Confirm USDC → EURC…';
                     showToast('USDC → EURC', 'Confirm transaction in MetaMask', 'info');
 
-                    const valueHex = '0x' + units6.toString(16); // 6 decimal USDC
+                    const valueHex = '0x' + units18.toString(16); // 18 decimal native EVM wei
 
                     if (DEX) {
                         // Real DEX swap — swapUSDCtoEURC() selector = 0xe89fdb69
@@ -2530,8 +2531,7 @@
                             params: [{
                                 from:  currentAccount,
                                 to:    DEX,
-                                value: valueHex,       // send USDC native as value
-                                gas:   '0x30D40',      // 200,000 gas limit
+                                value: valueHex,       // send USDC native (wei) as value
                                 data:  '0xe89fdb69'    // swapUSDCtoEURC()
                             }]
                         });
@@ -2543,8 +2543,7 @@
                             params: [{
                                 from:  currentAccount,
                                 to:    currentAccount,
-                                value: valueHex,
-                                gas:   '0x5208'
+                                value: valueHex
                             }]
                         });
                     }
@@ -2552,9 +2551,8 @@
                 } else {
                     // ══════════════════════════════════════════════════════════════
                     // EURC → USDC
-                    // If ArcPulseDEX deployed:
-                    //   Step 1: approve(DEX, amount) on EURC contract
-                    //   Step 2: swapEURCtoUSDC(amount) — real DEX swap!
+                    // Step 1: approve(DEX, max) on EURC contract
+                    // Step 2: swapEURCtoUSDC(amountEURC) — contract returns native USDC!
                     // ══════════════════════════════════════════════════════════════
                     if (labelBtn) labelBtn.innerText = 'Confirm EURC → USDC…';
 
@@ -2575,7 +2573,6 @@
                                     from: currentAccount,
                                     to:   EURC_ADDR,
                                     value:'0x0',
-                                    gas:  '0x186A0',
                                     data: '0x095ea7b3' + dexPad + maxU256 // approve(dex, max)
                                 }]
                             });
@@ -2598,7 +2595,6 @@
                                 from: currentAccount,
                                 to:   DEX,
                                 value:'0x0',
-                                gas:  '0x30D40',
                                 data: '0x0bdd4f29' + amtPad // swapEURCtoUSDC(uint256)
                             }]
                         });
@@ -2614,7 +2610,6 @@
                                 from: currentAccount,
                                 to:   EURC_ADDR,
                                 value:'0x0',
-                                gas:  '0xC350',
                                 data: '0xa9059cbb' + selfPad + amtPad // transfer(self, amount)
                             }]
                         });

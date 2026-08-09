@@ -1,0 +1,23 @@
+{
+  "name": "app-kit-send-browser-wallet",
+  "version": "1.0.0",
+  "description": "Circle App Kit Send Browser Wallet App for Arc Testnet",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.1.0"
+  },
+  "dependencies": {
+    "@circle-fin/developer-controlled-wallets": "latest",
+    "@circle-fin/adapter-viem-v2": "latest",
+    "@circle-fin/bridge-kit": "latest",
+    "@circle-fin/swap-kit": "latest",
+    "viem": "^2.21.0"
+  }
+}

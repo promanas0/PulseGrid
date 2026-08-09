@@ -30,10 +30,12 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
+    "@circle-fin/developer-controlled-wallets": "latest",
     "@circle-fin/adapter-viem-v2": "latest",
     "@circle-fin/bridge-kit": "latest",
-    "@circle-fin/developer-controlled-wallets": "latest",
-    "@circle-fin/swap-kit": "^1.5.1",
+    "@circle-fin/swap-kit": "latest",
+    "connectkit": "^1.7.3",
+    "wagmi": "^2.5.0",
     "viem": "^2.21.0"
   }
 }

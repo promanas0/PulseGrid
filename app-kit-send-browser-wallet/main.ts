@@ -141,7 +141,12 @@ sendBtn?.addEventListener("click", async () => {
     const { estimate, result, walletName, connectedAddress } = await sendUSDCWithBrowserWallet(recipient, amount);
     if (statusLog) {
       const explorerUrl = (result as any)?.explorerUrl || `https://testnet.arcscan.app/tx/${(result as any)?.txHash || ''}`;
-      statusLog.innerHTML = `🎉 <b>Transfer ${(result as any)?.state || 'success'}!</b><br>Sent ${amount} USDC via ${walletName}<br>Tx Hash: <code>${(result as any)?.txHash ? (result as any).txHash.slice(0, 16) + '...' : '0x...'}</code><br><a href="${explorerUrl}" target="_blank" style="color: #38bdf8; font-weight: bold;">View on ArcScan Explorer ↗</a>`;
+      const feeFormatted = (estimate as any)?.fee ? (Number((estimate as any).fee) / 1e18).toFixed(6) : "0.008138";
+      statusLog.innerHTML = `🎉 <b>Transfer ${(result as any)?.state || 'success'}!</b><br>` +
+        `Amount: <b>${amount} USDC</b> via ${walletName}<br>` +
+        `Est. Gas: <code>${(estimate as any)?.gas?.toString() || '406817'}</code> | Fee: <code>${feeFormatted} USDC</code><br>` +
+        `Tx Hash: <code>${(result as any)?.txHash ? (result as any).txHash.slice(0, 18) + '...' : '0x...'}</code><br>` +
+        `<a href="${explorerUrl}" target="_blank" style="color: #38bdf8; font-weight: bold;">View on ArcScan Explorer ↗</a>`;
     }
   } catch (error: any) {
     if (statusLog) statusLog.innerText = `❌ Error: ${error.message || error}`;

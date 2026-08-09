@@ -1,5 +1,5 @@
-import { AppKit } from "@circle-fin/app-kit";
-import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
+const { AppKit } = require("@circle-fin/app-kit");
+const { createCircleWalletsAdapter } = require("@circle-fin/adapter-circle-wallets");
 
 /**
  * Circle AppKit Send USDC using Circle Wallets Adapter (JS runner)

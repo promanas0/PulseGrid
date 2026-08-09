@@ -1,9 +1,8 @@
-const { AppKit } = require("@circle-fin/app-kit");
-const { createCircleWalletsAdapter } = require("@circle-fin/adapter-circle-wallets");
+import { AppKit } from "@circle-fin/app-kit";
+import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
 
 /**
- * Circle AppKit - Cross-Chain Bridge to Arc Testnet (JS runner)
- * Transfer 1.00 USDC from Solana Devnet -> Arc Testnet
+ * Circle AppKit - Cross-Chain CCTP Bridge to Arc Testnet (ES Module)
  */
 
 const kit = new AppKit();
@@ -17,7 +16,7 @@ const circleAdapter = createCircleWalletsAdapter({
 });
 
 async function main() {
-  console.log("🚀 Initiating Circle Cross-Chain Bridge to Arc Testnet...");
+  console.log("🚀 Initiating Circle Cross-Chain CCTP Bridge to Arc Testnet...");
   console.log("📌 Route: Solana_Devnet -> Arc_Testnet (1.00 USDC)");
 
   try {
@@ -27,9 +26,21 @@ async function main() {
       amount: "1.00",
     });
 
-    console.log("🎉 Bridge Transaction Result:", JSON.stringify(result, null, 2));
+    console.log(`📌 CCTP Bridge Status: ${result?.state || 'COMPLETE'}`);
+
+    if (result?.steps && Array.isArray(result.steps)) {
+      console.log("\n🔄 CCTP Step-by-Step Progress Trace:");
+      result.steps.forEach((step, index) => {
+        const icon = step.state === "success" ? "✅" : step.state === "error" ? "❌" : "⏳";
+        console.log(`  ${index + 1}. ${icon} Step: ${step.name} | Status: ${step.state}`);
+        if (step.txHash) console.log(`     Tx Hash: ${step.txHash}`);
+        if (step.error) console.log(`     Error Details: ${step.error}`);
+      });
+    }
+
+    console.dir({ result }, { depth: null, colors: true });
   } catch (error) {
-    console.error("📌 Circle Bridge Status:", error.message || error);
+    console.error("📌 Circle Bridge Execution Result:", error.message || error);
   }
 }
 

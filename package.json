@@ -25,8 +25,9 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@circle-fin/adapter-viem-v2": "^1.15.0",
+    "@circle-fin/adapter-viem-v2": "latest",
+    "@circle-fin/bridge-kit": "^1.13.0",
     "@circle-fin/developer-controlled-wallets": "latest",
-    "viem": "^2.55.11"
+    "viem": "^2.21.0"
   }
 }

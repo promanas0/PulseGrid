@@ -2197,6 +2197,16 @@
             if (strk) strk.innerText = `${userStreak} Days`;
         }
 
+        // EIP-6963 Multi-Injected Provider Discovery
+        window.eip6963Providers = new Map();
+        window.addEventListener("eip6963:announceProvider", (event) => {
+            if (event.detail && event.detail.info) {
+                window.eip6963Providers.set(event.detail.info.uuid, event.detail);
+                console.log("🔍 EIP-6963 Browser Wallet Discovered:", event.detail.info.name);
+            }
+        });
+        window.dispatchEvent(new Event("eip6963:requestProvider"));
+
         function markCheckInBtnCompleted() {
             const btn = document.getElementById('questCheckInBtn');
             if (btn) {

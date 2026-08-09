@@ -1,0 +1,26 @@
+{
+  "name": "archpulse",
+  "version": "1.0.0",
+  "description": "ArcPulse - High-performance Web3 DEX & Circle W3S Engine for Arc Testnet",
+  "main": "index.html",
+  "scripts": {
+    "create-wallet": "node --env-file=.env create-wallet.ts",
+    "build": "echo 'Build complete'"
+  },
+  "keywords": [
+    "arc-testnet",
+    "circle-w3s",
+    "dex",
+    "usdc",
+    "eurc"
+  ],
+  "author": "ProManas (ProBuilder Studio)",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@circle-fin/developer-controlled-wallets": "latest"
+  }
+}

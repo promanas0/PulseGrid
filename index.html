@@ -1504,9 +1504,9 @@
         let targetTokenSelectorType = null;
         let addedMetaMaskTokens = new Set(); 
 
-        // Arc Testnet Config
-        const ARC_CHAIN_ID_HEX = '0x4cef0a'; // 5042010 (Exact RPC Chain ID from Arc Testnet Node)
-        const ARC_CHAIN_ID_DECIMAL = 5042010;
+        // Arc Testnet Config (Official Circle Arc Testnet Chain ID 5042002)
+        const ARC_CHAIN_ID_HEX = '0x4cef02'; // 5042002
+        const ARC_CHAIN_ID_DECIMAL = 5042002;
 
         // Helper to convert plain string to 0x-prefixed hex string for EIP-1474 personal_sign
         function stringToHex(str) {
@@ -2497,6 +2497,33 @@
 
             const labelBtn      = document.getElementById('swapBtnLabel');
             const originalLabel = labelBtn ? labelBtn.innerText : 'Execute Arc Web3 Swap';
+
+            // Ensure wallet is connected to Arc Testnet (Chain ID 5042002)
+            try {
+                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                if (parseInt(chainId, 16) !== ARC_CHAIN_ID_DECIMAL) {
+                    showToast('Switching Network', 'Switching wallet to Arc Testnet (Chain ID 5042002)…', 'info');
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: ARC_CHAIN_ID_HEX }]
+                        });
+                    } catch (switchError) {
+                        if (switchError.code === 4902) {
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: ARC_CHAIN_ID_HEX,
+                                    chainName: 'Arc Testnet',
+                                    nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
+                                    rpcUrls: ['https://rpc.testnet.arc.network'],
+                                    blockExplorerUrls: ['https://testnet.arcscan.app/']
+                                }]
+                            });
+                        }
+                    }
+                }
+            } catch(e) {}
 
             // Official Arc Testnet token addresses (from docs.arc.network)
             const EURC_ADDR = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a'; // ERC-20

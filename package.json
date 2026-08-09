@@ -28,8 +28,9 @@
   },
   "dependencies": {
     "@circle-fin/adapter-viem-v2": "latest",
-    "@circle-fin/bridge-kit": "^1.13.0",
+    "@circle-fin/bridge-kit": "latest",
     "@circle-fin/developer-controlled-wallets": "latest",
+    "@circle-fin/swap-kit": "^1.5.1",
     "viem": "^2.21.0"
   }
 }

@@ -1,38 +1,49 @@
-import { createCircleAppKit } from "@circle-fin/app-kit";
+import { AppKit } from "@circle-fin/app-kit";
 import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
+import type { SwapParams } from "@circle-fin/app-kit";
 
 /**
- * Circle App Kit - Same Chain USDC/EURC Swap on Arc Testnet
- * Powered by ArcPulse Ecosystem
+ * Circle AppKit - Same Chain USDC -> EURC Swap on Arc Testnet
+ * Powered by ArcPulse Ecosystem by ProManas
  */
 
-const apiKey = process.env.CIRCLE_API_KEY || "TEST_API_KEY:ebb3ad72232624921abc4b162148bb84:019ef3358ef9cd6d08fc32csfe89a68d";
+const kit = new AppKit();
+
+const sourceWalletAddress = process.env.SOURCE_WALLET_ADDRESS || "YOUR_SOURCE_WALLET_ADDRESS";
+
+const adapter = createCircleWalletsAdapter({
+  apiKey: process.env.CIRCLE_API_KEY || "TEST_API_KEY:ebb3ad72232624921abc4b162148bb84:019ef3358ef9cd6d08fc32csfe89a68d",
+  entitySecret: process.env.CIRCLE_ENTITY_SECRET || "",
+});
+
+const swapParams: SwapParams = {
+  from: {
+    adapter,
+    chain: "Arc_Testnet",
+    address: sourceWalletAddress, // Omit the address if using Viem or Ethers adapters.
+  },
+  tokenIn: "USDC",
+  tokenOut: "EURC",
+  amountIn: "1.00",
+  config: {
+    kitKey: process.env.KIT_KEY as string, // optional — configure for production or high-volume usage
+  },
+};
 
 async function main() {
-  console.log("🚀 Initializing Circle App Kit Swap (Same Chain Arc Testnet)...");
-
-  const circleAdapter = createCircleWalletsAdapter({
-    apiKey: apiKey,
-  });
-
-  const appKit = createCircleAppKit({
-    adapters: [circleAdapter],
-  });
-
-  console.log("✅ Circle App Kit & Circle Wallets Adapter initialized successfully!");
-
+  console.log("🚀 Initiating Circle AppKit Swap Estimation on Arc Testnet...");
   try {
-    const swapResult = await appKit.swap({
-      from: { adapter: circleAdapter, chain: "Arc_Testnet" },
-      tokenIn: "USDC",
-      tokenOut: "EURC",
-      amountIn: "1.00",
-    });
+    const estimate = await kit.estimateSwap(swapParams);
+    console.dir({ estimate }, { depth: null, colors: true });
 
-    console.log("🎉 Swap Executed Successfully!", JSON.stringify(swapResult, null, 2));
+    console.log("🚀 Executing Circle AppKit Swap...");
+    const result = await kit.swap(swapParams);
+    console.dir({ result }, { depth: null, colors: true });
   } catch (error: any) {
-    console.log("📌 App Kit Swap Status:", error?.message || error);
+    console.error("📌 Circle AppKit Swap Status:", error?.message || error);
   }
 }
 
-main().catch(console.error);
+main().catch((err) => {
+  console.error("❌ Error:", err.message || err);
+});

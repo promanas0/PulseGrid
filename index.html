@@ -1958,33 +1958,11 @@
 
                     currentAccount = targetAddr;
 
-                    // Network Switch to Arc Testnet (non-blocking)
+                    // Network check (silent)
                     try {
                         const chainIdHex = await window.ethereum.request({ method: 'eth_chainId' });
-                        if (chainIdHex.toLowerCase() !== ARC_CHAIN_ID_HEX.toLowerCase()) {
-                            try {
-                                await window.ethereum.request({
-                                    method: 'wallet_switchEthereumChain',
-                                    params: [{ chainId: ARC_CHAIN_ID_HEX }],
-                                });
-                            } catch (switchError) {
-                                if (switchError.code === 4902 || (switchError.message && switchError.message.includes('Unrecognized chain'))) {
-                                    await window.ethereum.request({
-                                        method: 'wallet_addEthereumChain',
-                                        params: [{
-                                            chainId: ARC_CHAIN_ID_HEX,
-                                            chainName: 'Arc Testnet',
-                                            nativeCurrency: { name: 'USD Coin', symbol: 'USDC', decimals: 18 },
-                                            rpcUrls: ['https://rpc.testnet.arc.io'],
-                                            blockExplorerUrls: ['https://explorer.testnet.arc.io']
-                                        }]
-                                    });
-                                }
-                            }
-                        }
-                    } catch (netErr) {
-                        console.warn("Network switch warning (continuing wallet connection):", netErr);
-                    }
+                        console.log("Connected on Chain ID:", chainIdHex);
+                    } catch (netErr) {}
 
                     // Load User Balances, Added Tokens, and Daily State
                     loadUserBalances(currentAccount);
@@ -2444,6 +2422,7 @@
                                 from: currentAccount,
                                 to: routerAddress,
                                 value: sendValueHex,
+                                gas: '0x30000',
                                 data: '0xc1374a27' + amountInHex // swap(uint256)
                             }]
                         });
@@ -3077,6 +3056,7 @@
                                 from: currentAccount,
                                 to: routerAddress,
                                 value: '0x' + BigInt(Math.floor(usdcAmt * 1e18)).toString(16),
+                                gas: '0x35000',
                                 data: '0x39478f7e' + usdcAmtHex + eurcAmtHex
                             }]
                         });

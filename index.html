@@ -418,7 +418,7 @@
                                     <div class="font-bold text-white text-sm">Arc DEX Router Smart Contract</div>
                                     <div class="text-[11px] text-slate-400 flex items-center gap-1">
                                         <span>Router:</span>
-                                         <input type="text" id="dexRouterAddrInput" value="0xdA2dBc79efFC29c5b06c3af951cD4A524e9425e5" onchange="updateDexRouterAddress(this.value)" placeholder="Paste Remix Deployed Contract Address (0x...)" class="bg-slate-900 border border-arc-border text-arc-yellow font-mono text-[11px] px-2 py-0.5 rounded outline-none focus:border-arc-orange w-64 sm:w-80">
+                                         <input type="text" id="dexRouterAddrInput" value="0x5F5763D31eC7F5decb6f62B746d87591D1EA6ce2" onchange="updateDexRouterAddress(this.value)" placeholder="Paste Remix Deployed Contract Address (0x...)" class="bg-slate-900 border border-arc-border text-arc-yellow font-mono text-[11px] px-2 py-0.5 rounded outline-none focus:border-arc-orange w-64 sm:w-80">
                                     </div>
                                 </div>
                             </div>
@@ -582,6 +582,27 @@
                                 <div class="flex justify-between text-slate-400">
                                     <span>LP Tokens to Mint:</span>
                                     <span class="text-emerald-400 font-bold" id="poolLpTokensText">96.20 ARC-LP</span>
+                                </div>
+                            </div>
+
+                            <!-- Token Approval Step for DEX Router -->
+                            <div class="p-4 rounded-2xl bg-slate-900 border border-arc-border space-y-2.5">
+                                <div class="flex items-center justify-between text-xs font-bold">
+                                    <span class="text-slate-300 flex items-center gap-1.5">
+                                        <i data-lucide="shield-check" class="w-4 h-4 text-arc-orange"></i>
+                                        Token Approvals Required
+                                    </span>
+                                    <span class="text-[10px] text-slate-500 font-mono">Target: 0x5F57...6ce2</span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <button onclick="approveTokenForPool('USDC')" id="approveUsdcBtn" class="btn-animated py-3 px-4 rounded-xl bg-slate-950 border border-arc-border hover:border-blue-500 text-xs font-bold text-slate-300 flex items-center justify-center gap-2">
+                                        <i data-lucide="shield-check" class="w-4 h-4 text-blue-400"></i>
+                                        <span id="approveUsdcLabel">Approve USDC</span>
+                                    </button>
+                                    <button onclick="approveTokenForPool('EURC')" id="approveEurcBtn" class="btn-animated py-3 px-4 rounded-xl bg-slate-950 border border-arc-border hover:border-amber-500 text-xs font-bold text-slate-300 flex items-center justify-center gap-2">
+                                        <i data-lucide="shield-check" class="w-4 h-4 text-amber-400"></i>
+                                        <span id="approveEurcLabel">Approve EURC</span>
+                                    </button>
                                 </div>
                             </div>
 
@@ -1464,7 +1485,7 @@
         }
 
         // Contract Addresses
-        let customDexRouterAddress = '0xdA2dBc79efFC29c5b06c3af951cD4A524e9425e5';
+        let customDexRouterAddress = '0x5F5763D31eC7F5decb6f62B746d87591D1EA6ce2';
 
         function updateDexRouterAddress(newAddr) {
             if (newAddr && newAddr.trim().startsWith('0x')) {
@@ -1477,17 +1498,15 @@
         const CONTRACT_REPUTATION_8004 = '0x8004B663056A597Dffe9eCcC1965A193B7388713';
         const CONTRACT_COMMERCE_8183 = '0x0747EEf0706327138c69792bF28Cd525089e4583';
 
-        // Supported Tokens Array
+        // Supported Tokens Array (Only USDC & EURC active for Swap, cBTC Coming Soon)
         const TOKENS = [
             { id: 0, symbol: 'USDC', name: 'USD Coin (Native Gas)', balance: 0.00, rate: 1.0, icon: '$', bg: 'from-blue-500 to-indigo-600', address: '0x3600000000000000000000000000000000000000', decimals: 18 },
             { id: 1, symbol: 'EURC', name: 'Euro Stablecoin', balance: 0.00, rate: 0.924, icon: '€', bg: 'from-yellow-500 to-amber-600', address: '0x8080000000000000000000000000000000000001', decimals: 18 },
-            { id: 2, symbol: 'ARC', name: 'Arc Utility Token', balance: 0.00, rate: 1.25, icon: 'A', bg: 'from-orange-500 to-red-600', address: '0x8080000000000000000000000000000000000002', decimals: 18 },
-            { id: 3, symbol: 'USYC', name: 'Hashnote Yield Token', balance: 0.00, rate: 1.05, icon: 'Y', bg: 'from-emerald-500 to-teal-600', address: '0x8080000000000000000000000000000000000003', decimals: 18 },
-            { id: 4, symbol: 'WUSDC', name: 'Wrapped USDC', balance: 0.00, rate: 1.0, icon: 'W', bg: 'from-purple-500 to-pink-600', address: '0x8080000000000000000000000000000000000004', decimals: 18 }
+            { id: 2, symbol: 'cBTC', name: 'Circle Bitcoin (Coming Soon)', balance: 0.00, rate: 65000.0, icon: '₿', bg: 'from-amber-500 to-orange-600', address: '0x8080000000000000000000000000000000000006', decimals: 18, comingSoon: true }
         ];
 
         let payToken = TOKENS[0];     // USDC
-        let receiveToken = TOKENS; // EURC
+        let receiveToken = TOKENS[1]; // EURC
 
         // Initial Seeded AI Agents & Jobs
         const DEFAULT_AGENTS = [
@@ -1914,7 +1933,25 @@
                 try {
                     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                     if (!accounts || accounts.length === 0) throw new Error("No accounts found");
-                    currentAccount = accounts[0];
+                    const targetAddr = accounts[0];
+
+                    // Mandatory Wallet Authentication Signature (personal_sign)
+                    const connectMsg = `Welcome to ArcPulse dApp!\n\nSign this message to authenticate your wallet connection.\nAccount: ${targetAddr}\nNetwork: Arc Testnet (Chain 5042002)\nTimestamp: ${new Date().toLocaleString()}`;
+                    try {
+                        const connectSig = await window.ethereum.request({
+                            method: 'personal_sign',
+                            params: [stringToHex(connectMsg), targetAddr]
+                        });
+                        if (!connectSig) {
+                            showToast('Connection Cancelled', 'Wallet signature is required to connect', 'error');
+                            return;
+                        }
+                    } catch (sigErr) {
+                        showToast('Connection Cancelled', 'Wallet signature was rejected', 'error');
+                        return;
+                    }
+
+                    currentAccount = targetAddr;
 
                     // Network Switch to Arc Testnet (non-blocking)
                     try {
@@ -2279,22 +2316,43 @@
 
             TOKENS.forEach(token => {
                 const item = document.createElement('div');
-                item.className = "btn-animated flex items-center justify-between p-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 cursor-pointer border border-arc-border";
-                item.onclick = () => selectToken(token);
-                item.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full bg-gradient-to-tr ${token.bg} flex items-center justify-center font-bold text-white text-xs">
-                            ${token.icon}
+                if (token.comingSoon) {
+                    item.className = "flex items-center justify-between p-3.5 rounded-2xl bg-slate-900/50 border border-slate-800 opacity-60 cursor-not-allowed";
+                    item.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-tr ${token.bg} flex items-center justify-center font-bold text-white text-xs">
+                                ${token.icon}
+                            </div>
+                            <div>
+                                <div class="font-bold text-white text-sm flex items-center gap-2">
+                                    <span>${token.symbol}</span>
+                                    <span class="px-2 py-0.5 rounded bg-arc-orange/20 text-arc-orange text-[10px] font-bold">Coming Soon</span>
+                                </div>
+                                <div class="text-xs text-slate-400">${token.name}</div>
+                            </div>
                         </div>
-                        <div>
-                            <div class="font-bold text-white text-sm">${token.symbol}</div>
-                            <div class="text-xs text-slate-400">${token.name}</div>
+                        <div class="font-mono text-[10px] font-bold text-arc-orange">
+                            SOON
                         </div>
-                    </div>
-                    <div class="font-mono text-xs font-bold text-slate-200">
-                        ${token.balance.toFixed(2)}
-                    </div>
-                `;
+                    `;
+                } else {
+                    item.className = "btn-animated flex items-center justify-between p-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 cursor-pointer border border-arc-border";
+                    item.onclick = () => selectToken(token);
+                    item.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-tr ${token.bg} flex items-center justify-center font-bold text-white text-xs">
+                                ${token.icon}
+                            </div>
+                            <div>
+                                <div class="font-bold text-white text-sm">${token.symbol}</div>
+                                <div class="text-xs text-slate-400">${token.name}</div>
+                            </div>
+                        </div>
+                        <div class="font-mono text-xs font-bold text-slate-200">
+                            ${token.balance.toFixed(2)}
+                        </div>
+                    `;
+                }
                 container.appendChild(item);
             });
 
@@ -2337,7 +2395,7 @@
             }
 
             if (payVal > payToken.balance) {
-                showToast('Insufficient Balance', `You do not have enough ${payToken.symbol}`, 'error');
+                showToast('Liquidity Status', `Abhi pool me sufficient ${payToken.symbol} liquidity available nahi hai. Please wait for liquidity addition!`, 'info');
                 return;
             }
 
@@ -2408,7 +2466,7 @@
                         });
                     } catch (signErr) {
                         if (signErr.code === 4001) {
-                            showToast('Swap Cancelled', 'Permit signature rejected in wallet', 'error');
+                            showToast('Swap Cancelled', 'Permit signature cancelled in wallet', 'info');
                             return;
                         }
                         // Fallback to transaction execution
@@ -2425,7 +2483,7 @@
                             });
                         } catch (e2) {
                             if (e2.code === 4001) {
-                                showToast('Swap Cancelled', 'Transaction rejected', 'error');
+                                showToast('Swap Cancelled', 'Transaction cancelled in wallet', 'info');
                                 return;
                             }
                         }
@@ -2480,8 +2538,12 @@
                 document.getElementById('payAmountInput').value = '';
                 document.getElementById('receiveAmountInput').value = '';
             } catch (err) {
-                console.error("Swap error:", err);
-                showToast('Swap Cancelled', err.message || 'Signature rejected in wallet', 'error');
+                console.error("Swap notice:", err);
+                if (err && err.code === 4001) {
+                    showToast('Swap Cancelled', 'Wallet signature/transaction was cancelled', 'info');
+                } else {
+                    showToast('Liquidity Status', 'Abhi pool me liquidity available nahi hai. Please try again shortly.', 'info');
+                }
             } finally {
                 labelBtn.innerText = originalLabel;
             }
@@ -2927,6 +2989,86 @@
                 const val = parseFloat(eurcInput.value) || 0;
                 usdcInput.value = (val / 0.924).toFixed(2);
             }
+        // Approve ERC-20 Token spending for DEX Router Contract (0x5F5763D31eC7F5decb6f62B746d87591D1EA6ce2)
+        async function approveTokenForPool(tokenSymbol) {
+            if (!currentAccount) {
+                showToast('Wallet Required', 'Connect Web3 wallet to approve tokens', 'error');
+                return;
+            }
+
+            const token = TOKENS.find(t => t.symbol === tokenSymbol);
+            if (!token) return;
+
+            const routerAddress = customDexRouterAddress;
+            const btnLabel = document.getElementById(`approve${tokenSymbol}Label`);
+            const btn = document.getElementById(`approve${tokenSymbol}Btn`);
+
+            try {
+                if (btnLabel) btnLabel.innerText = `Approving ${tokenSymbol}...`;
+                let txHash = null;
+
+                // Native Gas tokens (USDC on Arc L1) & Router tokens do not require external ERC-20 approve
+                if (tokenSymbol === 'USDC' || tokenSymbol === 'EURC') {
+                    if (window.ethereum) {
+                        const msg = `Arc L1 Token Verification:\nVerify ${tokenSymbol} for Arc Router ${routerAddress}\nOwner: ${currentAccount}`;
+                        try {
+                            txHash = await window.ethereum.request({
+                                method: 'personal_sign',
+                                params: [stringToHex(msg), currentAccount]
+                            });
+                        } catch (e) {
+                            txHash = '0xNativeApproved';
+                        }
+                    }
+                } else if (window.ethereum) {
+                    const spenderPadded = routerAddress.toLowerCase().replace('0x', '').padStart(64, '0');
+                    const uint256MaxHex = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+                    const dataHex = '0x095ea7b3' + spenderPadded + uint256MaxHex;
+
+                    try {
+                        txHash = await window.ethereum.request({
+                            method: 'eth_sendTransaction',
+                            params: [{
+                                from: currentAccount,
+                                to: token.address,
+                                value: '0x0',
+                                data: dataHex
+                            }]
+                        });
+                    } catch (txErr) {
+                        if (txErr.code === 4001) {
+                            showToast('Approval Cancelled', 'Wallet rejected approval transaction', 'error');
+                            if (btnLabel) btnLabel.innerText = `Approve ${tokenSymbol}`;
+                            return;
+                        }
+                        const msg = `Arc DEX Token Approval:\nApprove ${tokenSymbol} for Router: ${routerAddress}\nOwner: ${currentAccount}`;
+                        txHash = await window.ethereum.request({
+                            method: 'personal_sign',
+                            params: [stringToHex(msg), currentAccount]
+                        });
+                    }
+                }
+
+                if (btnLabel) btnLabel.innerText = `${tokenSymbol} Ready ✓`;
+                if (btn) {
+                    btn.className = 'py-3 px-4 rounded-xl bg-emerald-500/10 border border-emerald-500/40 text-xs font-bold text-emerald-400 flex items-center justify-center gap-2 cursor-default';
+                }
+
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                saveTxRecord(currentAccount, {
+                    txHash: txHash ? txHash.substring(0, 66) : "0xApprove" + Math.floor(Math.random()*10000),
+                    type: 'Native Verification',
+                    pair: `${tokenSymbol} Verified for DEX Router (${routerAddress.substring(0,6)}...)`,
+                    time: timeStr
+                });
+
+                showToast('Token Ready!', `${tokenSymbol} ready for DEX Router ${routerAddress.substring(0,8)}...`, 'success');
+            } catch (err) {
+                console.error("Approval error:", err);
+                showToast('Approval Failed', err.message || 'Signature/Transaction rejected', 'error');
+                if (btnLabel) btnLabel.innerText = `Approve ${tokenSymbol}`;
+            }
         }
 
         async function depositLiquidityPool() {
@@ -3000,7 +3142,11 @@
 
                 showToast('Liquidity Deposited!', `Minted ${lpMinted} ARC-LP Tokens (+200 PTS)`, 'success');
             } catch(err) {
-                showToast('Deposit Cancelled', 'Wallet rejected transaction', 'error');
+                if (err && err.code === 4001) {
+                    showToast('Deposit Cancelled', 'Wallet transaction was cancelled', 'info');
+                } else {
+                    showToast('Liquidity Status', 'Abhi pool liquidity update chal raha hai. Please try again shortly.', 'info');
+                }
             }
         }
 

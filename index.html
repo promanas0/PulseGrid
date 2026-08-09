@@ -33,6 +33,8 @@
     </script>
     <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Circle App Kit Web3 SDK CDN -->
+    <script src="https://sdk.circle.com/web3services/0.2.0/circle-sdk.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap');
         
@@ -415,10 +417,15 @@
                             <div class="flex items-center gap-2.5 text-indigo-300">
                                 <i data-lucide="cpu" class="w-5 h-5 text-arc-orange"></i>
                                 <div>
-                                    <div class="font-bold text-white text-sm">Arc DEX Router Smart Contract</div>
-                                    <div class="text-[11px] text-slate-400 flex items-center gap-1">
+                                    <div class="font-bold text-white text-sm flex items-center gap-2">
+                                        <span>Arc DEX Router & Circle App Kit</span>
+                                        <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-400 text-[10px] border border-sky-500/30 font-mono">Circle App Kit Enabled</span>
+                                    </div>
+                                    <div class="text-[11px] text-slate-400 flex flex-wrap items-center gap-2 mt-1">
                                         <span>Router:</span>
-                                         <input type="text" id="dexRouterAddrInput" value="0x5F5763D31eC7F5decb6f62B746d87591D1EA6ce2" onchange="updateDexRouterAddress(this.value)" placeholder="Paste Remix Deployed Contract Address (0x...)" class="bg-slate-900 border border-arc-border text-arc-yellow font-mono text-[11px] px-2 py-0.5 rounded outline-none focus:border-arc-orange w-64 sm:w-80">
+                                        <input type="text" id="dexRouterAddrInput" value="0x5F5763D31eC7F5decb6f62B746d87591D1EA6ce2" onchange="updateDexRouterAddress(this.value)" placeholder="Paste Remix Deployed Contract Address (0x...)" class="bg-slate-900 border border-arc-border text-arc-yellow font-mono text-[11px] px-2 py-0.5 rounded outline-none focus:border-arc-orange w-48 sm:w-64">
+                                        <span>Circle App Key:</span>
+                                        <input type="text" id="circleAppIdInput" value="circle_app_arc_testnet_v2" onchange="updateCircleAppId(this.value)" placeholder="Circle App Key / Client ID" class="bg-slate-900 border border-arc-border text-sky-400 font-mono text-[11px] px-2 py-0.5 rounded outline-none focus:border-sky-400 w-44 sm:w-56">
                                     </div>
                                 </div>
                             </div>
@@ -440,9 +447,10 @@
                     <div id="swapCardContainer" class="bg-arc-card border border-arc-border rounded-3xl p-6 sm:p-10 glow-orange relative">
                         <div class="flex items-center justify-between mb-8">
                             <div>
-                                <h2 class="text-3xl font-black text-white flex items-center gap-3">
+                                <h2 class="text-2xl sm:text-3xl font-black text-white flex flex-wrap items-center gap-3">
                                     <i data-lucide="repeat" class="w-7 h-7 text-arc-orange"></i>
-                                    Arc DEX Multi-Token Swap
+                                    <span>Swap on Arc Testnet</span>
+                                    <span class="text-xs text-sky-400 font-mono font-bold bg-sky-500/10 px-2.5 py-1 rounded-full border border-sky-500/30">· Circle App Kit</span>
                                 </h2>
                                 <p class="text-xs text-slate-400 mt-1.5">Swap real Arc Testnet tokens with live wallet balances & transactions</p>
                             </div>
@@ -1491,11 +1499,20 @@
 
         // Contract Addresses
         let customDexRouterAddress = '0x5F5763D31eC7F5decb6f62B746d87591D1EA6ce2';
+        let circleAppId = localStorage.getItem('arc_circle_app_id') || 'circle_app_arc_testnet_v2';
 
         function updateDexRouterAddress(newAddr) {
             if (newAddr && newAddr.trim().startsWith('0x')) {
                 customDexRouterAddress = newAddr.trim();
                 showToast('Router Updated', `DEX Router set to ${customDexRouterAddress.substring(0,8)}...`, 'success');
+            }
+        }
+
+        function updateCircleAppId(newId) {
+            if (newId && newId.trim()) {
+                circleAppId = newId.trim();
+                localStorage.setItem('arc_circle_app_id', circleAppId);
+                showToast('Circle App Kit', `Circle App Key configured: ${circleAppId}`, 'success');
             }
         }
 

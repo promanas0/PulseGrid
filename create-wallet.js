@@ -1,4 +1,4 @@
-import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
+const { initiateDeveloperControlledWalletsClient } = require("@circle-fin/developer-controlled-wallets");
 
 /**
  * Circle Developer Controlled Wallet Creation Script
@@ -44,7 +44,7 @@ async function main() {
   console.log("Arc wallet:", JSON.stringify(arcWalletResponse.data, null, 2));
 }
 
-main().catch((err: any) => {
+main().catch((err) => {
   console.error("❌ Error:", err.message || err);
   process.exit(1);
 });

@@ -2165,8 +2165,10 @@
         }
 
         function updateUserPointsUI() {
-            document.getElementById('userPointsVal').innerText = `${userPoints} PTS`;
-            document.getElementById('userStreakVal').innerText = `${userStreak} Days`;
+            const pts = document.getElementById('userPointsVal');
+            if (pts) pts.innerText = `${userPoints} PTS`;
+            const strk = document.getElementById('userStreakVal');
+            if (strk) strk.innerText = `${userStreak} Days`;
         }
 
         function markCheckInBtnCompleted() {
@@ -2283,10 +2285,17 @@
         }
 
         function updateTokenBalancesUI() {
-            document.getElementById('payTokenSymbol').innerText = payToken.symbol;
-            document.getElementById('payTokenBalance').innerText = payToken.balance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            document.getElementById('receiveTokenSymbol').innerText = receiveToken.symbol;
-            document.getElementById('receiveTokenBalance').innerText = receiveToken.balance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            const elPaySym = document.getElementById('payTokenSymbol');
+            if (elPaySym) elPaySym.innerText = payToken.symbol;
+
+            const elPayBal = document.getElementById('payTokenBalance');
+            if (elPayBal) elPayBal.innerText = payToken.balance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            const elRecSym = document.getElementById('receiveTokenSymbol');
+            if (elRecSym) elRecSym.innerText = receiveToken.symbol;
+
+            const elRecBal = document.getElementById('receiveTokenBalance');
+            if (elRecBal) elRecBal.innerText = receiveToken.balance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             
             const addMetaBtnContainer = document.getElementById('addMetaMaskBtnContainer');
             if (addMetaBtnContainer) {
@@ -2305,7 +2314,7 @@
                         </button>
                     `;
                 }
-                lucide.createIcons();
+                if (window.lucide) lucide.createIcons();
             }
         }
 

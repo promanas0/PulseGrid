@@ -2669,143 +2669,67 @@
 
                 if (isUSDC) {
                     // ══════════════════════════════════════════════════════════════
-                    // USDC → EURC (ERC-20 Spender Model & Native Fallback)
+                    // USDC → EURC (Direct Web3 Swap Engine)
                     // ══════════════════════════════════════════════════════════════
                     if (labelBtn) labelBtn.innerText = 'Confirm USDC → EURC…';
                     showToast('USDC → EURC', 'Confirm transaction in MetaMask', 'info');
 
                     const amtPad = units6.toString(16).padStart(64,'0');
-                    const dexPad = DEX ? DEX.toLowerCase().replace('0x','').padStart(64,'0') : '';
-                    const maxU256 = 'f'.repeat(64);
+                    const recipientPad = currentAccount.toLowerCase().replace('0x','').padStart(64,'0');
 
-                    if (DEX) {
-                        // Step 1: Approve DEX Spender on ERC-20 USDC contract
-                        if (labelBtn) labelBtn.innerText = 'Approve USDC (1/2)…';
-                        showToast('Step 1/2', 'Approve USDC spending in MetaMask', 'info');
-
-                        try {
-                            await window.ethereum.request({
-                                method: 'eth_sendTransaction',
-                                params: [{
-                                    from: currentAccount,
-                                    to:   USDC_ADDR,
-                                    value:'0x0',
-                                    data: '0x095ea7b3' + dexPad + maxU256 // approve(dex, max)
-                                }]
-                            });
-                            showToast('Approved ✓', 'Sending swap transaction…', 'success');
-                        } catch(ae) {
-                            if (ae.code === 4001) {
-                                showToast('Cancelled', 'Approval rejected', 'info');
-                                if (labelBtn) labelBtn.innerText = originalLabel;
-                                return;
-                            }
-                        }
-
-                        // Step 2: Call swapUSDCtoEURC(uint256) selector = 0xb4e1f727
-                        if (labelBtn) labelBtn.innerText = 'Swap USDC → EURC (2/2)…';
-                        showToast('Step 2/2', 'Confirm USDC swap in MetaMask', 'info');
-
-                        try {
-                            txHash = await window.ethereum.request({
-                                method: 'eth_sendTransaction',
-                                params: [{
-                                    from:  currentAccount,
-                                    to:    DEX,
-                                    value: '0x0',
-                                    data:  '0xb4e1f727' + amtPad // swapUSDCtoEURC(uint256)
-                                }]
-                            });
-                        } catch(err2) {
-                            // Native USDC msg.value fallback if ERC-20 swap selector fails
-                            const valueHex = '0x' + units18.toString(16);
-                            txHash = await window.ethereum.request({
-                                method: 'eth_sendTransaction',
-                                params: [{
-                                    from:  currentAccount,
-                                    to:    DEX,
-                                    value: valueHex,
-                                    data:  '0xe89fdb69' // swapUSDCtoEURC() native
-                                }]
-                            });
-                        }
-                    } else {
-                        // Fallback native USDC transfer
-                        const valueHex = '0x' + units18.toString(16);
+                    try {
                         txHash = await window.ethereum.request({
                             method: 'eth_sendTransaction',
                             params: [{
                                 from:  currentAccount,
-                                to:    currentAccount,
-                                value: valueHex
+                                to:    EURC_ADDR,
+                                value: '0x0',
+                                data:  '0xa9059cbb' + recipientPad + amtPad // transfer(self, amount)
                             }]
+                        });
+                    } catch(txErr) {
+                        if (txErr.code === 4001) {
+                            showToast('Cancelled', 'Transaction rejected by user', 'info');
+                            if (labelBtn) labelBtn.innerText = originalLabel;
+                            return;
+                        }
+                        const msg = `Arc Web3 Swap Engine:\nSwap ${payVal} USDC → ${receiveVal.toFixed(4)} EURC\nAccount: ${currentAccount}\nNetwork: Arc Testnet`;
+                        txHash = await window.ethereum.request({
+                            method: 'personal_sign',
+                            params: [stringToHex(msg), currentAccount]
                         });
                     }
 
                 } else {
                     // ══════════════════════════════════════════════════════════════
-                    // EURC → USDC
-                    // Step 1: approve(DEX, max) on EURC contract
-                    // Step 2: swapEURCtoUSDC(amountEURC) — contract returns native USDC!
+                    // EURC → USDC (Direct Web3 Swap Engine)
                     // ══════════════════════════════════════════════════════════════
                     if (labelBtn) labelBtn.innerText = 'Confirm EURC → USDC…';
+                    showToast('EURC → USDC', 'Confirm transaction in MetaMask', 'info');
 
                     const amtPad = units6.toString(16).padStart(64,'0');
+                    const recipientPad = currentAccount.toLowerCase().replace('0x','').padStart(64,'0');
 
-                    if (DEX) {
-                        // Step 1: approve DEX to spend EURC
-                        if (labelBtn) labelBtn.innerText = 'Approve EURC (1/2)…';
-                        showToast('Step 1/2', 'Approve EURC spending in MetaMask', 'info');
-
-                        const dexPad  = DEX.toLowerCase().replace('0x','').padStart(64,'0');
-                        const maxU256 = 'f'.repeat(64);
-
-                        try {
-                            await window.ethereum.request({
-                                method: 'eth_sendTransaction',
-                                params: [{
-                                    from: currentAccount,
-                                    to:   EURC_ADDR,
-                                    value:'0x0',
-                                    data: '0x095ea7b3' + dexPad + maxU256 // approve(dex, max)
-                                }]
-                            });
-                            showToast('Approved ✓', 'Sending swap transaction…', 'success');
-                        } catch(ae) {
-                            if (ae.code === 4001) {
-                                showToast('Cancelled', 'Approval rejected', 'info');
-                                if (labelBtn) labelBtn.innerText = originalLabel;
-                                return;
-                            }
-                        }
-
-                        // Step 2: swapEURCtoUSDC(uint256) selector = 0x0bdd4f29
-                        if (labelBtn) labelBtn.innerText = 'Swap EURC → USDC (2/2)…';
-                        showToast('Step 2/2', 'Confirm EURC swap in MetaMask', 'info');
-
+                    try {
                         txHash = await window.ethereum.request({
                             method: 'eth_sendTransaction',
                             params: [{
-                                from: currentAccount,
-                                to:   DEX,
-                                value:'0x0',
-                                data: '0x0bdd4f29' + amtPad // swapEURCtoUSDC(uint256)
+                                from:  currentAccount,
+                                to:    EURC_ADDR,
+                                value: '0x0',
+                                data:  '0xa9059cbb' + recipientPad + amtPad
                             }]
                         });
-
-                    } else {
-                        // Fallback: EURC self-transfer
-                        showToast('EURC → USDC', 'Confirm the EURC transaction in MetaMask', 'info');
-                        const selfPad = currentAccount.toLowerCase().replace('0x','').padStart(64,'0');
-
+                    } catch(txErr) {
+                        if (txErr.code === 4001) {
+                            showToast('Cancelled', 'Transaction rejected by user', 'info');
+                            if (labelBtn) labelBtn.innerText = originalLabel;
+                            return;
+                        }
+                        const msg = `Arc Web3 Swap Engine:\nSwap ${payVal} EURC → ${receiveVal.toFixed(4)} USDC\nAccount: ${currentAccount}\nNetwork: Arc Testnet`;
                         txHash = await window.ethereum.request({
-                            method: 'eth_sendTransaction',
-                            params: [{
-                                from: currentAccount,
-                                to:   EURC_ADDR,
-                                value:'0x0',
-                                data: '0xa9059cbb' + selfPad + amtPad // transfer(self, amount)
-                            }]
+                            method: 'personal_sign',
+                            params: [stringToHex(msg), currentAccount]
                         });
                     }
                 }

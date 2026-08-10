@@ -27,17 +27,23 @@ async function runSwap() {
       return;
     }
 
-    // Initialize Viem Adapter
-    const viemAdapter = createViemAdapterFromPrivateKey({
+    const walletAddress = process.env.USER_WALLET_ADDRESS || account.address;
+
+    // Initialize Viem Adapter directly from Private Key
+    const adapter = createViemAdapterFromPrivateKey({
       privateKey: account.privateKey,
     });
 
     const kit = new AppKit();
 
-    console.log("🔄 Executing Circle App Kit Viem On-Chain Swap (1.00 USDC → EURC)...");
+    console.log(`🔄 Executing Circle App Kit Viem On-Chain Swap for Address: ${walletAddress}...`);
 
     const result = await kit.swap({
-      from: { adapter: viemAdapter, chain: "Arc_Testnet" },
+      from: {
+        adapter,
+        chain: "Arc_Testnet",
+        address: walletAddress,
+      },
       tokenIn: "USDC",
       tokenOut: "EURC",
       amountIn: "1.00",

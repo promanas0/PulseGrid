@@ -249,7 +249,7 @@
         </button>
     </header>
 
-    <!-- PERSISTENT LEFT SIDEBAR NAVIGATION BAR (CLEAN ICONS, NO EMOJIS, CENTERED BRAND TAGLINE) -->
+    <!-- PERSISTENT LEFT SIDEBAR NAVIGATION BAR -->
     <aside id="mainSidebar" class="fixed inset-y-0 left-0 z-50 w-72 sm:w-80 bg-white border-r-4 border-slate-950 flex flex-col justify-between p-4 shadow-[6px_0px_0px_rgba(0,0,0,0.05)] overflow-y-auto sidebar-mobile-hidden lg:transform-none">
         
         <div class="space-y-5">
@@ -297,7 +297,6 @@
                     <span>Swap & AMM</span>
                 </button>
 
-                <!-- Section - Arc Web3 Wallet (WalletConnect v2 Enabled) -->
                 <button onclick="switchPage('wallet')" id="nav-btn-wallet" class="sidebar-link w-full justify-between">
                     <div class="flex items-center gap-2.5">
                         <i data-lucide="wallet" class="w-5 h-5 shrink-0 text-purple-700"></i>
@@ -306,7 +305,6 @@
                     <span class="font-silkscreen text-[8px] bg-sky-100 text-sky-900 border border-sky-600 px-1.5 py-0.5 rounded font-bold">WALLETCONNECT</span>
                 </button>
 
-                <!-- Section - Portfolio & Analytics -->
                 <button onclick="switchPage('portfolio')" id="nav-btn-portfolio" class="sidebar-link w-full justify-between">
                     <div class="flex items-center gap-2.5">
                         <i data-lucide="pie-chart" class="w-5 h-5 shrink-0 text-indigo-600"></i>
@@ -315,7 +313,6 @@
                     <span class="font-silkscreen text-[8px] bg-indigo-100 text-indigo-900 border border-indigo-500 px-1.5 py-0.5 rounded font-bold">STATS</span>
                 </button>
 
-                <!-- Section - NFT & Token Market -->
                 <button onclick="switchPage('market')" id="nav-btn-market" class="sidebar-link w-full justify-between">
                     <div class="flex items-center gap-2.5">
                         <i data-lucide="shopping-cart" class="w-5 h-5 shrink-0 text-teal-600"></i>
@@ -387,7 +384,6 @@
         <!-- BOTTOM SECTION: WALLET & DISCONNECT BUTTON -->
         <div class="mt-6 pt-4 border-t-3 border-slate-950 space-y-3">
             
-            <!-- Connected Wallet Status Box -->
             <div id="sidebarWalletInfoBox" class="hidden p-3 rounded-xl bg-purple-50 border-2 border-slate-950 font-mono text-xs space-y-1.5 shadow-[3px_3px_0px_#0F172A]">
                 <div class="flex items-center justify-between text-[11px]">
                     <span class="text-slate-500 font-bold">Connected Account:</span>
@@ -400,7 +396,6 @@
                 </div>
             </div>
 
-            <!-- DISCONNECT BUTTON AT THE VERY BOTTOM OF SIDEBAR -->
             <div id="sidebarWalletActionContainer">
                 <button id="sidebarConnectBtn" onclick="handleWalletClick()" class="btn-pixel w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-700 via-indigo-600 to-teal-600 text-white font-pixel font-bold text-sm flex items-center justify-center gap-2 shadow-[4px_4px_0px_#0F172A]">
                     <i data-lucide="wallet" class="w-4 h-4"></i>
@@ -413,7 +408,6 @@
                 </button>
             </div>
             
-            <!-- Centered Bottom Footer Line -->
             <div class="text-center pt-1">
                 <p class="text-[10px] text-slate-400 font-mono">ArcPulse L1 Ecosystem • v1.0</p>
             </div>
@@ -742,10 +736,17 @@
                         </div>
                     </div>
 
-                    <button onclick="handleWalletClick()" class="btn-pixel px-4 py-2.5 rounded-xl bg-white text-slate-950 text-xs font-bold flex items-center gap-2 shrink-0">
-                        <i data-lucide="power" class="w-4 h-4 text-rose-600"></i>
-                        <span id="walletConnectStatusText">Connect Wallet</span>
-                    </button>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button onclick="requestOptionalAuthSignature()" class="btn-pixel-sm px-3.5 py-2.5 rounded-xl bg-purple-100 text-purple-900 border-2 border-purple-600 text-xs font-bold flex items-center gap-1.5">
+                            <i data-lucide="shield-check" class="w-4 h-4 text-purple-700"></i>
+                            Verify Session
+                        </button>
+
+                        <button onclick="handleWalletClick()" class="btn-pixel px-4 py-2.5 rounded-xl bg-white text-slate-950 text-xs font-bold flex items-center gap-2">
+                            <i data-lucide="power" class="w-4 h-4 text-rose-600"></i>
+                            <span id="walletConnectStatusText">Connect Wallet</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Wallet Portfolio Net Worth Display -->
@@ -755,7 +756,7 @@
                     <div class="text-xs font-mono text-slate-600 font-bold">Native Arc Gas Fee Paid in USDC</div>
                 </div>
 
-                <!-- Wallet Action Buttons (Send, Receive, Swap, Faucet) -->
+                <!-- Wallet Action Buttons -->
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-xl mx-auto">
                     <button onclick="openWalletSendModal()" class="btn-pixel py-3 rounded-xl bg-purple-700 text-white text-xs font-bold flex items-center justify-center gap-2">
                         <i data-lucide="send" class="w-4 h-4"></i>
@@ -773,168 +774,6 @@
                         <i data-lucide="droplet" class="w-4 h-4"></i>
                         Faucet
                     </button>
-                </div>
-            </div>
-
-            <!-- Wallet Tabs Navigation -->
-            <div class="pixel-card p-6 space-y-6">
-                <div class="flex border-b-2 border-slate-950 pb-2 gap-3 overflow-x-auto">
-                    <button onclick="switchWalletTab('tokens')" id="walletTabBtn-tokens" class="font-pixel font-bold text-sm px-4 py-2 rounded-xl bg-purple-700 text-white border-2 border-slate-950 flex items-center gap-2 shrink-0">
-                        <i data-lucide="coins" class="w-4 h-4"></i> Tokens & Balances
-                    </button>
-                    <button onclick="switchWalletTab('activity')" id="walletTabBtn-activity" class="font-pixel font-bold text-sm px-4 py-2 rounded-xl text-slate-700 hover:text-slate-950 flex items-center gap-2 shrink-0">
-                        <i data-lucide="activity" class="w-4 h-4"></i> Real Activity Log
-                    </button>
-                    <button onclick="switchWalletTab('nfts')" id="walletTabBtn-nfts" class="font-pixel font-bold text-sm px-4 py-2 rounded-xl text-slate-700 hover:text-slate-950 flex items-center gap-2 shrink-0">
-                        <i data-lucide="shield-check" class="w-4 h-4"></i> Badges & Pass
-                    </button>
-                </div>
-
-                <!-- SUB-TAB 1: TOKENS LIST -->
-                <div id="walletTabContent-tokens" class="space-y-3 font-mono text-xs">
-                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white text-sm">$</div>
-                            <div>
-                                <div class="font-bold text-slate-950 text-sm">USDC</div>
-                                <div class="text-[11px] text-slate-500">Native Arc L1 Gas Token</div>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div id="walletTabUsdcBal" class="font-bold text-slate-950 text-sm">0.00 USDC</div>
-                            <div id="walletTabUsdcUsd" class="text-[11px] text-emerald-700 font-bold">$0.00 USD</div>
-                        </div>
-                    </div>
-
-                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center font-bold text-slate-950 text-sm">€</div>
-                            <div>
-                                <div class="font-bold text-slate-950 text-sm">EURC</div>
-                                <div class="text-[11px] text-slate-500">Euro Stablecoin</div>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div id="walletTabEurcBal" class="font-bold text-slate-950 text-sm">0.00 EURC</div>
-                            <div id="walletTabEurcUsd" class="text-[11px] text-amber-700 font-bold">€0.00 EUR</div>
-                        </div>
-                    </div>
-
-                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-teal-600 flex items-center justify-center font-bold text-white text-sm">LP</div>
-                            <div>
-                                <div class="font-bold text-slate-950 text-sm">ARC-LP</div>
-                                <div class="text-[11px] text-slate-500">USDC/EURC AMM Liquidity Share</div>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div id="walletTabLpBal" class="font-bold text-slate-950 text-sm">0.00 ARC-LP</div>
-                            <div class="text-[11px] text-teal-700 font-bold">0.00% Share</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SUB-TAB 2: REAL ACTIVITY LOG -->
-                <div id="walletTabContent-activity" class="hidden space-y-3 font-mono text-xs">
-                    <div id="walletRealTxListContainer">
-                        <div class="p-8 text-center text-slate-500 font-sans italic space-y-2">
-                            <i data-lucide="inbox" class="w-8 h-8 mx-auto text-slate-400"></i>
-                            <div class="font-bold text-slate-800 text-sm">No real transactions recorded yet.</div>
-                            <div class="text-xs text-slate-500">Connect your Web3 wallet via WalletConnect and perform a swap, token send, or check-in on Arc Testnet.</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SUB-TAB 3: BADGES & COLLECTIBLES -->
-                <div id="walletTabContent-nfts" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono text-xs">
-                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-purple-600 to-teal-500 border-2 border-slate-950 flex items-center justify-center text-white shrink-0">
-                            <i data-lucide="shield-check" class="w-6 h-6"></i>
-                        </div>
-                        <div>
-                            <div class="font-bold text-slate-950 text-sm">Arc Genesis Builder Pass</div>
-                            <div class="text-[11px] text-purple-700 font-bold">Verified Testnet Builder Pass</div>
-                        </div>
-                    </div>
-
-                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-indigo-600 to-emerald-500 border-2 border-slate-950 flex items-center justify-center text-white shrink-0">
-                            <i data-lucide="award" class="w-6 h-6"></i>
-                        </div>
-                        <div>
-                            <div class="font-bold text-slate-950 text-sm">Circle Consortium Pass</div>
-                            <div class="text-[11px] text-emerald-700 font-bold">Level 1 Ecosystem Pass</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- PAGE 4: PORTFOLIO & ANALYTICS VIEW -->
-        <section id="view-portfolio" class="page-view hidden space-y-8">
-            <div class="pixel-hero-gradient p-6 sm:p-10 text-white">
-                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                    <div>
-                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 border border-white/40 font-silkscreen text-xs font-bold mb-3 shadow-sm">
-                            <i data-lucide="pie-chart" class="w-4 h-4"></i>
-                            Arc On-Chain Portfolio & Deployed Contracts Analytics
-                        </div>
-                        <h1 class="font-pixel text-3xl sm:text-4xl font-black text-white">Portfolio & Contract Analytics</h1>
-                        <p class="text-white/90 text-sm mt-2 max-w-xl leading-relaxed font-medium">
-                            Track total wallet net worth, deployed smart contracts, AI agent credentials, and on-chain interaction stats on Arc Testnet.
-                        </p>
-                    </div>
-
-                    <div class="flex items-center gap-3 bg-white border-3 border-slate-950 p-4 rounded-xl shadow-md text-slate-950 font-mono shrink-0">
-                        <div>
-                            <div class="text-[10px] font-silkscreen text-slate-500 uppercase">Est. Portfolio Value</div>
-                            <div id="portfolioNetWorth" class="font-pixel text-2xl font-black text-purple-700">$0.00 USD</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Portfolio Stats Row -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                <div class="pixel-card p-5 font-mono">
-                    <div class="text-xs text-slate-500 font-bold uppercase mb-1">Deployed Contracts</div>
-                    <div class="text-3xl font-black text-purple-700 font-pixel">3 Contracts</div>
-                    <div class="text-[11px] text-slate-600 mt-2 font-sans font-medium">DEX Router, ERC-8004 Agent, ERC-8183 Escrow</div>
-                </div>
-
-                <div class="pixel-card p-5 font-mono">
-                    <div class="text-xs text-slate-500 font-bold uppercase mb-1">Real Wallet Txns</div>
-                    <div id="portfolioTxCount" class="text-3xl font-black text-teal-700 font-pixel">0 Txns</div>
-                    <div class="text-[11px] text-slate-600 mt-2 font-sans font-medium">Verified on Arc L1 Explorer</div>
-                </div>
-
-                <div class="pixel-card p-5 font-mono">
-                    <div class="text-xs text-slate-500 font-bold uppercase mb-1">NFT Badges & Passes</div>
-                    <div class="text-3xl font-black text-indigo-700 font-pixel">2 Verified</div>
-                    <div class="text-[11px] text-slate-600 mt-2 font-sans font-medium">Genesis Builder + Consortium Pass</div>
-                </div>
-            </div>
-        </section>
-
-        <!-- PAGE 5: NFT & TOKEN MARKET VIEW -->
-        <section id="view-market" class="page-view hidden space-y-8">
-            <div class="pixel-hero-gradient p-8 sm:p-10 text-white relative overflow-hidden">
-                <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                    <div>
-                        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-400 text-slate-950 font-silkscreen text-xs font-bold mb-3 shadow-md">
-                            <i data-lucide="sparkles" class="w-4 h-4"></i>
-                            COMING SOON • ARC NFT & TOKEN MARKETPLACE
-                        </div>
-                        <h1 class="font-pixel text-3xl sm:text-5xl font-black text-white drop-shadow-md">NFT & Token Market</h1>
-                        <p class="text-white/90 text-sm mt-3 max-w-xl leading-relaxed font-medium">
-                            An upcoming decentralized marketplace on Circle Arc L1 for trading Genesis Builder NFTs, AI Agent Ownership Keys, and Synthetic Yield Tokens.
-                        </p>
-                    </div>
-
-                    <div class="px-5 py-3 rounded-xl bg-white text-slate-950 font-pixel font-bold text-sm border-2 border-slate-950 shadow-md shrink-0">
-                        Launching Post-Sept 16 Mainnet
-                    </div>
                 </div>
             </div>
         </section>
@@ -956,7 +795,7 @@
                 </button>
             </div>
 
-            <p class="text-xs text-slate-600 font-medium">2-Step Secure Authentication: 1) Connect Provider, 2) Sign Message to Verify Session on Arc Testnet (Chain 5042002).</p>
+            <p class="text-xs text-slate-600 font-medium">Select your preferred Web3 provider to connect securely on Arc L1 Testnet (Chain ID 5042002).</p>
 
             <div class="space-y-3 pt-1 font-mono text-xs">
                 <!-- FEATURED #1: WALLETCONNECT -->
@@ -984,19 +823,6 @@
                         </div>
                     </div>
                     <span class="px-2 py-0.5 rounded font-silkscreen bg-emerald-100 text-emerald-900 text-[9px] font-bold border border-emerald-500">Detected</span>
-                </button>
-
-                <button onclick="connectProvider('coinbase')" class="btn-pixel-sm w-full p-3.5 rounded-xl bg-slate-50 border-2 border-slate-950 hover:bg-purple-50 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-lg bg-blue-100 border border-blue-500 flex items-center justify-center font-bold text-blue-600 text-xs">
-                            <i data-lucide="shield-check" class="w-5 h-5"></i>
-                        </div>
-                        <div class="text-left">
-                            <div class="font-bold text-slate-950 text-sm font-sans">Coinbase Wallet</div>
-                            <div class="text-[11px] text-slate-500">Coinbase Web3 SDK</div>
-                        </div>
-                    </div>
-                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
                 </button>
             </div>
         </div>
@@ -1137,7 +963,7 @@
             }
         }
 
-        // 2-STEP WALLET AUTHENTICATION (1. CONNECT PROVIDER -> 2. SIGN MESSAGE AUTHENTICATION)
+        // FAIL-SAFE INSTANT CONNECT FLOW
         function handleWalletClick() {
             if (currentAccount) {
                 disconnectWallet();
@@ -1186,33 +1012,8 @@
 
                 if (!account) return;
 
-                // STEP 1 COMPLETE: SHOW NOTIFICATION & REQUEST STEP 2 AUTHENTICATION SIGNATURE
-                showToast('Wallet Linked (1/2)', 'Step 1 complete! Requesting authentication signature in wallet...', 'info');
-
-                // STEP 2: PROMPT FOR SIGNATURE AUTHENTICATION AFTER 600ms DELAY
-                setTimeout(async () => {
-                    try {
-                        const provider = activeWeb3Provider || window.ethereum;
-                        const authMessage = `Welcome to ArcPulse DApp!
-
-Sign this message to authenticate your wallet session on Arc L1 Testnet (Chain 5042002).
-
-Wallet Address: ${account}
-Timestamp: ${new Date().toISOString()}`;
-                        
-                        const signature = await provider.request({
-                            method: 'personal_sign',
-                            params: [stringToHex(authMessage), account]
-                        });
-
-                        currentAccount = account;
-                        onWalletConnected(currentAccount, providerName, signature);
-                    } catch (signErr) {
-                        console.warn("Authentication signature rejected:", signErr);
-                        disconnectWallet();
-                        showToast('Authentication Cancelled', 'Signature rejected. Connection cancelled for security.', 'error');
-                    }
-                }, 600);
+                currentAccount = account;
+                onWalletConnected(currentAccount, providerName);
 
             } catch(err) {
                 console.error("Connect error:", err);
@@ -1220,7 +1021,33 @@ Timestamp: ${new Date().toISOString()}`;
             }
         }
 
-        function onWalletConnected(account, providerName, signature) {
+        // OPTIONAL EXPLICIT SIGNATURE AUTHENTICATION
+        async function requestOptionalAuthSignature() {
+            if (!currentAccount) {
+                handleWalletClick();
+                return;
+            }
+            try {
+                const provider = activeWeb3Provider || window.ethereum;
+                const authMessage = `Welcome to ArcPulse DApp!
+
+Sign this message to authenticate your wallet session on Arc L1 Testnet (Chain 5042002).
+
+Wallet Address: ${currentAccount}
+Timestamp: ${new Date().toISOString()}`;
+                
+                const signature = await provider.request({
+                    method: 'personal_sign',
+                    params: [stringToHex(authMessage), currentAccount]
+                });
+
+                showToast('Session Verified!', 'Signature authenticated on Arc Testnet', 'success');
+            } catch(signErr) {
+                showToast('Signature Cancelled', 'Authentication signature was rejected', 'error');
+            }
+        }
+
+        function onWalletConnected(account, providerName) {
             loadUserBalances(account);
             loadUserDataState();
             updateTokenBalancesUI();
@@ -1229,7 +1056,7 @@ Timestamp: ${new Date().toISOString()}`;
             renderTxHistoryInline();
             renderWalletView();
             renderPortfolioView();
-            showToast('Wallet Authenticated!', `Step 2/2 Verified via ${providerName} on Arc Testnet`, 'success');
+            showToast('Wallet Connected!', `Connected via ${providerName} on Arc Testnet`, 'success');
         }
 
         async function disconnectWallet() {
@@ -1762,7 +1589,7 @@ Timestamp: ${new Date().toISOString()}`;
             safeInitIcons();
         }
 
-        if (document.readyState === 'loading') {
+        if (document.readyStates === 'loading') {
             document.addEventListener('DOMContentLoaded', initApp);
         } else {
             initApp();

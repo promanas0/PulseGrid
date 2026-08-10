@@ -1,6 +1,7 @@
 {
   "name": "archpulse",
   "version": "1.0.0",
+  "type": "module",
   "description": "ArcPulse - High-performance Web3 DEX & Circle W3S Engine for Arc Testnet",
   "main": "index.html",
   "scripts": {
@@ -30,6 +31,10 @@
     "wagmi-config:ts": "tsx --env-file=.env wagmi-config.ts",
     "balance-checker": "node --env-file=.env balance-checker.js",
     "balance-checker:ts": "tsx --env-file=.env balance-checker.ts",
+    "custom-rpc-adapter": "node --env-file=.env custom-rpc-adapter.js",
+    "custom-rpc-adapter:ts": "tsx --env-file=.env custom-rpc-adapter.ts",
+    "register-entity-secret": "node --env-file=.env register-entity-secret.js",
+    "register-entity-secret:ts": "tsx --env-file=.env register-entity-secret.ts",
     "server": "node server.mjs",
     "build": "echo 'Build complete'"
   },
@@ -47,12 +52,12 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@circle-fin/adapter-circle-wallets": "latest",
-    "@circle-fin/adapter-viem-v2": "latest",
+    "@circle-fin/adapter-circle-wallets": "^1.6.0",
+    "@circle-fin/adapter-viem-v2": "^1.15.0",
     "@circle-fin/app-kit": "^1.12.0",
-    "@circle-fin/bridge-kit": "latest",
-    "@circle-fin/developer-controlled-wallets": "latest",
-    "@circle-fin/swap-kit": "latest",
+    "@circle-fin/bridge-kit": "^1.13.0",
+    "@circle-fin/developer-controlled-wallets": "^10.8.0",
+    "@circle-fin/swap-kit": "^1.5.1",
     "connectkit": "^1.7.3",
     "ethers": "^6.17.0",
     "viem": "^2.21.0",

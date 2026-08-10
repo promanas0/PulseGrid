@@ -1,10 +1,11 @@
-const { AppKit } = require("@circle-fin/app-kit");
-const { createViemAdapter } = require("@circle-fin/adapter-viem-v2");
-const { arcTestnet } = require("viem/chains");
+import { AppKit } from "@circle-fin/app-kit";
+import { createViemAdapter, createViemAdapterFromPrivateKey } from "@circle-fin/adapter-viem-v2";
+import { arcTestnet } from "viem/chains";
 
 /**
  * Circle AppKit Swap using Viem V2 Adapter with official viem/chains arcTestnet (JS runner)
  * USDC -> EURC on Arc Testnet (Chain ID 5042002)
+ * Supports Private Key Adapter & Browser/Wallet Adapters
  */
 
 const kit = new AppKit();
@@ -14,7 +15,10 @@ async function main() {
   console.log(`📌 Chain: ${arcTestnet?.name || 'Arc Testnet'} (ID: ${arcTestnet?.id || 5042002})`);
   console.log("📌 Route: 1.00 USDC -> EURC");
 
-  const viemAdapter = createViemAdapter();
+  const privateKey = process.env.PRIVATE_KEY;
+  const viemAdapter = privateKey
+    ? createViemAdapterFromPrivateKey({ privateKey })
+    : createViemAdapter();
 
   try {
     const result = await kit.swap({

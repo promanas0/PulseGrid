@@ -1,10 +1,11 @@
 import { AppKit } from "@circle-fin/app-kit";
-import { createViemAdapter } from "@circle-fin/adapter-viem-v2";
+import { createViemAdapter, createViemAdapterFromPrivateKey } from "@circle-fin/adapter-viem-v2";
 import { arcTestnet } from "viem/chains";
 
 /**
  * Circle AppKit Swap using Viem V2 Adapter with official viem/chains arcTestnet
  * USDC -> EURC on Arc Testnet (Chain ID 5042002)
+ * Supports Private Key Adapter & Browser/Wallet Adapters
  * Built for ArcPulse Ecosystem by ProManas
  */
 
@@ -15,7 +16,10 @@ async function main() {
   console.log(`📌 Chain: ${arcTestnet?.name || 'Arc Testnet'} (ID: ${arcTestnet?.id || 5042002})`);
   console.log("📌 Route: 1.00 USDC -> EURC");
 
-  const viemAdapter = createViemAdapter();
+  const privateKey = process.env.PRIVATE_KEY;
+  const viemAdapter = privateKey
+    ? createViemAdapterFromPrivateKey({ privateKey: privateKey as `0x${string}` })
+    : createViemAdapter();
 
   try {
     const result = await kit.swap({

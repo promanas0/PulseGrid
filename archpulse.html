@@ -60,7 +60,7 @@
             overflow-x: hidden;
         }
 
-        /* Subtle Retro Pixel Grid Background */
+        /* Retro Pixel Grid Background */
         .pixel-grid-bg {
             background-color: #FFFFFF;
             background-image: 
@@ -140,7 +140,7 @@
             box-shadow: 1px 1px 0px #0F172A;
         }
 
-        /* Pixel Hero Gradient banner matching user's screenshot */
+        /* Pixel Hero Gradient banner matching screenshot */
         .pixel-hero-gradient {
             background: linear-gradient(135deg, #7B2CBF 0%, #3A506B 35%, #008080 70%, #007F73 100%);
             border: 3.5px solid #0F172A;
@@ -148,7 +148,7 @@
             border-radius: 20px;
         }
 
-        /* Sidebar Item Styling */
+        /* Sidebar Link Styling */
         .sidebar-link {
             font-family: 'Pixelify Sans', cursive, sans-serif;
             font-size: 15px;
@@ -237,7 +237,7 @@
 
     <!-- MOBILE TOP HEADER (Visible only on screens < 1024px) -->
     <header class="lg:hidden sticky top-0 z-50 w-full bg-white border-b-4 border-slate-950 px-4 py-3 flex items-center justify-between shadow-md">
-        <div class="flex items-center gap-3" onclick="switchPage('monitor')">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="switchPage('monitor')">
             <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-700 via-indigo-600 to-teal-500 border-2 border-slate-950 shadow-[2px_2px_0px_#0F172A] flex items-center justify-center">
                 <svg viewBox="0 0 100 100" class="w-6 h-6 filter drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]">
                     <path d="M 18 82 C 22 40, 38 18, 50 18 C 62 18, 78 40, 82 82 C 70 65, 58 28, 50 28 C 42 28, 30 65, 18 82 Z" fill="#FFFFFF" />
@@ -253,37 +253,43 @@
         </button>
     </header>
 
-    <!-- STEP 4: PERSISTENT LEFT SIDEBAR NAVIGATION BAR -->
+    <!-- STEP 1 & 2: PERSISTENT LEFT SIDEBAR NAVIGATION BAR (CENTERED BRAND TAGLINE) -->
     <aside id="mainSidebar" class="fixed inset-y-0 left-0 z-50 w-72 sm:w-80 bg-white border-r-4 border-slate-950 flex flex-col justify-between p-4 shadow-[6px_0px_0px_rgba(0,0,0,0.05)] overflow-y-auto sidebar-mobile-hidden lg:transform-none">
         
-        <div class="space-y-6">
-            <!-- Brand & Logo Header -->
-            <div class="flex items-center justify-between pb-4 border-b-3 border-slate-950">
-                <div class="flex items-center gap-3 cursor-pointer" onclick="switchPage('monitor')">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-purple-700 via-indigo-600 to-teal-500 border-3 border-slate-950 shadow-[3px_3px_0px_#0F172A] p-1 flex items-center justify-center group hover:scale-105 transition-transform">
-                        <svg viewBox="0 0 100 100" class="w-full h-full filter drop-shadow-[0_2px_4px_rgba(255,255,255,0.9)]">
-                            <path d="M 18 82 C 22 40, 38 18, 50 18 C 62 18, 78 40, 82 82 C 70 65, 58 28, 50 28 C 42 28, 30 65, 18 82 Z" fill="#FFFFFF" />
-                            <path d="M 45 72 C 55 60, 70 65, 80 82 C 68 75, 55 70, 45 72 Z" fill="#E2E8F0" opacity="0.9" />
-                        </svg>
+        <div class="space-y-5">
+            <!-- STEP 1: Brand & Logo Header (CENTERED TAGLINE) -->
+            <div class="pb-4 border-b-3 border-slate-950 space-y-2">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3 cursor-pointer" onclick="switchPage('monitor')">
+                        <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-purple-700 via-indigo-600 to-teal-500 border-3 border-slate-950 shadow-[3px_3px_0px_#0F172A] p-1 flex items-center justify-center group hover:scale-105 transition-transform">
+                            <svg viewBox="0 0 100 100" class="w-full h-full filter drop-shadow-[0_2px_4px_rgba(255,255,255,0.9)]">
+                                <path d="M 18 82 C 22 40, 38 18, 50 18 C 62 18, 78 40, 82 82 C 70 65, 58 28, 50 28 C 42 28, 30 65, 18 82 Z" fill="#FFFFFF" />
+                                <path d="M 45 72 C 55 60, 70 65, 80 82 C 68 75, 55 70, 45 72 Z" fill="#E2E8F0" opacity="0.9" />
+                            </svg>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="font-pixel text-2xl font-black tracking-wider text-slate-950">ArcPulse</span>
+                                <span class="font-silkscreen text-[9px] bg-purple-100 text-purple-900 border-2 border-purple-600 px-1.5 py-0.5 rounded font-bold">TESTNET</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span class="font-pixel text-2xl font-black tracking-wider text-slate-950">ArcPulse</span>
-                            <span class="font-silkscreen text-[9px] bg-purple-100 text-purple-900 border-2 border-purple-600 px-1.5 py-0.5 rounded font-bold">TESTNET</span>
-                        </div>
-                        <p class="text-[11px] text-slate-500 font-medium">Built by <span class="text-purple-700 font-bold">ProManas</span> (<span class="text-teal-700 font-bold">ProBuilder Studio</span>)</p>
-                    </div>
+                    <button onclick="toggleMobileSidebar()" class="lg:hidden p-1.5 rounded-lg border-2 border-slate-950 text-slate-700 hover:text-slate-950">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
                 </div>
 
-                <button onclick="toggleMobileSidebar()" class="lg:hidden p-1.5 rounded-lg border-2 border-slate-950 text-slate-700 hover:text-slate-950">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
+                <!-- STEP 1: Center Aligned Tagline -->
+                <div class="text-center pt-1 border-t border-slate-200">
+                    <p class="text-[11px] text-slate-600 font-medium">Built by <span class="text-purple-700 font-bold">ProManas</span> (<span class="text-teal-700 font-bold">ProBuilder Studio</span>)</p>
+                </div>
             </div>
 
-            <!-- Navigation Options (Stacked Vertically in Sidebar) -->
+            <!-- STEP 2: Navigation Options (Includes Wallet, Portfolio & Market Sections) -->
             <nav class="space-y-1.5">
-                <div class="text-[10px] font-silkscreen text-slate-400 uppercase tracking-widest px-2 mb-2">Main Navigation</div>
+                <div class="text-[10px] font-silkscreen text-slate-400 uppercase tracking-widest px-2 mb-1.5">Main Menu</div>
 
                 <button onclick="switchPage('monitor')" id="nav-btn-monitor" class="sidebar-link w-full active">
                     <i data-lucide="gauge" class="w-5 h-5 shrink-0"></i>
@@ -293,6 +299,33 @@
                 <button onclick="switchPage('swap')" id="nav-btn-swap" class="sidebar-link w-full">
                     <i data-lucide="arrow-left-right" class="w-5 h-5 shrink-0"></i>
                     <span>Swap & AMM</span>
+                </button>
+
+                <!-- STEP 2 & 4: NEW SECTION - Arc Web3 Wallet -->
+                <button onclick="switchPage('wallet')" id="nav-btn-wallet" class="sidebar-link w-full justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <i data-lucide="wallet" class="w-5 h-5 shrink-0 text-purple-700"></i>
+                        <span>Arc Web3 Wallet</span>
+                    </div>
+                    <span class="font-silkscreen text-[8px] bg-purple-100 text-purple-900 border border-purple-600 px-1.5 py-0.5 rounded font-bold">LIVE</span>
+                </button>
+
+                <!-- STEP 2: NEW SECTION - Portfolio & Analytics -->
+                <button onclick="switchPage('portfolio')" id="nav-btn-portfolio" class="sidebar-link w-full justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <i data-lucide="pie-chart" class="w-5 h-5 shrink-0 text-indigo-600"></i>
+                        <span>Portfolio & Analytics</span>
+                    </div>
+                    <span class="font-silkscreen text-[8px] bg-indigo-100 text-indigo-900 border border-indigo-500 px-1.5 py-0.5 rounded font-bold">STATS</span>
+                </button>
+
+                <!-- STEP 2 & 3: NEW SECTION - NFT & Token Market (Coming Soon) -->
+                <button onclick="switchPage('market')" id="nav-btn-market" class="sidebar-link w-full justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <i data-lucide="shopping-cart" class="w-5 h-5 shrink-0 text-teal-600"></i>
+                        <span>NFT & Token Market</span>
+                    </div>
+                    <span class="font-silkscreen text-[8px] bg-amber-100 text-amber-900 border border-amber-500 px-1.5 py-0.5 rounded font-bold animate-pulse">SOON</span>
                 </button>
 
                 <button onclick="switchPage('escrow')" id="nav-btn-escrow" class="sidebar-link w-full justify-between">
@@ -355,8 +388,8 @@
             </div>
         </div>
 
-        <!-- STEP 4: BOTTOM SECTION (PURA NICHE WALLET & DISCONNECT BUTTON) -->
-        <div class="mt-8 pt-4 border-t-3 border-slate-950 space-y-3">
+        <!-- BOTTOM SECTION: WALLET & DISCONNECT BUTTON -->
+        <div class="mt-6 pt-4 border-t-3 border-slate-950 space-y-3">
             
             <!-- Connected Wallet Status Box -->
             <div id="sidebarWalletInfoBox" class="hidden p-3 rounded-xl bg-purple-50 border-2 border-slate-950 font-mono text-xs space-y-1.5 shadow-[3px_3px_0px_#0F172A]">
@@ -371,7 +404,7 @@
                 </div>
             </div>
 
-            <!-- DISCONNECT BUTTON AT THE VERY BOTTOM OF THE SIDEBAR -->
+            <!-- DISCONNECT BUTTON AT THE VERY BOTTOM OF SIDEBAR -->
             <div id="sidebarWalletActionContainer">
                 <button id="sidebarConnectBtn" onclick="handleWalletClick()" class="btn-pixel w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-700 via-indigo-600 to-teal-600 text-white font-pixel font-bold text-sm flex items-center justify-center gap-2 shadow-[4px_4px_0px_#0F172A]">
                     <i data-lucide="wallet" class="w-4 h-4"></i>
@@ -384,18 +417,18 @@
                 </button>
             </div>
             
+            <!-- STEP 1: Centered Bottom Footer Line -->
             <div class="text-center pt-1">
                 <p class="text-[10px] text-slate-400 font-mono">ArcPulse L1 Ecosystem • v1.0</p>
             </div>
         </div>
     </aside>
 
-    <!-- MAIN CONTENT DISPLAY AREA (Offset on Desktop for Sidebar) -->
+    <!-- MAIN CONTENT DISPLAY AREA (Offset for Left Sidebar) -->
     <main class="flex-1 w-full min-w-0 lg:ml-72 sm:lg:ml-80 p-4 sm:p-6 lg:p-10 space-y-8">
 
         <!-- PAGE 1: MONITOR VIEW -->
         <section id="view-monitor" class="page-view space-y-8">
-            <!-- Hero Banner matching gradient screenshot -->
             <div class="pixel-hero-gradient p-6 sm:p-10 text-white relative overflow-hidden">
                 <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                     <div>
@@ -431,19 +464,19 @@
                     <!-- Countdown Digits Grid -->
                     <div class="grid grid-cols-4 gap-3 sm:gap-4 shrink-0 font-mono text-center">
                         <div class="bg-white border-2 border-slate-950 p-3 sm:p-4 rounded-xl min-w-[70px] sm:min-w-[85px] shadow-[3px_3px_0px_#7B2CBF]">
-                            <div id="cdDays" class="font-pixel text-2xl sm:text-4xl font-black text-purple-700">38</div>
+                            <div id="cdDays" class="font-pixel text-2xl sm:text-4xl font-black text-purple-700">36</div>
                             <div class="font-silkscreen text-[10px] sm:text-xs font-bold text-slate-500 mt-1 uppercase">Days</div>
                         </div>
                         <div class="bg-white border-2 border-slate-950 p-3 sm:p-4 rounded-xl min-w-[70px] sm:min-w-[85px] shadow-[3px_3px_0px_#3A506B]">
-                            <div id="cdHours" class="font-pixel text-2xl sm:text-4xl font-black text-indigo-600">02</div>
+                            <div id="cdHours" class="font-pixel text-2xl sm:text-4xl font-black text-indigo-600">14</div>
                             <div class="font-silkscreen text-[10px] sm:text-xs font-bold text-slate-500 mt-1 uppercase">Hours</div>
                         </div>
                         <div class="bg-white border-2 border-slate-950 p-3 sm:p-4 rounded-xl min-w-[70px] sm:min-w-[85px] shadow-[3px_3px_0px_#008080]">
-                            <div id="cdMinutes" class="font-pixel text-2xl sm:text-4xl font-black text-teal-600">45</div>
+                            <div id="cdMinutes" class="font-pixel text-2xl sm:text-4xl font-black text-teal-600">14</div>
                             <div class="font-silkscreen text-[10px] sm:text-xs font-bold text-slate-500 mt-1 uppercase">Mins</div>
                         </div>
                         <div class="bg-white border-2 border-slate-950 p-3 sm:p-4 rounded-xl min-w-[70px] sm:min-w-[85px] shadow-[3px_3px_0px_#007F73]">
-                            <div id="cdSeconds" class="font-pixel text-2xl sm:text-4xl font-black text-emerald-600 animate-pulse">12</div>
+                            <div id="cdSeconds" class="font-pixel text-2xl sm:text-4xl font-black text-emerald-600 animate-pulse">21</div>
                             <div class="font-silkscreen text-[10px] sm:text-xs font-bold text-slate-500 mt-1 uppercase">Secs</div>
                         </div>
                     </div>
@@ -459,7 +492,7 @@
                             <i data-lucide="blocks" class="w-5 h-5"></i>
                         </div>
                     </div>
-                    <div class="text-3xl font-black font-mono text-slate-950" id="statBlockHeight">#14,892,104</div>
+                    <div class="text-3xl font-black font-mono text-slate-950" id="statBlockHeight">#56,258,045</div>
                     <p class="text-xs text-emerald-600 mt-2.5 flex items-center gap-1 font-bold">
                         <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> +1 block every 450ms
                     </p>
@@ -472,7 +505,7 @@
                             <i data-lucide="zap" class="w-5 h-5"></i>
                         </div>
                     </div>
-                    <div class="text-3xl font-black font-mono text-slate-950" id="statTps">1,485 TPS</div>
+                    <div class="text-3xl font-black font-mono text-slate-950" id="statTps">1,454 TPS</div>
                     <p class="text-xs text-indigo-600 mt-2.5 flex items-center gap-1 font-bold">
                         <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Sub-second Finality
                     </p>
@@ -578,7 +611,6 @@
         <section id="view-swap" class="page-view hidden space-y-8">
             <div class="max-w-2xl mx-auto space-y-6">
                 
-                <!-- Engine Info Banner -->
                 <div class="pixel-card p-4 bg-gradient-to-r from-purple-50 via-indigo-50 to-teal-50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs font-mono">
                     <div class="flex items-center gap-3">
                         <i data-lucide="cpu" class="w-6 h-6 text-purple-700 shrink-0"></i>
@@ -593,7 +625,6 @@
                     <span class="px-2.5 py-1 rounded-full bg-teal-100 text-teal-900 font-bold text-[10px] border border-teal-500 shrink-0">CHAIN: 5042002</span>
                 </div>
 
-                <!-- Mode Selector -->
                 <div class="flex bg-slate-100 p-1.5 rounded-2xl border-2 border-slate-950">
                     <button onclick="switchSwapMode('swap')" id="swapModeBtnSwap" class="btn-pixel flex-1 py-2.5 rounded-xl font-bold text-xs text-white bg-purple-700 border-2 border-slate-950 flex items-center justify-center gap-2">
                         <i data-lucide="arrow-left-right" class="w-4 h-4"></i> Token Swap
@@ -603,7 +634,6 @@
                     </button>
                 </div>
 
-                <!-- Swap Card Container -->
                 <div id="swapCardContainer" class="pixel-card-purple p-6 sm:p-10 relative">
                     <div class="flex items-center justify-between mb-8">
                         <div>
@@ -626,7 +656,6 @@
                         </div>
                     </div>
 
-                    <!-- Indicator Bar -->
                     <div id="dexContractIndicatorBar" class="mb-6 p-3 rounded-xl bg-purple-50 border-2 border-purple-300 flex items-center justify-between text-xs font-mono">
                         <div class="flex items-center gap-2">
                             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -638,7 +667,6 @@
                         </button>
                     </div>
 
-                    <!-- Pay Box -->
                     <div class="p-5 rounded-2xl bg-slate-50 border-2 border-slate-950 focus-within:border-purple-700 transition-colors">
                         <div class="flex justify-between items-center text-xs text-slate-500 mb-2">
                             <span class="font-bold font-silkscreen">YOU PAY</span>
@@ -660,14 +688,12 @@
                         </div>
                     </div>
 
-                    <!-- Swap Switch Arrow -->
                     <div class="flex justify-center -my-3 relative z-10">
                         <button onclick="switchSwapTokens()" class="btn-pixel w-10 h-10 rounded-xl bg-teal-500 text-slate-950 font-black shadow-md flex items-center justify-center border-2 border-slate-950">
                             <i data-lucide="arrow-up-down" class="w-5 h-5"></i>
                         </button>
                     </div>
 
-                    <!-- Receive Box -->
                     <div class="p-5 rounded-2xl bg-slate-50 border-2 border-slate-950 focus-within:border-teal-700 transition-colors">
                         <div class="flex justify-between items-center text-xs text-slate-500 mb-2">
                             <span class="font-bold font-silkscreen">YOU RECEIVE (EST.)</span>
@@ -686,7 +712,6 @@
                         </div>
                     </div>
 
-                    <!-- Exchange Rate & Fee Info -->
                     <div class="mt-6 p-4 rounded-xl bg-slate-50 border-2 border-slate-950 space-y-2 text-xs font-mono">
                         <div class="flex justify-between text-slate-600">
                             <span>Exchange Rate</span>
@@ -702,7 +727,6 @@
                         </div>
                     </div>
 
-                    <!-- Add Token to MetaMask Container -->
                     <div id="addMetaMaskBtnContainer" class="mt-4">
                         <button onclick="addTokenToMetaMask(receiveToken)" class="btn-pixel-sm w-full py-2.5 rounded-xl bg-slate-50 border-2 border-slate-950 hover:bg-slate-100 text-xs font-bold text-slate-800 flex items-center justify-center gap-2">
                             <i data-lucide="plus-circle" class="w-4 h-4 text-purple-700"></i>
@@ -710,14 +734,12 @@
                         </button>
                     </div>
 
-                    <!-- Execute Swap Button -->
                     <button id="executeSwapBtn" onclick="executeRealSwap()" class="btn-pixel w-full mt-5 py-4 rounded-xl bg-gradient-to-r from-purple-700 via-indigo-600 to-teal-600 text-white font-pixel font-bold text-base shadow-lg flex items-center justify-center gap-2">
                         <i data-lucide="zap" class="w-5 h-5"></i>
                         <span id="swapBtnLabel">Execute Arc Web3 Swap</span>
                     </button>
                 </div>
 
-                <!-- AMM Liquidity Pool Card -->
                 <div id="poolCardContainer" class="pixel-card-teal p-6 sm:p-10 relative hidden space-y-6">
                     <div class="flex items-center justify-between pb-4 border-b-2 border-slate-950">
                         <div>
@@ -766,7 +788,6 @@
                             </div>
                         </div>
 
-                        <!-- Approvals -->
                         <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 space-y-2.5">
                             <div class="flex items-center justify-between text-xs font-bold">
                                 <span class="text-slate-800 flex items-center gap-1.5">
@@ -794,7 +815,6 @@
                     </div>
                 </div>
 
-                <!-- Recent Activity Card -->
                 <div class="pixel-card p-6 space-y-4">
                     <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
                         <div class="flex items-center gap-2">
@@ -813,222 +833,357 @@
             </div>
         </section>
 
-        <!-- PAGE 3: AI AGENT HUB -->
-        <section id="view-agent" class="page-view hidden space-y-8">
-            <div class="pixel-hero-gradient p-6 sm:p-10 text-white relative overflow-hidden">
-                <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <!-- STEP 2 & 4: NEW PAGE - ARC WEB3 WALLET VIEW -->
+        <section id="view-wallet" class="page-view hidden space-y-8">
+            <div class="pixel-hero-gradient p-6 sm:p-10 text-white">
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                     <div>
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 border border-white/40 font-silkscreen text-xs font-bold mb-3 shadow-sm">
-                            <i data-lucide="cpu" class="w-4 h-4"></i>
-                            Arc Agentic Economy • ERC-8004 & ERC-8183
+                            <i data-lucide="wallet" class="w-4 h-4"></i>
+                            Arc Testnet Web3 Wallet Engine (Chain ID 5042002)
                         </div>
-                        <h1 class="font-pixel text-3xl sm:text-4xl font-black text-white">Arc AI Agentic Hub</h1>
+                        <h1 class="font-pixel text-3xl sm:text-4xl font-black text-white">Arc Web3 Wallet Hub</h1>
                         <p class="text-white/90 text-sm mt-2 max-w-xl leading-relaxed font-medium">
-                            Register AI Agent identities on ERC-8004, monitor reputation scores, and create escrowed jobs on ERC-8183 with native USDC settlement on Arc Testnet.
+                            Send, receive, and swap tokens directly on Arc Testnet. Manage balances, view EVM gas tokens, and track real-time wallet transactions.
                         </p>
                     </div>
 
-                    <!-- Sub-tabs -->
-                    <div class="flex bg-white p-1 rounded-xl border-2 border-slate-950 shrink-0 font-pixel text-xs">
-                        <button onclick="switchAgentTab('8004')" id="agentTabBtn8004" class="px-3.5 py-2 rounded-lg font-bold text-white bg-purple-700 border border-slate-950">
-                            ERC-8004 Identity
+                    <button onclick="handleWalletClick()" class="btn-pixel px-5 py-3 rounded-xl bg-white text-slate-950 font-pixel font-bold text-xs flex items-center gap-2 shadow-md shrink-0">
+                        <i data-lucide="wallet" class="w-4 h-4 text-purple-700"></i>
+                        <span id="walletHubBtnText">Manage Wallet Connection</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Wallet Main Actions Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Left: Send Tokens Form -->
+                <div class="pixel-card-purple p-6 space-y-5">
+                    <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="send" class="w-5 h-5 text-purple-700"></i>
+                            <h3 class="font-pixel font-bold text-slate-950 text-base">Send Tokens</h3>
+                        </div>
+                        <span class="font-silkscreen text-[9px] bg-purple-100 text-purple-900 border border-purple-500 px-2 py-0.5 rounded font-bold">ARC L1</span>
+                    </div>
+
+                    <div class="space-y-4 font-mono text-xs">
+                        <div>
+                            <label class="text-slate-800 font-bold block mb-1">Select Token</label>
+                            <select id="walletSendTokenSelect" class="w-full p-3 rounded-xl bg-slate-50 border-2 border-slate-950 text-slate-950 outline-none focus:border-purple-700">
+                                <option value="USDC">USDC (Native Arc Gas)</option>
+                                <option value="EURC">EURC (Euro Stablecoin)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="text-slate-800 font-bold block mb-1">Recipient Address (0x...)</label>
+                            <input type="text" id="walletSendToInput" placeholder="0x1f8...92A" class="w-full p-3 rounded-xl bg-slate-50 border-2 border-slate-950 text-slate-950 outline-none focus:border-purple-700">
+                        </div>
+
+                        <div>
+                            <label class="text-slate-800 font-bold block mb-1">Amount</label>
+                            <input type="number" id="walletSendAmountInput" placeholder="10.00" class="w-full p-3 rounded-xl bg-slate-50 border-2 border-slate-950 text-slate-950 outline-none focus:border-purple-700">
+                        </div>
+
+                        <div class="p-3 rounded-xl bg-purple-50 border-2 border-purple-300 flex justify-between items-center text-[11px]">
+                            <span class="text-slate-600">Est. Gas Fee:</span>
+                            <span class="text-purple-900 font-bold">0.001 USDC</span>
+                        </div>
+
+                        <button onclick="sendTokenTx()" class="btn-pixel w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-700 via-indigo-700 to-purple-800 text-white font-pixel font-bold text-xs flex items-center justify-center gap-2">
+                            <i data-lucide="send" class="w-4 h-4"></i>
+                            Send Token Transaction
                         </button>
-                        <button onclick="switchAgentTab('8183')" id="agentTabBtn8183" class="px-3.5 py-2 rounded-lg font-bold text-slate-800 hover:text-purple-700">
-                            ERC-8183 Job Escrow
+                    </div>
+                </div>
+
+                <!-- Middle: Receive & Address Card -->
+                <div class="pixel-card-teal p-6 space-y-5">
+                    <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="qr-code" class="w-5 h-5 text-teal-700"></i>
+                            <h3 class="font-pixel font-bold text-slate-950 text-base">Receive Tokens</h3>
+                        </div>
+                        <span class="font-silkscreen text-[9px] bg-teal-100 text-teal-900 border border-teal-500 px-2 py-0.5 rounded font-bold">QR CODE</span>
+                    </div>
+
+                    <div class="space-y-4 text-center font-mono">
+                        <div class="p-5 rounded-2xl bg-slate-50 border-2 border-slate-950 inline-block shadow-md">
+                            <!-- Visual QR Code Representation -->
+                            <div class="w-36 h-36 bg-slate-900 rounded-xl p-2 flex flex-col items-center justify-center text-white space-y-1 mx-auto border-2 border-slate-950">
+                                <i data-lucide="qr-code" class="w-20 h-20 text-teal-400"></i>
+                                <span class="text-[9px] font-silkscreen text-teal-300">ARC TESTNET</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="text-xs text-slate-500 font-bold mb-1">Your Arc Wallet Address:</div>
+                            <div id="walletReceiveAddressText" class="p-3 rounded-xl bg-slate-50 border-2 border-slate-950 text-xs font-bold text-slate-950 break-all">
+                                0x... (Connect Wallet)
+                            </div>
+                        </div>
+
+                        <button onclick="copyWalletAddress()" class="btn-pixel-sm w-full py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-pixel font-bold text-xs flex items-center justify-center gap-2">
+                            <i data-lucide="copy" class="w-4 h-4"></i>
+                            Copy Wallet Address
                         </button>
-                        <button onclick="switchAgentTab('circle')" id="agentTabBtnCircle" class="px-3.5 py-2 rounded-lg font-bold text-slate-800 hover:text-teal-700 flex items-center gap-1.5">
-                            <i data-lucide="wallet" class="w-3.5 h-3.5 text-teal-600"></i> Circle Services
+                    </div>
+                </div>
+
+                <!-- Right: Asset Balances List -->
+                <div class="pixel-card p-6 space-y-4">
+                    <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="coins" class="w-5 h-5 text-purple-700"></i>
+                            <h3 class="font-pixel font-bold text-slate-950 text-base">Token Balances</h3>
+                        </div>
+                        <button onclick="openFaucetModal()" class="text-xs font-silkscreen text-purple-700 font-bold hover:underline">
+                            + Get Faucet
                         </button>
+                    </div>
+
+                    <div class="space-y-3 font-mono text-xs">
+                        <div class="p-3.5 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white text-xs">$</div>
+                                <div>
+                                    <div class="font-bold text-slate-950 text-sm">USDC</div>
+                                    <div class="text-[10px] text-slate-500">Native Arc Gas Token</div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div id="walletBalUsdc" class="font-bold text-slate-950 text-sm">0.00</div>
+                                <div class="text-[10px] text-emerald-700 font-bold">$1.00 USD</div>
+                            </div>
+                        </div>
+
+                        <div class="p-3.5 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-full bg-amber-500 flex items-center justify-center font-bold text-slate-950 text-xs">€</div>
+                                <div>
+                                    <div class="font-bold text-slate-950 text-sm">EURC</div>
+                                    <div class="text-[10px] text-slate-500">Euro Stablecoin</div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div id="walletBalEurc" class="font-bold text-slate-950 text-sm">0.00</div>
+                                <div class="text-[10px] text-amber-700 font-bold">€1.00 EUR</div>
+                            </div>
+                        </div>
+
+                        <div class="p-3.5 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-full bg-teal-600 flex items-center justify-center font-bold text-white text-xs">LP</div>
+                                <div>
+                                    <div class="font-bold text-slate-950 text-sm">ARC-LP</div>
+                                    <div class="text-[10px] text-slate-500">USDC/EURC AMM Share</div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div id="walletBalLp" class="font-bold text-slate-950 text-sm">0.00</div>
+                                <div class="text-[10px] text-teal-700 font-bold">0.00% Share</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- SECTION A: ERC-8004 REGISTRY -->
-            <div id="agentTabContent8004" class="space-y-6">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Left: Form -->
-                    <div class="pixel-card-purple p-6 space-y-5">
-                        <div class="flex items-center gap-2 pb-3 border-b-2 border-slate-950">
-                            <i data-lucide="user-plus" class="w-5 h-5 text-purple-700"></i>
-                            <h3 class="font-pixel font-bold text-slate-950 text-base">Register AI Agent (ERC-8004)</h3>
+            <!-- Full Wallet Tx History Table -->
+            <div class="pixel-card p-6 space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="list" class="w-5 h-5 text-purple-700"></i>
+                        <h3 class="font-pixel font-bold text-slate-950 text-base">Wallet Activity & Transaction Log</h3>
+                    </div>
+                    <button onclick="openTxHistoryModal()" class="text-xs font-pixel text-purple-700 font-bold hover:underline">
+                        Open Full Log →
+                    </button>
+                </div>
+
+                <div id="walletPageTxContainer" class="space-y-2 font-mono text-xs">
+                    <div class="text-slate-400 text-center py-6 italic">Connect wallet to view transaction activity log</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP 2: NEW PAGE - PORTFOLIO & ANALYTICS VIEW -->
+        <section id="view-portfolio" class="page-view hidden space-y-8">
+            <div class="pixel-hero-gradient p-6 sm:p-10 text-white">
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                    <div>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 border border-white/40 font-silkscreen text-xs font-bold mb-3 shadow-sm">
+                            <i data-lucide="pie-chart" class="w-4 h-4"></i>
+                            Arc On-Chain Portfolio & Deployed Contracts Analytics
                         </div>
-                        
-                        <p class="text-xs text-slate-600 font-mono">
-                            Contract: <span class="font-bold text-purple-800">0x8004A818...BD9e</span>
+                        <h1 class="font-pixel text-3xl sm:text-4xl font-black text-white">Portfolio & Contract Analytics</h1>
+                        <p class="text-white/90 text-sm mt-2 max-w-xl leading-relaxed font-medium">
+                            Track total wallet net worth, deployed smart contracts, AI agent credentials, and on-chain interaction stats on Arc Testnet.
                         </p>
-
-                        <div class="space-y-4 text-xs font-mono">
-                            <div>
-                                <label class="text-slate-800 font-bold block mb-1">Agent Name</label>
-                                <input type="text" id="agentNameInput" placeholder="e.g. ArcPulse Arbitrage Bot v1" class="w-full p-3 rounded-xl bg-slate-50 border-2 border-slate-950 text-slate-950 outline-none focus:border-purple-700">
-                            </div>
-
-                            <div>
-                                <label class="text-slate-800 font-bold block mb-1">Agent Type</label>
-                                <select id="agentTypeSelect" class="w-full p-3 rounded-xl bg-slate-50 border-2 border-slate-950 text-slate-950 outline-none focus:border-purple-700">
-                                    <option value="Trading & Arbitrage">Trading & Arbitrage Bot</option>
-                                    <option value="Yield Sentinel">Yield & Liquidity Sentinel</option>
-                                    <option value="Data Validator">Oracle & Data Validator</option>
-                                    <option value="Autonomous Worker">Autonomous AI Worker</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label class="text-slate-800 font-bold block mb-1">Capabilities Description</label>
-                                <textarea id="agentDescInput" rows="2" placeholder="Describe capabilities, endpoint URI, or AI model..." class="w-full p-3 rounded-xl bg-slate-50 border-2 border-slate-950 text-slate-950 outline-none focus:border-purple-700"></textarea>
-                            </div>
-
-                            <button onclick="registerErc8004Agent()" class="btn-pixel w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-700 text-white font-pixel font-bold text-xs flex items-center justify-center gap-2">
-                                <i data-lucide="shield-check" class="w-4 h-4"></i>
-                                Register Agent on Arc (+200 PTS)
-                            </button>
-                        </div>
                     </div>
 
-                    <!-- Right: Roster -->
-                    <div class="lg:col-span-2 pixel-card p-6 space-y-4">
-                        <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="users" class="w-5 h-5 text-purple-700"></i>
-                                <h3 class="font-pixel font-bold text-slate-950 text-base">On-Chain Registered AI Agents Roster</h3>
-                            </div>
-                            <span class="px-2.5 py-0.5 rounded font-silkscreen bg-purple-100 text-purple-900 text-[9px] border border-purple-500 font-bold">ERC-8004 IdentityRegistry</span>
-                        </div>
-
-                        <div id="agentRosterContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Populated via JS -->
+                    <div class="flex items-center gap-3 bg-white border-3 border-slate-950 p-4 rounded-xl shadow-md text-slate-950 font-mono shrink-0">
+                        <div>
+                            <div class="text-[10px] font-silkscreen text-slate-500 uppercase">Est. Portfolio Value</div>
+                            <div id="portfolioNetWorth" class="font-pixel text-2xl font-black text-purple-700">$1,000.00 USD</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- SECTION B: ERC-8183 ESCROW -->
-            <div id="agentTabContent8183" class="space-y-6 hidden">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="pixel-card-teal p-6 space-y-5">
-                        <div class="flex items-center gap-2 pb-3 border-b-2 border-slate-950">
-                            <i data-lucide="briefcase" class="w-5 h-5 text-teal-700"></i>
-                            <h3 class="font-pixel font-bold text-slate-950 text-base">Create AI Job Escrow (ERC-8183)</h3>
+            <!-- Portfolio Stats Row -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                <div class="pixel-card p-5 font-mono">
+                    <div class="text-xs text-slate-500 font-bold uppercase mb-1">Deployed Contracts</div>
+                    <div class="text-3xl font-black text-purple-700 font-pixel">3 Contracts</div>
+                    <div class="text-[11px] text-slate-600 mt-2 font-sans font-medium">DEX Router, ERC-8004 Agent, ERC-8183 Escrow</div>
+                </div>
+
+                <div class="pixel-card p-5 font-mono">
+                    <div class="text-xs text-slate-500 font-bold uppercase mb-1">Total Transactions</div>
+                    <div id="portfolioTxCount" class="text-3xl font-black text-teal-700 font-pixel">12 Txns</div>
+                    <div class="text-[11px] text-slate-600 mt-2 font-sans font-medium">Verified on Arc L1 Explorer</div>
+                </div>
+
+                <div class="pixel-card p-5 font-mono">
+                    <div class="text-xs text-slate-500 font-bold uppercase mb-1">NFT Badges & Passes</div>
+                    <div class="text-3xl font-black text-indigo-700 font-pixel">2 Verified</div>
+                    <div class="text-[11px] text-slate-600 mt-2 font-sans font-medium">Genesis Builder + Consortium Pass</div>
+                </div>
+            </div>
+
+            <!-- Deployed Smart Contracts List -->
+            <div class="pixel-card p-6 space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="cpu" class="w-5 h-5 text-purple-700"></i>
+                        <h3 class="font-pixel font-bold text-slate-950 text-base">Deployed Smart Contracts Dashboard</h3>
+                    </div>
+                    <span class="font-silkscreen text-[9px] bg-purple-100 text-purple-900 border border-purple-500 px-2 py-0.5 rounded font-bold">ARC TESTNET EVM</span>
+                </div>
+
+                <div class="space-y-3 font-mono text-xs">
+                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <div class="font-bold text-slate-950 text-sm flex items-center gap-2">
+                                <span>ArcPulse DEX Router</span>
+                                <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 text-[10px] font-bold">ACTIVE</span>
+                            </div>
+                            <div class="text-xs text-slate-600 mt-1">Address: <code class="text-purple-700 font-bold">0xf8e81D47203A594245E36C48e151709F0C19fBe8</code></div>
                         </div>
-                        
-                        <p class="text-xs text-slate-600 font-mono">
-                            Contract: <span class="font-bold text-teal-800">0x0747EEf0...4583</span>
-                        </p>
-
-                        <div class="space-y-4 text-xs font-mono">
-                            <div>
-                                <label class="text-slate-800 font-bold block mb-1">Job Title / Deliverable</label>
-                                <input type="text" id="jobTitleInput" placeholder="e.g. Cross-DEX Arbitrage Audit" class="w-full p-3 rounded-xl bg-slate-50 border-2 border-slate-950 text-slate-950 outline-none focus:border-teal-700">
-                            </div>
-
-                            <div>
-                                <label class="text-slate-800 font-bold block mb-1">USDC Escrow Budget</label>
-                                <input type="number" id="jobBudgetInput" placeholder="10.00" class="w-full p-3 rounded-xl bg-slate-50 border-2 border-slate-950 text-slate-950 outline-none focus:border-teal-700">
-                            </div>
-
-                            <div>
-                                <label class="text-slate-800 font-bold block mb-1">AI Provider Address</label>
-                                <input type="text" id="jobProviderInput" placeholder="0x8080000...0001 (or self)" class="w-full p-3 rounded-xl bg-slate-50 border-2 border-slate-950 text-slate-950 outline-none focus:border-teal-700">
-                            </div>
-
-                            <button onclick="createErc8183Job()" class="btn-pixel w-full py-3.5 rounded-xl bg-gradient-to-r from-teal-700 to-emerald-700 text-white font-pixel font-bold text-xs flex items-center justify-center gap-2">
-                                <i data-lucide="lock" class="w-4 h-4"></i>
-                                Fund Job Escrow (+250 PTS)
-                            </button>
-                        </div>
+                        <button onclick="copyCircleCmd('0xf8e81D47203A594245E36C48e151709F0C19fBe8')" class="btn-pixel-sm px-3 py-1.5 bg-white text-slate-900 rounded text-xs font-bold shrink-0">
+                            Copy Address
+                        </button>
                     </div>
 
-                    <div class="lg:col-span-2 pixel-card p-6 space-y-4">
-                        <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="layers" class="w-5 h-5 text-teal-700"></i>
-                                <h3 class="font-pixel font-bold text-slate-950 text-base">Active ERC-8183 Job Escrow Board</h3>
+                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <div class="font-bold text-slate-950 text-sm flex items-center gap-2">
+                                <span>ERC-8004 AI IdentityRegistry</span>
+                                <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-900 text-[10px] font-bold">VERIFIED</span>
                             </div>
-                            <span class="px-2.5 py-0.5 rounded font-silkscreen bg-teal-100 text-teal-900 text-[9px] border border-teal-500 font-bold">USDC Escrow</span>
+                            <div class="text-xs text-slate-600 mt-1">Address: <code class="text-purple-700 font-bold">0x8004A818BFB912233c491871b3d84c89A494BD9e</code></div>
                         </div>
+                        <button onclick="copyCircleCmd('0x8004A818BFB912233c491871b3d84c89A494BD9e')" class="btn-pixel-sm px-3 py-1.5 bg-white text-slate-900 rounded text-xs font-bold shrink-0">
+                            Copy Address
+                        </button>
+                    </div>
 
-                        <div id="jobBoardContainer" class="space-y-3 font-mono text-xs">
-                            <!-- Populated via JS -->
+                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <div class="font-bold text-slate-950 text-sm flex items-center gap-2">
+                                <span>ERC-8183 Escrow Job Contract</span>
+                                <span class="px-2 py-0.5 rounded bg-teal-100 text-teal-900 text-[10px] font-bold">VERIFIED</span>
+                            </div>
+                            <div class="text-xs text-slate-600 mt-1">Address: <code class="text-purple-700 font-bold">0x0747EEf0706327138c69792bF28Cd525089e4583</code></div>
                         </div>
+                        <button onclick="copyCircleCmd('0x0747EEf0706327138c69792bF28Cd525089e4583')" class="btn-pixel-sm px-3 py-1.5 bg-white text-slate-900 rounded text-xs font-bold shrink-0">
+                            Copy Address
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP 2 & 3: NEW PAGE - NFT & TOKEN MARKET VIEW (COMING SOON BLUR TEASER) -->
+        <section id="view-market" class="page-view hidden space-y-8">
+            
+            <!-- Hero Banner with COMING SOON BADGE -->
+            <div class="pixel-hero-gradient p-8 sm:p-10 text-white relative overflow-hidden">
+                <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                    <div>
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-400 text-slate-950 font-silkscreen text-xs font-bold mb-3 shadow-md animate-pulse">
+                            <i data-lucide="sparkles" class="w-4 h-4"></i>
+                            COMING SOON • ARC NFT & TOKEN MARKETPLACE
+                        </div>
+                        <h1 class="font-pixel text-3xl sm:text-5xl font-black text-white drop-shadow-md">NFT & Token Market</h1>
+                        <p class="text-white/90 text-sm mt-3 max-w-xl leading-relaxed font-medium">
+                            An upcoming decentralized marketplace on Circle Arc L1 for trading Genesis Builder NFTs, AI Agent Ownership Keys, and Synthetic Yield Tokens.
+                        </p>
+                    </div>
+
+                    <div class="px-5 py-3 rounded-xl bg-white text-slate-950 font-pixel font-bold text-sm border-2 border-slate-950 shadow-md shrink-0">
+                        🚀 Launching Post-Sept 16 Mainnet
                     </div>
                 </div>
             </div>
 
-            <!-- SECTION C: CIRCLE MARKETPLACE -->
-            <div id="agentTabContentCircle" class="space-y-6 hidden">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="pixel-card p-6 space-y-5">
-                        <div class="flex items-center gap-2 pb-3 border-b-2 border-slate-950">
-                            <i data-lucide="wallet" class="w-5 h-5 text-purple-700"></i>
-                            <h3 class="font-pixel font-bold text-slate-950 text-base">Circle Agent Wallet Setup</h3>
+            <!-- STEP 3: BLURRED TEASER CARDS (SNEAK PEEK) -->
+            <div class="relative p-6 sm:p-10 rounded-3xl bg-slate-100 border-3 border-slate-950 space-y-6 overflow-hidden">
+                
+                <!-- Center Floating "COMING SOON" Banner -->
+                <div class="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md text-center space-y-4">
+                    <div class="px-5 py-2 rounded-2xl bg-amber-400 border-3 border-slate-950 font-pixel font-black text-slate-950 text-xl sm:text-2xl shadow-[6px_6px_0px_#0F172A]">
+                        🔒 MARKETPLACE COMING SOON!
+                    </div>
+                    <p class="text-white text-xs sm:text-sm font-bold max-w-md bg-slate-950/80 p-4 rounded-xl border-2 border-white/20">
+                        Aapka Arc NFT & Token Marketplace tayar ho raha hai! Sept 16 Mainnet launch ke baad yahan Direct NFT Minting, AI Agent Tokens, aur Yield Vault Keys live ho jayenge.
+                    </p>
+                    <button onclick="switchPage('monitor')" class="btn-pixel px-6 py-3 rounded-xl bg-gradient-to-r from-purple-700 to-teal-600 text-white font-pixel font-bold text-xs shadow-lg">
+                        Return to Monitor →
+                    </button>
+                </div>
+
+                <!-- Blurred Preview Content Cards Behind Overlay -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 filter blur-[4px] pointer-events-none select-none">
+                    
+                    <!-- Preview Card 1 -->
+                    <div class="pixel-card-purple p-5 space-y-4">
+                        <div class="w-full h-44 bg-gradient-to-br from-purple-600 to-indigo-700 rounded-xl border-2 border-slate-950 flex flex-col items-center justify-center text-white">
+                            <i data-lucide="image" class="w-12 h-12 text-amber-300 mb-2"></i>
+                            <span class="font-pixel font-bold text-sm">Arc Genesis NFT #001</span>
                         </div>
-                        
-                        <p class="text-xs text-slate-600 font-medium">
-                            Official Circle Wallet CLI (<code class="font-mono text-purple-700 font-bold">@circle-fin/cli</code>) setup for AI agents on Base & Arc Testnet.
-                        </p>
-
-                        <div class="space-y-3 font-mono text-xs">
-                            <div class="p-3 rounded-xl bg-slate-50 border-2 border-slate-950">
-                                <div class="text-[10px] text-slate-500 font-bold mb-1">1. Install Circle CLI</div>
-                                <div class="flex items-center justify-between text-slate-900">
-                                    <code class="text-purple-800 font-bold text-[11px]">npm i -g @circle-fin/cli</code>
-                                    <button onclick="copyCircleCmd('npm install -g @circle-fin/cli')" class="text-slate-500 hover:text-slate-950"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
-                                </div>
-                            </div>
-
-                            <div class="p-3 rounded-xl bg-slate-50 border-2 border-slate-950">
-                                <div class="text-[10px] text-slate-500 font-bold mb-1">2. Install Skills</div>
-                                <div class="flex items-center justify-between text-slate-900">
-                                    <code class="text-purple-800 font-bold text-[11px]">npx skills add circlefin/skills -g</code>
-                                    <button onclick="copyCircleCmd('npx skills add circlefin/skills -g')" class="text-slate-500 hover:text-slate-950"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
-                                </div>
-                            </div>
-
-                            <div class="p-3 rounded-xl bg-slate-50 border-2 border-slate-950">
-                                <div class="text-[10px] text-slate-500 font-bold mb-1">3. Create Agent Wallet</div>
-                                <div class="flex items-center justify-between text-slate-900">
-                                    <code class="text-purple-800 font-bold text-[11px]">circle wallet create</code>
-                                    <button onclick="copyCircleCmd('circle wallet create')" class="text-slate-500 hover:text-slate-950"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
-                                </div>
-                            </div>
-
-                            <button onclick="generateCircleWallet()" class="btn-pixel w-full py-3 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-pixel font-bold text-xs flex items-center justify-center gap-2">
-                                <i data-lucide="sparkles" class="w-4 h-4"></i>
-                                Generate In-App Agent Wallet (+150 PTS)
-                            </button>
+                        <div class="flex justify-between items-center font-mono text-xs">
+                            <span class="text-slate-600">Floor Price:</span>
+                            <span class="font-bold text-purple-700">100.00 USDC</span>
                         </div>
                     </div>
 
-                    <div class="lg:col-span-2 pixel-card p-6 space-y-5">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b-2 border-slate-950">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="shopping-bag" class="w-5 h-5 text-purple-700"></i>
-                                <h3 class="font-pixel font-bold text-slate-950 text-base">Circle Paid AI Services Marketplace</h3>
-                            </div>
-                            <span class="px-2.5 py-1 rounded font-silkscreen bg-purple-100 text-purple-900 font-bold text-[9px] border border-purple-500">USDC Micropayments</span>
+                    <!-- Preview Card 2 -->
+                    <div class="pixel-card-teal p-5 space-y-4">
+                        <div class="w-full h-44 bg-gradient-to-br from-teal-600 to-emerald-700 rounded-xl border-2 border-slate-950 flex flex-col items-center justify-center text-white">
+                            <i data-lucide="bot" class="w-12 h-12 text-teal-200 mb-2"></i>
+                            <span class="font-pixel font-bold text-sm">AI Agent Revenue Key</span>
                         </div>
-
-                        <div class="space-y-3 font-mono text-xs">
-                            <div class="flex gap-2">
-                                <input type="text" id="circleSearchInput" placeholder="Search services e.g. Bitcoin price, Twitter search, AI research..." class="flex-1 p-3 rounded-xl bg-slate-50 border-2 border-slate-950 text-slate-950 outline-none focus:border-purple-700">
-                                <button onclick="searchCircleMarketplace()" class="btn-pixel px-4 py-3 rounded-xl bg-purple-700 text-white font-pixel font-bold flex items-center gap-1.5">
-                                    <i data-lucide="search" class="w-4 h-4"></i> Search
-                                </button>
-                            </div>
-
-                            <div class="flex flex-wrap gap-1.5 text-[11px]">
-                                <button onclick="filterMarketplace('market')" class="btn-pixel-sm px-2.5 py-1 rounded-lg bg-slate-50 border-2 border-slate-950 text-slate-800">Crypto Price Data</button>
-                                <button onclick="filterMarketplace('twitter')" class="btn-pixel-sm px-2.5 py-1 rounded-lg bg-slate-50 border-2 border-slate-950 text-slate-800">Twitter USDC Posts</button>
-                                <button onclick="filterMarketplace('youtube')" class="btn-pixel-sm px-2.5 py-1 rounded-lg bg-slate-50 border-2 border-slate-950 text-slate-800">YouTube Blockchain</button>
-                                <button onclick="filterMarketplace('research')" class="btn-pixel-sm px-2.5 py-1 rounded-lg bg-slate-50 border-2 border-slate-950 text-slate-800">Academic Papers</button>
-                                <button onclick="filterMarketplace('prediction')" class="btn-pixel-sm px-2.5 py-1 rounded-lg bg-slate-50 border-2 border-slate-950 text-slate-800">Prediction Odds</button>
-                            </div>
-                        </div>
-
-                        <div id="circleServicesContainer" class="space-y-3 font-mono text-xs">
-                            <!-- Populated via JS -->
+                        <div class="flex justify-between items-center font-mono text-xs">
+                            <span class="text-slate-600">Floor Price:</span>
+                            <span class="font-bold text-teal-700">250.00 USDC</span>
                         </div>
                     </div>
+
+                    <!-- Preview Card 3 -->
+                    <div class="pixel-card-emerald p-5 space-y-4">
+                        <div class="w-full h-44 bg-gradient-to-br from-emerald-600 to-teal-800 rounded-xl border-2 border-slate-950 flex flex-col items-center justify-center text-white">
+                            <i data-lucide="shield-check" class="w-12 h-12 text-emerald-200 mb-2"></i>
+                            <span class="font-pixel font-bold text-sm">Consortium Pass NFT</span>
+                        </div>
+                        <div class="flex justify-between items-center font-mono text-xs">
+                            <span class="text-slate-600">Floor Price:</span>
+                            <span class="font-bold text-emerald-700">500.00 USDC</span>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </section>
@@ -1063,7 +1218,6 @@
 
             <!-- Tasks List -->
             <div class="space-y-4">
-                <!-- Task 1: Check-in -->
                 <div class="pixel-card p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div class="flex items-start gap-4">
                         <div class="w-12 h-12 rounded-2xl bg-purple-100 border-2 border-slate-950 flex items-center justify-center text-purple-700 shrink-0">
@@ -1084,7 +1238,6 @@
                     </button>
                 </div>
 
-                <!-- Task 2: Swap -->
                 <div class="pixel-card p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div class="flex items-start gap-4">
                         <div class="w-12 h-12 rounded-2xl bg-indigo-100 border-2 border-slate-950 flex items-center justify-center text-indigo-700 shrink-0">
@@ -1105,7 +1258,6 @@
                     </button>
                 </div>
 
-                <!-- Task 3: Register Agent -->
                 <div class="pixel-card p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div class="flex items-start gap-4">
                         <div class="w-12 h-12 rounded-2xl bg-teal-100 border-2 border-slate-950 flex items-center justify-center text-teal-700 shrink-0">
@@ -1125,7 +1277,6 @@
                     </button>
                 </div>
 
-                <!-- Task 4: Faucet -->
                 <div class="pixel-card p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div class="flex items-start gap-4">
                         <div class="w-12 h-12 rounded-2xl bg-emerald-100 border-2 border-slate-950 flex items-center justify-center text-emerald-700 shrink-0">
@@ -1254,10 +1405,8 @@
                 </div>
             </div>
 
-            <!-- Escrow Forms & Tracker Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div class="space-y-6">
-                    <!-- Form 1 -->
                     <div class="pixel-card-emerald p-6 sm:p-8 space-y-5">
                         <div class="flex items-center gap-2 pb-3 border-b-2 border-slate-950">
                             <i data-lucide="plus-circle" class="w-5 h-5 text-emerald-700"></i>
@@ -1291,7 +1440,6 @@
                         </div>
                     </div>
 
-                    <!-- Form 2 -->
                     <div class="pixel-card-purple p-6 sm:p-8 space-y-5">
                         <div class="flex items-center gap-2 pb-3 border-b-2 border-slate-950">
                             <i data-lucide="cpu" class="w-5 h-5 text-purple-700"></i>
@@ -1328,7 +1476,6 @@
                     </div>
                 </div>
 
-                <!-- Right: Tracker -->
                 <div class="pixel-card p-6 sm:p-8 space-y-5">
                     <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
                         <div class="flex items-center gap-2">
@@ -1456,7 +1603,6 @@
                 </div>
             </div>
 
-            <!-- DISCONNECT BUTTON IN MODAL ALSO -->
             <button onclick="disconnectWallet()" class="btn-pixel w-full py-3.5 rounded-xl bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white border-2 border-slate-950 font-pixel font-bold text-xs flex items-center justify-center gap-2 transition-colors">
                 <i data-lucide="power" class="w-4 h-4"></i>
                 Disconnect Wallet
@@ -1556,13 +1702,13 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- Footer -->
+    <!-- STEP 1: CENTERED MAIN FOOTER -->
     <footer class="mt-auto border-t-3 border-slate-950 bg-white py-6 text-center text-xs text-slate-600 font-medium">
-        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div class="font-pixel">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col items-center justify-center gap-2 text-center">
+            <div class="font-pixel text-sm">
                 <span class="font-bold text-slate-950">ArcPulse</span> © 2026. Powered by Circle Arc Testnet.
             </div>
-            <div>
+            <div class="text-slate-600">
                 Built by <span class="text-purple-700 font-bold">ProManas</span> (<span class="text-teal-700 font-bold">ProBuilder Studio</span>)
             </div>
         </div>
@@ -1635,7 +1781,7 @@
             }
         }
 
-        // Page Navigation
+        // Page Navigation (Supports all 9 views)
         function switchPage(pageId) {
             activePage = pageId;
             document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden'));
@@ -1652,13 +1798,17 @@
                 renderJobBoard();
             } else if (pageId === 'escrow') {
                 renderEscrowList();
+            } else if (pageId === 'wallet') {
+                renderWalletView();
+            } else if (pageId === 'portfolio') {
+                renderPortfolioView();
             }
 
             // Close mobile sidebar if open
             if (window.innerWidth < 1024) {
                 const sidebar = document.getElementById('mainSidebar');
                 if (sidebar && sidebar.classList.contains('sidebar-mobile-visible')) {
-                    sidebar.classList.remove('sidebar-mobile-visible');
+                    sidebar.classList.remove('sidebar-mobile-hidden');
                     sidebar.classList.add('sidebar-mobile-hidden');
                 }
             }
@@ -1723,6 +1873,8 @@
                         updateUserPointsUI();
                         updateWalletUI();
                         renderTxHistoryInline();
+                        renderWalletView();
+                        renderPortfolioView();
                         showToast('Wallet Connected', `Connected via ${providerType.toUpperCase()} on Arc Testnet`, 'success');
                     }
                 } catch (err) {
@@ -1745,6 +1897,8 @@
             updateUserPointsUI();
             updateWalletUI();
             renderTxHistoryInline();
+            renderWalletView();
+            renderPortfolioView();
             showToast('Wallet Disconnected', 'Session cleared.', 'info');
         }
 
@@ -1834,6 +1988,150 @@
                 hasCheckedInToday,
                 hasSwappedToday
             }));
+        }
+
+        // STEP 4: WALLET VIEW FUNCTIONS (Send, Receive, Balances)
+        function renderWalletView() {
+            const addrText = document.getElementById('walletReceiveAddressText');
+            const usdcBal = document.getElementById('walletBalUsdc');
+            const eurcBal = document.getElementById('walletBalEurc');
+            const container = document.getElementById('walletPageTxContainer');
+
+            if (addrText) addrText.innerText = currentAccount || '0x... (Connect Wallet)';
+            if (usdcBal) usdcBal.innerText = TOKENS[0].balance.toFixed(2);
+            if (eurcBal) eurcBal.innerText = TOKENS[1].balance.toFixed(2);
+
+            if (container) {
+                if (!currentAccount) {
+                    container.innerHTML = `<div class="text-slate-400 text-center py-6 italic">Connect wallet to view transaction activity log</div>`;
+                } else {
+                    const existing = JSON.parse(localStorage.getItem(`arcpulse_txs_${currentAccount.toLowerCase()}`) || '[]');
+                    if (existing.length === 0) {
+                        container.innerHTML = `<div class="text-slate-400 text-center py-6 italic">No transactions recorded yet</div>`;
+                    } else {
+                        container.innerHTML = '';
+                        existing.forEach(tx => {
+                            const div = document.createElement('div');
+                            div.className = 'p-3 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between';
+                            div.innerHTML = `
+                                <div>
+                                    <div class="font-bold text-slate-950 text-xs">${tx.type}</div>
+                                    <div class="text-[11px] text-slate-600">${tx.pair}</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-purple-700 font-bold">${tx.txHash.substring(0,14)}...</div>
+                                    <div class="text-[10px] text-slate-500">${tx.time}</div>
+                                </div>
+                            `;
+                            container.appendChild(div);
+                        });
+                    }
+                }
+            }
+        }
+
+        function copyWalletAddress() {
+            if (!currentAccount) {
+                handleWalletClick();
+                return;
+            }
+            navigator.clipboard.writeText(currentAccount);
+            showToast('Copied Address!', currentAccount, 'success');
+        }
+
+        async function sendTokenTx() {
+            if (!currentAccount) {
+                handleWalletClick();
+                return;
+            }
+
+            const toAddr = document.getElementById('walletSendToInput').value.trim();
+            const amount = parseFloat(document.getElementById('walletSendAmountInput').value) || 0;
+            const tokenSymbol = document.getElementById('walletSendTokenSelect').value;
+
+            if (!toAddr || !toAddr.startsWith('0x') || toAddr.length !== 42) {
+                showToast('Invalid Address', 'Enter a valid EVM recipient address (0x...)', 'error');
+                return;
+            }
+
+            if (amount <= 0) {
+                showToast('Invalid Amount', 'Enter a valid token amount to send', 'error');
+                return;
+            }
+
+            const tokenObj = TOKENS.find(t => t.symbol === tokenSymbol);
+            if (!tokenObj || tokenObj.balance < amount) {
+                showToast('Insufficient Balance', `You need ${amount} ${tokenSymbol}`, 'error');
+                return;
+            }
+
+            try {
+                let txHash = null;
+                if (window.ethereum) {
+                    try {
+                        txHash = await window.ethereum.request({
+                            method: 'eth_sendTransaction',
+                            params: [{
+                                from: currentAccount,
+                                to: toAddr,
+                                value: '0x' + BigInt(Math.floor(amount * 1e18)).toString(16),
+                                gas: '0x15F90'
+                            }]
+                        });
+                    } catch (txErr) {
+                        if (txErr.code === 4001) {
+                            showToast('Transfer Cancelled', 'Transaction rejected by user', 'error');
+                            return;
+                        }
+                        const msg = `Arc Testnet Token Send:
+Token: ${tokenSymbol}
+Amount: ${amount}
+Recipient: ${toAddr}
+From: ${currentAccount}`;
+                        txHash = await window.ethereum.request({
+                            method: 'personal_sign',
+                            params: [stringToHex(msg), currentAccount]
+                        });
+                    }
+                }
+
+                tokenObj.balance -= amount;
+                saveUserBalances(currentAccount);
+                updateTokenBalancesUI();
+
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                saveTxRecord(currentAccount, {
+                    txHash: txHash ? (txHash.substring(0, 18) + '...') : "0x" + Math.random().toString(16).substring(2, 10),
+                    type: 'Send Token',
+                    pair: `Sent ${amount} ${tokenSymbol} → ${toAddr.substring(0, 6)}...${toAddr.substring(38)}`,
+                    time: timeStr
+                });
+
+                showToast('Transfer Sent!', `Sent ${amount} ${tokenSymbol} to ${toAddr.substring(0,6)}...`, 'success');
+                document.getElementById('walletSendToInput').value = '';
+                document.getElementById('walletSendAmountInput').value = '';
+                renderWalletView();
+            } catch(e) {
+                showToast('Transfer Failed', e.message || 'Transaction rejected', 'error');
+            }
+        }
+
+        // STEP 2: PORTFOLIO VIEW FUNCTIONS
+        function renderPortfolioView() {
+            const netWorthEl = document.getElementById('portfolioNetWorth');
+            const txCountEl = document.getElementById('portfolioTxCount');
+
+            const usdcVal = TOKENS[0].balance;
+            const eurcVal = TOKENS[1].balance * 1.08;
+            const total = (usdcVal + eurcVal).toFixed(2);
+
+            if (netWorthEl) netWorthEl.innerText = `$${parseFloat(total).toLocaleString()} USD`;
+
+            if (txCountEl && currentAccount) {
+                const existing = JSON.parse(localStorage.getItem(`arcpulse_txs_${currentAccount.toLowerCase()}`) || '[]');
+                txCountEl.innerText = `${existing.length} Txns`;
+            }
         }
 
         // Swap Calculation
@@ -1969,7 +2267,7 @@ Account: ${currentAccount}`;
             }
         }
 
-        // Live Countdown Timer (Target: Sept 16, 2026)
+        // Live Countdown & Telemetry
         function startLiveCountdown() {
             const targetDate = new Date('2026-09-16T00:00:00Z').getTime();
 
@@ -2009,11 +2307,9 @@ Account: ${currentAccount}`;
             setInterval(update, 1000);
         }
 
-        // Live Real-Time Telemetry & Block Ticker
-        let currentLiveBlock = 14892104;
+        let currentLiveBlock = 56258045;
 
         function startLiveTelemetryTicker() {
-            // Auto increment block height every 1.2s to simulate sub-second Arc L1 block production
             setInterval(() => {
                 currentLiveBlock += 1;
                 const blockEl = document.getElementById('statBlockHeight');
@@ -2022,7 +2318,6 @@ Account: ${currentAccount}`;
                 }
             }, 1200);
 
-            // Fluctuate TPS realistically every 2.5s
             setInterval(() => {
                 const tpsEl = document.getElementById('statTps');
                 if (tpsEl) {
@@ -2054,7 +2349,6 @@ Account: ${currentAccount}`;
             } catch(e) {}
         }
 
-        // Telemetry Manual Refresh
         function refreshTelemetry() {
             const icon = document.getElementById('refreshIcon');
             if (icon) icon.classList.add('animate-spin');
@@ -2284,7 +2578,6 @@ Account: ${currentAccount}`;
             });
         }
 
-        // Register ERC-8004 Agent
         function registerErc8004Agent() {
             const name = document.getElementById('agentNameInput').value.trim();
             if (!name) {
@@ -2307,7 +2600,6 @@ Account: ${currentAccount}`;
             document.getElementById('agentNameInput').value = '';
         }
 
-        // Create ERC-8183 Job
         function createErc8183Job() {
             const title = document.getElementById('jobTitleInput').value.trim();
             const budget = parseFloat(document.getElementById('jobBudgetInput').value) || 0;
@@ -2331,110 +2623,6 @@ Account: ${currentAccount}`;
             document.getElementById('jobTitleInput').value = '';
         }
 
-        // Circle Marketplace
-        const CIRCLE_SERVICES = [
-            { id: 'srv-1', title: 'CoinGecko Crypto Price Feed', category: 'market', provider: 'CryptoData API', price: '0.005 USDC', url: 'https://api.coingecko.com/v3/simple/price', desc: 'Real-time BTC, ETH, and USDC prices with 24h volume.' },
-            { id: 'srv-2', title: 'Twitter Circle USDC Sentiment Search', category: 'twitter', provider: 'SocialMetrics AI', price: '0.010 USDC', url: 'https://api.x.com/2/tweets/search', desc: 'Live sentiment analysis and tweet volume for Circle USDC.' },
-            { id: 'srv-3', title: 'YouTube Blockchain Video Research', category: 'youtube', provider: 'MediaIndex AI', price: '0.015 USDC', url: 'https://youtube.googleapis.com/youtube/v3', desc: 'Fetches top trending videos on blockchain & CCTP.' },
-            { id: 'srv-4', title: 'ArXiv Academic Papers', category: 'research', provider: 'ScholarSearch AI', price: '0.020 USDC', url: 'http://export.arxiv.org/api', desc: 'Deep scientific research paper extraction.' }
-        ];
-
-        function renderCircleMarketplace(filter = '') {
-            const container = document.getElementById('circleServicesContainer');
-            if (!container) return;
-            let list = CIRCLE_SERVICES;
-            if (filter) list = CIRCLE_SERVICES.filter(s => s.category === filter || s.title.toLowerCase().includes(filter.toLowerCase()));
-
-            container.innerHTML = '';
-            list.forEach(srv => {
-                const card = document.createElement('div');
-                card.className = 'p-4 rounded-xl bg-slate-50 border-2 border-slate-950 space-y-2';
-                card.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <span class="font-bold text-slate-950 text-sm">${srv.title}</span>
-                        <span class="text-purple-700 font-bold text-xs">${srv.price}</span>
-                    </div>
-                    <p class="text-xs text-slate-600 font-sans">${srv.desc}</p>
-                    <div class="flex justify-between items-center text-[11px] pt-1">
-                        <span class="text-slate-500">${srv.provider}</span>
-                        <button onclick="payCircleService('${srv.id}', '${srv.title}', '${srv.price}')" class="btn-pixel-sm px-3 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-600 rounded text-[10px] font-bold">
-                            Pay & Call
-                        </button>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function searchCircleMarketplace() {
-            const val = document.getElementById('circleSearchInput').value.trim();
-            renderCircleMarketplace(val);
-        }
-
-        function filterMarketplace(cat) {
-            renderCircleMarketplace(cat);
-        }
-
-        function payCircleService(id, title, price) {
-            userPoints += 150;
-            updateUserPointsUI();
-            saveUserDataState();
-            showToast('Service Called!', `Paid ${price} for ${title} (+150 PTS)`, 'success');
-        }
-
-        function copyCircleCmd(cmd) {
-            navigator.clipboard.writeText(cmd);
-            showToast('Copied!', cmd, 'success');
-        }
-
-        function switchAgentTab(tab) {
-            const b8004 = document.getElementById('agentTabBtn8004');
-            const b8183 = document.getElementById('agentTabBtn8183');
-            const bCircle = document.getElementById('agentTabBtnCircle');
-            const c8004 = document.getElementById('agentTabContent8004');
-            const c8183 = document.getElementById('agentTabContent8183');
-            const cCircle = document.getElementById('agentTabContentCircle');
-
-            b8004.className = 'px-3.5 py-2 rounded-lg font-bold text-slate-800 hover:text-purple-700';
-            b8183.className = 'px-3.5 py-2 rounded-lg font-bold text-slate-800 hover:text-purple-700';
-            bCircle.className = 'px-3.5 py-2 rounded-lg font-bold text-slate-800 hover:text-teal-700 flex items-center gap-1.5';
-
-            c8004.classList.add('hidden');
-            c8183.classList.add('hidden');
-            cCircle.classList.add('hidden');
-
-            if (tab === '8004') {
-                b8004.className = 'px-3.5 py-2 rounded-lg font-bold text-white bg-purple-700 border border-slate-950';
-                c8004.classList.remove('hidden');
-            } else if (tab === '8183') {
-                b8183.className = 'px-3.5 py-2 rounded-lg font-bold text-white bg-teal-700 border border-slate-950';
-                c8183.classList.remove('hidden');
-            } else {
-                bCircle.className = 'px-3.5 py-2 rounded-lg font-bold text-white bg-emerald-700 border border-slate-950 flex items-center gap-1.5';
-                cCircle.classList.remove('hidden');
-                renderCircleMarketplace();
-            }
-        }
-
-        function switchSwapMode(mode) {
-            const btnSwap = document.getElementById('swapModeBtnSwap');
-            const btnPool = document.getElementById('swapModeBtnPool');
-            const cardSwap = document.getElementById('swapCardContainer');
-            const cardPool = document.getElementById('poolCardContainer');
-
-            if (mode === 'swap') {
-                btnSwap.className = 'btn-pixel flex-1 py-2.5 rounded-xl font-bold text-xs text-white bg-purple-700 border-2 border-slate-950 flex items-center justify-center gap-2';
-                btnPool.className = 'flex-1 py-2.5 rounded-xl font-pixel font-bold text-xs text-slate-700 hover:text-slate-950 flex items-center justify-center gap-2';
-                cardSwap.classList.remove('hidden');
-                cardPool.classList.add('hidden');
-            } else {
-                btnPool.className = 'btn-pixel flex-1 py-2.5 rounded-xl font-bold text-xs text-white bg-teal-700 border-2 border-slate-950 flex items-center justify-center gap-2';
-                btnSwap.className = 'flex-1 py-2.5 rounded-xl font-pixel font-bold text-xs text-slate-700 hover:text-slate-950 flex items-center justify-center gap-2';
-                cardPool.classList.remove('hidden');
-                cardSwap.classList.add('hidden');
-            }
-        }
-
         // Initialize
         function initApp() {
             updateTokenBalancesUI();
@@ -2443,6 +2631,8 @@ Account: ${currentAccount}`;
             renderAgentRoster();
             renderJobBoard();
             renderTxHistoryInline();
+            renderWalletView();
+            renderPortfolioView();
             startLiveCountdown();
             startLiveTelemetryTicker();
             safeInitIcons();

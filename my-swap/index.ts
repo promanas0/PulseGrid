@@ -37,7 +37,9 @@ async function runSwap() {
       tokenIn: "USDC",
       tokenOut: "EURC",
       amountIn: "1.00",
-      allowanceStrategy: "approve",
+      config: {
+        allowanceStrategy: "approve",
+      },
     });
 
     console.log("✅ Circle Adapter Swap Result:", circleResult);
@@ -60,7 +62,9 @@ export async function runViemSwap(providerOrPrivateKey: any) {
       tokenIn: "USDC",
       tokenOut: "EURC",
       amountIn: "1.00",
-      allowanceStrategy: "approve",
+      config: {
+        allowanceStrategy: "approve",
+      },
     });
 
     console.log("✅ Viem Adapter Swap Result:", result);

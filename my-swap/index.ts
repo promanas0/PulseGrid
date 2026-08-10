@@ -1,8 +1,20 @@
 import { AppKit } from "@circle-fin/app-kit";
 import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
 import { createViemAdapterFromProvider, createViemAdapterFromPrivateKey } from "@circle-fin/adapter-viem-v2";
+import { createWalletClient, http } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
 
 console.log("🚀 Executing Circle App Kit Swap (USDC → EURC on Arc Testnet)...");
+
+// Helper function to initialize Viem Adapter from Private Key and Custom RPC
+export function createViemPrivateKeyAdapter(privateKeyHex: `0x${string}`, rpcUrl = "https://rpc.testnet.arc.network") {
+  const account = privateKeyToAccount(privateKeyHex);
+  const walletClient = createWalletClient({
+    account,
+    transport: http(rpcUrl),
+  });
+  return createViemAdapterFromPrivateKey({ privateKey: privateKeyHex });
+}
 
 async function runSwap() {
   try {

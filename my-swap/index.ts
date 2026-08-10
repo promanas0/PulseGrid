@@ -1,6 +1,6 @@
 import { AppKit } from "@circle-fin/app-kit";
 import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
-import { createViemAdapter } from "@circle-fin/adapter-viem-v2";
+import { createViemAdapterFromProvider, createViemAdapterFromPrivateKey } from "@circle-fin/adapter-viem-v2";
 
 console.log("🚀 Executing Circle App Kit Swap (USDC → EURC on Arc Testnet)...");
 
@@ -37,11 +37,13 @@ async function runSwap() {
   }
 }
 
-// 2. Browser / Viem Adapter Example (MetaMask / Web3 Browser Wallets)
-export async function runViemSwap(viemWalletClient: any) {
+// 2. Viem / Provider Adapter Example (MetaMask / EIP-1193 Browser Wallets or Private Key)
+export async function runViemSwap(providerOrPrivateKey: any) {
   try {
     const kit = new AppKit();
-    const viemAdapter = createViemAdapter({ walletClient: viemWalletClient });
+    const viemAdapter = typeof providerOrPrivateKey === 'string'
+      ? createViemAdapterFromPrivateKey({ privateKey: providerOrPrivateKey })
+      : await createViemAdapterFromProvider({ provider: providerOrPrivateKey });
 
     const result = await kit.swap({
       from: { adapter: viemAdapter, chain: "Arc_Testnet" },

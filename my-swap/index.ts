@@ -39,6 +39,9 @@ async function runSwap() {
       return;
     }
 
+    // Dynamic Swap Amount from CLI argument (e.g., npm start 5.0) or default 1.00
+    const swapAmount = process.argv[2] || process.env.SWAP_AMOUNT || "1.00";
+
     // Initialize Viem Adapter directly with valid Private Key
     const adapter = createViemAdapterFromPrivateKey({
       privateKey: privateKeyHex,
@@ -46,7 +49,7 @@ async function runSwap() {
 
     const kit = new AppKit();
 
-    console.log(`🔄 Executing Circle App Kit Viem On-Chain Swap for Address: ${account.address}...`);
+    console.log(`🔄 Executing Circle App Kit On-Chain Swap (${swapAmount} USDC → EURC)...`);
 
     const result = await kit.swap({
       from: {
@@ -55,7 +58,7 @@ async function runSwap() {
       },
       tokenIn: "USDC",
       tokenOut: "EURC",
-      amountIn: "1.00",
+      amountIn: swapAmount,
       config: {
         allowanceStrategy: "approve",
       },

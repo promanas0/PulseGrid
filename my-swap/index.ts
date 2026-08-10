@@ -6,44 +6,52 @@ console.log("🚀 Executing Circle App Kit Swap with Viem Adapter (USDC → EURC
 
 async function runSwap() {
   try {
-    const rawSecret = (process.env.PRIVATE_KEY || process.env.MNEMONIC || "").replace(/^0x/, "").trim();
+    const rawSecret = (process.env.PRIVATE_KEY || process.env.MNEMONIC || "").trim();
 
     let account;
-    if (rawSecret && rawSecret.includes(" ")) {
+    let privateKeyHex: `0x${string}` | undefined;
+
+    if (rawSecret.includes(" ")) {
       // 12-word Mnemonic Seed Phrase
-      account = mnemonicToAccount(rawSecret);
+      account = mnemonicToAccount(rawSecret.replace(/^0x/, ""));
+      const hdKey = account.getHdKey();
+      if (hdKey && hdKey.privateKey) {
+        privateKeyHex = `0x${Buffer.from(hdKey.privateKey).toString("hex")}` as `0x${string}`;
+      }
       console.log(`🔑 Derived Wallet Address from Mnemonic: ${account.address}`);
-    } else if (rawSecret && rawSecret.length >= 64) {
-      // 64-char Hex Private Key
-      const formattedPk = rawSecret.startsWith("0x") ? (rawSecret as `0x${string}`) : (`0x${rawSecret}` as `0x${string}`);
-      account = privateKeyToAccount(formattedPk);
-      console.log(`🔑 Wallet Address from Hex Private Key: ${account.address}`);
     } else {
+      // 64-char Hex Private Key
+      const cleanHex = rawSecret.replace(/^0x/, "");
+      if (cleanHex.length >= 64) {
+        privateKeyHex = `0x${cleanHex}` as `0x${string}`;
+        account = privateKeyToAccount(privateKeyHex);
+        console.log(`🔑 Wallet Address from Hex Private Key: ${account.address}`);
+      }
+    }
+
+    if (!account || !privateKeyHex) {
       console.log("\n========================================================");
       console.log("⚠️ NO VALID MNEMONIC OR PRIVATE KEY FOUND IN my-swap/.env");
       console.log("========================================================");
       console.log("Please open my-swap/.env and set:");
-      console.log('PRIVATE_KEY="soda canoe forest spy anchor fame victory chronic tissue express discover anxiety"');
+      console.log('PRIVATE_KEY=0xfe30acf615c85206faf13da075c44dde51804e01f5a64ede11220892142a8900');
       console.log("========================================================\n");
       return;
     }
 
-    const walletAddress = process.env.USER_WALLET_ADDRESS || account.address;
-
-    // Initialize Viem Adapter directly from Private Key
+    // Initialize Viem Adapter directly with valid Private Key
     const adapter = createViemAdapterFromPrivateKey({
-      privateKey: account.privateKey,
+      privateKey: privateKeyHex,
     });
 
     const kit = new AppKit();
 
-    console.log(`🔄 Executing Circle App Kit Viem On-Chain Swap for Address: ${walletAddress}...`);
+    console.log(`🔄 Executing Circle App Kit Viem On-Chain Swap for Address: ${account.address}...`);
 
     const result = await kit.swap({
       from: {
         adapter,
         chain: "Arc_Testnet",
-        address: walletAddress,
       },
       tokenIn: "USDC",
       tokenOut: "EURC",

@@ -1,69 +1,43 @@
 import { AppKit } from "@circle-fin/app-kit";
-import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
-import { createViemAdapterFromProvider, createViemAdapterFromPrivateKey } from "@circle-fin/adapter-viem-v2";
-import { createWalletClient, http } from "viem";
-import { privateKeyToAccount, mnemonicToAccount } from "viem/accounts";
+import { createViemAdapterFromPrivateKey } from "@circle-fin/adapter-viem-v2";
+import { mnemonicToAccount, privateKeyToAccount } from "viem/accounts";
 
-console.log("🚀 Executing Circle App Kit Swap (USDC → EURC on Arc Testnet)...");
-
-// Helper function to initialize Viem Adapter from Mnemonic / Seed Phrase
-export function createViemMnemonicAdapter(mnemonic: string) {
-  const account = mnemonicToAccount(mnemonic);
-  console.log(`🔑 Derived Wallet Address from Mnemonic: ${account.address}`);
-  return {
-    account,
-    adapter: createViemAdapterFromPrivateKey({ privateKey: account.privateKey })
-  };
-}
+console.log("🚀 Executing Circle App Kit Swap with Viem Adapter (USDC → EURC on Arc Testnet)...");
 
 async function runSwap() {
   try {
-    const apiKey = process.env.CIRCLE_API_KEY;
-    const entitySecret = process.env.CIRCLE_ENTITY_SECRET;
     const mnemonic = process.env.MNEMONIC;
-    const walletAddress = process.env.USER_WALLET_ADDRESS || "YOUR_WALLET_ADDRESS";
+    const privateKey = process.env.PRIVATE_KEY;
 
+    let account;
     if (mnemonic && mnemonic.trim() && !mnemonic.includes("YOUR_")) {
-      console.log("🔄 Using Mnemonic Seed Phrase for Viem On-Chain Swap...");
-      const { account, adapter } = createViemMnemonicAdapter(mnemonic.trim());
-      const kit = new AppKit();
-      const viemResult = await kit.swap({
-        from: { adapter, chain: "Arc_Testnet" },
-        tokenIn: "USDC",
-        tokenOut: "EURC",
-        amountIn: "1.00",
-        config: {
-          allowanceStrategy: "approve",
-        },
-      });
-      console.log("✅ Viem Mnemonic Swap Result:", viemResult);
-      return;
-    }
-
-    if (!apiKey || apiKey.includes("YOUR_") || !entitySecret || entitySecret.includes("YOUR_")) {
+      account = mnemonicToAccount(mnemonic.trim());
+      console.log(`🔑 Derived Account Address from Mnemonic: ${account.address}`);
+    } else if (privateKey && privateKey.trim() && !privateKey.includes("YOUR_")) {
+      const formattedPk = (privateKey.trim().startsWith("0x") ? privateKey.trim() : `0x${privateKey.trim()}`) as `0x${string}`;
+      account = privateKeyToAccount(formattedPk);
+      console.log(`🔑 Account Address from Private Key: ${account.address}`);
+    } else {
       console.log("\n========================================================");
-      console.log("✅ CIRCLE APP KIT & SWAP SDK EXECUTED SUCCESSFULLY!");
+      console.log("⚠️ NO MNEMONIC OR PRIVATE KEY FOUND IN my-swap/.env");
       console.log("========================================================");
-      console.log("To execute live swaps on Circle Developer-Controlled Wallets:");
-      console.log("1. Open file: my-swap/.env");
-      console.log("2. CIRCLE_API_KEY=TEST_API_KEY:your_key_here");
-      console.log("3. CIRCLE_ENTITY_SECRET=your_64_char_entity_secret_here");
-      console.log("4. USER_WALLET_ADDRESS=your_wallet_address_here");
-      console.log("5. Run again: npm start");
+      console.log("Please open my-swap/.env and set:");
+      console.log('MNEMONIC="soda canoe forest spy anchor fame victory chronic tissue express discover anxiety"');
       console.log("========================================================\n");
       return;
     }
 
-    const kit = new AppKit();
-
-    // 1. Circle Wallets Adapter (Developer-Controlled Wallets)
-    const circleAdapter = createCircleWalletsAdapter({
-      apiKey: apiKey,
-      entitySecret: entitySecret,
+    // Initialize Viem Adapter
+    const viemAdapter = createViemAdapterFromPrivateKey({
+      privateKey: account.privateKey,
     });
 
-    const circleResult = await kit.swap({
-      from: { adapter: circleAdapter, chain: "Arc_Testnet", address: walletAddress },
+    const kit = new AppKit();
+
+    console.log("🔄 Executing Circle App Kit Viem On-Chain Swap (1.00 USDC → EURC)...");
+
+    const result = await kit.swap({
+      from: { adapter: viemAdapter, chain: "Arc_Testnet" },
       tokenIn: "USDC",
       tokenOut: "EURC",
       amountIn: "1.00",
@@ -72,10 +46,14 @@ async function runSwap() {
       },
     });
 
-    console.log("✅ Circle Adapter Swap Result:", circleResult);
+    console.log("========================================================");
+    console.log("✅ VIEM ADAPTER SWAP EXECUTED SUCCESSFULLY!");
+    console.log("========================================================");
+    console.log(result);
+    console.log("========================================================\n");
 
   } catch (error) {
-    console.error("❌ Swap Execution Error:", error);
+    console.error("❌ Viem Swap Execution Error:", error);
   }
 }
 

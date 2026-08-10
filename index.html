@@ -424,8 +424,6 @@
                                     <div class="text-[11px] text-slate-400 flex flex-wrap items-center gap-2 mt-1">
                                         <span>Router:</span>
                                         <input type="text" id="dexRouterAddrInput" value="0x5F5763D31eC7F5decb6f62B746d87591D1EA6ce2" onchange="updateDexRouterAddress(this.value)" placeholder="Paste Remix Deployed Contract Address (0x...)" class="bg-slate-900 border border-arc-border text-arc-yellow font-mono text-[11px] px-2 py-0.5 rounded outline-none focus:border-arc-orange w-48 sm:w-64">
-                                        <span>Circle App Key:</span>
-                                        <input type="text" id="circleAppIdInput" value="" onchange="updateCircleAppId(this.value)" placeholder="Enter Circle App Key (Optional)..." class="bg-slate-900 border border-arc-border text-sky-400 font-mono text-[11px] px-2 py-0.5 rounded outline-none focus:border-sky-400 w-64 sm:w-80">
                                     </div>
                                 </div>
                             </div>
@@ -540,7 +538,7 @@
                             </div>
                             <div class="flex justify-between text-slate-400">
                                 <span>Slippage Tolerance</span>
-                                <span id="slippageValueText" class="text-arc-yellow">1.0%</span>
+                                <span id="slippageValueText" class="text-arc-yellow">1%</span>
                             </div>
                         </div>
 
@@ -1461,8 +1459,8 @@
                 <div class="grid grid-cols-4 gap-2">
                     <button onclick="setSlippage('0.1%')" class="slippage-btn py-2 rounded-xl bg-slate-900 border border-arc-border text-xs font-bold hover:border-arc-orange">0.1%</button>
                     <button onclick="setSlippage('0.5%')" class="slippage-btn py-2 rounded-xl bg-slate-900 border border-arc-border text-xs font-bold hover:border-arc-orange">0.5%</button>
-                    <button onclick="setSlippage('1.0%')" class="slippage-btn py-2 rounded-xl bg-arc-orange text-slate-950 text-xs font-bold">1.0%</button>
-                    <button onclick="setSlippage('2.0%')" class="slippage-btn py-2 rounded-xl bg-slate-900 border border-arc-border text-xs font-bold hover:border-arc-orange">2.0%</button>
+                    <button onclick="setSlippage('1%')" class="slippage-btn py-2 rounded-xl bg-arc-orange text-slate-950 text-xs font-bold">1%</button>
+                    <button onclick="setSlippage('2%')" class="slippage-btn py-2 rounded-xl bg-slate-900 border border-arc-border text-xs font-bold hover:border-arc-orange">2%</button>
                 </div>
             </div>
         </div>
@@ -1500,7 +1498,7 @@
         let userStreak = 0;
         let hasCheckedInToday = false;
         let hasSwappedToday = false;
-        let slippage = '1.0%';
+        let slippage = '1%';
         let targetTokenSelectorType = null;
         let addedMetaMaskTokens = new Set(); 
 
@@ -1552,7 +1550,7 @@
         // Supported Tokens Array (Only USDC & EURC active for Swap, cBTC Coming Soon)
         const TOKENS = [
             { id: 0, symbol: 'USDC', name: 'USD Coin (Native Gas)', balance: 0.00, rate: 1.0, icon: '$', bg: 'from-blue-500 to-indigo-600', address: '0x3600000000000000000000000000000000000000', decimals: 18 },
-            { id: 1, symbol: 'EURC', name: 'Euro Stablecoin', balance: 0.00, rate: 0.924, icon: '€', bg: 'from-yellow-500 to-amber-600', address: '0x8080000000000000000000000000000000000001', decimals: 18 },
+            { id: 1, symbol: 'EURC', name: 'Euro Stablecoin', balance: 0.00, rate: 0.924, icon: '€', bg: 'from-yellow-500 to-amber-600', address: '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a', decimals: 6 },
             { id: 2, symbol: 'cBTC', name: 'Circle Bitcoin (Coming Soon)', balance: 0.00, rate: 65000.0, icon: '₿', bg: 'from-amber-500 to-orange-600', address: '0x8080000000000000000000000000000000000006', decimals: 18, comingSoon: true }
         ];
 
@@ -2089,18 +2087,49 @@
             localStorage.setItem(key, JSON.stringify(Array.from(addedMetaMaskTokens)));
         }
 
-        // Fetch Real Native Balance from Arc Testnet RPC
+        // Fetch Real Native (USDC) and ERC-20 (EURC) Balances from Arc Testnet RPC
         async function fetchRealNativeBalance(account) {
+            if (!account || !window.ethereum) return;
             try {
+                // 1. Fetch USDC (Native Gas) Balance
                 const hexBal = await window.ethereum.request({
                     method: 'eth_getBalance',
                     params: [account, 'latest']
                 });
-                const weiValue = parseInt(hexBal, 16);
-                const ethValue = weiValue / 1e18;
+                const weiValue = parseInt(hexBal || '0x0', 16);
+                TOKENS[0].balance = weiValue / 1e18;
 
-                TOKENS[0].balance = ethValue; 
+                // 2. Fetch Real EURC (ERC-20) On-Chain Balance from Arc Testnet
+                const EURC_CONTRACT = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a';
+                const cleanAccount = account.replace('0x', '').toLowerCase().padStart(64, '0');
+                const callData = '0x70a08231' + cleanAccount; // balanceOf(address)
+                
+                try {
+                    const hexEurcBal = await window.ethereum.request({
+                        method: 'eth_call',
+                        params: [{ to: EURC_CONTRACT, data: callData }, 'latest']
+                    });
+                    if (hexEurcBal && hexEurcBal !== '0x' && hexEurcBal !== '0x0') {
+                        const rawEurc = BigInt(hexEurcBal);
+                        if (rawEurc > 0n) {
+                            const val6 = Number(rawEurc) / 1e6;
+                            if (val6 > 1e12) {
+                                TOKENS[1].balance = Number(rawEurc) / 1e18;
+                            } else {
+                                TOKENS[1].balance = val6;
+                            }
+                        } else {
+                            TOKENS[1].balance = 0.00;
+                        }
+                    } else {
+                        TOKENS[1].balance = 0.00;
+                    }
+                } catch (eurcErr) {
+                    console.warn("EURC on-chain balance fetch error:", eurcErr);
+                    TOKENS[1].balance = 0.00;
+                }
 
+                saveUserBalances(account);
                 updateTokenBalancesUI();
             } catch (e) {
                 console.error("Balance fetch error:", e);
@@ -2796,6 +2825,7 @@
                 });
                 saveUserBalances(currentAccount);
                 updateTokenBalancesUI();
+                fetchRealNativeBalance(currentAccount);
 
                 if (receiveToken.symbol !== 'USDC') {
                     try { addTokenToMetaMask(receiveToken); } catch(e) {}

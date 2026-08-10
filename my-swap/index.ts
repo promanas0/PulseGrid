@@ -1,28 +1,37 @@
-import { createCircleAdapter } from '@circle-fin/adapter-circle-wallets';
-import { createAppKit } from '@circle-fin/app-kit';
+import { AppKit } from "@circle-fin/app-kit";
+import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
 
-console.log("🚀 Initializing Circle App Kit & Swap SDK...");
+console.log("🚀 Executing Circle App Kit Swap (USDC → EURC on Arc Testnet)...");
 
-async function main() {
+async function runSwap() {
   try {
-    const apiKey = process.env.CIRCLE_API_KEY || '';
-    const entitySecret = process.env.CIRCLE_ENTITY_SECRET || '';
+    const apiKey = process.env.CIRCLE_API_KEY;
+    const entitySecret = process.env.CIRCLE_ENTITY_SECRET;
 
-    const circleAdapter = createCircleAdapter({
-      apiKey: apiKey,
+    if (!apiKey || apiKey === "YOUR_API_KEY" || !entitySecret || entitySecret === "YOUR_ENTITY_SECRET") {
+      console.warn("⚠️ Please set CIRCLE_API_KEY and CIRCLE_ENTITY_SECRET in your my-swap/.env file!");
+    }
+
+    const kit = new AppKit();
+    const adapter = createCircleWalletsAdapter({
+      apiKey: apiKey || "YOUR_API_KEY",
+      entitySecret: entitySecret || "YOUR_ENTITY_SECRET",
     });
 
-    const appKit = createAppKit({
-      adapters: [circleAdapter],
+    const walletAddress = process.env.USER_WALLET_ADDRESS || "YOUR_WALLET_ADDRESS";
+
+    const result = await kit.swap({
+      from: { adapter, chain: "Arc_Testnet", address: walletAddress },
+      tokenIn: "USDC",
+      tokenOut: "EURC",
+      amountIn: "1.00",
     });
 
-    console.log("✅ Circle App Kit & Adapter initialized successfully!");
-    console.log(`API Key: ${apiKey ? apiKey.substring(0, 8) + '...' : 'Not configured'}`);
-    console.log(`Entity Secret: ${entitySecret ? 'Configured ✓' : 'Not configured'}`);
-    console.log("Ready to execute same-chain and cross-chain swaps on Arc Testnet.");
+    console.log("✅ Swap Executed Successfully:");
+    console.log(result);
   } catch (error) {
-    console.error("❌ Error initializing Circle Swap SDK:", error);
+    console.error("❌ Swap Execution Error:", error);
   }
 }
 
-main();
+runSwap();

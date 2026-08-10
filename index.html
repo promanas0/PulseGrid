@@ -253,7 +253,7 @@
     <aside id="mainSidebar" class="fixed inset-y-0 left-0 z-50 w-72 sm:w-80 bg-white border-r-4 border-slate-950 flex flex-col justify-between p-4 shadow-[6px_0px_0px_rgba(0,0,0,0.05)] overflow-y-auto sidebar-mobile-hidden lg:transform-none">
         
         <div class="space-y-5">
-            <!-- Brand & Logo Header (CENTERED TAGLINE) -->
+            <!-- Brand & Logo Header -->
             <div class="pb-4 border-b-3 border-slate-950 space-y-2">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3 cursor-pointer" onclick="switchPage('monitor')">
@@ -633,14 +633,6 @@
                             </h2>
                             <p class="text-xs text-slate-600 mt-1.5 font-medium">Swap real Arc Testnet tokens (USDC ↔ EURC) with live wallet balances</p>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <button onclick="toggleDexSettingsModal()" class="btn-pixel-sm p-2.5 rounded-xl bg-slate-50 border-2 border-slate-950 text-slate-700 hover:text-purple-700 text-xs font-bold font-mono" title="Configure DEX Router Contract">
-                                <i data-lucide="cpu" class="w-4 h-4 text-purple-700"></i>
-                            </button>
-                            <button onclick="openTxHistoryModal()" class="btn-pixel-sm p-2.5 rounded-xl bg-slate-50 border-2 border-slate-950 text-slate-700 hover:text-purple-700" title="View Transaction History">
-                                <i data-lucide="history" class="w-4 h-4"></i>
-                            </button>
-                        </div>
                     </div>
 
                     <div class="p-5 rounded-2xl bg-slate-50 border-2 border-slate-950 focus-within:border-purple-700 transition-colors">
@@ -709,8 +701,6 @@
 
         <!-- AUTHENTIC WALLETCONNECT V2 WEB3 WALLET DASHBOARD VIEW -->
         <section id="view-wallet" class="page-view hidden space-y-6">
-            
-            <!-- Real Web3 Wallet Top Card -->
             <div class="pixel-card-purple p-6 sm:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b-2 border-slate-950">
                     <div class="flex items-center gap-3">
@@ -774,6 +764,128 @@
                         <i data-lucide="droplet" class="w-4 h-4"></i>
                         Faucet
                     </button>
+                </div>
+            </div>
+
+            <!-- Wallet Sub-Tabs -->
+            <div class="pixel-card p-6 space-y-6">
+                <div class="flex border-b-2 border-slate-950 pb-2 gap-3 overflow-x-auto">
+                    <button onclick="switchWalletTab('tokens')" id="walletTabBtn-tokens" class="font-pixel font-bold text-sm px-4 py-2 rounded-xl bg-purple-700 text-white border-2 border-slate-950 flex items-center gap-2 shrink-0">
+                        <i data-lucide="coins" class="w-4 h-4"></i> Tokens & Balances
+                    </button>
+                    <button onclick="switchWalletTab('activity')" id="walletTabBtn-activity" class="font-pixel font-bold text-sm px-4 py-2 rounded-xl text-slate-700 hover:text-slate-950 flex items-center gap-2 shrink-0">
+                        <i data-lucide="activity" class="w-4 h-4"></i> Real Activity Log
+                    </button>
+                    <button onclick="switchWalletTab('nfts')" id="walletTabBtn-nfts" class="font-pixel font-bold text-sm px-4 py-2 rounded-xl text-slate-700 hover:text-slate-950 flex items-center gap-2 shrink-0">
+                        <i data-lucide="shield-check" class="w-4 h-4"></i> Badges & Pass
+                    </button>
+                </div>
+
+                <div id="walletTabContent-tokens" class="space-y-3 font-mono text-xs">
+                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white text-sm">$</div>
+                            <div>
+                                <div class="font-bold text-slate-950 text-sm">USDC</div>
+                                <div class="text-[11px] text-slate-500">Native Arc L1 Gas Token</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div id="walletTabUsdcBal" class="font-bold text-slate-950 text-sm">0.00 USDC</div>
+                            <div id="walletTabUsdcUsd" class="text-[11px] text-emerald-700 font-bold">$0.00 USD</div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center font-bold text-slate-950 text-sm">€</div>
+                            <div>
+                                <div class="font-bold text-slate-950 text-sm">EURC</div>
+                                <div class="text-[11px] text-slate-500">Euro Stablecoin</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div id="walletTabEurcBal" class="font-bold text-slate-950 text-sm">0.00 EURC</div>
+                            <div id="walletTabEurcUsd" class="text-[11px] text-amber-700 font-bold">€0.00 EUR</div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-teal-600 flex items-center justify-center font-bold text-white text-sm">LP</div>
+                            <div>
+                                <div class="font-bold text-slate-950 text-sm">ARC-LP</div>
+                                <div class="text-[11px] text-slate-500">USDC/EURC AMM Liquidity Share</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div id="walletTabLpBal" class="font-bold text-slate-950 text-sm">0.00 ARC-LP</div>
+                            <div class="text-[11px] text-teal-700 font-bold">0.00% Share</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="walletTabContent-activity" class="hidden space-y-3 font-mono text-xs">
+                    <div id="walletRealTxListContainer"></div>
+                </div>
+
+                <div id="walletTabContent-nfts" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono text-xs">
+                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-purple-600 to-teal-500 border-2 border-slate-950 flex items-center justify-center text-white shrink-0">
+                            <i data-lucide="shield-check" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-slate-950 text-sm">Arc Genesis Builder Pass</div>
+                            <div class="text-[11px] text-purple-700 font-bold">Verified Testnet Builder Pass</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 4: PORTFOLIO & ANALYTICS VIEW -->
+        <section id="view-portfolio" class="page-view hidden space-y-8">
+            <div class="pixel-hero-gradient p-6 sm:p-10 text-white">
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                    <div>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 border border-white/40 font-silkscreen text-xs font-bold mb-3 shadow-sm">
+                            <i data-lucide="pie-chart" class="w-4 h-4"></i>
+                            Arc On-Chain Portfolio & Deployed Contracts Analytics
+                        </div>
+                        <h1 class="font-pixel text-3xl sm:text-4xl font-black text-white">Portfolio & Contract Analytics</h1>
+                        <p class="text-white/90 text-sm mt-2 max-w-xl leading-relaxed font-medium">
+                            Track total wallet net worth, deployed smart contracts, AI agent credentials, and on-chain interaction stats on Arc Testnet.
+                        </p>
+                    </div>
+
+                    <div class="flex items-center gap-3 bg-white border-3 border-slate-950 p-4 rounded-xl shadow-md text-slate-950 font-mono shrink-0">
+                        <div>
+                            <div class="text-[10px] font-silkscreen text-slate-500 uppercase">Est. Portfolio Value</div>
+                            <div id="portfolioNetWorth" class="font-pixel text-2xl font-black text-purple-700">$0.00 USD</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 5: NFT & TOKEN MARKET VIEW -->
+        <section id="view-market" class="page-view hidden space-y-8">
+            <div class="pixel-hero-gradient p-8 sm:p-10 text-white relative overflow-hidden">
+                <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                    <div>
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-400 text-slate-950 font-silkscreen text-xs font-bold mb-3 shadow-md">
+                            <i data-lucide="sparkles" class="w-4 h-4"></i>
+                            COMING SOON • ARC NFT & TOKEN MARKETPLACE
+                        </div>
+                        <h1 class="font-pixel text-3xl sm:text-5xl font-black text-white drop-shadow-md">NFT & Token Market</h1>
+                        <p class="text-white/90 text-sm mt-3 max-w-xl leading-relaxed font-medium">
+                            An upcoming decentralized marketplace on Circle Arc L1 for trading Genesis Builder NFTs, AI Agent Keys, and Yield Tokens.
+                        </p>
+                    </div>
+
+                    <div class="px-5 py-3 rounded-xl bg-white text-slate-950 font-pixel font-bold text-sm border-2 border-slate-950 shadow-md shrink-0">
+                        Launching Post-Sept 16 Mainnet
+                    </div>
                 </div>
             </div>
         </section>
@@ -843,15 +955,25 @@
         </div>
     </footer>
 
-    <!-- Native JavaScript Application Engine -->
+    <!-- Native JavaScript Application Engine with Null-Guards & Fail-Safe Telemetry -->
     <script>
+        // SAFE SETTERS (PREVENT ANY 'Cannot set properties of null' ERRORS)
+        function safeSetText(id, text) {
+            const el = document.getElementById(id);
+            if (el) el.innerText = text;
+        }
+
+        function safeSetHtml(id, html) {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = html;
+        }
+
         // Safe Lucide Icons
         function safeInitIcons() {
             if (typeof lucide !== 'undefined' && lucide && typeof lucide.createIcons === 'function') {
                 try { lucide.createIcons(); } catch(e) {}
             }
         }
-        safeInitIcons();
 
         // Application State
         let currentAccount = null;
@@ -871,9 +993,6 @@
             return '0x' + Array.from(str).map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join('');
         }
 
-        const DEFAULT_DEX_ADDRESS = '0xf8e81D47203A594245E36C48e151709F0C19fBe8';
-        let customDexRouterAddress = localStorage.getItem('arcpulse_dex_router_address') || DEFAULT_DEX_ADDRESS;
-
         const TOKENS = [
             { id: 0, symbol: 'USDC', name: 'USD Coin (Native Gas)', balance: 0.00, rate: 1.0, icon: '$', bg: 'bg-blue-600', address: '0x3600000000000000000000000000000000000000', decimals: 18 },
             { id: 1, symbol: 'EURC', name: 'Euro Stablecoin', balance: 0.00, rate: 0.8525, icon: '€', bg: 'bg-amber-500', address: '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a', decimals: 6 },
@@ -882,6 +1001,10 @@
 
         let payToken = TOKENS[0];
         let receiveToken = TOKENS[1];
+
+        // START LIVE TELEMETRY & COUNTDOWN IMMEDIATELY (FAIL-SAFE)
+        startLiveCountdown();
+        startLiveTelemetryTicker();
 
         // WALLETCONNECT V2 INITIALIZATION
         async function initWalletConnectProvider() {
@@ -904,7 +1027,7 @@
                     });
 
                     walletConnectProvider.on('accountsChanged', (accounts) => {
-                        if (accounts.length > 0) {
+                        if (accounts && accounts.length > 0) {
                             currentAccount = accounts[0];
                             activeWeb3Provider = walletConnectProvider;
                             onWalletConnected(currentAccount, 'WalletConnect');
@@ -968,12 +1091,14 @@
             if (currentAccount) {
                 disconnectWallet();
             } else {
-                document.getElementById('walletConnectModal').classList.remove('hidden');
+                const modal = document.getElementById('walletConnectModal');
+                if (modal) modal.classList.remove('hidden');
             }
         }
 
         function closeWalletConnectModal() {
-            document.getElementById('walletConnectModal').classList.add('hidden');
+            const modal = document.getElementById('walletConnectModal');
+            if (modal) modal.classList.add('hidden');
         }
 
         async function connectProvider(providerType) {
@@ -1017,11 +1142,10 @@
 
             } catch(err) {
                 console.error("Connect error:", err);
-                showToast('Connection Cancelled', err.message || 'User cancelled request', 'error');
+                showToast('Connection Info', err.message || 'Connection closed by user', 'info');
             }
         }
 
-        // OPTIONAL EXPLICIT SIGNATURE AUTHENTICATION
         async function requestOptionalAuthSignature() {
             if (!currentAccount) {
                 handleWalletClick();
@@ -1048,31 +1172,30 @@ Timestamp: ${new Date().toISOString()}`;
         }
 
         function onWalletConnected(account, providerName) {
-            loadUserBalances(account);
-            loadUserDataState();
-            updateTokenBalancesUI();
-            updateUserPointsUI();
-            updateWalletUI();
-            renderTxHistoryInline();
-            renderWalletView();
-            renderPortfolioView();
-            showToast('Wallet Connected!', `Connected via ${providerName} on Arc Testnet`, 'success');
+            try {
+                loadUserBalances(account);
+                loadUserDataState();
+                updateTokenBalancesUI();
+                updateWalletUI();
+                renderWalletView();
+                renderPortfolioView();
+                showToast('Wallet Connected!', `Connected via ${providerName} on Arc Testnet`, 'success');
+            } catch(e) {
+                console.warn("Wallet connected render notice:", e);
+            }
         }
 
         async function disconnectWallet() {
-            if (activeWeb3Provider && typeof activeWeb3Provider.disconnect === 'function') {
-                try { await activeWeb3Provider.disconnect(); } catch(e) {}
-            }
+            try {
+                if (activeWeb3Provider && typeof activeWeb3Provider.disconnect === 'function') {
+                    await activeWeb3Provider.disconnect();
+                }
+            } catch(e) {}
             currentAccount = null;
             activeWeb3Provider = null;
-            hasCheckedInToday = false;
-            userPoints = 0;
-            userStreak = 0;
             TOKENS.forEach(t => t.balance = 0.00);
             updateTokenBalancesUI();
-            updateUserPointsUI();
             updateWalletUI();
-            renderTxHistoryInline();
             renderWalletView();
             renderPortfolioView();
             showToast('Wallet Disconnected', 'Session cleared.', 'info');
@@ -1105,52 +1228,31 @@ Timestamp: ${new Date().toISOString()}`;
         }
 
         function updateWalletUI() {
-            const btnText = document.getElementById('walletBtnText');
             const infoBox = document.getElementById('sidebarWalletInfoBox');
             const connectBtn = document.getElementById('sidebarConnectBtn');
             const disconnectBtn = document.getElementById('sidebarDisconnectBtn');
 
             if (currentAccount) {
                 const formatted = `${currentAccount.substring(0, 6)}...${currentAccount.substring(currentAccount.length - 4)}`;
-                if (btnText) btnText.innerText = formatted;
+                safeSetText('walletBtnText', formatted);
+                safeSetText('sidebarAccountAddr', formatted);
+                safeSetText('sidebarUsdcBal', `${payToken.balance.toFixed(2)} USDC`);
                 
-                if (infoBox) {
-                    infoBox.classList.remove('hidden');
-                    document.getElementById('sidebarAccountAddr').innerText = formatted;
-                    document.getElementById('sidebarUsdcBal').innerText = `${payToken.balance.toFixed(2)} USDC`;
-                }
-
+                if (infoBox) infoBox.classList.remove('hidden');
                 if (connectBtn) connectBtn.classList.add('hidden');
                 if (disconnectBtn) disconnectBtn.classList.remove('hidden');
             } else {
-                if (btnText) btnText.innerText = 'Connect Wallet';
+                safeSetText('walletBtnText', 'Connect Wallet');
                 if (infoBox) infoBox.classList.add('hidden');
                 if (connectBtn) connectBtn.classList.remove('hidden');
                 if (disconnectBtn) disconnectBtn.classList.add('hidden');
             }
         }
 
-        // Token Balances & Storage
         function updateTokenBalancesUI() {
-            const payBalEl = document.getElementById('payTokenBalance');
-            const recBalEl = document.getElementById('receiveTokenBalance');
-            const poolUsdc = document.getElementById('poolUsdcBal');
-            const poolEurc = document.getElementById('poolEurcBal');
-
-            if (payBalEl) payBalEl.innerText = payToken.balance.toFixed(2);
-            if (recBalEl) recBalEl.innerText = receiveToken.balance.toFixed(2);
-            if (poolUsdc) poolUsdc.innerText = TOKENS[0].balance.toFixed(2);
-            if (poolEurc) poolEurc.innerText = TOKENS[1].balance.toFixed(2);
-
+            safeSetText('payTokenBalance', payToken.balance.toFixed(2));
+            safeSetText('receiveTokenBalance', receiveToken.balance.toFixed(2));
             updateWalletUI();
-            renderWalletView();
-        }
-
-        function updateUserPointsUI() {
-            const streakEl = document.getElementById('userStreakVal');
-            const ptsEl = document.getElementById('userPointsVal');
-            if (streakEl) streakEl.innerText = `${userStreak} Days`;
-            if (ptsEl) ptsEl.innerText = `${userPoints} PTS`;
         }
 
         function loadUserBalances(account) {
@@ -1170,31 +1272,8 @@ Timestamp: ${new Date().toISOString()}`;
             localStorage.setItem(`arcpulse_bal_${account.toLowerCase()}`, JSON.stringify(obj));
         }
 
-        function loadUserDataState() {
-            if (!currentAccount) return;
-            const saved = localStorage.getItem(`arcpulse_user_${currentAccount.toLowerCase()}`);
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    userPoints = parsed.points || 0;
-                    userStreak = parsed.streak || 0;
-                    hasCheckedInToday = parsed.hasCheckedInToday || false;
-                    hasSwappedToday = parsed.hasSwappedToday || false;
-                } catch(e) {}
-            }
-        }
+        function loadUserDataState() {}
 
-        function saveUserDataState() {
-            if (!currentAccount) return;
-            localStorage.setItem(`arcpulse_user_${currentAccount.toLowerCase()}`, JSON.stringify({
-                points: userPoints,
-                streak: userStreak,
-                hasCheckedInToday,
-                hasSwappedToday
-            }));
-        }
-
-        // AUTHENTIC REAL WEB3 WALLET DASHBOARD FUNCTIONS
         function switchWalletTab(tabId) {
             activeWalletTab = tabId;
             ['tokens', 'activity', 'nfts'].forEach(t => {
@@ -1214,44 +1293,51 @@ Timestamp: ${new Date().toISOString()}`;
         }
 
         function renderWalletView() {
-            const addrEl = document.getElementById('walletHeaderAddress');
-            const totalUsdEl = document.getElementById('walletTotalUsdBalance');
-            const statusTextEl = document.getElementById('walletConnectStatusText');
             const expLink = document.getElementById('walletExplorerLink');
 
             if (currentAccount) {
                 const formatted = `${currentAccount.substring(0,6)}...${currentAccount.substring(38)}`;
-                if (addrEl) addrEl.innerText = formatted;
-                if (statusTextEl) statusTextEl.innerText = 'Connected';
+                safeSetText('walletHeaderAddress', formatted);
+                safeSetText('walletConnectStatusText', 'Connected');
                 if (expLink) expLink.href = `https://explorer.testnet.arc.network/address/${currentAccount}`;
 
                 const usdcVal = TOKENS[0].balance;
                 const eurcVal = TOKENS[1].balance * 1.08;
                 const total = (usdcVal + eurcVal).toFixed(2);
-                if (totalUsdEl) totalUsdEl.innerText = `$${parseFloat(total).toLocaleString(undefined, {minimumFractionDigits: 2})} USD`;
+                safeSetText('walletTotalUsdBalance', `$${parseFloat(total).toLocaleString(undefined, {minimumFractionDigits: 2})} USD`);
 
-                document.getElementById('walletTabUsdcBal').innerText = `${TOKENS[0].balance.toFixed(2)} USDC`;
-                document.getElementById('walletTabUsdcUsd').innerText = `$${TOKENS[0].balance.toFixed(2)} USD`;
-                document.getElementById('walletTabEurcBal').innerText = `${TOKENS[1].balance.toFixed(2)} EURC`;
-                document.getElementById('walletTabEurcUsd').innerText = `€${(TOKENS[1].balance * 0.92).toFixed(2)} EUR`;
-                document.getElementById('walletTabLpBal').innerText = `${TOKENS[2].balance.toFixed(2)} ARC-LP`;
+                safeSetText('walletTabUsdcBal', `${TOKENS[0].balance.toFixed(2)} USDC`);
+                safeSetText('walletTabUsdcUsd', `$${TOKENS[0].balance.toFixed(2)} USD`);
+                safeSetText('walletTabEurcBal', `${TOKENS[1].balance.toFixed(2)} EURC`);
+                safeSetText('walletTabEurcUsd', `€${(TOKENS[1].balance * 0.92).toFixed(2)} EUR`);
+                safeSetText('walletTabLpBal', `${TOKENS[2].balance.toFixed(2)} ARC-LP`);
             } else {
-                if (addrEl) addrEl.innerText = '0x... (Connect Wallet)';
-                if (statusTextEl) statusTextEl.innerText = 'Connect Wallet';
-                if (totalUsdEl) totalUsdEl.innerText = '$0.00 USD';
+                safeSetText('walletHeaderAddress', '0x... (Connect Wallet)');
+                safeSetText('walletConnectStatusText', 'Connect Wallet');
+                safeSetText('walletTotalUsdBalance', '$0.00 USD');
                 if (expLink) expLink.href = 'https://explorer.testnet.arc.network';
 
-                document.getElementById('walletTabUsdcBal').innerText = '0.00 USDC';
-                document.getElementById('walletTabUsdcUsd').innerText = '$0.00 USD';
-                document.getElementById('walletTabEurcBal').innerText = '0.00 EURC';
-                document.getElementById('walletTabEurcUsd').innerText = '€0.00 EUR';
-                document.getElementById('walletTabLpBal').innerText = '0.00 ARC-LP';
+                safeSetText('walletTabUsdcBal', '0.00 USDC');
+                safeSetText('walletTabUsdcUsd', '$0.00 USD');
+                safeSetText('walletTabEurcBal', '0.00 EURC');
+                safeSetText('walletTabEurcUsd', '€0.00 EUR');
+                safeSetText('walletTabLpBal', '0.00 ARC-LP');
             }
 
             renderWalletRealTxLog();
         }
 
-        // REAL TRANSACTIONS LOG ONLY
+        function renderPortfolioView() {
+            if (currentAccount) {
+                const usdcVal = TOKENS[0].balance;
+                const eurcVal = TOKENS[1].balance * 1.08;
+                const total = (usdcVal + eurcVal).toFixed(2);
+                safeSetText('portfolioNetWorth', `$${parseFloat(total).toLocaleString(undefined, {minimumFractionDigits: 2})} USD`);
+            } else {
+                safeSetText('portfolioNetWorth', '$0.00 USD');
+            }
+        }
+
         function renderWalletRealTxLog() {
             const container = document.getElementById('walletRealTxListContainer');
             if (!container) return;
@@ -1307,14 +1393,10 @@ Timestamp: ${new Date().toISOString()}`;
                 const diff = targetDate - now;
 
                 if (diff <= 0) {
-                    const dEl = document.getElementById('cdDays');
-                    const hEl = document.getElementById('cdHours');
-                    const mEl = document.getElementById('cdMinutes');
-                    const sEl = document.getElementById('cdSeconds');
-                    if (dEl) dEl.innerText = '00';
-                    if (hEl) hEl.innerText = '00';
-                    if (mEl) mEl.innerText = '00';
-                    if (sEl) sEl.innerText = '00';
+                    safeSetText('cdDays', '00');
+                    safeSetText('cdHours', '00');
+                    safeSetText('cdMinutes', '00');
+                    safeSetText('cdSeconds', '00');
                     return;
                 }
 
@@ -1323,15 +1405,10 @@ Timestamp: ${new Date().toISOString()}`;
                 const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                 const secs = Math.floor((diff % (1000 * 60)) / 1000);
 
-                const daysEl = document.getElementById('cdDays');
-                const hoursEl = document.getElementById('cdHours');
-                const minsEl = document.getElementById('cdMinutes');
-                const secsEl = document.getElementById('cdSeconds');
-
-                if (daysEl) daysEl.innerText = String(days).padStart(2, '0');
-                if (hoursEl) hoursEl.innerText = String(hours).padStart(2, '0');
-                if (minsEl) minsEl.innerText = String(mins).padStart(2, '0');
-                if (secsEl) secsEl.innerText = String(secs).padStart(2, '0');
+                safeSetText('cdDays', String(days).padStart(2, '0'));
+                safeSetText('cdHours', String(hours).padStart(2, '0'));
+                safeSetText('cdMinutes', String(mins).padStart(2, '0'));
+                safeSetText('cdSeconds', String(secs).padStart(2, '0'));
             }
 
             update();
@@ -1343,18 +1420,12 @@ Timestamp: ${new Date().toISOString()}`;
         function startLiveTelemetryTicker() {
             setInterval(() => {
                 currentLiveBlock += 1;
-                const blockEl = document.getElementById('statBlockHeight');
-                if (blockEl) {
-                    blockEl.innerText = `#${currentLiveBlock.toLocaleString()}`;
-                }
+                safeSetText('statBlockHeight', `#${currentLiveBlock.toLocaleString()}`);
             }, 1200);
 
             setInterval(() => {
-                const tpsEl = document.getElementById('statTps');
-                if (tpsEl) {
-                    const liveTps = 1420 + Math.floor(Math.random() * 90);
-                    tpsEl.innerText = `${liveTps.toLocaleString()} TPS`;
-                }
+                const liveTps = 1420 + Math.floor(Math.random() * 90);
+                safeSetText('statTps', `${liveTps.toLocaleString()} TPS`);
             }, 2500);
 
             fetchRealRpcBlock();
@@ -1373,8 +1444,7 @@ Timestamp: ${new Date().toISOString()}`;
                     const realHeight = parseInt(data.result, 16);
                     if (realHeight > 0) {
                         currentLiveBlock = realHeight;
-                        const blockEl = document.getElementById('statBlockHeight');
-                        if (blockEl) blockEl.innerText = `#${currentLiveBlock.toLocaleString()}`;
+                        safeSetText('statBlockHeight', `#${currentLiveBlock.toLocaleString()}`);
                     }
                 }
             } catch(e) {}
@@ -1386,15 +1456,9 @@ Timestamp: ${new Date().toISOString()}`;
 
             fetchRealRpcBlock();
             setTimeout(() => {
-                const heightEl = document.getElementById('statBlockHeight');
-                const tpsEl = document.getElementById('statTps');
-                if (heightEl) {
-                    heightEl.innerText = `#${currentLiveBlock.toLocaleString()}`;
-                }
-                if (tpsEl) {
-                    const liveTps = 1420 + Math.floor(Math.random() * 90);
-                    tpsEl.innerText = `${liveTps.toLocaleString()} TPS`;
-                }
+                safeSetText('statBlockHeight', `#${currentLiveBlock.toLocaleString()}`);
+                const liveTps = 1420 + Math.floor(Math.random() * 90);
+                safeSetText('statTps', `${liveTps.toLocaleString()} TPS`);
                 if (icon) icon.classList.remove('animate-spin');
                 showToast('Telemetry Updated', 'Fetched latest live block telemetry on Arc L1', 'info');
             }, 600);
@@ -1402,141 +1466,14 @@ Timestamp: ${new Date().toISOString()}`;
 
         // Faucet Claim
         function openFaucetModal() {
-            const target = document.getElementById('faucetTargetAddrText');
-            if (target) target.innerText = currentAccount || '0x... (Connect Wallet)';
-            document.getElementById('faucetModal').classList.remove('hidden');
+            safeSetText('faucetTargetAddrText', currentAccount || '0x... (Connect Wallet)');
+            const modal = document.getElementById('faucetModal');
+            if (modal) modal.classList.remove('hidden');
         }
 
         function closeFaucetModal() {
-            document.getElementById('faucetModal').classList.add('hidden');
-        }
-
-        function claimInAppFaucet() {
-            if (!currentAccount) {
-                closeFaucetModal();
-                handleWalletClick();
-                return;
-            }
-
-            TOKENS[0].balance += 100.00;
-            saveUserBalances(currentAccount);
-            updateTokenBalancesUI();
-
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            saveTxRecord(currentAccount, {
-                txHash: "0x" + Math.random().toString(16).substring(2,18),
-                type: 'Faucet Claim',
-                pair: 'Claimed +100.00 Testnet USDC from Circle Faucet',
-                time: timeStr
-            });
-
-            closeFaucetModal();
-            window.open('https://faucet.circle.com/', '_blank');
-            showToast('Faucet Claimed!', 'Added 100 Testnet USDC to wallet balance', 'success');
-        }
-
-        // REAL TRANSACTION LOG STORAGE
-        function saveTxRecord(account, txObj) {
-            if (!account) return;
-            const key = `arcpulse_txs_${account.toLowerCase()}`;
-            const existing = JSON.parse(localStorage.getItem(key) || '[]');
-            existing.unshift(txObj);
-            localStorage.setItem(key, JSON.stringify(existing.slice(0, 30)));
-            renderTxHistoryInline();
-            renderWalletRealTxLog();
-        }
-
-        function renderTxHistoryInline() {
-            const container = document.getElementById('inlineTxHistoryContainer');
-            if (!container) return;
-
-            if (!currentAccount) {
-                container.innerHTML = `<div class="text-slate-500 text-center py-6 font-sans italic">No real transactions recorded yet. Connect wallet and execute a swap on Arc Testnet.</div>`;
-                return;
-            }
-
-            const existing = JSON.parse(localStorage.getItem(`arcpulse_txs_${currentAccount.toLowerCase()}`) || '[]');
-            if (existing.length === 0) {
-                container.innerHTML = `<div class="text-slate-500 text-center py-6 font-sans italic">No real transactions recorded yet. Perform a swap, transfer, or check-in.</div>`;
-                return;
-            }
-
-            container.innerHTML = '';
-            existing.slice(0, 4).forEach(tx => {
-                const div = document.createElement('div');
-                div.className = 'p-3 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between';
-                div.innerHTML = `
-                    <div>
-                        <div class="font-bold text-slate-950">${tx.type}</div>
-                        <div class="text-[11px] text-slate-500">${tx.pair}</div>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-purple-700 font-bold">${tx.txHash.substring(0, 10)}...</div>
-                        <div class="text-[10px] text-slate-400">${tx.time}</div>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        function openTxHistoryModal() {
-            const list = document.getElementById('txHistoryModalList');
-            if (!list) return;
-
-            if (!currentAccount) {
-                list.innerHTML = `<div class="text-slate-500 text-center py-8 font-sans italic">No real transactions recorded yet. Connect wallet to view transaction history.</div>`;
-            } else {
-                const existing = JSON.parse(localStorage.getItem(`arcpulse_txs_${currentAccount.toLowerCase()}`) || '[]');
-                if (existing.length === 0) {
-                    list.innerHTML = `<div class="text-slate-500 text-center py-8 font-sans italic">No real transactions recorded yet for this account.</div>`;
-                } else {
-                    list.innerHTML = '';
-                    existing.forEach(tx => {
-                        const div = document.createElement('div');
-                        div.className = 'p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between';
-                        div.innerHTML = `
-                            <div>
-                                <div class="font-bold text-slate-950 text-sm">${tx.type}</div>
-                                <div class="text-xs text-slate-600">${tx.pair}</div>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-purple-700 font-bold font-mono">${tx.txHash}</div>
-                                <div class="text-[11px] text-slate-500">${tx.time}</div>
-                            </div>
-                        `;
-                        list.appendChild(div);
-                    });
-                }
-            }
-            document.getElementById('txHistoryModal').classList.remove('hidden');
-        }
-
-        function closeTxHistoryModal() {
-            document.getElementById('txHistoryModal').classList.add('hidden');
-        }
-
-        // DEX Router Settings Modal
-        function toggleDexSettingsModal() {
-            const modal = document.getElementById('dexSettingsModal');
-            if (!modal) return;
-            const input = document.getElementById('dexRouterInputModal');
-            if (input) input.value = customDexRouterAddress;
-            const display = document.getElementById('dexAddressDisplay');
-            if (display) display.innerText = `${customDexRouterAddress.substring(0,10)}...${customDexRouterAddress.substring(34)}`;
-            modal.classList.toggle('hidden');
-        }
-
-        function saveDexSettingsModal() {
-            const input = document.getElementById('dexRouterInputModal');
-            if (input && input.value.trim().startsWith('0x')) {
-                customDexRouterAddress = input.value.trim();
-                localStorage.setItem('arcpulse_dex_router_address', customDexRouterAddress);
-                const display = document.getElementById('dexAddressDisplay');
-                if (display) display.innerText = `${customDexRouterAddress.substring(0,10)}...${customDexRouterAddress.substring(34)}`;
-                showToast('Router Updated', 'DEX Router contract linked successfully', 'success');
-            }
-            toggleDexSettingsModal();
+            const modal = document.getElementById('faucetModal');
+            if (modal) modal.classList.add('hidden');
         }
 
         // Toast System
@@ -1575,21 +1512,21 @@ Timestamp: ${new Date().toISOString()}`;
             }, 4000);
         }
 
-        // Initialize
+        // Initialize App
         function initApp() {
-            updateTokenBalancesUI();
-            updateUserPointsUI();
-            updateWalletUI();
-            renderTxHistoryInline();
-            renderWalletView();
-            renderPortfolioView();
-            startLiveCountdown();
-            startLiveTelemetryTicker();
-            initWalletConnectProvider();
-            safeInitIcons();
+            try {
+                updateTokenBalancesUI();
+                updateWalletUI();
+                renderWalletView();
+                renderPortfolioView();
+                initWalletConnectProvider();
+                safeInitIcons();
+            } catch(e) {
+                console.warn("InitApp non-fatal notice:", e);
+            }
         }
 
-        if (document.readyStates === 'loading') {
+        if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initApp);
         } else {
             initApp();

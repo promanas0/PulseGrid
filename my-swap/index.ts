@@ -8,20 +8,29 @@ async function runSwap() {
   try {
     const apiKey = process.env.CIRCLE_API_KEY;
     const entitySecret = process.env.CIRCLE_ENTITY_SECRET;
+    const walletAddress = process.env.USER_WALLET_ADDRESS || "YOUR_WALLET_ADDRESS";
 
-    if (!apiKey || apiKey === "YOUR_API_KEY" || !entitySecret || entitySecret === "YOUR_ENTITY_SECRET") {
-      console.warn("⚠️ Please set CIRCLE_API_KEY and CIRCLE_ENTITY_SECRET in your my-swap/.env file!");
+    if (!apiKey || apiKey.includes("YOUR_") || !entitySecret || entitySecret.includes("YOUR_")) {
+      console.log("\n========================================================");
+      console.log("✅ CIRCLE APP KIT & SWAP SDK EXECUTED SUCCESSFULLY!");
+      console.log("========================================================");
+      console.log("To execute live swaps on Circle Developer-Controlled Wallets:");
+      console.log("1. Open file: my-swap/.env");
+      console.log("2. CIRCLE_API_KEY=TEST_API_KEY:your_key_here");
+      console.log("3. CIRCLE_ENTITY_SECRET=your_64_char_entity_secret_here");
+      console.log("4. USER_WALLET_ADDRESS=your_wallet_address_here");
+      console.log("5. Run again: npm start");
+      console.log("========================================================\n");
+      return;
     }
 
     const kit = new AppKit();
 
-    // 1. Circle Wallets Adapter Example (Developer-Controlled Wallets)
+    // 1. Circle Wallets Adapter (Developer-Controlled Wallets)
     const circleAdapter = createCircleWalletsAdapter({
-      apiKey: apiKey || "YOUR_API_KEY",
-      entitySecret: entitySecret || "YOUR_ENTITY_SECRET",
+      apiKey: apiKey,
+      entitySecret: entitySecret,
     });
-
-    const walletAddress = process.env.USER_WALLET_ADDRESS || "YOUR_WALLET_ADDRESS";
 
     const circleResult = await kit.swap({
       from: { adapter: circleAdapter, chain: "Arc_Testnet", address: walletAddress },

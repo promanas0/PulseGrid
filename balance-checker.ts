@@ -7,7 +7,7 @@ import { formatUnits } from "viem";
  * Built for ArcPulse Ecosystem by ProManas
  */
 
-const apiKey = process.env.CIRCLE_API_KEY || "TEST_API_KEY:ebb3ad72232624921abc4b162148bb84:019ef3358ef9cd6d08fc32csfe89a68d";
+const apiKey = process.env.CIRCLE_API_KEY || "TEST_API_KEY:bbea6fab16e1195e62e7110a253159d8:18a4019d73e030dde1061aa509d5ccfd";
 const entitySecret = process.env.CIRCLE_ENTITY_SECRET || "";
 
 const sourceAdapter = createCircleWalletsAdapter({

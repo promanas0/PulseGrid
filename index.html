@@ -425,7 +425,7 @@
                                         <span>Router:</span>
                                         <input type="text" id="dexRouterAddrInput" value="0x5F5763D31eC7F5decb6f62B746d87591D1EA6ce2" onchange="updateDexRouterAddress(this.value)" placeholder="Paste Remix Deployed Contract Address (0x...)" class="bg-slate-900 border border-arc-border text-arc-yellow font-mono text-[11px] px-2 py-0.5 rounded outline-none focus:border-arc-orange w-48 sm:w-64">
                                         <span>Circle App Key:</span>
-                                        <input type="text" id="circleAppIdInput" value="KIT_KEY:d48f1fd196b2035ff104d416fca2fda2:24d4d19eac53dad2a6f040a8a390636f" onchange="updateCircleAppId(this.value)" placeholder="Circle App Key / Client ID" class="bg-slate-900 border border-arc-border text-sky-400 font-mono text-[11px] px-2 py-0.5 rounded outline-none focus:border-sky-400 w-64 sm:w-80">
+                                        <input type="text" id="circleAppIdInput" value="" onchange="updateCircleAppId(this.value)" placeholder="Enter Circle App Key (Optional)..." class="bg-slate-900 border border-arc-border text-sky-400 font-mono text-[11px] px-2 py-0.5 rounded outline-none focus:border-sky-400 w-64 sm:w-80">
                                     </div>
                                 </div>
                             </div>
@@ -540,7 +540,7 @@
                             </div>
                             <div class="flex justify-between text-slate-400">
                                 <span>Slippage Tolerance</span>
-                                <span id="slippageValueText" class="text-arc-yellow">0.5%</span>
+                                <span id="slippageValueText" class="text-arc-yellow">1.0%</span>
                             </div>
                         </div>
 
@@ -1459,10 +1459,10 @@
             <div>
                 <label class="text-xs font-semibold text-slate-400 block mb-2">Slippage Tolerance</label>
                 <div class="grid grid-cols-4 gap-2">
-                    <button onclick="setSlippage('0.1%')" class="py-2 rounded-xl bg-slate-900 border border-arc-border text-xs font-bold hover:border-arc-orange">0.1%</button>
-                    <button onclick="setSlippage('0.5%')" class="py-2 rounded-xl bg-arc-orange text-slate-950 text-xs font-bold">0.5%</button>
-                    <button onclick="setSlippage('1.0%')" class="py-2 rounded-xl bg-slate-900 border border-arc-border text-xs font-bold hover:border-arc-orange">1.0%</button>
-                    <button onclick="setSlippage('2.0%')" class="py-2 rounded-xl bg-slate-900 border border-arc-border text-xs font-bold hover:border-arc-orange">2.0%</button>
+                    <button onclick="setSlippage('0.1%')" class="slippage-btn py-2 rounded-xl bg-slate-900 border border-arc-border text-xs font-bold hover:border-arc-orange">0.1%</button>
+                    <button onclick="setSlippage('0.5%')" class="slippage-btn py-2 rounded-xl bg-slate-900 border border-arc-border text-xs font-bold hover:border-arc-orange">0.5%</button>
+                    <button onclick="setSlippage('1.0%')" class="slippage-btn py-2 rounded-xl bg-arc-orange text-slate-950 text-xs font-bold">1.0%</button>
+                    <button onclick="setSlippage('2.0%')" class="slippage-btn py-2 rounded-xl bg-slate-900 border border-arc-border text-xs font-bold hover:border-arc-orange">2.0%</button>
                 </div>
             </div>
         </div>
@@ -1500,7 +1500,7 @@
         let userStreak = 0;
         let hasCheckedInToday = false;
         let hasSwappedToday = false;
-        let slippage = '0.5%';
+        let slippage = '1.0%';
         let targetTokenSelectorType = null;
         let addedMetaMaskTokens = new Set(); 
 
@@ -1523,7 +1523,7 @@
             customDexRouterAddress = DEFAULT_DEX_ADDRESS;
             localStorage.setItem('arcpulse_dex_router_address', DEFAULT_DEX_ADDRESS);
         }
-        const DEFAULT_CIRCLE_API_KEY = 'TEST_API_KEY:ebb3ad72232624921abc4b162148bb84:019ef3358ef9cd6d08fc32csfe89a68d';
+        const DEFAULT_CIRCLE_API_KEY = '';
         let circleAppId = localStorage.getItem('arc_circle_app_id') || DEFAULT_CIRCLE_API_KEY;
         if (!circleAppId || circleAppId.includes('d48f1fd196b2035ff104d416fca2fda2')) {
             circleAppId = DEFAULT_CIRCLE_API_KEY;
@@ -2464,6 +2464,14 @@
         function setSlippage(val) {
             slippage = val;
             document.getElementById('slippageValueText').innerText = val;
+            const buttons = document.querySelectorAll('#slippageModal button.slippage-btn');
+            buttons.forEach(btn => {
+                if (btn.innerText.trim() === val) {
+                    btn.className = 'slippage-btn py-2 rounded-xl bg-arc-orange text-slate-950 text-xs font-bold';
+                } else {
+                    btn.className = 'slippage-btn py-2 rounded-xl bg-slate-900 border border-arc-border text-xs font-bold hover:border-arc-orange';
+                }
+            });
             toggleSlippageModal();
         }
 

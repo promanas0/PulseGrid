@@ -1,6 +1,7 @@
 {
   "name": "archpulse",
   "version": "1.0.0",
+  "type": "module",
   "description": "ArcPulse - High-performance Web3 DEX & Circle W3S Engine for Arc Testnet",
   "main": "index.html",
   "scripts": {
@@ -32,6 +33,8 @@
     "balance-checker:ts": "tsx --env-file=.env balance-checker.ts",
     "custom-rpc-adapter": "node --env-file=.env custom-rpc-adapter.js",
     "custom-rpc-adapter:ts": "tsx --env-file=.env custom-rpc-adapter.ts",
+    "register-entity-secret": "node --env-file=.env register-entity-secret.js",
+    "register-entity-secret:ts": "tsx --env-file=.env register-entity-secret.ts",
     "server": "node server.mjs",
     "build": "echo 'Build complete'"
   },

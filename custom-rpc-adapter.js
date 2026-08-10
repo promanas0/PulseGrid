@@ -1,7 +1,7 @@
-const { createViemAdapterFromPrivateKey } = require("@circle-fin/adapter-viem-v2");
-const { createPublicClient, createWalletClient, http } = require("viem");
-const { arcTestnet, sepolia } = require("viem/chains");
-const { AppKit } = require("@circle-fin/app-kit");
+import { createViemAdapterFromPrivateKey } from "@circle-fin/adapter-viem-v2";
+import { createPublicClient, createWalletClient, http } from "viem";
+import { arcTestnet, sepolia } from "viem/chains";
+import { AppKit } from "@circle-fin/app-kit";
 
 /**
  * Circle AppKit - Custom RPC Client Factory with Viem Private Key Adapter (ES Module / CommonJS)

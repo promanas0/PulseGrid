@@ -646,21 +646,7 @@
                             <button onclick="openTxHistoryModal()" class="btn-pixel-sm p-2.5 rounded-xl bg-slate-50 border-2 border-slate-950 text-slate-700 hover:text-purple-700" title="View Transaction History">
                                 <i data-lucide="history" class="w-4 h-4"></i>
                             </button>
-                            <button onclick="toggleSlippageModal()" class="btn-pixel-sm p-2.5 rounded-xl bg-slate-50 border-2 border-slate-950 text-slate-700 hover:text-purple-700">
-                                <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
-                            </button>
                         </div>
-                    </div>
-
-                    <div id="dexContractIndicatorBar" class="mb-6 p-3 rounded-xl bg-purple-50 border-2 border-purple-300 flex items-center justify-between text-xs font-mono">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span class="text-slate-600 font-bold">DEX Router:</span>
-                            <span id="dexAddressDisplay" class="text-purple-900 font-bold truncate max-w-[240px]">Unlinked (Click Settings to set contract)</span>
-                        </div>
-                        <button onclick="toggleDexSettingsModal()" class="text-purple-700 hover:underline text-[11px] font-bold shrink-0">
-                            Configure →
-                        </button>
                     </div>
 
                     <div class="p-5 rounded-2xl bg-slate-50 border-2 border-slate-950 focus-within:border-purple-700 transition-colors">
@@ -716,10 +702,6 @@
                         <div class="flex justify-between text-slate-600">
                             <span>Network Gas Fee</span>
                             <span class="text-emerald-700 font-bold">0.001 USDC (Arc Testnet)</span>
-                        </div>
-                        <div class="flex justify-between text-slate-600">
-                            <span>Slippage Tolerance</span>
-                            <span id="slippageValueText" class="text-purple-700 font-bold">1%</span>
                         </div>
                     </div>
 
@@ -974,7 +956,7 @@
                 </button>
             </div>
 
-            <p class="text-xs text-slate-600 font-medium">Connect your Web3 wallet to Arc Testnet (Chain ID 5042002) using WalletConnect v2 or browser extensions.</p>
+            <p class="text-xs text-slate-600 font-medium">2-Step Secure Authentication: 1) Connect Provider, 2) Sign Message to Verify Session on Arc Testnet (Chain 5042002).</p>
 
             <div class="space-y-3 pt-1 font-mono text-xs">
                 <!-- FEATURED #1: WALLETCONNECT -->
@@ -1155,7 +1137,7 @@
             }
         }
 
-        // Wallet Connect & Disconnect Handlers
+        // 2-STEP WALLET AUTHENTICATION (1. CONNECT PROVIDER -> 2. SIGN MESSAGE AUTHENTICATION)
         function handleWalletClick() {
             if (currentAccount) {
                 disconnectWallet();
@@ -1171,6 +1153,9 @@
         async function connectProvider(providerType) {
             closeWalletConnectModal();
             try {
+                let account = null;
+                let providerName = providerType.toUpperCase();
+
                 if (providerType === 'walletconnect') {
                     if (!walletConnectProvider) {
                         await initWalletConnectProvider();
@@ -1179,31 +1164,63 @@
                         await walletConnectProvider.connect();
                         const accounts = walletConnectProvider.accounts;
                         if (accounts && accounts.length > 0) {
-                            currentAccount = accounts[0];
+                            account = accounts[0];
                             activeWeb3Provider = walletConnectProvider;
-                            onWalletConnected(currentAccount, 'WalletConnect v2');
+                            providerName = 'WalletConnect v2';
                         }
                     } else {
                         showToast('WalletConnect Info', 'Loading WalletConnect provider...', 'info');
+                        return;
                     }
                 } else if (window.ethereum) {
                     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                     if (accounts && accounts.length > 0) {
-                        currentAccount = accounts[0];
+                        account = accounts[0];
                         activeWeb3Provider = window.ethereum;
                         await switchOrAddArcNetwork();
-                        onWalletConnected(currentAccount, providerType.toUpperCase());
                     }
                 } else {
                     showToast('Provider Missing', `${providerType} wallet not detected. Use WalletConnect!`, 'error');
+                    return;
                 }
+
+                if (!account) return;
+
+                // STEP 1 COMPLETE: SHOW NOTIFICATION & REQUEST STEP 2 AUTHENTICATION SIGNATURE
+                showToast('Wallet Linked (1/2)', 'Step 1 complete! Requesting authentication signature in wallet...', 'info');
+
+                // STEP 2: PROMPT FOR SIGNATURE AUTHENTICATION AFTER 600ms DELAY
+                setTimeout(async () => {
+                    try {
+                        const provider = activeWeb3Provider || window.ethereum;
+                        const authMessage = `Welcome to ArcPulse DApp!
+
+Sign this message to authenticate your wallet session on Arc L1 Testnet (Chain 5042002).
+
+Wallet Address: ${account}
+Timestamp: ${new Date().toISOString()}`;
+                        
+                        const signature = await provider.request({
+                            method: 'personal_sign',
+                            params: [stringToHex(authMessage), account]
+                        });
+
+                        currentAccount = account;
+                        onWalletConnected(currentAccount, providerName, signature);
+                    } catch (signErr) {
+                        console.warn("Authentication signature rejected:", signErr);
+                        disconnectWallet();
+                        showToast('Authentication Cancelled', 'Signature rejected. Connection cancelled for security.', 'error');
+                    }
+                }, 600);
+
             } catch(err) {
                 console.error("Connect error:", err);
                 showToast('Connection Cancelled', err.message || 'User cancelled request', 'error');
             }
         }
 
-        function onWalletConnected(account, providerName) {
+        function onWalletConnected(account, providerName, signature) {
             loadUserBalances(account);
             loadUserDataState();
             updateTokenBalancesUI();
@@ -1212,7 +1229,7 @@
             renderTxHistoryInline();
             renderWalletView();
             renderPortfolioView();
-            showToast('Wallet Connected!', `Connected via ${providerName} on Arc Testnet`, 'success');
+            showToast('Wallet Authenticated!', `Step 2/2 Verified via ${providerName} on Arc Testnet`, 'success');
         }
 
         async function disconnectWallet() {

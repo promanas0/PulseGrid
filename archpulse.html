@@ -49,6 +49,10 @@
     
     <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- WalletConnect v2 Ethereum Provider SDK CDN -->
+    <script src="https://unpkg.com/@walletconnect/ethereum-provider@2.10.1/dist/index.umd.js"></script>
+    <!-- Ethers.js v5 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <!-- Circle App Kit Web3 SDK CDN -->
     <script src="https://sdk.circle.com/web3services/0.2.0/circle-sdk.min.js"></script>
     
@@ -179,14 +183,6 @@
             box-shadow: 4px 4px 0px #0F172A;
         }
 
-        /* Text Gradients */
-        .text-gradient-purple-teal {
-            background: linear-gradient(135deg, #7B2CBF 0%, #3A506B 45%, #008080 80%, #007F73 100%);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
         /* Page View Animation */
         .page-view {
             animation: fadeIn 0.25s ease-out forwards;
@@ -287,7 +283,7 @@
                 </div>
             </div>
 
-            <!-- Navigation Options (CLEAN LUCIDE ICONS, NO EMOJIS) -->
+            <!-- Navigation Options -->
             <nav class="space-y-1.5">
                 <div class="text-[10px] font-silkscreen text-slate-400 uppercase tracking-widest px-2 mb-1.5">Main Menu</div>
 
@@ -301,13 +297,13 @@
                     <span>Swap & AMM</span>
                 </button>
 
-                <!-- Section - Arc Web3 Wallet -->
+                <!-- Section - Arc Web3 Wallet (WalletConnect v2 Enabled) -->
                 <button onclick="switchPage('wallet')" id="nav-btn-wallet" class="sidebar-link w-full justify-between">
                     <div class="flex items-center gap-2.5">
                         <i data-lucide="wallet" class="w-5 h-5 shrink-0 text-purple-700"></i>
                         <span>Arc Web3 Wallet</span>
                     </div>
-                    <span class="font-silkscreen text-[8px] bg-purple-100 text-purple-900 border border-purple-600 px-1.5 py-0.5 rounded font-bold">LIVE</span>
+                    <span class="font-silkscreen text-[8px] bg-sky-100 text-sky-900 border border-sky-600 px-1.5 py-0.5 rounded font-bold">WALLETCONNECT</span>
                 </button>
 
                 <!-- Section - Portfolio & Analytics -->
@@ -727,101 +723,22 @@
                         </div>
                     </div>
 
-                    <div id="addMetaMaskBtnContainer" class="mt-4">
-                        <button onclick="addTokenToMetaMask(receiveToken)" class="btn-pixel-sm w-full py-2.5 rounded-xl bg-slate-50 border-2 border-slate-950 hover:bg-slate-100 text-xs font-bold text-slate-800 flex items-center justify-center gap-2">
-                            <i data-lucide="plus-circle" class="w-4 h-4 text-purple-700"></i>
-                            Add <span id="addMetaMaskSymbol">EURC</span> to Web3 Wallet
-                        </button>
-                    </div>
-
                     <button id="executeSwapBtn" onclick="executeRealSwap()" class="btn-pixel w-full mt-5 py-4 rounded-xl bg-gradient-to-r from-purple-700 via-indigo-600 to-teal-600 text-white font-pixel font-bold text-base shadow-lg flex items-center justify-center gap-2">
                         <i data-lucide="zap" class="w-5 h-5"></i>
                         <span id="swapBtnLabel">Execute Arc Web3 Swap</span>
                     </button>
                 </div>
-
-                <div id="poolCardContainer" class="pixel-card-teal p-6 sm:p-10 relative hidden space-y-6">
-                    <div class="flex items-center justify-between pb-4 border-b-2 border-slate-950">
-                        <div>
-                            <h2 class="font-pixel text-2xl font-black text-slate-950 flex items-center gap-2.5">
-                                <i data-lucide="layers" class="w-6 h-6 text-teal-700"></i>
-                                Arc AMM Liquidity Pool
-                            </h2>
-                            <p class="text-xs text-slate-600 mt-1 font-medium">Provide USDC/EURC liquidity pair & earn 0.3% protocol swap fees</p>
-                        </div>
-                        <span class="px-3 py-1 rounded-full bg-teal-100 text-teal-900 border-2 border-teal-600 text-xs font-silkscreen font-bold">14.8% EST. APY</span>
-                    </div>
-
-                    <div class="space-y-4 font-mono text-xs">
-                        <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950">
-                            <div class="flex justify-between text-slate-600 mb-2 font-bold">
-                                <span>Deposit Token 1 (USDC)</span>
-                                <span>Balance: <span id="poolUsdcBal" class="text-slate-950 font-bold">0.00</span></span>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <input type="number" id="poolUsdcInput" placeholder="100.00" oninput="calculatePoolPair('usdc')" class="w-full bg-transparent text-2xl font-black text-slate-950 outline-none">
-                                <span class="font-bold text-slate-950 text-sm bg-white px-3 py-1.5 rounded-lg border-2 border-slate-950">USDC</span>
-                            </div>
-                        </div>
-
-                        <div class="flex justify-center text-slate-400 font-bold text-lg">+</div>
-
-                        <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950">
-                            <div class="flex justify-between text-slate-600 mb-2 font-bold">
-                                <span>Deposit Token 2 (EURC)</span>
-                                <span>Balance: <span id="poolEurcBal" class="text-slate-950 font-bold">0.00</span></span>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <input type="number" id="poolEurcInput" placeholder="92.40" oninput="calculatePoolPair('eurc')" class="w-full bg-transparent text-2xl font-black text-teal-700 outline-none">
-                                <span class="font-bold text-slate-950 text-sm bg-white px-3 py-1.5 rounded-lg border-2 border-slate-950">EURC</span>
-                            </div>
-                        </div>
-
-                        <div class="p-4 rounded-xl bg-teal-50 border-2 border-teal-300 space-y-2">
-                            <div class="flex justify-between text-slate-600">
-                                <span>Pool Share:</span>
-                                <span class="text-teal-900 font-bold" id="poolShareText">0.45%</span>
-                            </div>
-                            <div class="flex justify-between text-slate-600">
-                                <span>LP Tokens to Mint:</span>
-                                <span class="text-emerald-700 font-bold" id="poolLpTokensText">96.20 ARC-LP</span>
-                            </div>
-                        </div>
-
-                        <button onclick="depositLiquidityPool()" class="btn-pixel w-full py-4 rounded-xl bg-gradient-to-r from-teal-600 via-emerald-600 to-teal-700 text-white font-pixel font-bold text-sm shadow-md flex items-center justify-center gap-2">
-                            <i data-lucide="plus-circle" class="w-5 h-5"></i>
-                            Deposit Liquidity & Mint LP Tokens
-                        </button>
-                    </div>
-                </div>
-
-                <!-- REAL TRANSACTIONS ONLY ON SWAP PAGE -->
-                <div class="pixel-card p-6 space-y-4">
-                    <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
-                        <div class="flex items-center gap-2">
-                            <i data-lucide="activity" class="w-5 h-5 text-purple-700"></i>
-                            <h3 class="font-pixel font-bold text-slate-950 text-base">Recent Swap Activity</h3>
-                        </div>
-                        <button onclick="openTxHistoryModal()" class="text-xs font-pixel text-purple-700 font-bold hover:underline">
-                            View Full History →
-                        </button>
-                    </div>
-
-                    <div id="inlineTxHistoryContainer" class="space-y-2 font-mono text-xs">
-                        <div class="text-slate-500 text-center py-6 font-sans italic">No real transactions recorded yet. Connect wallet and execute a swap on Arc Testnet.</div>
-                    </div>
-                </div>
             </div>
         </section>
 
-        <!-- AUTHENTIC REAL WEB3 WALLET DASHBOARD VIEW -->
+        <!-- AUTHENTIC WALLETCONNECT V2 WEB3 WALLET DASHBOARD VIEW -->
         <section id="view-wallet" class="page-view hidden space-y-6">
             
             <!-- Real Web3 Wallet Top Card -->
             <div class="pixel-card-purple p-6 sm:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b-2 border-slate-950">
                     <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-700 via-indigo-600 to-teal-600 border-2 border-slate-950 flex items-center justify-center text-white font-bold shadow-[3px_3px_0px_#0F172A]">
+                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-600 via-purple-700 to-indigo-600 border-2 border-slate-950 flex items-center justify-center text-white font-bold shadow-[3px_3px_0px_#0F172A]">
                             <i data-lucide="wallet" class="w-6 h-6"></i>
                         </div>
                         <div>
@@ -835,9 +752,9 @@
                                 </a>
                             </div>
                             <div class="flex items-center gap-2 mt-1">
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-500 text-[10px] font-silkscreen font-bold">
-                                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                    Arc Testnet (5042002)
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-900 border border-sky-500 text-[10px] font-silkscreen font-bold">
+                                    <span class="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
+                                    WalletConnect v2 (Arc 5042002)
                                 </span>
                             </div>
                         </div>
@@ -877,7 +794,7 @@
                 </div>
             </div>
 
-            <!-- Wallet Tabs Navigation: Tokens | Activity | Collectibles -->
+            <!-- Wallet Tabs Navigation -->
             <div class="pixel-card p-6 space-y-6">
                 <div class="flex border-b-2 border-slate-950 pb-2 gap-3 overflow-x-auto">
                     <button onclick="switchWalletTab('tokens')" id="walletTabBtn-tokens" class="font-pixel font-bold text-sm px-4 py-2 rounded-xl bg-purple-700 text-white border-2 border-slate-950 flex items-center gap-2 shrink-0">
@@ -936,13 +853,13 @@
                     </div>
                 </div>
 
-                <!-- SUB-TAB 2: REAL ACTIVITY LOG (NO FAKE TRANSACTIONS!) -->
+                <!-- SUB-TAB 2: REAL ACTIVITY LOG -->
                 <div id="walletTabContent-activity" class="hidden space-y-3 font-mono text-xs">
                     <div id="walletRealTxListContainer">
                         <div class="p-8 text-center text-slate-500 font-sans italic space-y-2">
                             <i data-lucide="inbox" class="w-8 h-8 mx-auto text-slate-400"></i>
                             <div class="font-bold text-slate-800 text-sm">No real transactions recorded yet.</div>
-                            <div class="text-xs text-slate-500">Connect your Web3 wallet and perform a swap, send token, or daily check-in on Arc Testnet to see your real on-chain activity.</div>
+                            <div class="text-xs text-slate-500">Connect your Web3 wallet via WalletConnect and perform a swap, token send, or check-in on Arc Testnet.</div>
                         </div>
                     </div>
                 </div>
@@ -1016,64 +933,10 @@
                     <div class="text-[11px] text-slate-600 mt-2 font-sans font-medium">Genesis Builder + Consortium Pass</div>
                 </div>
             </div>
-
-            <!-- Deployed Smart Contracts List -->
-            <div class="pixel-card p-6 space-y-4">
-                <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
-                    <div class="flex items-center gap-2">
-                        <i data-lucide="cpu" class="w-5 h-5 text-purple-700"></i>
-                        <h3 class="font-pixel font-bold text-slate-950 text-base">Deployed Smart Contracts Dashboard</h3>
-                    </div>
-                    <span class="font-silkscreen text-[9px] bg-purple-100 text-purple-900 border border-purple-500 px-2 py-0.5 rounded font-bold">ARC TESTNET EVM</span>
-                </div>
-
-                <div class="space-y-3 font-mono text-xs">
-                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div>
-                            <div class="font-bold text-slate-950 text-sm flex items-center gap-2">
-                                <span>ArcPulse DEX Router</span>
-                                <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 text-[10px] font-bold">ACTIVE</span>
-                            </div>
-                            <div class="text-xs text-slate-600 mt-1">Address: <code class="text-purple-700 font-bold">0xf8e81D47203A594245E36C48e151709F0C19fBe8</code></div>
-                        </div>
-                        <button onclick="copyCircleCmd('0xf8e81D47203A594245E36C48e151709F0C19fBe8')" class="btn-pixel-sm px-3 py-1.5 bg-white text-slate-900 rounded text-xs font-bold shrink-0">
-                            Copy Address
-                        </button>
-                    </div>
-
-                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div>
-                            <div class="font-bold text-slate-950 text-sm flex items-center gap-2">
-                                <span>ERC-8004 AI IdentityRegistry</span>
-                                <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-900 text-[10px] font-bold">VERIFIED</span>
-                            </div>
-                            <div class="text-xs text-slate-600 mt-1">Address: <code class="text-purple-700 font-bold">0x8004A818BFB912233c491871b3d84c89A494BD9e</code></div>
-                        </div>
-                        <button onclick="copyCircleCmd('0x8004A818BFB912233c491871b3d84c89A494BD9e')" class="btn-pixel-sm px-3 py-1.5 bg-white text-slate-900 rounded text-xs font-bold shrink-0">
-                            Copy Address
-                        </button>
-                    </div>
-
-                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div>
-                            <div class="font-bold text-slate-950 text-sm flex items-center gap-2">
-                                <span>ERC-8183 Escrow Job Contract</span>
-                                <span class="px-2 py-0.5 rounded bg-teal-100 text-teal-900 text-[10px] font-bold">VERIFIED</span>
-                            </div>
-                            <div class="text-xs text-slate-600 mt-1">Address: <code class="text-purple-700 font-bold">0x0747EEf0706327138c69792bF28Cd525089e4583</code></div>
-                        </div>
-                        <button onclick="copyCircleCmd('0x0747EEf0706327138c69792bF28Cd525089e4583')" class="btn-pixel-sm px-3 py-1.5 bg-white text-slate-900 rounded text-xs font-bold shrink-0">
-                            Copy Address
-                        </button>
-                    </div>
-                </div>
-            </div>
         </section>
 
-        <!-- PAGE 5: NFT & TOKEN MARKET VIEW (COMING SOON BLUR TEASER) -->
+        <!-- PAGE 5: NFT & TOKEN MARKET VIEW -->
         <section id="view-market" class="page-view hidden space-y-8">
-            
-            <!-- Hero Banner with COMING SOON BADGE -->
             <div class="pixel-hero-gradient p-8 sm:p-10 text-white relative overflow-hidden">
                 <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                     <div>
@@ -1092,516 +955,15 @@
                     </div>
                 </div>
             </div>
-
-            <!-- BLURRED TEASER CARDS (SNEAK PEEK) -->
-            <div class="relative p-6 sm:p-10 rounded-3xl bg-slate-100 border-3 border-slate-950 space-y-6 overflow-hidden">
-                
-                <!-- Center Floating "COMING SOON" Banner -->
-                <div class="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md text-center space-y-4">
-                    <div class="px-5 py-2 rounded-2xl bg-amber-400 border-3 border-slate-950 font-pixel font-black text-slate-950 text-xl sm:text-2xl shadow-[6px_6px_0px_#0F172A]">
-                        MARKETPLACE COMING SOON!
-                    </div>
-                    <p class="text-white text-xs sm:text-sm font-bold max-w-md bg-slate-950/80 p-4 rounded-xl border-2 border-white/20">
-                        Arc NFT & Token Marketplace is under active development. Direct NFT Minting, AI Agent Tokens, and Yield Vault Keys will be unlocked after the Sept 16 Mainnet Launch.
-                    </p>
-                    <button onclick="switchPage('monitor')" class="btn-pixel px-6 py-3 rounded-xl bg-gradient-to-r from-purple-700 to-teal-600 text-white font-pixel font-bold text-xs shadow-lg">
-                        Return to Monitor →
-                    </button>
-                </div>
-
-                <!-- Blurred Preview Content Cards Behind Overlay -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 filter blur-[4px] pointer-events-none select-none">
-                    
-                    <!-- Preview Card 1 -->
-                    <div class="pixel-card-purple p-5 space-y-4">
-                        <div class="w-full h-44 bg-gradient-to-br from-purple-600 to-indigo-700 rounded-xl border-2 border-slate-950 flex flex-col items-center justify-center text-white">
-                            <i data-lucide="image" class="w-12 h-12 text-amber-300 mb-2"></i>
-                            <span class="font-pixel font-bold text-sm">Arc Genesis NFT #001</span>
-                        </div>
-                        <div class="flex justify-between items-center font-mono text-xs">
-                            <span class="text-slate-600">Floor Price:</span>
-                            <span class="font-bold text-purple-700">100.00 USDC</span>
-                        </div>
-                    </div>
-
-                    <!-- Preview Card 2 -->
-                    <div class="pixel-card-teal p-5 space-y-4">
-                        <div class="w-full h-44 bg-gradient-to-br from-teal-600 to-emerald-700 rounded-xl border-2 border-slate-950 flex flex-col items-center justify-center text-white">
-                            <i data-lucide="bot" class="w-12 h-12 text-teal-200 mb-2"></i>
-                            <span class="font-pixel font-bold text-sm">AI Agent Revenue Key</span>
-                        </div>
-                        <div class="flex justify-between items-center font-mono text-xs">
-                            <span class="text-slate-600">Floor Price:</span>
-                            <span class="font-bold text-teal-700">250.00 USDC</span>
-                        </div>
-                    </div>
-
-                    <!-- Preview Card 3 -->
-                    <div class="pixel-card-emerald p-5 space-y-4">
-                        <div class="w-full h-44 bg-gradient-to-br from-emerald-600 to-teal-800 rounded-xl border-2 border-slate-950 flex flex-col items-center justify-center text-white">
-                            <i data-lucide="shield-check" class="w-12 h-12 text-emerald-200 mb-2"></i>
-                            <span class="font-pixel font-bold text-sm">Consortium Pass NFT</span>
-                        </div>
-                        <div class="flex justify-between items-center font-mono text-xs">
-                            <span class="text-slate-600">Floor Price:</span>
-                            <span class="font-bold text-emerald-700">500.00 USDC</span>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </section>
-
-        <!-- PAGE 6: CIRCLE ESCROW VIEW -->
-        <section id="view-escrow" class="page-view hidden space-y-8">
-            <div class="pixel-hero-gradient p-8 sm:p-10 text-white">
-                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                    <div>
-                        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/20 border border-white/40 font-silkscreen text-xs font-bold mb-3">
-                            <i data-lucide="shield-check" class="w-4 h-4"></i>
-                            Circle USDC Escrow Protocol • Arc Testnet
-                        </div>
-                        <h1 class="font-pixel text-3xl sm:text-4xl font-black text-white">Circle Arc Escrow & AI Auditor</h1>
-                        <p class="text-white/90 text-sm mt-2 max-w-xl leading-relaxed font-medium">
-                            Automate escrow-backed contracts using USDC on Arc Testnet. Create developer-controlled wallets, deposit USDC, and let OpenAI Vision validate deliverables before releasing funds.
-                        </p>
-                    </div>
-                    
-                    <button onclick="generateCircleWallet()" class="btn-pixel px-5 py-3 rounded-xl bg-white text-slate-950 font-pixel font-bold text-xs flex items-center gap-2 shadow-md shrink-0">
-                        <i data-lucide="wallet" class="w-4 h-4 text-emerald-700"></i>
-                        Generate Circle Developer Wallet
-                    </button>
-                </div>
-            </div>
-
-            <!-- Status Box -->
-            <div id="circleWalletContainer" class="p-6 rounded-2xl bg-emerald-50 border-3 border-slate-950 space-y-3 font-mono text-xs hidden">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2 text-emerald-900 font-bold">
-                        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-700"></i>
-                        Circle Developer-Controlled Wallet Active (Arc Testnet)
-                    </div>
-                    <span class="px-2 py-0.5 rounded font-silkscreen bg-emerald-200 text-emerald-900 text-[9px] font-bold">ARC-TESTNET</span>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 border-t border-emerald-200">
-                    <div>
-                        <span class="text-slate-500 text-[11px]">Wallet ID:</span>
-                        <div id="circleWalletIdText" class="text-slate-950 font-bold truncate">---</div>
-                    </div>
-                    <div>
-                        <span class="text-slate-500 text-[11px]">Wallet Address:</span>
-                        <div id="circleWalletAddressText" class="text-purple-700 font-bold truncate">---</div>
-                    </div>
-                    <div>
-                        <span class="text-slate-500 text-[11px]">USDC Balance:</span>
-                        <div id="circleWalletBalanceText" class="text-emerald-700 font-bold">0.00 USDC</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="space-y-6">
-                    <div class="pixel-card-emerald p-6 sm:p-8 space-y-5">
-                        <div class="flex items-center gap-2 pb-3 border-b-2 border-slate-950">
-                            <i data-lucide="plus-circle" class="w-5 h-5 text-emerald-700"></i>
-                            <h3 class="font-pixel font-bold text-slate-950 text-base">Create USDC Escrow Agreement</h3>
-                        </div>
-                        
-                        <div class="space-y-4 font-mono text-xs">
-                            <div>
-                                <label class="text-slate-700 font-bold block mb-1">Agreement Title / Job Scope</label>
-                                <input type="text" id="escrowTitleInput" placeholder="e.g. Audit Smart Contract & Build React UI" class="w-full bg-slate-50 border-2 border-slate-950 rounded-xl p-3 text-slate-950 outline-none focus:border-emerald-700">
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="text-slate-700 font-bold block mb-1">Beneficiary Address</label>
-                                    <input type="text" id="escrowBeneficiaryInput" placeholder="0x... or Agent ID" class="w-full bg-slate-50 border-2 border-slate-950 rounded-xl p-3 text-slate-950 outline-none focus:border-emerald-700">
-                                </div>
-                                <div>
-                                    <label class="text-slate-700 font-bold block mb-1">Escrow Amount (USDC)</label>
-                                    <input type="number" id="escrowAmountInput" placeholder="100.00" class="w-full bg-slate-50 border-2 border-slate-950 rounded-xl p-3 text-emerald-700 font-bold outline-none focus:border-emerald-700">
-                                </div>
-                            </div>
-                            <div>
-                                <label class="text-slate-700 font-bold block mb-1">AI Validation Criteria</label>
-                                <textarea id="escrowCriteriaInput" rows="2" placeholder="e.g. Must deliver clean code screenshot, test reports, and verified repository URL." class="w-full bg-slate-50 border-2 border-slate-950 rounded-xl p-3 text-slate-950 outline-none focus:border-emerald-700"></textarea>
-                            </div>
-
-                            <button onclick="createCircleEscrowContract()" class="btn-pixel w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white font-pixel font-bold text-sm shadow-md flex items-center justify-center gap-2">
-                                <i data-lucide="lock" class="w-4 h-4"></i>
-                                Fund & Lock Escrow on Arc Testnet
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="pixel-card p-6 sm:p-8 space-y-5">
-                    <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
-                        <div class="flex items-center gap-2">
-                            <i data-lucide="list-checks" class="w-5 h-5 text-purple-700"></i>
-                            <h3 class="font-pixel font-bold text-slate-950 text-base">Circle Escrow Agreements</h3>
-                        </div>
-                        <span class="text-xs text-slate-500 font-mono" id="escrowCountBadge">0 Agreements</span>
-                    </div>
-
-                    <div id="escrowListContainer" class="space-y-4 font-mono text-xs">
-                        <div class="text-slate-400 text-center py-8 italic">No escrow agreements created yet.</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- PAGE 7: AI AGENT HUB VIEW -->
-        <section id="view-agent" class="page-view hidden space-y-8">
-            <div class="pixel-hero-gradient p-8 sm:p-10 text-white">
-                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                    <div>
-                        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/20 border border-white/40 font-silkscreen text-xs font-bold mb-3">
-                            <i data-lucide="bot" class="w-4 h-4"></i>
-                            ERC-8004 AI Agent Protocol & ERC-8183 Escrow
-                        </div>
-                        <h1 class="font-pixel text-3xl sm:text-4xl font-black text-white">AI Agent Protocol Hub</h1>
-                        <p class="text-white/90 text-sm mt-2 max-w-xl leading-relaxed font-medium">
-                            Register autonomous AI Agent identities on Arc IdentityRegistry (ERC-8004) and hire agents for automated USDC job settlement (ERC-8183).
-                        </p>
-                    </div>
-
-                    <button onclick="switchPage('escrow')" class="btn-pixel px-5 py-3 rounded-xl bg-white text-slate-950 font-pixel font-bold text-xs flex items-center gap-2 shadow-md shrink-0">
-                        <i data-lucide="shield-check" class="w-4 h-4 text-purple-700"></i>
-                        Open Escrow Auditor
-                    </button>
-                </div>
-            </div>
-
-            <!-- Agent Registry Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="pixel-card-purple p-6 space-y-4">
-                    <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
-                        <div class="flex items-center gap-2">
-                            <i data-lucide="bot" class="w-5 h-5 text-purple-700"></i>
-                            <h3 class="font-pixel font-bold text-slate-950 text-base">Register AI Agent (ERC-8004)</h3>
-                        </div>
-                        <span class="font-silkscreen text-[9px] bg-purple-100 text-purple-900 border border-purple-500 px-2 py-0.5 rounded font-bold">IDENTITY</span>
-                    </div>
-
-                    <div class="space-y-3 font-mono text-xs">
-                        <div>
-                            <label class="text-slate-800 font-bold block mb-1">Agent Name</label>
-                            <input type="text" id="agentNameInput" placeholder="e.g. ArcPulse Arbitrage Sentinel" class="w-full p-3 rounded-xl bg-slate-50 border-2 border-slate-950 text-slate-950 outline-none">
-                        </div>
-
-                        <div>
-                            <label class="text-slate-800 font-bold block mb-1">Agent Role / Type</label>
-                            <select id="agentTypeSelect" class="w-full p-3 rounded-xl bg-slate-50 border-2 border-slate-950 text-slate-950 outline-none">
-                                <option value="Trading & Arbitrage">Trading & Arbitrage Engine</option>
-                                <option value="Yield Sentinel">USDC Yield Sentinel</option>
-                                <option value="Code Auditor">Smart Contract Code Auditor</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="text-slate-800 font-bold block mb-1">Description & Capabilities</label>
-                            <textarea id="agentDescInput" rows="2" placeholder="Briefly describe AI capabilities..." class="w-full p-3 rounded-xl bg-slate-50 border-2 border-slate-950 text-slate-950 outline-none"></textarea>
-                        </div>
-
-                        <button onclick="registerErc8004Agent()" class="btn-pixel w-full py-3.5 rounded-xl bg-purple-700 text-white font-pixel font-bold text-xs flex items-center justify-center gap-2">
-                            <i data-lucide="plus-circle" class="w-4 h-4"></i>
-                            Register ERC-8004 Identity (+200 PTS)
-                        </button>
-                    </div>
-                </div>
-
-                <div class="pixel-card-teal p-6 space-y-4">
-                    <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
-                        <div class="flex items-center gap-2">
-                            <i data-lucide="briefcase" class="w-5 h-5 text-teal-700"></i>
-                            <h3 class="font-pixel font-bold text-slate-950 text-base">Create Agent Job (ERC-8183)</h3>
-                        </div>
-                        <span class="font-silkscreen text-[9px] bg-teal-100 text-teal-900 border border-teal-500 px-2 py-0.5 rounded font-bold">ESCROW</span>
-                    </div>
-
-                    <div class="space-y-3 font-mono text-xs">
-                        <div>
-                            <label class="text-slate-800 font-bold block mb-1">Job Title</label>
-                            <input type="text" id="jobTitleInput" placeholder="e.g. Execute Arbitrage & Rebalance Pool" class="w-full p-3 rounded-xl bg-slate-50 border-2 border-slate-950 text-slate-950 outline-none">
-                        </div>
-
-                        <div>
-                            <label class="text-slate-800 font-bold block mb-1">Target Agent Provider</label>
-                            <input type="text" id="jobProviderInput" placeholder="ArcPulse Arbitrage Bot" class="w-full p-3 rounded-xl bg-slate-50 border-2 border-slate-950 text-slate-950 outline-none">
-                        </div>
-
-                        <div>
-                            <label class="text-slate-800 font-bold block mb-1">Budget (USDC)</label>
-                            <input type="number" id="jobBudgetInput" placeholder="25.00" class="w-full p-3 rounded-xl bg-slate-50 border-2 border-slate-950 text-slate-950 outline-none">
-                        </div>
-
-                        <button onclick="createErc8183Job()" class="btn-pixel w-full py-3.5 rounded-xl bg-teal-600 text-white font-pixel font-bold text-xs flex items-center justify-center gap-2">
-                            <i data-lucide="lock" class="w-4 h-4"></i>
-                            Fund Job Escrow (+250 PTS)
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Agent Roster List -->
-            <div class="pixel-card p-6 space-y-4">
-                <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
-                    <div class="flex items-center gap-2">
-                        <i data-lucide="bot" class="w-5 h-5 text-purple-700"></i>
-                        <h3 class="font-pixel font-bold text-slate-950 text-base">Registered ERC-8004 AI Agent Registry</h3>
-                    </div>
-                </div>
-                <div id="agentRosterContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-            </div>
-
-            <!-- Job Board -->
-            <div class="pixel-card p-6 space-y-4">
-                <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
-                    <div class="flex items-center gap-2">
-                        <i data-lucide="list" class="w-5 h-5 text-teal-700"></i>
-                        <h3 class="font-pixel font-bold text-slate-950 text-base">ERC-8183 Agentic Escrow Jobs Board</h3>
-                    </div>
-                </div>
-                <div id="jobBoardContainer" class="space-y-3 font-mono text-xs"></div>
-            </div>
-        </section>
-
-        <!-- PAGE 8: DAILY QUESTS VIEW -->
-        <section id="view-daily" class="page-view hidden space-y-8">
-            <div class="pixel-card-purple p-8 sm:p-10 bg-gradient-to-r from-purple-50 via-white to-teal-50">
-                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                    <div>
-                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 border border-purple-400 text-purple-900 font-silkscreen text-xs font-bold mb-3">
-                            <i data-lucide="award" class="w-4 h-4"></i>
-                            ArcPulse Builder Rewards
-                        </div>
-                        <h1 class="font-pixel text-3xl sm:text-4xl font-black text-slate-950">Daily Quests & Streak System</h1>
-                        <p class="text-slate-600 text-sm mt-2 max-w-xl leading-relaxed font-medium">
-                            Connect your wallet and complete real daily check-ins on Arc Testnet. Miss 1 day and your streak resets while points remain intact!
-                        </p>
-                    </div>
-
-                    <div class="flex items-center gap-6 bg-white border-3 border-slate-950 p-5 rounded-2xl shadow-[4px_4px_0px_#7B2CBF]">
-                        <div class="text-center px-2 border-r-2 border-slate-300">
-                            <div class="font-pixel text-3xl font-black text-purple-700" id="userStreakVal">0 Days</div>
-                            <div class="font-silkscreen text-[9px] uppercase font-bold text-slate-500 tracking-wider">Active Streak</div>
-                        </div>
-                        <div class="text-center px-2">
-                            <div class="font-pixel text-3xl font-black text-teal-700" id="userPointsVal">0 PTS</div>
-                            <div class="font-silkscreen text-[9px] uppercase font-bold text-slate-500 tracking-wider">ArchPulse Points</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tasks List -->
-            <div class="space-y-4">
-                <div class="pixel-card p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div class="flex items-start gap-4">
-                        <div class="w-12 h-12 rounded-2xl bg-purple-100 border-2 border-slate-950 flex items-center justify-center text-purple-700 shrink-0">
-                            <i data-lucide="calendar-check" class="w-6 h-6"></i>
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h3 class="font-pixel font-bold text-slate-950 text-base">Daily Testnet Check-In</h3>
-                                <span class="font-silkscreen px-2.5 py-0.5 rounded bg-purple-100 text-purple-900 text-[10px] font-bold border border-purple-400">+50 Points</span>
-                            </div>
-                            <p class="text-xs text-slate-600 mt-1 font-medium">Requires Web3 signature confirmation to verify check-in on Arc Testnet</p>
-                        </div>
-                    </div>
-
-                    <button id="questCheckInBtn" onclick="performDailyCheckIn()" class="btn-pixel px-6 py-3.5 rounded-xl bg-purple-700 text-white font-pixel font-bold text-xs flex items-center gap-2 shrink-0">
-                        <i data-lucide="key-round" class="w-4 h-4"></i>
-                        Sign & Check In
-                    </button>
-                </div>
-
-                <div class="pixel-card p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div class="flex items-start gap-4">
-                        <div class="w-12 h-12 rounded-2xl bg-indigo-100 border-2 border-slate-950 flex items-center justify-center text-indigo-700 shrink-0">
-                            <i data-lucide="repeat" class="w-6 h-6"></i>
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h3 class="font-pixel font-bold text-slate-950 text-base">Execute 1 Swap on Arc DEX</h3>
-                                <span class="font-silkscreen px-2.5 py-0.5 rounded bg-indigo-100 text-indigo-900 text-[10px] font-bold border border-indigo-400">+100 Points</span>
-                            </div>
-                            <p class="text-xs text-slate-600 mt-1 font-medium">Perform any token swap transaction on Arc DEX</p>
-                        </div>
-                    </div>
-
-                    <button id="questSwapBtn" onclick="switchPage('swap')" class="btn-pixel px-6 py-3.5 rounded-xl bg-indigo-600 text-white font-pixel font-bold text-xs flex items-center gap-2 shrink-0">
-                        Go to Swap →
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- PAGE 9: ABOUT ARC VIEW -->
-        <section id="view-about" class="page-view hidden space-y-8">
-            <div class="pixel-hero-gradient p-8 sm:p-10 text-white">
-                <div class="max-w-3xl">
-                    <span class="font-silkscreen px-3.5 py-1 rounded-full bg-white/20 border border-white/40 text-xs font-bold">Circle Arc L1 Architecture</span>
-                    <h1 class="font-pixel text-3xl sm:text-4xl font-black text-white mt-3">About Circle Arc L1 Network</h1>
-                    <p class="text-white/90 text-sm mt-3 leading-relaxed font-medium">
-                        Arc is an open, stablecoin-native Layer-1 blockchain purpose-built by Circle to unite programmable money, economic contracts, and onchain capital markets with sub-second deterministic finality.
-                    </p>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="pixel-card p-6">
-                    <div class="w-12 h-12 rounded-2xl bg-purple-100 border-2 border-slate-950 flex items-center justify-center text-purple-700 mb-4">
-                        <i data-lucide="coins" class="w-6 h-6"></i>
-                    </div>
-                    <h3 class="font-pixel text-lg font-bold text-slate-950">Stablecoin-Native Gas</h3>
-                    <p class="text-xs text-slate-600 mt-2 leading-relaxed font-medium">
-                        Arc uses USDC directly as its native gas token, eliminating price volatility for transaction fees and ensuring predictable $0.001 micro-fees for all developers and institutional applications.
-                    </p>
-                </div>
-
-                <div class="pixel-card p-6">
-                    <div class="w-12 h-12 rounded-2xl bg-indigo-100 border-2 border-slate-950 flex items-center justify-center text-indigo-700 mb-4">
-                        <i data-lucide="bot" class="w-6 h-6"></i>
-                    </div>
-                    <h3 class="font-pixel text-lg font-bold text-slate-950">ERC-8004 & ERC-8183 Agent Protocols</h3>
-                    <p class="text-xs text-slate-600 mt-2 leading-relaxed font-medium">
-                        Native support for AI agent identity registration (ERC-8004) and trustless USDC escrow job settlement (ERC-8183) for the agentic economy.
-                    </p>
-                </div>
-
-                <div class="pixel-card p-6">
-                    <div class="w-12 h-12 rounded-2xl bg-teal-100 border-2 border-slate-950 flex items-center justify-center text-teal-700 mb-4">
-                        <i data-lucide="building-2" class="w-6 h-6"></i>
-                    </div>
-                    <h3 class="font-pixel text-lg font-bold text-slate-950">Permissioned Consortium Validators</h3>
-                    <p class="text-xs text-slate-600 mt-2 leading-relaxed font-medium">
-                        Secured by world-class financial institutions including Circle, BlackRock, Visa, DTCC, BNY, and Mastercard for strict regulatory alignment and global trust.
-                    </p>
-                </div>
-
-                <div class="pixel-card p-6">
-                    <div class="w-12 h-12 rounded-2xl bg-emerald-100 border-2 border-slate-950 flex items-center justify-center text-emerald-700 mb-4">
-                        <i data-lucide="arrow-left-right" class="w-6 h-6"></i>
-                    </div>
-                    <h3 class="font-pixel text-lg font-bold text-slate-950">Native CCTP Interoperability</h3>
-                    <p class="text-xs text-slate-600 mt-2 leading-relaxed font-medium">
-                        Direct protocol-level integration with Circle's Cross-Chain Transfer Protocol allows seamless 1:1 USDC movement across Ethereum, Solana, Arbitrum, and Avalanche.
-                    </p>
-                </div>
-            </div>
         </section>
 
     </main>
 
     <!-- MODALS -->
 
-    <!-- REAL WALLET SEND TOKEN MODAL -->
-    <div id="walletSendModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="pixel-card-purple w-full max-w-md p-6 space-y-5">
-            <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="send" class="w-5 h-5 text-purple-700"></i>
-                    <h3 class="font-pixel font-bold text-slate-950 text-lg">Send Tokens on Arc Testnet</h3>
-                </div>
-                <button onclick="closeWalletSendModal()" class="text-slate-500 hover:text-slate-950">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-
-            <div class="space-y-4 font-mono text-xs">
-                <div>
-                    <label class="text-slate-800 font-bold block mb-1">Select Token</label>
-                    <select id="modalSendTokenSelect" class="w-full p-3 rounded-xl bg-slate-50 border-2 border-slate-950 text-slate-950 outline-none">
-                        <option value="USDC">USDC (Native Arc Gas Token)</option>
-                        <option value="EURC">EURC (Euro Stablecoin)</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="text-slate-800 font-bold block mb-1">Recipient EVM Address (0x...)</label>
-                    <input type="text" id="modalSendToInput" placeholder="0x1f8...92A" class="w-full p-3 rounded-xl bg-slate-50 border-2 border-slate-950 text-slate-950 outline-none">
-                </div>
-
-                <div>
-                    <label class="text-slate-800 font-bold block mb-1">Amount</label>
-                    <input type="number" id="modalSendAmountInput" placeholder="10.00" class="w-full p-3 rounded-xl bg-slate-50 border-2 border-slate-950 text-slate-950 outline-none">
-                </div>
-
-                <div class="p-3 rounded-xl bg-purple-50 border-2 border-purple-300 flex justify-between items-center text-[11px]">
-                    <span class="text-slate-600">Est. Network Fee:</span>
-                    <span class="text-purple-900 font-bold">0.001 USDC (Arc L1)</span>
-                </div>
-
-                <button onclick="executeModalSendTx()" class="btn-pixel w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-700 via-indigo-700 to-purple-800 text-white font-pixel font-bold text-xs flex items-center justify-center gap-2">
-                    <i data-lucide="send" class="w-4 h-4"></i>
-                    Send Real Token Transaction
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- REAL WALLET RECEIVE TOKEN MODAL -->
-    <div id="walletReceiveModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="pixel-card-teal w-full max-w-md p-6 space-y-5">
-            <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="qr-code" class="w-5 h-5 text-teal-700"></i>
-                    <h3 class="font-pixel font-bold text-slate-950 text-lg">Receive Arc Testnet Tokens</h3>
-                </div>
-                <button onclick="closeWalletReceiveModal()" class="text-slate-500 hover:text-slate-950">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-
-            <div class="space-y-4 text-center font-mono">
-                <div class="p-5 rounded-2xl bg-slate-50 border-2 border-slate-950 inline-block shadow-md">
-                    <div class="w-36 h-36 bg-slate-900 rounded-xl p-2 flex flex-col items-center justify-center text-white space-y-1 mx-auto border-2 border-slate-950">
-                        <i data-lucide="qr-code" class="w-20 h-20 text-teal-400"></i>
-                        <span class="text-[9px] font-silkscreen text-teal-300">ARC TESTNET</span>
-                    </div>
-                </div>
-
-                <div>
-                    <div class="text-xs text-slate-500 font-bold mb-1">Your Arc Wallet Address:</div>
-                    <div id="modalReceiveAddressText" class="p-3 rounded-xl bg-slate-50 border-2 border-slate-950 text-xs font-bold text-slate-950 break-all">
-                        0x... (Connect Wallet)
-                    </div>
-                </div>
-
-                <button onclick="copyWalletAddress()" class="btn-pixel-sm w-full py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-pixel font-bold text-xs flex items-center justify-center gap-2">
-                    <i data-lucide="copy" class="w-4 h-4"></i>
-                    Copy Wallet Address
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Transaction History Modal (REAL TRANSACTIONS ONLY!) -->
-    <div id="txHistoryModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="pixel-card w-full max-w-2xl max-h-[85vh] p-6 sm:p-8 space-y-5 flex flex-col">
-            <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950 shrink-0">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="history" class="w-6 h-6 text-purple-700"></i>
-                    <h3 class="font-pixel font-bold text-slate-950 text-xl">On-Chain Transaction Log</h3>
-                </div>
-                <button onclick="closeTxHistoryModal()" class="text-slate-500 hover:text-slate-950">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-
-            <p class="text-xs text-slate-600 font-medium shrink-0">Verified Web3 DEX swaps, token transfers, and daily check-ins on Arc Testnet.</p>
-
-            <div id="txHistoryModalList" class="flex-1 overflow-y-auto space-y-3 font-mono text-xs pr-1">
-                <div class="text-slate-500 text-center py-8 font-sans italic">No real transactions recorded yet.</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Multi-Connect Wallet Modal -->
+    <!-- WALLETCONNECT FEATURED CONNECT WALLET MODAL -->
     <div id="walletConnectModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="pixel-card w-full max-w-md p-6 space-y-4">
+        <div class="pixel-card-purple w-full max-w-md p-6 space-y-5">
             <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
                 <div class="flex items-center gap-2">
                     <i data-lucide="wallet" class="w-5 h-5 text-purple-700"></i>
@@ -1612,9 +974,23 @@
                 </button>
             </div>
 
-            <p class="text-xs text-slate-600 font-medium">Select your Web3 wallet provider to connect to Arc Testnet (Chain ID 5042002).</p>
+            <p class="text-xs text-slate-600 font-medium">Connect your Web3 wallet to Arc Testnet (Chain ID 5042002) using WalletConnect v2 or browser extensions.</p>
 
             <div class="space-y-3 pt-1 font-mono text-xs">
+                <!-- FEATURED #1: WALLETCONNECT -->
+                <button onclick="connectProvider('walletconnect')" class="btn-pixel w-full p-4 rounded-2xl bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-700 text-white flex items-center justify-between shadow-md">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-white/20 border border-white/40 flex items-center justify-center text-white text-lg">
+                            <i data-lucide="qr-code" class="w-6 h-6"></i>
+                        </div>
+                        <div class="text-left">
+                            <div class="font-pixel font-bold text-white text-base">WalletConnect</div>
+                            <div class="text-[10px] text-sky-100 font-sans">Scan QR Code with 500+ Web3 Wallets</div>
+                        </div>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full font-silkscreen bg-white text-sky-900 text-[9px] font-black border border-white">500+ WALLETS</span>
+                </button>
+
                 <button onclick="connectProvider('metamask')" class="btn-pixel-sm w-full p-3.5 rounded-xl bg-slate-50 border-2 border-slate-950 hover:bg-purple-50 flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 rounded-lg bg-orange-100 border border-orange-500 flex items-center justify-center font-bold text-orange-600 text-xs">
@@ -1622,7 +998,7 @@
                         </div>
                         <div class="text-left">
                             <div class="font-bold text-slate-950 text-sm font-sans">MetaMask</div>
-                            <div class="text-[11px] text-slate-500">Browser extension / Mobile</div>
+                            <div class="text-[11px] text-slate-500">Browser extension / Mobile app</div>
                         </div>
                     </div>
                     <span class="px-2 py-0.5 rounded font-silkscreen bg-emerald-100 text-emerald-900 text-[9px] font-bold border border-emerald-500">Detected</span>
@@ -1635,79 +1011,10 @@
                         </div>
                         <div class="text-left">
                             <div class="font-bold text-slate-950 text-sm font-sans">Coinbase Wallet</div>
-                            <div class="text-[11px] text-slate-500">SDK / Mobile Wallet</div>
+                            <div class="text-[11px] text-slate-500">Coinbase Web3 SDK</div>
                         </div>
                     </div>
                     <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
-                </button>
-
-                <button onclick="connectProvider('walletconnect')" class="btn-pixel-sm w-full p-3.5 rounded-xl bg-slate-50 border-2 border-slate-950 hover:bg-purple-50 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-lg bg-sky-100 border border-sky-500 flex items-center justify-center font-bold text-sky-600 text-xs">
-                            <i data-lucide="link" class="w-5 h-5"></i>
-                        </div>
-                        <div class="text-left">
-                            <div class="font-bold text-slate-950 text-sm font-sans">WalletConnect</div>
-                            <div class="text-[11px] text-slate-500">Scan Mobile Wallet QR</div>
-                        </div>
-                    </div>
-                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Faucet Modal -->
-    <div id="faucetModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="pixel-card-emerald w-full max-w-md p-6 sm:p-8 space-y-5">
-            <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="droplet" class="w-6 h-6 text-emerald-700"></i>
-                    <h3 class="font-pixel font-bold text-slate-950 text-xl">Circle Arc Faucet</h3>
-                </div>
-                <button onclick="closeFaucetModal()" class="text-slate-500 hover:text-slate-950">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-
-            <p class="text-xs text-slate-600 leading-relaxed font-medium">
-                Get free Testnet USDC & EURC tokens on Arc Testnet (Chain ID 5042002) for testing ArcPulse DApp swaps and escrow contracts.
-            </p>
-
-            <div class="p-4 rounded-xl bg-emerald-50 border-2 border-slate-950 font-mono text-xs space-y-2">
-                <div class="text-slate-600">Target Address:</div>
-                <div id="faucetTargetAddrText" class="text-purple-800 font-bold truncate">0x... (Connect Wallet)</div>
-                <div class="text-emerald-700 font-bold pt-1">Amount: +100.00 Testnet USDC</div>
-            </div>
-
-            <button onclick="claimInAppFaucet()" class="btn-pixel w-full py-4 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white font-pixel font-bold text-sm shadow-md flex items-center justify-center gap-2">
-                <i data-lucide="sparkles" class="w-4 h-4"></i>
-                Claim 100 Testnet USDC & Open Circle Faucet
-            </button>
-        </div>
-    </div>
-
-    <!-- DEX Settings Modal -->
-    <div id="dexSettingsModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="pixel-card-purple w-full max-w-md p-6 space-y-4">
-            <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="cpu" class="w-5 h-5 text-purple-700"></i>
-                    <h3 class="font-pixel font-bold text-slate-950 text-lg">DEX Router Settings</h3>
-                </div>
-                <button onclick="toggleDexSettingsModal()" class="text-slate-500 hover:text-slate-950">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-
-            <div class="space-y-4 font-mono text-xs">
-                <div>
-                    <label class="text-slate-800 font-bold block mb-1">DEX Router Contract Address</label>
-                    <input type="text" id="dexRouterInputModal" placeholder="0xf8e81D47203A594245E36C48e151709F0C19fBe8" class="w-full p-3 rounded-xl bg-slate-50 border-2 border-slate-950 text-slate-950 outline-none">
-                </div>
-
-                <button onclick="saveDexSettingsModal()" class="btn-pixel w-full py-3 rounded-xl bg-purple-700 text-white font-pixel font-bold text-xs flex items-center justify-center gap-2">
-                    <i data-lucide="check-circle" class="w-4 h-4"></i> Save DEX Contract Configuration
                 </button>
             </div>
         </div>
@@ -1742,11 +1049,10 @@
         let currentAccount = null;
         let activePage = 'monitor';
         let activeWalletTab = 'tokens';
-        let userPoints = 0;
-        let userStreak = 0;
-        let hasCheckedInToday = false;
-        let hasSwappedToday = false;
-        let slippage = '1%';
+        let walletConnectProvider = null;
+        let activeWeb3Provider = null;
+
+        const WALLETCONNECT_PROJECT_ID = '8422409540b61642239f1c7f556488d0';
 
         const ARC_CHAIN_ID_HEX = '0x4D0112'; // 5042002
         const ARC_CHAIN_ID_DECIMAL = 5042002;
@@ -1768,6 +1074,45 @@
 
         let payToken = TOKENS[0];
         let receiveToken = TOKENS[1];
+
+        // WALLETCONNECT V2 INITIALIZATION
+        async function initWalletConnectProvider() {
+            try {
+                if (window.WalletConnectProvider && window.WalletConnectProvider.EthereumProvider) {
+                    walletConnectProvider = await window.WalletConnectProvider.EthereumProvider.init({
+                        projectId: WALLETCONNECT_PROJECT_ID,
+                        chains: [5042002],
+                        optionalChains: [5042002, 1],
+                        rpcMap: {
+                            5042002: ARC_RPC_URL
+                        },
+                        metadata: {
+                            name: 'ArcPulse DApp',
+                            description: 'Circle Arc L1 Ecosystem DApp',
+                            url: window.location.origin || 'https://archpulse.vercel.app',
+                            icons: ['https://raw.githubusercontent.com/promanas0/archpulse/main/logo.png']
+                        },
+                        showQrModal: true
+                    });
+
+                    walletConnectProvider.on('accountsChanged', (accounts) => {
+                        if (accounts.length > 0) {
+                            currentAccount = accounts[0];
+                            activeWeb3Provider = walletConnectProvider;
+                            onWalletConnected(currentAccount, 'WalletConnect');
+                        } else {
+                            disconnectWallet();
+                        }
+                    });
+
+                    walletConnectProvider.on('disconnect', () => {
+                        disconnectWallet();
+                    });
+                }
+            } catch(e) {
+                console.warn("WalletConnect init notice:", e);
+            }
+        }
 
         // Mobile Sidebar Toggle
         function toggleMobileSidebar() {
@@ -1810,7 +1155,7 @@
             }
         }
 
-        // Wallet Handlers
+        // Wallet Connect & Disconnect Handlers
         function handleWalletClick() {
             if (currentAccount) {
                 disconnectWallet();
@@ -1821,6 +1166,98 @@
 
         function closeWalletConnectModal() {
             document.getElementById('walletConnectModal').classList.add('hidden');
+        }
+
+        async function connectProvider(providerType) {
+            closeWalletConnectModal();
+            try {
+                if (providerType === 'walletconnect') {
+                    if (!walletConnectProvider) {
+                        await initWalletConnectProvider();
+                    }
+                    if (walletConnectProvider) {
+                        await walletConnectProvider.connect();
+                        const accounts = walletConnectProvider.accounts;
+                        if (accounts && accounts.length > 0) {
+                            currentAccount = accounts[0];
+                            activeWeb3Provider = walletConnectProvider;
+                            onWalletConnected(currentAccount, 'WalletConnect v2');
+                        }
+                    } else {
+                        showToast('WalletConnect Info', 'Loading WalletConnect provider...', 'info');
+                    }
+                } else if (window.ethereum) {
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    if (accounts && accounts.length > 0) {
+                        currentAccount = accounts[0];
+                        activeWeb3Provider = window.ethereum;
+                        await switchOrAddArcNetwork();
+                        onWalletConnected(currentAccount, providerType.toUpperCase());
+                    }
+                } else {
+                    showToast('Provider Missing', `${providerType} wallet not detected. Use WalletConnect!`, 'error');
+                }
+            } catch(err) {
+                console.error("Connect error:", err);
+                showToast('Connection Cancelled', err.message || 'User cancelled request', 'error');
+            }
+        }
+
+        function onWalletConnected(account, providerName) {
+            loadUserBalances(account);
+            loadUserDataState();
+            updateTokenBalancesUI();
+            updateUserPointsUI();
+            updateWalletUI();
+            renderTxHistoryInline();
+            renderWalletView();
+            renderPortfolioView();
+            showToast('Wallet Connected!', `Connected via ${providerName} on Arc Testnet`, 'success');
+        }
+
+        async function disconnectWallet() {
+            if (activeWeb3Provider && typeof activeWeb3Provider.disconnect === 'function') {
+                try { await activeWeb3Provider.disconnect(); } catch(e) {}
+            }
+            currentAccount = null;
+            activeWeb3Provider = null;
+            hasCheckedInToday = false;
+            userPoints = 0;
+            userStreak = 0;
+            TOKENS.forEach(t => t.balance = 0.00);
+            updateTokenBalancesUI();
+            updateUserPointsUI();
+            updateWalletUI();
+            renderTxHistoryInline();
+            renderWalletView();
+            renderPortfolioView();
+            showToast('Wallet Disconnected', 'Session cleared.', 'info');
+        }
+
+        async function switchOrAddArcNetwork() {
+            const provider = activeWeb3Provider || window.ethereum;
+            if (!provider || typeof provider.request !== 'function') return;
+            try {
+                await provider.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: ARC_CHAIN_ID_HEX }]
+                });
+            } catch (switchError) {
+                if (switchError.code === 4902) {
+                    try {
+                        await provider.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [{
+                                chainId: ARC_CHAIN_ID_HEX,
+                                chainName: 'Arc Testnet',
+                                nativeCurrency: { name: 'USD Coin', symbol: 'USDC', decimals: 18 },
+                                rpcUrls: [ARC_RPC_URL, ARC_RPC_URL_ALT],
+                                blockExplorerUrls: ['https://explorer.testnet.arc.network']
+                            }]
+                        });
+                    } catch (addError) {}
+                }
+            }
         }
 
         function updateWalletUI() {
@@ -1846,72 +1283,6 @@
                 if (infoBox) infoBox.classList.add('hidden');
                 if (connectBtn) connectBtn.classList.remove('hidden');
                 if (disconnectBtn) disconnectBtn.classList.add('hidden');
-            }
-        }
-
-        async function connectProvider(providerType) {
-            closeWalletConnectModal();
-            if (window.ethereum) {
-                try {
-                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    if (accounts && accounts.length > 0) {
-                        currentAccount = accounts[0];
-                        await switchOrAddArcNetwork();
-                        loadUserBalances(currentAccount);
-                        loadUserDataState();
-                        updateTokenBalancesUI();
-                        updateUserPointsUI();
-                        updateWalletUI();
-                        renderTxHistoryInline();
-                        renderWalletView();
-                        renderPortfolioView();
-                        showToast('Wallet Connected', `Connected via ${providerType.toUpperCase()} on Arc Testnet`, 'success');
-                    }
-                } catch (err) {
-                    showToast('Connection Failed', err.message || 'User rejected request', 'error');
-                }
-            } else {
-                showToast('Wallet Missing', 'MetaMask / Web3 Provider not found', 'error');
-            }
-        }
-
-        function disconnectWallet() {
-            currentAccount = null;
-            hasCheckedInToday = false;
-            userPoints = 0;
-            userStreak = 0;
-            TOKENS.forEach(t => t.balance = 0.00);
-            updateTokenBalancesUI();
-            updateUserPointsUI();
-            updateWalletUI();
-            renderTxHistoryInline();
-            renderWalletView();
-            renderPortfolioView();
-            showToast('Wallet Disconnected', 'Session cleared.', 'info');
-        }
-
-        async function switchOrAddArcNetwork() {
-            if (!window.ethereum) return;
-            try {
-                await window.ethereum.request({
-                    method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: ARC_CHAIN_ID_HEX }]
-                });
-            } catch (switchError) {
-                if (switchError.code === 4902) {
-                    try {
-                        await window.ethereum.request({
-                            method: 'wallet_addEthereumChain',
-                            params: [{
-                                chainId: ARC_CHAIN_ID_HEX,
-                                chainName: 'Arc Testnet',
-                                nativeCurrency: { name: 'USD Coin', symbol: 'USDC', decimals: 18 },
-                                rpcUrls: [ARC_RPC_URL, ARC_RPC_URL_ALT],
-                                blockExplorerUrls: ['https://explorer.testnet.arc.network']
-                            }]
-                        });
-                    } catch (addError) {}
-                }
             }
         }
 
@@ -2036,7 +1407,7 @@
             renderWalletRealTxLog();
         }
 
-        // REAL TRANSACTIONS LOG ONLY (NO FAKE SEEDED TRANSACTIONS!)
+        // REAL TRANSACTIONS LOG ONLY
         function renderWalletRealTxLog() {
             const container = document.getElementById('walletRealTxListContainer');
             if (!container) return;
@@ -2046,7 +1417,7 @@
                     <div class="p-8 text-center text-slate-500 font-sans italic space-y-2">
                         <i data-lucide="inbox" class="w-8 h-8 mx-auto text-slate-400"></i>
                         <div class="font-bold text-slate-800 text-sm">No real transactions recorded yet.</div>
-                        <div class="text-xs text-slate-500">Connect your Web3 wallet and perform a swap, token send, or check-in on Arc Testnet.</div>
+                        <div class="text-xs text-slate-500">Connect your Web3 wallet via WalletConnect and perform a swap, token send, or check-in on Arc Testnet.</div>
                     </div>
                 `;
                 safeInitIcons();
@@ -2081,281 +1452,6 @@
                 });
             }
             safeInitIcons();
-        }
-
-        // Wallet Action Modals (Send & Receive)
-        function openWalletSendModal() {
-            if (!currentAccount) {
-                handleWalletClick();
-                return;
-            }
-            document.getElementById('walletSendModal').classList.remove('hidden');
-        }
-        function closeWalletSendModal() {
-            document.getElementById('walletSendModal').classList.add('hidden');
-        }
-
-        function openWalletReceiveModal() {
-            if (!currentAccount) {
-                handleWalletClick();
-                return;
-            }
-            document.getElementById('modalReceiveAddressText').innerText = currentAccount;
-            document.getElementById('walletReceiveModal').classList.remove('hidden');
-        }
-        function closeWalletReceiveModal() {
-            document.getElementById('walletReceiveModal').classList.add('hidden');
-        }
-
-        function copyWalletAddress() {
-            if (!currentAccount) {
-                handleWalletClick();
-                return;
-            }
-            navigator.clipboard.writeText(currentAccount);
-            showToast('Copied Address!', currentAccount, 'success');
-        }
-
-        async function executeModalSendTx() {
-            if (!currentAccount) {
-                handleWalletClick();
-                return;
-            }
-
-            const toAddr = document.getElementById('modalSendToInput').value.trim();
-            const amount = parseFloat(document.getElementById('modalSendAmountInput').value) || 0;
-            const tokenSymbol = document.getElementById('modalSendTokenSelect').value;
-
-            if (!toAddr || !toAddr.startsWith('0x') || toAddr.length !== 42) {
-                showToast('Invalid Address', 'Enter a valid EVM recipient address (0x...)', 'error');
-                return;
-            }
-
-            if (amount <= 0) {
-                showToast('Invalid Amount', 'Enter a valid token amount to send', 'error');
-                return;
-            }
-
-            const tokenObj = TOKENS.find(t => t.symbol === tokenSymbol);
-            if (!tokenObj || tokenObj.balance < amount) {
-                showToast('Insufficient Balance', `You need ${amount} ${tokenSymbol}`, 'error');
-                return;
-            }
-
-            try {
-                let txHash = null;
-                if (window.ethereum) {
-                    try {
-                        txHash = await window.ethereum.request({
-                            method: 'eth_sendTransaction',
-                            params: [{
-                                from: currentAccount,
-                                to: toAddr,
-                                value: '0x' + BigInt(Math.floor(amount * 1e18)).toString(16),
-                                gas: '0x15F90'
-                            }]
-                        });
-                    } catch (txErr) {
-                        if (txErr.code === 4001) {
-                            showToast('Transfer Cancelled', 'Transaction rejected by user', 'error');
-                            return;
-                        }
-                        const msg = `Arc Testnet Token Send:
-Token: ${tokenSymbol}
-Amount: ${amount}
-Recipient: ${toAddr}
-From: ${currentAccount}`;
-                        txHash = await window.ethereum.request({
-                            method: 'personal_sign',
-                            params: [stringToHex(msg), currentAccount]
-                        });
-                    }
-                }
-
-                tokenObj.balance -= amount;
-                saveUserBalances(currentAccount);
-                updateTokenBalancesUI();
-
-                const now = new Date();
-                const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                saveTxRecord(currentAccount, {
-                    txHash: txHash ? (txHash.substring(0, 18) + '...') : "0x" + Math.random().toString(16).substring(2, 10),
-                    type: 'Send Token',
-                    pair: `Sent ${amount} ${tokenSymbol} → ${toAddr.substring(0, 6)}...${toAddr.substring(38)}`,
-                    time: timeStr
-                });
-
-                showToast('Transfer Sent!', `Sent ${amount} ${tokenSymbol} to ${toAddr.substring(0,6)}...`, 'success');
-                document.getElementById('modalSendToInput').value = '';
-                document.getElementById('modalSendAmountInput').value = '';
-                closeWalletSendModal();
-                renderWalletView();
-            } catch(e) {
-                showToast('Transfer Failed', e.message || 'Transaction rejected', 'error');
-            }
-        }
-
-        // PORTFOLIO VIEW FUNCTIONS
-        function renderPortfolioView() {
-            const netWorthEl = document.getElementById('portfolioNetWorth');
-            const txCountEl = document.getElementById('portfolioTxCount');
-
-            const usdcVal = TOKENS[0].balance;
-            const eurcVal = TOKENS[1].balance * 1.08;
-            const total = (usdcVal + eurcVal).toFixed(2);
-
-            if (netWorthEl) netWorthEl.innerText = `$${parseFloat(total).toLocaleString(undefined, {minimumFractionDigits:2})} USD`;
-
-            if (txCountEl) {
-                if (!currentAccount) {
-                    txCountEl.innerText = '0 Txns';
-                } else {
-                    const existing = JSON.parse(localStorage.getItem(`arcpulse_txs_${currentAccount.toLowerCase()}`) || '[]');
-                    txCountEl.innerText = `${existing.length} Txns`;
-                }
-            }
-        }
-
-        // Swap Calculation
-        function calculateSwap() {
-            const payInput = document.getElementById('payAmountInput');
-            const recInput = document.getElementById('receiveAmountInput');
-            if (!payInput || !recInput) return;
-
-            const val = parseFloat(payInput.value) || 0;
-            if (val <= 0) {
-                recInput.value = '';
-                return;
-            }
-
-            const output = (val * (receiveToken.rate / payToken.rate)).toFixed(4);
-            recInput.value = output;
-        }
-
-        function setMaxPayAmount() {
-            const payInput = document.getElementById('payAmountInput');
-            if (payInput) {
-                payInput.value = payToken.balance;
-                calculateSwap();
-            }
-        }
-
-        function switchSwapTokens() {
-            const temp = payToken;
-            payToken = receiveToken;
-            receiveToken = temp;
-
-            document.getElementById('payTokenSymbol').innerText = payToken.symbol;
-            document.getElementById('receiveTokenSymbol').innerText = receiveToken.symbol;
-            document.getElementById('exchangeRateText').innerText = `1 ${payToken.symbol} ≈ ${(receiveToken.rate / payToken.rate).toFixed(4)} ${receiveToken.symbol}`;
-            
-            updateTokenBalancesUI();
-            calculateSwap();
-            safeInitIcons();
-        }
-
-        async function executeRealSwap() {
-            if (!currentAccount) {
-                handleWalletClick();
-                return;
-            }
-
-            const payAmt = parseFloat(document.getElementById('payAmountInput').value) || 0;
-            if (payAmt <= 0) {
-                showToast('Invalid Amount', 'Enter valid amount to swap', 'error');
-                return;
-            }
-
-            if (payToken.balance < payAmt) {
-                showToast('Insufficient Balance', `You need ${payAmt} ${payToken.symbol}`, 'error');
-                return;
-            }
-
-            try {
-                let txHash = null;
-                if (window.ethereum) {
-                    const msg = `Arc DEX Web3 Swap:
-Pay: ${payAmt} ${payToken.symbol}
-Receive: ${(payAmt * (receiveToken.rate / payToken.rate)).toFixed(4)} ${receiveToken.symbol}
-Account: ${currentAccount}`;
-                    txHash = await window.ethereum.request({
-                        method: 'personal_sign',
-                        params: [stringToHex(msg), currentAccount]
-                    });
-                }
-
-                const recAmt = payAmt * (receiveToken.rate / payToken.rate);
-                payToken.balance -= payAmt;
-                receiveToken.balance += recAmt;
-
-                saveUserBalances(currentAccount);
-                updateTokenBalancesUI();
-
-                const now = new Date();
-                const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                saveTxRecord(currentAccount, {
-                    txHash: txHash ? txHash.substring(0, 18) + '...' : "0x" + Math.random().toString(16).substring(2,10),
-                    type: 'DEX Swap',
-                    pair: `${payAmt} ${payToken.symbol} → ${recAmt.toFixed(4)} ${receiveToken.symbol}`,
-                    time: timeStr
-                });
-
-                userPoints += 100;
-                hasSwappedToday = true;
-                updateUserPointsUI();
-                saveUserDataState();
-
-                showToast('Swap Successful!', `Swapped ${payAmt} ${payToken.symbol} for ${recAmt.toFixed(2)} ${receiveToken.symbol}`, 'success');
-                document.getElementById('payAmountInput').value = '';
-                document.getElementById('receiveAmountInput').value = '';
-            } catch(e) {
-                showToast('Swap Cancelled', 'Transaction rejected by user', 'error');
-            }
-        }
-
-        // Daily Check-In
-        async function performDailyCheckIn() {
-            if (!currentAccount) {
-                handleWalletClick();
-                return;
-            }
-
-            try {
-                const msg = `ArcPulse Daily Check-In
-Date: ${new Date().toISOString().split('T')[0]}
-Account: ${currentAccount}`;
-                const txHash = await window.ethereum.request({
-                    method: 'personal_sign',
-                    params: [stringToHex(msg), currentAccount]
-                });
-
-                userStreak += 1;
-                userPoints += 50;
-                hasCheckedInToday = true;
-
-                const now = new Date();
-                const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                saveTxRecord(currentAccount, {
-                    txHash: txHash ? txHash.substring(0, 18) + '...' : "0x" + Math.random().toString(16).substring(2,10),
-                    type: 'Daily Check-In',
-                    pair: 'Signed Arc Testnet Daily Check-In (+50 PTS)',
-                    time: timeStr
-                });
-
-                updateUserPointsUI();
-                saveUserDataState();
-
-                const btn = document.getElementById('questCheckInBtn');
-                if (btn) {
-                    btn.disabled = true;
-                    btn.className = 'px-6 py-3.5 rounded-xl bg-emerald-100 text-emerald-900 border-2 border-emerald-500 font-pixel font-bold text-xs flex items-center gap-2';
-                    btn.innerText = '✓ Checked In Today';
-                }
-
-                showToast('Daily Check-in Verified!', `Streak: ${userStreak} Days | +50 Points`, 'success');
-            } catch(e) {
-                showToast('Check-in Cancelled', 'Signature required to verify', 'error');
-            }
         }
 
         // Live Countdown & Telemetry
@@ -2496,7 +1592,7 @@ Account: ${currentAccount}`;
             showToast('Faucet Claimed!', 'Added 100 Testnet USDC to wallet balance', 'success');
         }
 
-        // REAL TRANSACTION LOG STORAGE & INLINE RENDERING
+        // REAL TRANSACTION LOG STORAGE
         function saveTxRecord(account, txObj) {
             if (!account) return;
             const key = `arcpulse_txs_${account.toLowerCase()}`;
@@ -2645,6 +1741,7 @@ Account: ${currentAccount}`;
             renderPortfolioView();
             startLiveCountdown();
             startLiveTelemetryTicker();
+            initWalletConnectProvider();
             safeInitIcons();
         }
 

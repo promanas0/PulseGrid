@@ -6,23 +6,24 @@ console.log("🚀 Executing Circle App Kit Swap with Viem Adapter (USDC → EURC
 
 async function runSwap() {
   try {
-    const mnemonic = process.env.MNEMONIC;
-    const privateKey = process.env.PRIVATE_KEY;
+    const rawSecret = (process.env.PRIVATE_KEY || process.env.MNEMONIC || "").replace(/^0x/, "").trim();
 
     let account;
-    if (mnemonic && mnemonic.trim() && !mnemonic.includes("YOUR_")) {
-      account = mnemonicToAccount(mnemonic.trim());
-      console.log(`🔑 Derived Account Address from Mnemonic: ${account.address}`);
-    } else if (privateKey && privateKey.trim() && !privateKey.includes("YOUR_")) {
-      const formattedPk = (privateKey.trim().startsWith("0x") ? privateKey.trim() : `0x${privateKey.trim()}`) as `0x${string}`;
+    if (rawSecret && rawSecret.includes(" ")) {
+      // 12-word Mnemonic Seed Phrase
+      account = mnemonicToAccount(rawSecret);
+      console.log(`🔑 Derived Wallet Address from Mnemonic: ${account.address}`);
+    } else if (rawSecret && rawSecret.length >= 64) {
+      // 64-char Hex Private Key
+      const formattedPk = rawSecret.startsWith("0x") ? (rawSecret as `0x${string}`) : (`0x${rawSecret}` as `0x${string}`);
       account = privateKeyToAccount(formattedPk);
-      console.log(`🔑 Account Address from Private Key: ${account.address}`);
+      console.log(`🔑 Wallet Address from Hex Private Key: ${account.address}`);
     } else {
       console.log("\n========================================================");
-      console.log("⚠️ NO MNEMONIC OR PRIVATE KEY FOUND IN my-swap/.env");
+      console.log("⚠️ NO VALID MNEMONIC OR PRIVATE KEY FOUND IN my-swap/.env");
       console.log("========================================================");
       console.log("Please open my-swap/.env and set:");
-      console.log('MNEMONIC="soda canoe forest spy anchor fame victory chronic tissue express discover anxiety"');
+      console.log('PRIVATE_KEY="soda canoe forest spy anchor fame victory chronic tissue express discover anxiety"');
       console.log("========================================================\n");
       return;
     }

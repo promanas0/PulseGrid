@@ -62,5 +62,8 @@
     "ethers": "^6.17.0",
     "viem": "^2.21.0",
     "wagmi": "^2.5.0"
+  },
+  "overrides": {
+    "@solana/codecs-strings": "^2.0.0"
   }
 }

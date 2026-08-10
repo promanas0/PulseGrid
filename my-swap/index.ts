@@ -13,15 +13,18 @@ async function runSwap() {
     }
 
     const kit = new AppKit();
-    const adapter = createCircleWalletsAdapter({
+    
+    // Circle Wallets Adapter
+    const circleAdapter = createCircleWalletsAdapter({
       apiKey: apiKey || "YOUR_API_KEY",
       entitySecret: entitySecret || "YOUR_ENTITY_SECRET",
     });
 
     const walletAddress = process.env.USER_WALLET_ADDRESS || "YOUR_WALLET_ADDRESS";
 
+    // 1. Circle Adapter Swap Example
     const result = await kit.swap({
-      from: { adapter, chain: "Arc_Testnet", address: walletAddress },
+      from: { adapter: circleAdapter, chain: "Arc_Testnet", address: walletAddress },
       tokenIn: "USDC",
       tokenOut: "EURC",
       amountIn: "1.00",

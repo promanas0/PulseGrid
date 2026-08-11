@@ -80,6 +80,7 @@ export async function executeSwapWithInjectedWallet(rdns: string = "io.metamask"
     tokenIn: "USDC",
     tokenOut: "EURC",
     amountIn,
+    allowanceStrategy: "approve",
     config: { allowanceStrategy: "approve" }
   });
 
@@ -126,6 +127,7 @@ async function main() {
       tokenIn: "USDC",
       tokenOut: "EURC",
       amountIn: "1.00",
+      allowanceStrategy: "approve",
       config: {
         slippageBps: 300, // 3% — default recommended
         allowanceStrategy: "approve", // Explicit ERC-20 on-chain approval strategy

@@ -39,6 +39,7 @@ async function main() {
       tokenIn: "USDC",
       tokenOut: "EURC",
       amountIn: "1.00",
+      allowanceStrategy: "approve",
       config: {
         slippageBps: 300,
         allowanceStrategy: "approve",

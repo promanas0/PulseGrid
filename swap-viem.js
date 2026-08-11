@@ -13,7 +13,7 @@ const kit = new AppKit();
 
 async function main() {
   console.log("🚀 Initiating Circle AppKit Swap with Viem Adapter on Arc Testnet...");
-  console.log(`📌 Chain: ${ArcTestnet.name || 'Arc Testnet'} (ID: ${ArcTestnet.id || 5042002})`);
+  console.log(`📌 Chain: ${ArcTestnet.name || 'Arc Testnet'} (Chain ID: ${ArcTestnet.chainId || 5042002})`);
   console.log("📌 Route: 1.00 USDC -> EURC");
 
   let viemAdapter;

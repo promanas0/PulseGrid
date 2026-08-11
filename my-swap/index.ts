@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { AppKit } from "@circle-fin/app-kit";
 import { createViemAdapterFromPrivateKey } from "@circle-fin/adapter-viem-v2";
 import { mnemonicToAccount, privateKeyToAccount } from "viem/accounts";

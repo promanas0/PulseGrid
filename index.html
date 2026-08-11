@@ -691,7 +691,7 @@
                                 <button onclick="copyWalletAddress()" class="p-1 text-slate-500 hover:text-purple-700" title="Copy Address">
                                     <i data-lucide="copy" class="w-4 h-4"></i>
                                 </button>
-                                <a id="walletExplorerLink" href="https://explorer.testnet.arc.network" target="_blank" rel="noopener noreferrer" class="p-1 text-slate-500 hover:text-purple-700" title="View on Arc Explorer">
+                                <a id="walletExplorerLink" href="https://testnet.arcscan.app" target="_blank" rel="noopener noreferrer" class="p-1 text-slate-500 hover:text-purple-700" title="View on Arc Explorer">
                                     <i data-lucide="external-link" class="w-4 h-4"></i>
                                 </a>
                             </div>
@@ -1030,7 +1030,7 @@
                         <div>• Chain ID: 5042002 (Arc L1 Testnet)</div>
                         <div>• Native Gas Token: Native USDC (Pay fees in USDC!)</div>
                         <div>• Consortium Validators: Circle, BlackRock, Visa, DTCC, BNY</div>
-                        <div>• Explorer: https://explorer.testnet.arc.network</div>
+                        <div>• Explorer: https://testnet.arcscan.app</div>
                     </div>
                 </div>
             </div>
@@ -1272,8 +1272,8 @@
         const WALLETCONNECT_PROJECT_ID = '8422409540b61642239f1c7f556488d0';
         const ARC_CHAIN_ID_HEX = '0x4D0112'; // 5042002
         const ARC_CHAIN_ID_DECIMAL = 5042002;
-        const ARC_RPC_URL = 'https://rpc.testnet.arc.network';
-        const ARC_RPC_URL_ALT = 'https://rpc.testnet.arc.io';
+        const ARC_RPC_URL = 'https://rpc.testnet.arc.io';
+        const ARC_RPC_URL_ALT = 'https://rpc.testnet.arc.network';
         
         function stringToHex(str) {
             return '0x' + Array.from(str).map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join('');
@@ -1400,7 +1400,7 @@
                         chains: [5042002],
                         optionalChains: [5042002, 1],
                         rpcMap: {
-                            5042002: ARC_RPC_URL
+                            5042002: 'https://rpc.testnet.arc.io'
                         },
                         metadata: {
                             name: 'ArcPulse DApp',
@@ -1663,7 +1663,7 @@ Timestamp: ${new Date().toISOString()}`;
                                 chainName: 'Arc Testnet',
                                 nativeCurrency: { name: 'USD Coin', symbol: 'USDC', decimals: 18 },
                                 rpcUrls: [ARC_RPC_URL, ARC_RPC_URL_ALT],
-                                blockExplorerUrls: ['https://explorer.testnet.arc.network']
+                                blockExplorerUrls: ['https://testnet.arcscan.app']
                             }]
                         });
                     } catch (addError) {}
@@ -2023,7 +2023,7 @@ Timestamp: ${new Date().toISOString()}`;
                 const formatted = `${currentAccount.substring(0,6)}...${currentAccount.substring(38)}`;
                 safeSetText('walletHeaderAddress', formatted);
                 safeSetText('walletConnectStatusText', 'Connected');
-                if (expLink) expLink.href = `https://explorer.testnet.arc.network/address/${currentAccount}`;
+                if (expLink) expLink.href = `https://testnet.arcscan.app/address/${currentAccount}`;
 
                 const usdcVal = TOKENS[0].balance * TOKENS[0].usdRate;
                 const eurcVal = TOKENS[1].balance * TOKENS[1].usdRate;
@@ -2040,7 +2040,7 @@ Timestamp: ${new Date().toISOString()}`;
                 safeSetText('walletHeaderAddress', '0x... (Connect Wallet)');
                 safeSetText('walletConnectStatusText', 'Connect Wallet');
                 safeSetText('walletTotalUsdBalance', '$0.00 USD');
-                if (expLink) expLink.href = 'https://explorer.testnet.arc.network';
+                if (expLink) expLink.href = 'https://testnet.arcscan.app';
 
                 safeSetText('walletTabUsdcBal', '0.00 USDC');
                 safeSetText('walletTabUsdcUsd', '$0.00 USD');
@@ -2095,7 +2095,7 @@ Timestamp: ${new Date().toISOString()}`;
                             <div class="text-[11px] text-slate-600">${tx.pair}</div>
                         </div>
                         <div class="text-right">
-                            <a href="https://explorer.testnet.arc.network/tx/${tx.txHash}" target="_blank" class="text-purple-700 font-bold font-mono hover:underline">${tx.txHash.substring(0, 14)}...</a>
+                            <a href="https://testnet.arcscan.app/tx/${tx.txHash}" target="_blank" class="text-purple-700 font-bold font-mono hover:underline">${tx.txHash.substring(0, 14)}...</a>
                             <div class="text-[10px] text-slate-400">${tx.time}</div>
                         </div>
                     `;
@@ -2250,7 +2250,7 @@ Timestamp: ${new Date().toISOString()}`;
                                 <div class="text-xs text-slate-600">${tx.pair}</div>
                             </div>
                             <div class="text-right">
-                                <a href="https://explorer.testnet.arc.network/tx/${tx.txHash}" target="_blank" class="text-purple-700 font-bold font-mono hover:underline">${tx.txHash.substring(0, 14)}...</a>
+                                <a href="https://testnet.arcscan.app/tx/${tx.txHash}" target="_blank" class="text-purple-700 font-bold font-mono hover:underline">${tx.txHash.substring(0, 14)}...</a>
                                 <div class="text-[11px] text-slate-500">${tx.time}</div>
                             </div>
                         `;

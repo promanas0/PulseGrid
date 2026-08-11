@@ -10,6 +10,51 @@ import { createViemAdapterFromPrivateKey, createViemAdapterFromProvider } from "
  * Built for ArcPulse Ecosystem by ProManas
  */
 
+interface EIP6963ProviderDetail {
+  info: {
+    rdns: string;
+    name: string;
+    icon: string;
+    uuid: string;
+  };
+  provider: any;
+}
+
+export function discoverBrowserWallets(): Promise<EIP6963ProviderDetail[]> {
+  return new Promise((resolve) => {
+    const providers: EIP6963ProviderDetail[] = [];
+    if (typeof window === "undefined") {
+      resolve(providers);
+      return;
+    }
+
+    function onAnnounceProvider(event: any) {
+      if (event.detail && !providers.some(p => p.info.uuid === event.detail.info.uuid)) {
+        providers.push(event.detail);
+      }
+    }
+
+    window.addEventListener("eip6963:announceProvider", onAnnounceProvider);
+    window.dispatchEvent(new Event("eip6963:requestProvider"));
+
+    setTimeout(() => {
+      window.removeEventListener("eip6963:announceProvider", onAnnounceProvider);
+      if (providers.length === 0 && (window as any).ethereum) {
+        providers.push({
+          info: {
+            rdns: "io.metamask",
+            name: "MetaMask",
+            icon: "",
+            uuid: "default-ethereum",
+          },
+          provider: (window as any).ethereum,
+        });
+      }
+      resolve(providers);
+    }, 200);
+  });
+}
+
 const kit = new AppKit();
 
 async function main() {
@@ -19,21 +64,29 @@ async function main() {
 
   let viemAdapter;
 
-  if (typeof window !== "undefined" && (window as any).ethereum) {
-    // Browser Wallet (MetaMask / WalletConnect Provider)
-    console.log("🌐 Connected via Browser Wallet Provider (window.ethereum)...");
-    viemAdapter = await createViemAdapterFromProvider({
-      provider: (window as any).ethereum,
-    });
-  } else if (process.env.PRIVATE_KEY) {
+  if (typeof window !== "undefined") {
+    // EIP-6963 Browser Wallet Discovery
+    const providers = await discoverBrowserWallets();
+    if (providers.length > 0) {
+      const selectedWallet = providers.find((p) => p.info.rdns === "io.metamask") ?? providers[0];
+      console.log(`🌐 Connected via EIP-6963 Browser Wallet: ${selectedWallet.info.name} (${selectedWallet.info.rdns})`);
+      viemAdapter = await createViemAdapterFromProvider({
+        provider: selectedWallet.provider,
+      });
+    }
+  }
+
+  if (!viemAdapter && process.env.PRIVATE_KEY) {
     // Private Key execution for Node.js / CLI
     const rawPk = process.env.PRIVATE_KEY.trim();
     const formattedPk = (rawPk.startsWith("0x") ? rawPk : `0x${rawPk}`) as `0x${string}`;
     viemAdapter = createViemAdapterFromPrivateKey({
       privateKey: formattedPk,
     });
-  } else {
-    throw new Error("No Web3 Provider or PRIVATE_KEY found in .env");
+  }
+
+  if (!viemAdapter) {
+    throw new Error("No EIP-6963 Web3 Provider or PRIVATE_KEY found in .env");
   }
 
   try {

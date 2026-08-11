@@ -3,4 +3,5 @@ node_modules
 my-swap/.env
 pubkey.pem
 recovery/
+ciphertext.txt
 

@@ -29,6 +29,9 @@ function encryptEntitySecretWithPublicKey(publicKeyPem, customEntitySecret) {
     const ciphertextBase64 = encrypted.toString('base64');
     console.log("🔒 Encrypted Base64 Ciphertext:", ciphertextBase64);
 
+    fs.writeFileSync('ciphertext.txt', ciphertextBase64, 'utf8');
+    console.log("📁 Ciphertext saved to ciphertext.txt");
+
     return { entitySecret, ciphertextBase64 };
   } catch (err) {
     console.error("❌ Encryption Error:", err.message || err);

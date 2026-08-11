@@ -28,7 +28,11 @@ if (!publicKeyPem) {
       Buffer.from(entitySecret, 'hex')
     );
 
-    console.log("🔒 Encrypted Base64 Ciphertext:", encrypted.toString('base64'));
+    const ciphertextBase64 = encrypted.toString('base64');
+    console.log("🔒 Encrypted Base64 Ciphertext:", ciphertextBase64);
+
+    fs.writeFileSync('ciphertext.txt', ciphertextBase64, 'utf8');
+    console.log("📁 Ciphertext saved to ciphertext.txt");
   } catch (err) {
     console.error("❌ Encryption Error:", err.message || err);
   }

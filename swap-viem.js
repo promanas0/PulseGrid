@@ -69,8 +69,7 @@ export async function executeSwapWithInjectedWallet(rdns = "io.metamask", amount
     tokenIn: "USDC",
     tokenOut: "EURC",
     amountIn,
-    allowanceStrategy: "approve",
-    config: { allowanceStrategy: "approve" }
+    config: { slippageBps: 300, allowanceStrategy: "approve" }
   });
 
   return result;

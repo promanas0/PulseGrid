@@ -80,6 +80,7 @@ export async function executeSwapWithInjectedWallet(rdns: string = "io.metamask"
     tokenIn: "USDC",
     tokenOut: "EURC",
     amountIn,
+    config: { slippageBps: 300 } // 3% slippage
   });
 
   return result;
@@ -125,6 +126,7 @@ async function main() {
       tokenIn: "USDC",
       tokenOut: "EURC",
       amountIn: "1.00",
+      config: { slippageBps: 300 } // 3% slippage
     });
 
     console.log("🎉 Swap Executed Successfully!", JSON.stringify(result, null, 2));

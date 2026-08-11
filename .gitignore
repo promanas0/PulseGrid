@@ -1,3 +1,6 @@
 node_modules
 .env
 my-swap/.env
+pubkey.pem
+recovery/
+

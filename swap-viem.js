@@ -1,10 +1,10 @@
 import 'dotenv/config';
 import { AppKit } from "@circle-fin/app-kit";
+import { ArcTestnet } from "@circle-fin/app-kit/chains";
 import { createViemAdapterFromPrivateKey, createViemAdapterFromProvider } from "@circle-fin/adapter-viem-v2";
-import { arcTestnet } from "viem/chains";
 
 /**
- * Circle AppKit Swap using Viem V2 Adapter with official viem/chains arcTestnet (JS runner)
+ * Circle AppKit Swap using Viem V2 Adapter with official ArcTestnet from @circle-fin/app-kit/chains (JS runner)
  * USDC -> EURC on Arc Testnet (Chain ID 5042002)
  * Supports Browser Provider (window.ethereum) & Private Key Adapters
  */
@@ -13,7 +13,7 @@ const kit = new AppKit();
 
 async function main() {
   console.log("🚀 Initiating Circle AppKit Swap with Viem Adapter on Arc Testnet...");
-  console.log(`📌 Chain: ${arcTestnet?.name || 'Arc Testnet'} (ID: ${arcTestnet?.id || 5042002})`);
+  console.log(`📌 Chain: ${ArcTestnet.name || 'Arc Testnet'} (ID: ${ArcTestnet.id || 5042002})`);
   console.log("📌 Route: 1.00 USDC -> EURC");
 
   let viemAdapter;
@@ -36,7 +36,7 @@ async function main() {
 
   try {
     const result = await kit.swap({
-      from: { adapter: viemAdapter, chain: "Arc_Testnet" },
+      from: { adapter: viemAdapter, chain: ArcTestnet },
       tokenIn: "USDC",
       tokenOut: "EURC",
       amountIn: "1.00",

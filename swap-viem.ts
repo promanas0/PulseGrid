@@ -68,7 +68,12 @@ export async function getInjectedWalletProvider(rdns: string = "io.metamask"): P
   return selectedWallet.provider;
 }
 
-export async function executeSwapWithInjectedWallet(rdns: string = "io.metamask", amountIn: string = "1.00") {
+export async function executeSwapWithInjectedWallet(
+  rdns: string = "io.metamask",
+  amountIn: string = "7",
+  tokenIn: string = "EURC",
+  tokenOut: string = "USDC"
+) {
   const provider = await getInjectedWalletProvider(rdns);
   await provider.request({ method: "eth_requestAccounts", params: undefined });
 
@@ -77,11 +82,15 @@ export async function executeSwapWithInjectedWallet(rdns: string = "io.metamask"
   const kit = new AppKit();
   const result = await kit.swap({
     from: { adapter: viemAdapter, chain: ArcTestnet },
-    tokenIn: "USDC",
-    tokenOut: "EURC",
+    tokenIn,
+    tokenOut,
     amountIn,
-    config: { slippageBps: 300 } // 3% slippage
-  });
+    config: {
+      ...(process.env.KIT_KEY ? { kitKey: process.env.KIT_KEY } : {}),
+      slippageBps: 300,
+      allowanceStrategy: "approve",
+    }
+  } as any);
 
   return result;
 }

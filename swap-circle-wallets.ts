@@ -25,7 +25,7 @@ async function main() {
   console.log("🚀 Initiating Circle AppKit Swap with Circle Wallets Adapter on Arc Testnet...");
   console.log(`📌 Chain: ${ArcTestnet.name || 'Arc Testnet'} (Chain ID: ${ArcTestnet.chainId || 5042002})`);
   console.log(`📌 Wallet Address: ${sourceWalletAddress}`);
-  console.log("📌 Route: 1.00 USDC -> EURC");
+  console.log("📌 Route: 7 EURC -> USDC");
 
   const kit = new AppKit();
   const adapter = createCircleWalletsAdapter({
@@ -39,12 +39,12 @@ async function main() {
       chain: ArcTestnet,
       address: sourceWalletAddress,
     },
-    tokenIn: "USDC",
-    tokenOut: "EURC",
-    amountIn: "1.00",
+    tokenIn: "EURC",   // EURC -> USDC swap
+    tokenOut: "USDC",
+    amountIn: "7",     // string amount
     config: {
       ...(process.env.KIT_KEY ? { kitKey: process.env.KIT_KEY } : {}),
-      allowanceStrategy: "approve", // SCA ke liye zaroori
+      allowanceStrategy: "approve", // SCA ke liye
     },
   } as any;
 

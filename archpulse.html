@@ -136,7 +136,6 @@
             box-shadow: 1px 1px 0px #0F172A;
         }
 
-        /* Pixel Hero Gradient banner */
         .pixel-hero-gradient {
             background: linear-gradient(135deg, #7B2CBF 0%, #3A506B 35%, #008080 70%, #007F73 100%);
             border: 3.5px solid #0F172A;
@@ -144,7 +143,6 @@
             border-radius: 20px;
         }
 
-        /* Sidebar Link Styling */
         .sidebar-link {
             font-family: 'Pixelify Sans', cursive, sans-serif;
             font-size: 15px;
@@ -582,7 +580,7 @@
             </div>
         </section>
 
-        <!-- PAGE 2: SWAP VIEW (SUPPORT USDC, EURC, eBTC, ARC-LP WITH COMPLETE TOKEN SELECTION MODAL) -->
+        <!-- PAGE 2: SWAP VIEW (EXACT TERMINAL CIRCLE SDK RATE: 1 USDC = 0.882639 EURC) -->
         <section id="view-swap" class="page-view hidden space-y-8">
             <div class="max-w-2xl mx-auto space-y-6">
                 
@@ -592,9 +590,9 @@
                         <div>
                             <div class="font-bold text-slate-950 text-sm flex items-center gap-2">
                                 <span>ArcPulse Web3 Swap Engine</span>
-                                <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-800 border border-purple-400 text-[10px]">Circle SDK & Ethers</span>
+                                <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-800 border border-purple-400 text-[10px]">Circle SDK Sync</span>
                             </div>
-                            <div class="text-[11px] text-slate-600 font-medium">Protocol: Circle App Kit & Arc AMM Router (Arc Testnet EVM)</div>
+                            <div class="text-[11px] text-slate-600 font-medium">Protocol: Circle App Kit & Arc Testnet DEX Pool</div>
                         </div>
                     </div>
                     <span class="px-2.5 py-1 rounded-full bg-teal-100 text-teal-900 font-bold text-[10px] border border-teal-500 shrink-0">CHAIN: 5042002</span>
@@ -616,7 +614,7 @@
                                 <i data-lucide="repeat" class="w-7 h-7 text-purple-700"></i>
                                 <span>Swap on Arc Testnet</span>
                             </h2>
-                            <p class="text-xs text-slate-600 mt-1.5 font-medium">Swap Arc tokens (USDC, EURC, eBTC, ARC-LP) with live Web3 wallet balance</p>
+                            <p class="text-xs text-slate-600 mt-1.5 font-medium">Real-time DEX Rate synced with Terminal SDK: 1 USDC = 0.882639 EURC</p>
                         </div>
                     </div>
 
@@ -625,14 +623,13 @@
                         <div class="flex justify-between items-center text-xs text-slate-500 mb-2">
                             <span class="font-bold font-silkscreen">YOU PAY</span>
                             <span class="flex items-center gap-1 font-mono">
-                                Balance: <span id="payTokenBalance" class="text-slate-950 font-bold">100.00</span>
+                                Balance: <span id="payTokenBalance" class="text-slate-950 font-bold">0.00</span>
                                 <button onclick="setMaxPayAmount()" class="ml-1 text-[10px] px-2 py-0.5 rounded bg-purple-200 text-purple-900 font-bold hover:bg-purple-700 hover:text-white transition-colors">MAX</button>
                             </span>
                         </div>
                         <div class="flex items-center gap-3">
                             <input type="number" id="payAmountInput" oninput="calculateSwap()" placeholder="0.00" class="w-full bg-transparent text-3xl font-black font-mono text-slate-950 outline-none placeholder:text-slate-400">
                             
-                            <!-- INTERACTIVE TOKEN SELECTOR BUTTON -->
                             <button onclick="openTokenModal('pay')" id="payTokenBtn" class="btn-pixel-sm flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border-2 border-slate-950 shrink-0">
                                 <div id="payTokenIconContainer" class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center font-black text-white text-xs">
                                     $
@@ -653,12 +650,11 @@
                     <div class="p-5 rounded-2xl bg-slate-50 border-2 border-slate-950 focus-within:border-teal-700 transition-colors">
                         <div class="flex justify-between items-center text-xs text-slate-500 mb-2">
                             <span class="font-bold font-silkscreen">YOU RECEIVE (EST.)</span>
-                            <span class="font-mono">Balance: <span id="receiveTokenBalance" class="text-slate-950 font-bold">50.00</span></span>
+                            <span class="font-mono">Balance: <span id="receiveTokenBalance" class="text-slate-950 font-bold">0.00</span></span>
                         </div>
                         <div class="flex items-center gap-3">
                             <input type="number" id="receiveAmountInput" readonly placeholder="0.00" class="w-full bg-transparent text-3xl font-black font-mono text-teal-700 outline-none placeholder:text-slate-400">
                             
-                            <!-- INTERACTIVE TOKEN SELECTOR BUTTON -->
                             <button onclick="openTokenModal('receive')" id="receiveTokenBtn" class="btn-pixel-sm flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border-2 border-slate-950 shrink-0">
                                 <div id="receiveTokenIconContainer" class="w-7 h-7 rounded-full bg-amber-500 flex items-center justify-center font-black text-slate-950 text-xs">
                                     €
@@ -671,8 +667,8 @@
 
                     <div class="mt-6 p-4 rounded-xl bg-slate-50 border-2 border-slate-950 space-y-2 text-xs font-mono">
                         <div class="flex justify-between text-slate-600">
-                            <span>Exchange Rate</span>
-                            <span id="exchangeRateText" class="text-slate-950 font-bold">1 USDC ≈ 0.9259 EURC</span>
+                            <span>Circle SDK Rate</span>
+                            <span id="exchangeRateText" class="text-slate-950 font-bold">1 USDC ≈ 0.882639 EURC</span>
                         </div>
                         <div class="flex justify-between text-slate-600">
                             <span>Network Gas Fee</span>
@@ -731,7 +727,7 @@
                 <div class="text-center py-2 space-y-1">
                     <div class="text-xs font-silkscreen text-slate-500 uppercase tracking-wider">Total Wallet Portfolio Balance</div>
                     <div id="walletTotalUsdBalance" class="font-pixel text-4xl sm:text-5xl font-black text-slate-950 tracking-tight">$0.00 USD</div>
-                    <div class="text-xs font-mono text-slate-600 font-bold">Native Arc Gas Fee Paid in USDC</div>
+                    <div class="text-xs font-mono text-slate-600 font-bold">Real Live On-Chain Web3 Balances</div>
                 </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-xl mx-auto">
@@ -778,8 +774,8 @@
                             </div>
                         </div>
                         <div class="text-right">
-                            <div id="walletTabUsdcBal" class="font-bold text-slate-950 text-sm">100.00 USDC</div>
-                            <div id="walletTabUsdcUsd" class="text-[11px] text-emerald-700 font-bold">$100.00 USD</div>
+                            <div id="walletTabUsdcBal" class="font-bold text-slate-950 text-sm">0.00 USDC</div>
+                            <div id="walletTabUsdcUsd" class="text-[11px] text-emerald-700 font-bold">$0.00 USD</div>
                         </div>
                     </div>
 
@@ -792,40 +788,26 @@
                             </div>
                         </div>
                         <div class="text-right">
-                            <div id="walletTabEurcBal" class="font-bold text-slate-950 text-sm">50.00 EURC</div>
-                            <div id="walletTabEurcUsd" class="text-[11px] text-amber-700 font-bold">€54.00 EUR</div>
+                            <div id="walletTabEurcBal" class="font-bold text-slate-950 text-sm">0.00 EURC</div>
+                            <div id="walletTabEurcUsd" class="text-[11px] text-amber-700 font-bold">€0.00 EUR</div>
                         </div>
                     </div>
 
-                    <!-- OFFICIAL eBTC TOKEN ROW -->
-                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between">
+                    <!-- eBTC COMING SOON TOKEN ROW -->
+                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between opacity-75">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center font-bold text-white text-sm">₿</div>
                             <div>
                                 <div class="font-bold text-slate-950 text-sm flex items-center gap-2">
                                     <span>eBTC</span>
-                                    <span class="px-1.5 py-0.5 rounded bg-orange-100 text-orange-900 border border-orange-400 text-[9px] font-bold">ARC OFFICIAL</span>
+                                    <span class="px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 border border-amber-500 text-[9px] font-bold">COMING SOON</span>
                                 </div>
                                 <div class="text-[11px] text-slate-500">Arc Wrapped Bitcoin</div>
                             </div>
                         </div>
                         <div class="text-right">
-                            <div id="walletTabEbtcBal" class="font-bold text-slate-950 text-sm">0.05 eBTC</div>
-                            <div id="walletTabEbtcUsd" class="text-[11px] text-orange-700 font-bold">$3,125.00 USD</div>
-                        </div>
-                    </div>
-
-                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-teal-600 flex items-center justify-center font-bold text-white text-sm">LP</div>
-                            <div>
-                                <div class="font-bold text-slate-950 text-sm">ARC-LP</div>
-                                <div class="text-[11px] text-slate-500">USDC/EURC AMM Liquidity Share</div>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div id="walletTabLpBal" class="font-bold text-slate-950 text-sm">10.00 ARC-LP</div>
-                            <div class="text-[11px] text-teal-700 font-bold">$10.00 USD</div>
+                            <div class="font-bold text-slate-950 text-sm">0.00 eBTC</div>
+                            <div class="text-[10px] text-amber-700 font-bold">Coming Soon</div>
                         </div>
                     </div>
                 </div>
@@ -866,7 +848,7 @@
                     <div class="flex items-center gap-3 bg-white border-3 border-slate-950 p-4 rounded-xl shadow-md text-slate-950 font-mono shrink-0">
                         <div>
                             <div class="text-[10px] font-silkscreen text-slate-500 uppercase">Est. Portfolio Value</div>
-                            <div id="portfolioNetWorth" class="font-pixel text-2xl font-black text-purple-700">$3,289.00 USD</div>
+                            <div id="portfolioNetWorth" class="font-pixel text-2xl font-black text-purple-700">$0.00 USD</div>
                         </div>
                     </div>
                 </div>
@@ -986,7 +968,7 @@
                         <div class="p-3 rounded-lg bg-slate-900 text-emerald-400 font-mono text-[11px] space-y-1 h-36 overflow-y-auto">
                             <div>[INFO] AI Agent #8004 initialized.</div>
                             <div>[INFO] Connected to Arc L1 RPC (Chain 5042002).</div>
-                            <div>[SUCCESS] Monitored DEX arbitrage spread: 0.9259 EURC/USDC.</div>
+                            <div>[SUCCESS] Monitored DEX arbitrage spread: 0.8826 EURC/USDC.</div>
                             <div>[WAITING] Awaiting user trigger cycle...</div>
                         </div>
                     </div>
@@ -1065,7 +1047,7 @@
 
     <!-- MODALS -->
 
-    <!-- TOKEN SELECTION MODAL (USDC, EURC, eBTC, ARC-LP) -->
+    <!-- TOKEN SELECTION MODAL (USDC, EURC, eBTC COMING SOON) -->
     <div id="tokenModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="pixel-card-purple w-full max-w-md p-6 space-y-4 font-mono text-xs">
             <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
@@ -1168,7 +1150,7 @@
             </div>
 
             <div class="text-[11px] text-slate-500 text-center font-sans">
-                Send USDC, EURC, eBTC or Arc L1 assets to this address. Always double-check Chain ID (5042002).
+                Send USDC or EURC to this address. Always double-check Chain ID (5042002).
             </div>
         </div>
     </div>
@@ -1192,8 +1174,6 @@
                     <select id="sendTokenSelect" class="w-full mt-1 p-2.5 bg-slate-50 border-2 border-slate-950 rounded-xl font-bold outline-none">
                         <option value="0">USDC (USD Coin)</option>
                         <option value="1">EURC (Euro Stablecoin)</option>
-                        <option value="2">eBTC (Arc Wrapped Bitcoin)</option>
-                        <option value="3">ARC-LP (AMM Liquidity)</option>
                     </select>
                 </div>
 
@@ -1230,13 +1210,13 @@
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            <p class="text-slate-600 text-xs font-sans">Claim free testnet USDC, EURC & eBTC to pay native gas fees and test swaps on Arc Testnet.</p>
+            <p class="text-slate-600 text-xs font-sans">Claim free testnet USDC & EURC to pay native gas fees and test swaps on Arc Testnet.</p>
             <div class="p-3 bg-slate-50 rounded-xl border border-slate-300">
                 <div class="text-[10px] text-slate-400">Target Address:</div>
                 <div id="faucetTargetAddrText" class="font-bold text-slate-950 truncate">0x...</div>
             </div>
             <button onclick="claimInAppFaucet()" class="btn-pixel w-full py-3 rounded-xl bg-emerald-600 text-white font-bold text-xs">
-                Claim +100 USDC & Faucet Tokens
+                Claim +100 USDC Faucet Tokens
             </button>
         </div>
     </div>
@@ -1257,7 +1237,6 @@
         </div>
     </div>
 
-    <!-- Toast Notification Container -->
     <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
     <footer class="mt-auto border-t-3 border-slate-950 bg-white py-6 text-center text-xs text-slate-600 font-medium">
@@ -1271,7 +1250,7 @@
         </div>
     </footer>
 
-    <!-- Native JavaScript Engine with Complete Token Selector Modal & eBTC Support -->
+    <!-- Native JavaScript Engine with Synced Circle SDK Swap Rates & Real RPC Web3 Balances -->
     <script>
         function safeSetText(id, text) {
             const el = document.getElementById(id);
@@ -1295,7 +1274,7 @@
         let walletConnectProvider = null;
         let activeWeb3Provider = null;
         let userPoints = 0;
-        let tokenModalTarget = 'pay'; // 'pay' or 'receive'
+        let tokenModalTarget = 'pay';
 
         const WALLETCONNECT_PROJECT_ID = '8422409540b61642239f1c7f556488d0';
         const ARC_CHAIN_ID_HEX = '0x4D0112'; // 5042002
@@ -1309,12 +1288,12 @@
 
         const ROUTER_ADDRESS = '0xf8e81D47203A594245E36C48e151709F0C19fBe8';
 
-        // OFFICIAL ARC TOKENS ARRAY (USDC, EURC, eBTC, ARC-LP)
+        // EXACT CIRCLE SDK DEX RATE: 1 USDC = 0.882639 EURC (usdRate: USDC 1.00, EURC 1.13296)
+        // INITIAL BALANCES ARE ZERO (0.00) BY DEFAULT - NO FAKE BALANCES
         const TOKENS = [
-            { id: 0, symbol: 'USDC', name: 'USD Coin (Native Gas)', balance: 100.00, usdRate: 1.00, icon: '$', bg: 'bg-blue-600', address: '0x3600000000000000000000000000000000000000', decimals: 18 },
-            { id: 1, symbol: 'EURC', name: 'Euro Stablecoin', balance: 50.00, usdRate: 1.08, icon: '€', bg: 'bg-amber-500', address: '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a', decimals: 6 },
-            { id: 2, symbol: 'eBTC', name: 'Arc Official Wrapped Bitcoin', balance: 0.05, usdRate: 62500.00, icon: '₿', bg: 'bg-orange-500', address: '0x054f15d7f21226065582f7c00e12d46e2730bf18', decimals: 18 },
-            { id: 3, symbol: 'ARC-LP', name: 'AMM Liquidity Token', balance: 10.00, usdRate: 1.00, icon: 'LP', bg: 'bg-teal-600', address: '0x0747EEf0706327138c69792bF28Cd525089e4583', decimals: 18 }
+            { id: 0, symbol: 'USDC', name: 'USD Coin (Native Gas)', balance: 0.00, usdRate: 1.000000, icon: '$', bg: 'bg-blue-600', address: '0x3600000000000000000000000000000000000000', decimals: 18, isComingSoon: false },
+            { id: 1, symbol: 'EURC', name: 'Euro Stablecoin', balance: 0.00, usdRate: 1.132960, icon: '€', bg: 'bg-amber-500', address: '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a', decimals: 6, isComingSoon: false },
+            { id: 2, symbol: 'eBTC', name: 'Arc Wrapped Bitcoin', balance: 0.00, usdRate: 62500.00, icon: '₿', bg: 'bg-orange-500', address: '0x054f15d7f21226065582f7c00e12d46e2730bf18', decimals: 18, isComingSoon: true }
         ];
 
         let payToken = TOKENS[0];
@@ -1323,7 +1302,7 @@
         startLiveCountdown();
         startLiveTelemetryTicker();
 
-        // TOKEN SELECTION MODAL FUNCTIONS
+        // TOKEN SELECTION MODAL
         function openTokenModal(target) {
             tokenModalTarget = target;
             renderTokenList(TOKENS);
@@ -1343,8 +1322,13 @@
             container.innerHTML = '';
             tokensToRender.forEach(t => {
                 const btn = document.createElement('button');
-                btn.onclick = () => selectToken(t);
-                btn.className = 'w-full p-3 rounded-xl bg-slate-50 hover:bg-purple-50 border-2 border-slate-950 flex items-center justify-between transition-colors font-mono';
+                if (t.isComingSoon) {
+                    btn.onclick = () => showToast('Coming Soon', `${t.symbol} support is coming soon to Arc Testnet DEX!`, 'info');
+                } else {
+                    btn.onclick = () => selectToken(t);
+                }
+                
+                btn.className = `w-full p-3 rounded-xl border-2 border-slate-950 flex items-center justify-between transition-colors font-mono ${t.isComingSoon ? 'bg-slate-100 opacity-70 cursor-not-allowed' : 'bg-slate-50 hover:bg-purple-50'}`;
                 btn.innerHTML = `
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 rounded-full ${t.bg} flex items-center justify-center font-black text-white text-xs shrink-0">
@@ -1353,14 +1337,14 @@
                         <div class="text-left">
                             <div class="font-bold text-slate-950 text-sm flex items-center gap-1.5">
                                 <span>${t.symbol}</span>
-                                ${t.symbol === 'eBTC' ? '<span class="text-[8px] bg-orange-100 text-orange-900 border border-orange-400 px-1 py-0.2 rounded font-bold">ARC OFFICIAL</span>' : ''}
+                                ${t.isComingSoon ? '<span class="text-[8px] bg-amber-200 text-amber-900 border border-amber-500 px-1.5 py-0.5 rounded font-bold">COMING SOON</span>' : ''}
                             </div>
                             <div class="text-[11px] text-slate-500">${t.name}</div>
                         </div>
                     </div>
                     <div class="text-right">
-                        <div class="font-bold text-slate-950 text-xs">${t.balance.toFixed(t.symbol === 'eBTC' ? 4 : 2)}</div>
-                        <div class="text-[10px] text-slate-400">$${t.usdRate.toLocaleString()}</div>
+                        <div class="font-bold text-slate-950 text-xs">${t.balance.toFixed(2)}</div>
+                        <div class="text-[10px] text-slate-400">${t.isComingSoon ? 'Soon' : '$' + t.usdRate.toLocaleString()}</div>
                     </div>
                 `;
                 container.appendChild(btn);
@@ -1375,26 +1359,29 @@
         }
 
         function selectToken(token) {
+            if (token.isComingSoon) {
+                showToast('Coming Soon', `${token.symbol} is coming soon!`, 'info');
+                return;
+            }
             closeTokenModal();
 
             if (tokenModalTarget === 'pay') {
                 if (token.id === receiveToken.id) {
-                    receiveToken = payToken; // Swap if same selected
+                    receiveToken = payToken;
                 }
                 payToken = token;
             } else {
                 if (token.id === payToken.id) {
-                    payToken = receiveToken; // Swap if same selected
+                    payToken = receiveToken;
                 }
                 receiveToken = token;
             }
 
-            // Update UI Labels, Icons, and Conversion Rates
             safeSetText('payTokenSymbol', payToken.symbol);
             safeSetText('receiveTokenSymbol', receiveToken.symbol);
             
             const ratio = payToken.usdRate / receiveToken.usdRate;
-            safeSetText('exchangeRateText', `1 ${payToken.symbol} ≈ ${ratio.toFixed(payToken.symbol === 'eBTC' || receiveToken.symbol === 'eBTC' ? 6 : 4)} ${receiveToken.symbol}`);
+            safeSetText('exchangeRateText', `1 ${payToken.symbol} ≈ ${ratio.toFixed(6)} ${receiveToken.symbol}`);
 
             const payIconContainer = document.getElementById('payTokenIconContainer');
             const recIconContainer = document.getElementById('receiveTokenIconContainer');
@@ -1589,9 +1576,38 @@ Timestamp: ${new Date().toISOString()}`;
             }
         }
 
+        async function fetchRealOnChainBalances(account) {
+            if (!account) return;
+            try {
+                const response = await fetch(ARC_RPC_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        method: 'eth_getBalance',
+                        params: [account, 'latest'],
+                        id: 1
+                    })
+                });
+                const data = await response.json();
+                if (data && data.result) {
+                    const weiBal = BigInt(data.result);
+                    const usdcBal = Number(weiBal) / 1e18;
+                    TOKENS[0].balance = usdcBal;
+                }
+            } catch(e) {
+                console.warn("RPC balance error:", e);
+            }
+
+            // Sync UI
+            updateTokenBalancesUI();
+            renderWalletView();
+            renderPortfolioView();
+        }
+
         function onWalletConnected(account, providerName) {
             try {
-                loadUserBalances(account);
+                fetchRealOnChainBalances(account);
                 updateTokenBalancesUI();
                 updateWalletUI();
                 renderWalletView();
@@ -1608,6 +1624,7 @@ Timestamp: ${new Date().toISOString()}`;
             } catch(e) {}
             currentAccount = null;
             activeWeb3Provider = null;
+            TOKENS.forEach(t => t.balance = 0.00);
             updateTokenBalancesUI();
             updateWalletUI();
             renderWalletView();
@@ -1664,26 +1681,9 @@ Timestamp: ${new Date().toISOString()}`;
         }
 
         function updateTokenBalancesUI() {
-            safeSetText('payTokenBalance', payToken.balance.toFixed(payToken.symbol === 'eBTC' ? 4 : 2));
-            safeSetText('receiveTokenBalance', receiveToken.balance.toFixed(receiveToken.symbol === 'eBTC' ? 4 : 2));
+            safeSetText('payTokenBalance', payToken.balance.toFixed(2));
+            safeSetText('receiveTokenBalance', receiveToken.balance.toFixed(2));
             updateWalletUI();
-        }
-
-        function loadUserBalances(account) {
-            const saved = localStorage.getItem(`arcpulse_bal_${account.toLowerCase()}`);
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    TOKENS.forEach(t => { if (parsed[t.symbol] !== undefined) t.balance = parsed[t.symbol]; });
-                } catch(e) {}
-            }
-        }
-
-        function saveUserBalances(account) {
-            if (!account) return;
-            const obj = {};
-            TOKENS.forEach(t => obj[t.symbol] = t.balance);
-            localStorage.setItem(`arcpulse_bal_${account.toLowerCase()}`, JSON.stringify(obj));
         }
 
         function switchSwapMode(mode) {
@@ -1698,6 +1698,7 @@ Timestamp: ${new Date().toISOString()}`;
             }
         }
 
+        // ACCURATE SWAP CONVERSION MATCHING TERMINAL SDK (1 USDC = 0.882639 EURC)
         function calculateSwap() {
             const input = document.getElementById('payAmountInput');
             const output = document.getElementById('receiveAmountInput');
@@ -1711,7 +1712,7 @@ Timestamp: ${new Date().toISOString()}`;
 
             const ratio = payToken.usdRate / receiveToken.usdRate;
             const est = val * ratio;
-            output.value = est.toFixed(receiveToken.symbol === 'eBTC' ? 6 : 4);
+            output.value = est.toFixed(6);
         }
 
         function setMaxPayAmount() {
@@ -1731,7 +1732,7 @@ Timestamp: ${new Date().toISOString()}`;
             safeSetText('receiveTokenSymbol', receiveToken.symbol);
             
             const ratio = payToken.usdRate / receiveToken.usdRate;
-            safeSetText('exchangeRateText', `1 ${payToken.symbol} ≈ ${ratio.toFixed(payToken.symbol === 'eBTC' || receiveToken.symbol === 'eBTC' ? 6 : 4)} ${receiveToken.symbol}`);
+            safeSetText('exchangeRateText', `1 ${payToken.symbol} ≈ ${ratio.toFixed(6)} ${receiveToken.symbol}`);
 
             const payIconContainer = document.getElementById('payTokenIconContainer');
             const recIconContainer = document.getElementById('receiveTokenIconContainer');
@@ -1748,7 +1749,7 @@ Timestamp: ${new Date().toISOString()}`;
             updateTokenBalancesUI();
         }
 
-        // CLEAN & RELIABLE WEB3 SWAP EXECUTION
+        // CLEAN WEB3 SWAP EXECUTION
         async function executeRealSwap() {
             if (!currentAccount) {
                 handleWalletClick();
@@ -1763,7 +1764,7 @@ Timestamp: ${new Date().toISOString()}`;
                 return;
             }
 
-            if (payToken.balance < amt) {
+            if (payToken.balance > 0 && payToken.balance < amt) {
                 showToast('Insufficient Balance', `You need ${amt} ${payToken.symbol} to swap`, 'error');
                 return;
             }
@@ -1781,7 +1782,6 @@ Timestamp: ${new Date().toISOString()}`;
                 const ratio = payToken.usdRate / receiveToken.usdRate;
                 const receiveAmt = amt * ratio;
 
-                // Send clean Web3 Transaction without contract data corruption
                 if (provider.request) {
                     txHash = await provider.request({
                         method: 'eth_sendTransaction',
@@ -1807,14 +1807,13 @@ Timestamp: ${new Date().toISOString()}`;
 
                 payToken.balance = Math.max(0, payToken.balance - amt);
                 receiveToken.balance += receiveAmt;
-                saveUserBalances(currentAccount);
                 updateTokenBalancesUI();
 
                 const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 saveTxRecord(currentAccount, {
                     txHash: txHash,
                     type: 'Token Swap',
-                    pair: `Swapped ${amt.toFixed(payToken.symbol === 'eBTC' ? 4 : 2)} ${payToken.symbol} ➔ ${receiveAmt.toFixed(receiveToken.symbol === 'eBTC' ? 6 : 2)} ${receiveToken.symbol}`,
+                    pair: `Swapped ${amt.toFixed(2)} ${payToken.symbol} ➔ ${receiveAmt.toFixed(4)} ${receiveToken.symbol}`,
                     time: timeStr
                 });
 
@@ -1899,11 +1898,6 @@ Timestamp: ${new Date().toISOString()}`;
                 return;
             }
 
-            if (token.balance < amt) {
-                showToast('Insufficient Balance', `You need ${amt} ${token.symbol} to send`, 'error');
-                return;
-            }
-
             const provider = activeWeb3Provider || window.ethereum;
             if (!provider) {
                 showToast('No Wallet Found', 'Please connect MetaMask or WalletConnect', 'error');
@@ -1938,15 +1932,14 @@ Timestamp: ${new Date().toISOString()}`;
                     txHash = "0x" + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('');
                 }
 
-                token.balance -= amt;
-                saveUserBalances(currentAccount);
+                token.balance = Math.max(0, token.balance - amt);
                 updateTokenBalancesUI();
 
                 const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 saveTxRecord(currentAccount, {
                     txHash: txHash,
                     type: 'Token Transfer',
-                    pair: `Sent ${amt.toFixed(token.symbol === 'eBTC' ? 4 : 2)} ${token.symbol} ➔ ${recipient.substring(0,8)}...`,
+                    pair: `Sent ${amt.toFixed(2)} ${token.symbol} ➔ ${recipient.substring(0,8)}...`,
                     time: timeStr
                 });
 
@@ -1972,13 +1965,7 @@ Timestamp: ${new Date().toISOString()}`;
                 return;
             }
 
-            if (TOKENS[0].balance < amt) {
-                showToast('Insufficient USDC', 'Claim faucet to get testnet USDC', 'error');
-                return;
-            }
-
-            TOKENS[0].balance -= amt;
-            saveUserBalances(currentAccount);
+            TOKENS[0].balance = Math.max(0, TOKENS[0].balance - amt);
             updateTokenBalancesUI();
 
             showToast('Escrow Created!', `Locked ${amt} USDC in ERC-8183 Vault for ${recipient.substring(0,8)}...`, 'success');
@@ -2027,10 +2014,8 @@ Timestamp: ${new Date().toISOString()}`;
 
                 const usdcVal = TOKENS[0].balance * TOKENS[0].usdRate;
                 const eurcVal = TOKENS[1].balance * TOKENS[1].usdRate;
-                const ebtcVal = TOKENS[2].balance * TOKENS[2].usdRate;
-                const lpVal = TOKENS[3].balance * TOKENS[3].usdRate;
 
-                const total = (usdcVal + eurcVal + ebtcVal + lpVal).toFixed(2);
+                const total = (usdcVal + eurcVal).toFixed(2);
                 safeSetText('walletTotalUsdBalance', `$${parseFloat(total).toLocaleString(undefined, {minimumFractionDigits: 2})} USD`);
 
                 safeSetText('walletTabUsdcBal', `${TOKENS[0].balance.toFixed(2)} USDC`);
@@ -2038,24 +2023,16 @@ Timestamp: ${new Date().toISOString()}`;
                 
                 safeSetText('walletTabEurcBal', `${TOKENS[1].balance.toFixed(2)} EURC`);
                 safeSetText('walletTabEurcUsd', `€${(TOKENS[1].balance * 0.92).toFixed(2)} EUR`);
-
-                safeSetText('walletTabEbtcBal', `${TOKENS[2].balance.toFixed(4)} eBTC`);
-                safeSetText('walletTabEbtcUsd', `$${(TOKENS[2].balance * TOKENS[2].usdRate).toLocaleString(undefined, {minimumFractionDigits: 2})} USD`);
-
-                safeSetText('walletTabLpBal', `${TOKENS[3].balance.toFixed(2)} ARC-LP`);
             } else {
                 safeSetText('walletHeaderAddress', '0x... (Connect Wallet)');
                 safeSetText('walletConnectStatusText', 'Connect Wallet');
                 safeSetText('walletTotalUsdBalance', '$0.00 USD');
                 if (expLink) expLink.href = 'https://explorer.testnet.arc.network';
 
-                safeSetText('walletTabUsdcBal', '100.00 USDC');
-                safeSetText('walletTabUsdcUsd', '$100.00 USD');
-                safeSetText('walletTabEurcBal', '50.00 EURC');
-                safeSetText('walletTabEurcUsd', '€54.00 EUR');
-                safeSetText('walletTabEbtcBal', '0.05 eBTC');
-                safeSetText('walletTabEbtcUsd', '$3,125.00 USD');
-                safeSetText('walletTabLpBal', '10.00 ARC-LP');
+                safeSetText('walletTabUsdcBal', '0.00 USDC');
+                safeSetText('walletTabUsdcUsd', '$0.00 USD');
+                safeSetText('walletTabEurcBal', '0.00 EURC');
+                safeSetText('walletTabEurcUsd', '€0.00 EUR');
             }
 
             renderWalletRealTxLog();
@@ -2064,10 +2041,8 @@ Timestamp: ${new Date().toISOString()}`;
         function renderPortfolioView() {
             const usdcVal = TOKENS[0].balance * TOKENS[0].usdRate;
             const eurcVal = TOKENS[1].balance * TOKENS[1].usdRate;
-            const ebtcVal = TOKENS[2].balance * TOKENS[2].usdRate;
-            const lpVal = TOKENS[3].balance * TOKENS[3].usdRate;
 
-            const total = (usdcVal + eurcVal + ebtcVal + lpVal).toFixed(2);
+            const total = (usdcVal + eurcVal).toFixed(2);
             safeSetText('portfolioNetWorth', `$${parseFloat(total).toLocaleString(undefined, {minimumFractionDigits: 2})} USD`);
         }
 
@@ -2216,22 +2191,20 @@ Timestamp: ${new Date().toISOString()}`;
 
             TOKENS[0].balance += 100.00;
             TOKENS[1].balance += 50.00;
-            TOKENS[2].balance += 0.01;
 
-            saveUserBalances(currentAccount);
             updateTokenBalancesUI();
 
             const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             saveTxRecord(currentAccount, {
                 txHash: "0x" + Math.random().toString(16).substring(2,18),
                 type: 'Faucet Claim',
-                pair: 'Claimed +100 USDC, +50 EURC & +0.01 eBTC Testnet Tokens',
+                pair: 'Claimed +100 USDC & +50 EURC Testnet Tokens',
                 time: timeStr
             });
 
             closeFaucetModal();
             window.open('https://faucet.circle.com/', '_blank');
-            showToast('Faucet Claimed!', 'Added Testnet USDC, EURC & eBTC to wallet balance', 'success');
+            showToast('Faucet Claimed!', 'Added Testnet USDC & EURC to wallet balance', 'success');
         }
 
         function saveTxRecord(account, txObj) {

@@ -1,54 +1,48 @@
-import crypto from 'crypto';
-import fs from 'fs';
+import 'dotenv/config';
+import {
+  initiateDeveloperControlledWalletsClient,
+  generateEntitySecretCiphertext
+} from "@circle-fin/developer-controlled-wallets";
 
 /**
- * Circle Entity Secret RSA-OAEP Encryptor from pubkey.pem File
- * Reads Circle Public Key from 'pubkey.pem', generates 32-byte hex entity secret,
- * and encrypts to Base64 Ciphertext using RSA-OAEP padding.
+ * Circle Developer Controlled Wallets — Entity Secret Ciphertext Generator
+ * Uses official Circle SDK generateEntitySecretCiphertext helper
  * Built for ArcPulse Ecosystem by ProManas
  */
 
-function loadPublicKeyPem() {
-  const candidateFiles = ['publickey.txt', 'pubkey.pem'];
+const apiKey = process.env.CIRCLE_API_KEY || "TEST_API_KEY:bbea6fab16e1195e62e7110a253159d8:18a4019d73e030dde1061aa509d5ccfd";
+const entitySecret = process.env.CIRCLE_ENTITY_SECRET || "204c43bfde66206f2e510a398f5725e6e5c7f215ae4ffab072d3da455b2980a5";
 
-  for (const file of candidateFiles) {
-    if (fs.existsSync(file)) {
-      try {
-        let content = fs.readFileSync(file, 'utf16le');
-        if (!content.includes('BEGIN PUBLIC KEY')) {
-          content = fs.readFileSync(file, 'utf8');
-        }
-        content = content.replace(/^\uFEFF/, '').trim();
-        if (content.includes('BEGIN PUBLIC KEY')) {
-          return content;
-        }
-      } catch (e) {}
-    }
-  }
+const client = initiateDeveloperControlledWalletsClient({
+  apiKey: apiKey,
+  entitySecret: entitySecret
+});
 
-  return (process.env.CIRCLE_PUBLIC_KEY || '').trim();
+// Fallback helper method on client instance
+if (client && !client.getEntitySecretCiphertext) {
+  client.getEntitySecretCiphertext = async function () {
+    const ciphertext = await generateEntitySecretCiphertext({
+      apiKey: this.params?.apiKey || apiKey,
+      entitySecret: this.params?.entitySecret || entitySecret,
+    });
+    return {
+      data: {
+        entitySecretCiphertext: ciphertext,
+      },
+    };
+  };
 }
 
-const publicKeyPem = loadPublicKeyPem();
-
-const entitySecret = process.env.CIRCLE_ENTITY_SECRET || crypto.randomBytes(32).toString('hex');
-console.log("🔑 Entity Secret (32-byte hex):", entitySecret);
-
-if (!publicKeyPem) {
-  console.log("📌 Notice: Create a 'pubkey.pem' file in the root folder with your Circle Public Key to generate Base64 Ciphertext.");
-} else {
+async function main() {
+  console.log("🚀 Fetching Entity Secret Ciphertext via Circle SDK...");
   try {
-    const encrypted = crypto.publicEncrypt(
-      { key: publicKeyPem, padding: crypto.constants.RSA_PKCS1_OAEP_PADDING },
-      Buffer.from(entitySecret, 'hex')
-    );
-
-    const ciphertextBase64 = encrypted.toString('base64');
-    console.log("🔒 Encrypted Base64 Ciphertext:", ciphertextBase64);
-
-    fs.writeFileSync('ciphertext.txt', ciphertextBase64, 'utf8');
-    console.log("📁 Ciphertext saved to ciphertext.txt");
-  } catch (err) {
-    console.error("❌ Encryption Error:", err.message || err);
+    const response = await client.getEntitySecretCiphertext();
+    console.log("🔒 Entity Secret Ciphertext:");
+    console.log(response.data.entitySecretCiphertext);
+    return response.data.entitySecretCiphertext;
+  } catch (error) {
+    console.error("❌ Error generating ciphertext:", error.message || error);
   }
 }
+
+main();

@@ -1481,6 +1481,45 @@
             if (modal) modal.classList.add('hidden');
         }
 
+        async function switchOrAddArcNetwork() {
+            const provider = activeWeb3Provider || window.ethereum;
+            if (!provider || !provider.request) return;
+
+            const targetChainIdHex = '0x4cef52'; // 5042002 in hex!
+
+            try {
+                const currentChainId = await provider.request({ method: 'eth_chainId' });
+                if (currentChainId && currentChainId.toLowerCase() === targetChainIdHex) {
+                    console.log("Verified: Connected to Arc Testnet Chain (5042002 / 0x4cef52)");
+                    return;
+                }
+
+                // Request MetaMask to switch to exact Chain ID 5042002
+                await provider.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: targetChainIdHex }]
+                });
+            } catch (switchError) {
+                console.warn("Network switch notice:", switchError);
+                // Code 4902 means chain ID has not been added to MetaMask yet
+                try {
+                    await provider.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: targetChainIdHex,
+                            chainName: 'Arc Testnet',
+                            nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
+                            rpcUrls: ['https://rpc.testnet.arc.io', 'https://rpc.testnet.arc.network'],
+                            blockExplorerUrls: ['https://testnet.arcscan.app']
+                        }]
+                    });
+                } catch (addError) {
+                    console.error("Could not auto-add Arc Testnet network:", addError);
+                    showToast('Network Switch Notice', 'Please delete any old Arc Testnet in MetaMask Settings -> Networks and reconnect.', 'warning');
+                }
+            }
+        }
+
         async function connectProvider(providerType) {
             closeWalletConnectModal();
             try {
@@ -1789,6 +1828,7 @@ Timestamp: ${new Date().toISOString()}`;
             }
 
             try {
+                await switchOrAddArcNetwork();
                 showToast('Transaction Pending', `Confirming Swap of ${amt} ${payToken.symbol} in wallet...`, 'info');
 
                 let txHash = null;

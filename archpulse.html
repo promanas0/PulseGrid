@@ -253,8 +253,7 @@
                     </div>
 
                     <button onclick="toggleMobileSidebar()" class="lg:hidden p-1.5 rounded-lg border-2 border-slate-950 text-slate-700 hover:text-slate-950">
-                        <i data-lucide="x" class="w-5 h-5"></i>
-                    </button>
+                        </button>
                 </div>
 
                 
@@ -282,66 +281,53 @@
                 <div class="text-[10px] font-silkscreen text-slate-400 uppercase tracking-widest px-2 mb-1.5">Main Menu</div>
 
                 <button onclick="switchPage('monitor')" id="nav-btn-monitor" class="sidebar-link w-full active">
-                    <i data-lucide="gauge" class="w-5 h-5 shrink-0 text-slate-700"></i>
                     <span>Network Monitor</span>
                 </button>
 
                 <button onclick="switchPage('swap')" id="nav-btn-swap" class="sidebar-link w-full">
-                    <i data-lucide="arrow-left-right" class="w-5 h-5 shrink-0 text-slate-700"></i>
                     <span>Swap & AMM</span>
                 </button>
 
                 <button onclick="switchPage('wallet')" id="nav-btn-wallet" class="sidebar-link w-full">
-                    <i data-lucide="wallet" class="w-5 h-5 shrink-0 text-slate-700"></i>
                     <span>Arc Web3 Wallet</span>
                 </button>
 
                 <button onclick="switchPage('portfolio')" id="nav-btn-portfolio" class="sidebar-link w-full">
-                    <i data-lucide="pie-chart" class="w-5 h-5 shrink-0 text-slate-700"></i>
                     <span>Portfolio & Analytics</span>
                 </button>
 
                 <button onclick="switchPage('market')" id="nav-btn-market" class="sidebar-link w-full">
-                    <i data-lucide="shopping-cart" class="w-5 h-5 shrink-0 text-slate-700"></i>
                     <span>NFT & Token Market</span>
                 </button>
 
                 <button onclick="switchPage('escrow')" id="nav-btn-escrow" class="sidebar-link w-full">
-                    <i data-lucide="shield-check" class="w-5 h-5 shrink-0 text-slate-700"></i>
                     <span>Circle Escrow</span>
                 </button>
 
                 <button onclick="switchPage('assistant')" id="nav-btn-assistant" class="sidebar-link w-full">
-                    <i data-lucide="bot" class="w-5 h-5 shrink-0"></i>
                     <span data-i18n="nav_assistant">Pro AI</span>
                 </button>
 
                 <button onclick="switchPage('games')" id="nav-btn-games" class="sidebar-link w-full">
-                    <i data-lucide="gamepad-2" class="w-5 h-5 shrink-0"></i>
                     <span data-i18n="nav_games">Games</span>
                 </button>
 
                 <button onclick="switchPage('prediction')" id="nav-btn-prediction" class="sidebar-link w-full">
-                    <i data-lucide="trending-up" class="w-5 h-5 shrink-0"></i>
                     <span data-i18n="nav_prediction">Price Predictions</span>
                 </button>
 
                 <button onclick="switchPage('settings')" id="nav-btn-settings" class="sidebar-link w-full">
-                    <i data-lucide="settings" class="w-5 h-5 shrink-0"></i>
                     <span data-i18n="nav_settings">Settings</span>
                 </button>
 
                 <button onclick="switchPage('daily')" id="nav-btn-daily" class="sidebar-link w-full">
-                    <i data-lucide="trophy" class="w-5 h-5 shrink-0 text-slate-700"></i>
                     <span>Daily Quests</span>
                 </button>
 
                 <button onclick="switchPage('about')" id="nav-btn-about" class="sidebar-link w-full">
-                    <i data-lucide="info" class="w-5 h-5 shrink-0 text-slate-700"></i>
                     <span>About Arc L1</span>
                 </button>
                 <button onclick="switchPage('tools')" id="nav-btn-tools" class="sidebar-link w-full">
-                    <i data-lucide="wrench" class="w-5 h-5 shrink-0 text-slate-700"></i>
                     <span>Web3 Tools Hub</span>
                 </button>
             </nav>
@@ -351,19 +337,16 @@
 
                 <button onclick="manualSwitchToArcNetwork()" class="btn-pixel-sm w-full py-2.5 px-3 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-bold flex items-center justify-between shadow-[2px_2px_0px_#0F172A] transition-transform active:translate-y-0.5">
                     <span class="flex items-center gap-2 font-pixel">
-                        <i data-lucide="globe" class="w-4 h-4 text-purple-200"></i>
                         Switch Arc Network
                     </span>
                     <span class="text-[9px] bg-purple-900 text-purple-200 px-1.5 py-0.5 rounded font-mono">5042002</span>
                 </button>
 
                 <button onclick="openFaucetModal()" class="btn-pixel-sm w-full py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 rounded-xl text-xs font-bold flex items-center justify-start gap-2">
-                    <i data-lucide="droplet" class="w-4 h-4 text-emerald-600"></i>
                     <span>USDC & EURC Faucet</span>
                 </button>
 
                 <button onclick="openTxHistoryModal()" class="btn-pixel-sm w-full py-2 px-3 bg-purple-50 hover:bg-purple-100 text-purple-900 rounded-xl text-xs font-bold flex items-center justify-start gap-2">
-                    <i data-lucide="history" class="w-4 h-4 text-purple-600"></i>
                     <span>Tx History</span>
                 </button>
             </div>
@@ -385,12 +368,10 @@
 
             <div id="sidebarWalletActionContainer">
                 <button id="sidebarConnectBtn" onclick="handleWalletClick()" class="btn-pixel w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-700 via-indigo-600 to-teal-600 text-white font-pixel font-bold text-sm flex items-center justify-center gap-2 shadow-[4px_4px_0px_#0F172A]">
-                    <i data-lucide="wallet" class="w-4 h-4"></i>
                     <span id="walletBtnText">Connect Wallet</span>
                 </button>
 
                 <button id="sidebarDisconnectBtn" onclick="disconnectWallet()" class="hidden btn-pixel w-full py-3 rounded-xl bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white border-2 border-slate-950 font-pixel font-bold text-xs flex items-center justify-center gap-2 shadow-[3px_3px_0px_#0F172A] transition-colors">
-                    <i data-lucide="power" class="w-4 h-4"></i>
                     Disconnect Wallet
                 </button>
             </div>

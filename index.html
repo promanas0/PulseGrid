@@ -226,7 +226,7 @@
             <img src="logo.png" alt="ArcPulse Logo" class="w-10 h-10 rounded-xl border-2 border-slate-950 shadow-[2px_2px_0px_#0F172A] object-cover bg-white p-0.5">
             <div>
                 <span class="font-pixel text-xl font-black tracking-wider text-slate-950">ArcPulse</span>
-                <span class="ml-1 text-[9px] font-silkscreen bg-purple-100 text-purple-800 border border-purple-600 px-1.5 py-0.5 rounded">TESTNET</span>
+                
             </div>
         </div>
         <button onclick="toggleMobileSidebar()" class="btn-pixel p-2 rounded-xl bg-white border-2 border-slate-950 text-slate-900">
@@ -235,7 +235,7 @@
     </header>
 
     <!-- PERSISTENT LEFT SIDEBAR NAVIGATION BAR -->
-    <aside id="mainSidebar" class="fixed inset-y-0 left-0 z-50 w-60 bg-slate-900 border-r border-slate-800 text-slate-100 flex flex-col justify-between p-4 shadow-2xl overflow-y-auto sidebar-mobile-hidden lg:transform-none">
+    <aside id="mainSidebar" class="fixed inset-y-0 left-0 z-50 w-60 bg-white border-r border-slate-200 text-slate-900 flex flex-col justify-between p-4 shadow-md overflow-y-auto sidebar-mobile-hidden lg:transform-none">
         
         <div class="space-y-5">
             <!-- Brand & Logo Header -->
@@ -247,7 +247,7 @@
                         <div>
                             <div class="flex items-center gap-1.5">
                                 <span class="font-pixel text-2xl font-black tracking-wider text-slate-950">ArcPulse</span>
-                                <span class="font-silkscreen text-[9px] bg-purple-100 text-purple-900 border-2 border-purple-600 px-1.5 py-0.5 rounded font-bold">TESTNET</span>
+                                
                             </div>
                         </div>
                     </div>
@@ -263,7 +263,7 @@
             
     <!-- Language Selector Dropdown -->
     <div class="relative inline-block text-left my-2 px-2">
-        <select id="languageSelector" onchange="changeLanguage(this.value)" class="w-full bg-slate-800 text-slate-200 text-xs font-semibold rounded-lg px-3 py-2 border border-slate-700 focus:outline-none focus:border-purple-500 cursor-pointer">
+        <select id="languageSelector" onchange="changeLanguage(this.value)" class="w-full bg-slate-100 text-slate-800 text-xs font-semibold rounded-lg px-3 py-2 border border-slate-300 focus:outline-none focus:border-purple-600 cursor-pointer">
             <option value="en">English (US)</option>
             <option value="hi">हिंदी (Hindi)</option>
             <option value="es">Español (Spanish)</option>
@@ -802,7 +802,7 @@
                     <!-- eBTC COMING SOON TOKEN ROW -->
                     <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between opacity-75">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center font-bold text-white text-sm">₿</div>
+                            <div class="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center font-bold text-white text-sm"></div>
                             <div>
                                 <div class="font-bold text-slate-950 text-sm flex items-center gap-2">
                                     <span>eBTC</span>
@@ -1841,7 +1841,7 @@
         const TOKENS = [
             { id: 0, symbol: 'USDC', name: 'USD Coin (Native Gas)', balance: 0.00, usdRate: 1.000000, icon: '$', bg: 'bg-blue-600', address: '0x3600000000000000000000000000000000000000', decimals: 18, isComingSoon: false },
             { id: 1, symbol: 'EURC', name: 'Euro Stablecoin', balance: 0.00, usdRate: 1.132960, icon: '€', bg: 'bg-amber-500', address: '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a', decimals: 6, isComingSoon: false },
-            { id: 2, symbol: 'eBTC', name: 'Arc Wrapped Bitcoin', balance: 0.00, usdRate: 62500.00, icon: '₿', bg: 'bg-orange-500', address: '0x054f15d7f21226065582f7c00e12d46e2730bf18', decimals: 18, isComingSoon: true }
+            { id: 2, symbol: 'eBTC', name: 'Arc Wrapped Bitcoin', balance: 0.00, usdRate: 62500.00, icon: '', bg: 'bg-orange-500', address: '0x054f15d7f21226065582f7c00e12d46e2730bf18', decimals: 18, isComingSoon: true }
         ];
 
         let payToken = TOKENS[0];

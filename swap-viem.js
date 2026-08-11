@@ -44,6 +44,37 @@ export function discoverBrowserWallets() {
   });
 }
 
+export async function getInjectedWalletProvider(rdns = "io.metamask") {
+  if (typeof window === "undefined") {
+    throw new Error("Window is undefined. Cannot get browser wallet provider.");
+  }
+
+  const providers = await discoverBrowserWallets();
+  const selectedWallet = providers.find((p) => p.info.rdns === rdns) ?? providers[0];
+  if (!selectedWallet?.provider) {
+    throw new Error(`Injected wallet provider not found for ${rdns}`);
+  }
+  return selectedWallet.provider;
+}
+
+export async function executeSwapWithInjectedWallet(rdns = "io.metamask", amountIn = "1.00") {
+  const provider = await getInjectedWalletProvider(rdns);
+  await provider.request({ method: "eth_requestAccounts", params: undefined });
+
+  const viemAdapter = await createViemAdapterFromProvider({ provider });
+
+  const kit = new AppKit();
+  const result = await kit.swap({
+    from: { adapter: viemAdapter, chain: ArcTestnet },
+    tokenIn: "USDC",
+    tokenOut: "EURC",
+    amountIn,
+    config: { allowanceStrategy: "approve" }
+  });
+
+  return result;
+}
+
 const kit = new AppKit();
 
 async function main() {

@@ -1,12 +1,9 @@
 import 'dotenv/config';
-import {
-  initiateDeveloperControlledWalletsClient,
-  generateEntitySecretCiphertext
-} from "@circle-fin/developer-controlled-wallets";
+import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
 
 /**
- * Circle Developer Controlled Wallets — Entity Secret Ciphertext Generator
- * Uses official Circle SDK generateEntitySecretCiphertext helper
+ * Circle Developer Controlled Wallets — Wallet Creation Script
+ * Creates WalletSet and Arc Testnet Smart Contract Account (SCA) Wallet
  * Built for ArcPulse Ecosystem by ProManas
  */
 
@@ -18,30 +15,25 @@ const client = initiateDeveloperControlledWalletsClient({
   entitySecret: entitySecret
 });
 
-// Fallback helper method on client instance
-if (client && !client.getEntitySecretCiphertext) {
-  client.getEntitySecretCiphertext = async function () {
-    const ciphertext = await generateEntitySecretCiphertext({
-      apiKey: this.params?.apiKey || apiKey,
-      entitySecret: this.params?.entitySecret || entitySecret,
-    });
-    return {
-      data: {
-        entitySecretCiphertext: ciphertext,
-      },
-    };
-  };
-}
-
 async function main() {
-  console.log("🚀 Fetching Entity Secret Ciphertext via Circle SDK...");
+  console.log("🚀 Creating Circle WalletSet & Arc Testnet SCA Wallet...");
   try {
-    const response = await client.getEntitySecretCiphertext();
-    console.log("🔒 Entity Secret Ciphertext:");
-    console.log(response.data.entitySecretCiphertext);
-    return response.data.entitySecretCiphertext;
+    const walletSet = await client.createWalletSet({
+      name: "My Wallet Set",
+    });
+
+    console.log("✅ WalletSet Created ID:", walletSet.data?.walletSet?.id);
+
+    const walletsResponse = await client.createWallets({
+      blockchains: ["ARC-TESTNET"],
+      count: 1,
+      walletSetId: walletSet.data?.walletSet?.id ?? "",
+      accountType: "SCA",
+    });
+
+    console.log("🎉 Created SCA Wallets Data:", JSON.stringify(walletsResponse.data, null, 2));
   } catch (error) {
-    console.error("❌ Error generating ciphertext:", error.message || error);
+    console.error("📌 Wallet Creation Status:", error.message || error);
   }
 }
 

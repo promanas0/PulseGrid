@@ -33,11 +33,12 @@ async function main() {
     throw new Error("WalletSet ID missing. Check your Circle API credentials and entity secret.");
   }
 
-  // Create Arc Testnet Wallet
+  // Create Arc Testnet SCA (Smart Contract Account) Wallet
   const arcWalletResponse = await client.createWallets({
     walletSetId: walletSetId,
     blockchains: ["ARC-TESTNET"],
     count: 1,
+    accountType: "SCA",
   });
 
   console.log("🎉 Arc wallet created successfully!");

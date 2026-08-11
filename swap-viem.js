@@ -1,5 +1,6 @@
+import 'dotenv/config';
 import { AppKit } from "@circle-fin/app-kit";
-import { createViemAdapter, createViemAdapterFromPrivateKey, createViemAdapterFromProvider } from "@circle-fin/adapter-viem-v2";
+import { createViemAdapterFromPrivateKey, createViemAdapterFromProvider } from "@circle-fin/adapter-viem-v2";
 import { arcTestnet } from "viem/chains";
 
 /**
@@ -30,7 +31,7 @@ async function main() {
       privateKey: formattedPk,
     });
   } else {
-    viemAdapter = createViemAdapter();
+    throw new Error("No Web3 Provider or PRIVATE_KEY found in .env");
   }
 
   try {

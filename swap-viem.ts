@@ -1,11 +1,12 @@
+import 'dotenv/config';
 import { AppKit } from "@circle-fin/app-kit";
-import { createViemAdapter, createViemAdapterFromPrivateKey, createViemAdapterFromProvider } from "@circle-fin/adapter-viem-v2";
+import { createViemAdapterFromPrivateKey, createViemAdapterFromProvider } from "@circle-fin/adapter-viem-v2";
 import { arcTestnet } from "viem/chains";
 
 /**
  * Circle AppKit Swap using Viem V2 Adapter with official viem/chains arcTestnet
  * USDC -> EURC on Arc Testnet (Chain ID 5042002)
- * Supports Browser Provider (window.ethereum), Private Key Adapter & Wallet Adapters
+ * Supports Browser Provider (window.ethereum) & Private Key Adapters
  * Built for ArcPulse Ecosystem by ProManas
  */
 
@@ -32,7 +33,7 @@ async function main() {
       privateKey: formattedPk,
     });
   } else {
-    viemAdapter = createViemAdapter();
+    throw new Error("No Web3 Provider or PRIVATE_KEY found in .env");
   }
 
   try {

@@ -37,6 +37,8 @@
     "custom-rpc-adapter:ts": "tsx --env-file=.env custom-rpc-adapter.ts",
     "register-entity-secret": "node --env-file=.env register-entity-secret.js",
     "register-entity-secret:ts": "tsx --env-file=.env register-entity-secret.ts",
+    "encrypt-entity-secret": "node --env-file=.env encrypt-entity-secret.js",
+    "encrypt-entity-secret:ts": "tsx --env-file=.env encrypt-entity-secret.ts",
     "server": "node server.mjs",
     "build": "echo 'Build complete'"
   },

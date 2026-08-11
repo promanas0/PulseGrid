@@ -1501,21 +1501,20 @@
                 });
             } catch (switchError) {
                 console.warn("Network switch notice:", switchError);
-                // Code 4902 means chain ID has not been added to MetaMask yet
                 try {
                     await provider.request({
                         method: 'wallet_addEthereumChain',
                         params: [{
                             chainId: targetChainIdHex,
-                            chainName: 'Arc Testnet',
+                            chainName: 'Arc Testnet (5042002)',
                             nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
-                            rpcUrls: ['https://rpc.testnet.arc.io', 'https://rpc.testnet.arc.network'],
+                            rpcUrls: ['https://rpc.testnet.arc.network', 'https://rpc.testnet.arc.io'],
                             blockExplorerUrls: ['https://testnet.arcscan.app']
                         }]
                     });
                 } catch (addError) {
                     console.error("Could not auto-add Arc Testnet network:", addError);
-                    showToast('Network Switch Notice', 'Please delete any old Arc Testnet in MetaMask Settings -> Networks and reconnect.', 'warning');
+                    showToast('Chain ID Mismatch', 'In MetaMask, please switch network to Arc Testnet with Chain ID 5042002 (0x4cef52)', 'warning');
                 }
             }
         }

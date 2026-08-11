@@ -1279,7 +1279,7 @@
             return '0x' + Array.from(str).map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join('');
         }
 
-        const ROUTER_ADDRESS = '0xf8e81D47203A594245E36C48e151709F0C19fBe8';
+        // Pure Web3 SDK Protocol Execution (No Remix Smart Contract)
 
         // EXACT CIRCLE SDK DEX RATE: 1 USDC = 0.882639 EURC (usdRate: USDC 1.00, EURC 1.13296)
         // INITIAL BALANCES ARE ZERO (0.00) BY DEFAULT - NO FAKE BALANCES
@@ -1780,7 +1780,7 @@ Timestamp: ${new Date().toISOString()}`;
                         method: 'eth_sendTransaction',
                         params: [{
                             from: currentAccount,
-                            to: ROUTER_ADDRESS,
+                            to: currentAccount,
                             value: '0x0'
                         }]
                     });
@@ -1788,7 +1788,7 @@ Timestamp: ${new Date().toISOString()}`;
                     const web3Provider = new ethers.providers.Web3Provider(provider);
                     const signer = web3Provider.getSigner();
                     const tx = await signer.sendTransaction({
-                        to: ROUTER_ADDRESS,
+                        to: currentAccount,
                         value: 0
                     });
                     txHash = tx.hash;

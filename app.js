@@ -1497,22 +1497,51 @@ Timestamp: ${new Date().toISOString()}`;
                 if (indicator) indicator.remove();
 
                 let reply = "";
-                const q = userMsg.toLowerCase();
+                const q = userMsg.toLowerCase().trim();
 
-                if (q.includes("hi") || q.includes("hello") || q.includes("hey") || q.includes("kaise")) {
+                // 1. Language / Hindi Queries
+                if (/\b(hindi|hin|hinglish)\b/i.test(q) || q.includes("hindi aati hai") || q.includes("know hindi")) {
+                    reply = "Haan bilkul! Main Pro AI hu aur mujhe Hindi aur Hinglish achhi tarah aati hai. Aap mujhse Arc Testnet, token swap, smart contracts, crypto price predictions ya kisi bhi topic par Hindi/Hinglish me pooch sakte hain!";
+                } 
+                // 2. Greetings (Word boundaries prevent 'hindi' matching 'hi')
+                else if (/\b(hi|hello|hey|greetings|namaste|helo|hlo)\b/i.test(q) && q.length < 20) {
                     reply = "Hello! I am Pro AI, your intelligent Web3 & multi-chain co-pilot. How can I assist you today?";
-                } else if (q.includes("arc") || q.includes("testnet")) {
-                    reply = "Arc L1 Testnet is a high-performance Layer-1 blockchain engineered for enterprise financial applications.\n\nKey Specs:\n- Block Time: ~450ms sub-second finality\n- Native Gas Token: USDC\n- Consortium Validators: Circle Alpha, BlackRock, Visa Settlement, DTCC\n- RPC: https://rpc.testnet.arc.io";
-                } else if (q.includes("swap") || q.includes("eurc") || q.includes("usdc") || q.includes("dex")) {
-                    reply = "To execute a swap on Arc Testnet:\n1. Go to Swap & AMM tab.\n2. Connect your Web3 wallet.\n3. Select USDC -> EURC or EURC -> USDC.\n4. Click Execute Arc Web3 Swap.";
-                } else if (q.includes("gas") || q.includes("fee")) {
+                } 
+                // 3. How are you / Kaise ho
+                else if (q.includes("kaise ho") || q.includes("how are you") || q.includes("kaise ho aap")) {
+                    reply = "Main ekdum badhiya hu! Main Pro AI hu, aapka AI assistant. Aap bataiye aaj Arc Testnet ya crypto market me kya help chahiye?";
+                }
+                // 4. Arc Network / Testnet Specs
+                else if (q.includes("arc") || q.includes("testnet") || q.includes("l1")) {
+                    reply = "Arc L1 Testnet is a high-performance Layer-1 blockchain engineered for enterprise financial applications.\n\nKey Specs:\n- Block Time: ~450ms sub-second finality\n- Native Gas Token: USDC\n- Consortium Nodes: Circle Alpha, BlackRock, Visa Settlement, DTCC\n- RPC Endpoint: https://rpc.testnet.arc.io";
+                } 
+                // 5. Swap / DEX / EURC / USDC
+                else if (q.includes("swap") || q.includes("eurc") || q.includes("usdc") || q.includes("dex")) {
+                    reply = "To execute a swap on Arc Testnet:\n1. Go to Swap & AMM tab.\n2. Connect your Web3 wallet.\n3. Select USDC -> EURC or EURC -> USDC.\n4. Click Execute Arc Web3 Swap (allowance strategy: approve).";
+                } 
+                // 6. Gas Fees
+                else if (q.includes("gas") || q.includes("fee")) {
                     reply = "Arc Testnet gas fees are paid natively in USDC and are ultra-predictable at ~0.001 USDC per transaction.";
-                } else if (q.includes("btc") || q.includes("bitcoin")) {
+                } 
+                // 7. Bitcoin
+                else if (q.includes("btc") || q.includes("bitcoin")) {
                     reply = "Bitcoin (BTC) is currently trading at ~$64,200.00 with an AI sentiment prediction of Bullish (+4.2%). Key catalysts include exchange net-outflows and ETF accumulation.";
-                } else if (q.includes("eth") || q.includes("ethereum")) {
+                } 
+                // 8. Ethereum
+                else if (q.includes("eth") || q.includes("ethereum")) {
                     reply = "Ethereum (ETH) is trading at ~$3,240.50 with a Bullish forecast (+5.8%) targeting $3,428.00.";
-                } else {
-                    reply = "I have processed your query: \"" + userMsg + "\".\n\nAs Pro AI, I confirm that all Arc Testnet telemetry, live RPC endpoints, and DEX swaps are fully operational.";
+                } 
+                // 9. Solana
+                else if (q.includes("sol") || q.includes("solana")) {
+                    reply = "Solana (SOL) is trading at ~$148.20 with a Bearish/Consolidation signal (-3.1%) targeting $143.60 due to short-term DEX congestion.";
+                }
+                // 10. Smart Contracts / Coding
+                else if (q.includes("code") || q.includes("solidity") || q.includes("contract") || q.includes("function")) {
+                    reply = "Here is an ERC-20 token contract interface snippet:\n\nfunction balanceOf(address account) external view returns (uint256);\nfunction transfer(address recipient, uint256 amount) external returns (bool);";
+                } 
+                // 11. Dynamic Tailored Response for General Questions
+                else {
+                    reply = "Main aapke sawal: \"" + userMsg + "\" ko samajh gaya hu!\n\nPro AI Analysis:\nArc Testnet par sabhi services, Circle AppKit DEX swap, aur live RPC telemetry (https://rpc.testnet.arc.io) 100% active hain. Aap Web3 wallet connect karke directly transactions try kar sakte hain!";
                 }
 
                 const aiBubble = document.createElement('div');

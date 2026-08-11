@@ -80,9 +80,8 @@ export async function executeSwapWithInjectedWallet(rdns: string = "io.metamask"
     tokenIn: "USDC",
     tokenOut: "EURC",
     amountIn,
-    allowanceStrategy: "approve",
     config: { allowanceStrategy: "approve" }
-  });
+  } as any);
 
   return result;
 }
@@ -127,12 +126,11 @@ async function main() {
       tokenIn: "USDC",
       tokenOut: "EURC",
       amountIn: "1.00",
-      allowanceStrategy: "approve",
       config: {
         slippageBps: 300, // 3% — default recommended
         allowanceStrategy: "approve", // Explicit ERC-20 on-chain approval strategy
       },
-    });
+    } as any);
 
     console.log("🎉 Swap Executed Successfully!", JSON.stringify(result, null, 2));
   } catch (error: any) {

@@ -39,12 +39,11 @@ async function main() {
       tokenIn: "USDC",
       tokenOut: "EURC",
       amountIn: "1.00",
-      allowanceStrategy: "approve",
       config: {
         slippageBps: 300,
         allowanceStrategy: "approve",
       },
-    });
+    } as any);
 
     console.log("🎉 Swap Executed Successfully!", JSON.stringify(result, null, 2));
   } catch (error: any) {

@@ -1,4 +1,4 @@
-import { publicEncrypt, constants, randomBytes } from "node:crypto";
+import crypto from 'crypto';
 
 /**
  * Circle Developer Controlled Wallets — RSA-OAEP Entity Secret Encryptor (TypeScript)
@@ -15,7 +15,7 @@ export function encryptEntitySecretWithPublicKey(
   publicKeyPem: string,
   customEntitySecret?: string
 ): EncryptionResult {
-  const entitySecret = customEntitySecret || randomBytes(32).toString("hex");
+  const entitySecret = customEntitySecret || crypto.randomBytes(32).toString("hex");
   console.log("🔑 Entity Secret (32-byte hex):", entitySecret);
 
   if (!publicKeyPem || !publicKeyPem.includes("BEGIN PUBLIC KEY")) {
@@ -24,10 +24,10 @@ export function encryptEntitySecretWithPublicKey(
   }
 
   try {
-    const encrypted = publicEncrypt(
+    const encrypted = crypto.publicEncrypt(
       {
         key: publicKeyPem,
-        padding: constants.RSA_PKCS1_OAEP_PADDING,
+        padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
       },
       Buffer.from(entitySecret, "hex")
     );

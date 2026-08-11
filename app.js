@@ -1620,18 +1620,6 @@ Timestamp: ${new Date().toISOString()}`;
             }
 
             modal.classList.remove('hidden');
-        } (${coin.symbol})`);
-            safeSetText('modalCoinCategory', coin.category);
-            safeSetText('modalCoinPrice', `${coin.price} (${coin.change})`);
-            safeSetText('modalLongRatio', coin.longRatio);
-            safeSetText('modalShortRatio', coin.shortRatio);
-            safeSetText('modalTp', coin.tp);
-            safeSetText('modalSl', coin.sl);
-
-            const icon = document.getElementById('modalCoinIcon');
-            if (icon) icon.innerText = coin.symbol;
-
-            modal.classList.remove('hidden');
         }
 
         function closeCoinChartModal() {
@@ -1716,55 +1704,6 @@ Timestamp: ${new Date().toISOString()}`;
         }
 
         // STRICT 24-HOUR DAILY QUEST CLAIM LOCK LOGIC
-        function claimDailyCheckin() {
-            if (!currentAccount) {
-                handleWalletClick();
-                return;
-            }
-
-            const now = new Date().getTime();
-            const lastClaim = parseInt(localStorage.getItem(`arcpulse_last_quest_claim_${currentAccount.toLowerCase()}`) || '0');
-            const twentyFourHours = 24 * 60 * 60 * 1000;
-
-            if (now - lastClaim < twentyFourHours) {
-                const remaining = twentyFourHours - (now - lastClaim);
-                const hours = Math.floor(remaining / (1000 * 60 * 60));
-                const mins = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-                showToast('Already Claimed Today!', `Next daily quest claim available in ${hours}h ${mins}m`, 'error');
-                return;
-            }
-
-            userPoints += 50;
-            localStorage.setItem(`arcpulse_last_quest_claim_${currentAccount.toLowerCase()}`, now.toString());
-            safeSetText('userPointsVal', `${userPoints} PTS`);
-            showToast('Quest Claimed!', '+50 Builder PTS added! Next claim available in 24 hours.', 'success');
-            updateQuestTimerStatus();
-        }
-
-        function updateQuestTimerStatus() {
-            if (!currentAccount) return;
-            const now = new Date().getTime();
-            const lastClaim = parseInt(localStorage.getItem(`arcpulse_last_quest_claim_${currentAccount.toLowerCase()}`) || '0');
-            const twentyFourHours = 24 * 60 * 60 * 1000;
-            const questBtn = document.getElementById('dailyQuestClaimBtn');
-
-            if (now - lastClaim < twentyFourHours) {
-                const remaining = twentyFourHours - (now - lastClaim);
-                const hours = Math.floor(remaining / (1000 * 60 * 60));
-                const mins = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-                if (questBtn) {
-                    questBtn.innerText = `Claimed (Next in ${hours}h ${mins}m)`;
-                    questBtn.className = 'w-full py-2.5 px-4 rounded-xl bg-slate-800 text-slate-400 border border-slate-700 font-bold text-xs cursor-not-allowed';
-                }
-            } else {
-                if (questBtn) {
-                    questBtn.innerText = 'Claim Daily 50 PTS';
-                    questBtn.className = 'btn-pixel w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs cursor-pointer';
-                }
-            }
-        }
-
-        // Initialize on DOM Ready
         document.addEventListener('DOMContentLoaded', () => {
             renderPredictionCoins(PREDICTION_COINS);
             renderProAiHistory();

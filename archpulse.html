@@ -1992,6 +1992,10 @@
                 renderWalletView();
             } else if (pageId === 'portfolio') {
                 renderPortfolioView();
+            } else if (pageId === 'prediction') {
+                if (typeof renderPredictionCoins === 'function' && typeof PREDICTION_COINS !== 'undefined') renderPredictionCoins(PREDICTION_COINS);
+            } else if (pageId === 'assistant') {
+                if (typeof renderProAiHistory === 'function') renderProAiHistory();
             } else if (pageId === 'settings') {
                 const settingsAddr = document.getElementById('settingsWalletAddress');
                 if (settingsAddr) settingsAddr.value = currentAccount || 'Not Connected';
@@ -3206,7 +3210,6 @@ Timestamp: ${new Date().toISOString()}`;
         }
 
         function handleAiChatSend() {
-
             const input = document.getElementById('aiChatInput');
             const chatBox = document.getElementById('aiChatBox');
             if (!input || !chatBox || !input.value.trim()) return;
@@ -3217,11 +3220,7 @@ Timestamp: ${new Date().toISOString()}`;
             // Render User Message
             const userBubble = document.createElement('div');
             userBubble.className = 'flex gap-3 justify-end';
-            userBubble.innerHTML = `
-                <div class="bg-purple-600 text-white rounded-2xl p-3.5 text-xs max-w-[80%]">
-                    ${userMsg}
-                </div>
-            `;
+            userBubble.innerHTML = '<div class="bg-purple-600 text-white rounded-2xl p-3.5 text-xs max-w-[80%]">' + userMsg + '</div>';
             chatBox.appendChild(userBubble);
             chatBox.scrollTop = chatBox.scrollHeight;
 
@@ -3229,19 +3228,12 @@ Timestamp: ${new Date().toISOString()}`;
             const typingBubble = document.createElement('div');
             typingBubble.id = 'aiTypingIndicator';
             typingBubble.className = 'flex gap-3 items-center';
-            typingBubble.innerHTML = `
-                <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center shrink-0">
-                    <span class="text-purple-300 font-bold text-xs">AI</span>
-                </div>
-                <div class="bg-slate-800 border border-slate-700 rounded-2xl px-4 py-2 text-slate-400 text-xs italic animate-pulse">
-                    Pro AI is thinking...
-                </div>
-            `;
+            typingBubble.innerHTML = '<div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center shrink-0"><span class="text-purple-300 font-bold text-xs">AI</span></div><div class="bg-slate-800 border border-slate-700 rounded-2xl px-4 py-2 text-slate-400 text-xs italic animate-pulse">Pro AI is thinking...</div>';
             chatBox.appendChild(typingBubble);
             chatBox.scrollTop = chatBox.scrollHeight;
 
             // Generate Intelligent AI Reply
-            setTimeout(() => {
+            setTimeout(function() {
                 const indicator = document.getElementById('aiTypingIndicator');
                 if (indicator) indicator.remove();
 
@@ -3249,54 +3241,31 @@ Timestamp: ${new Date().toISOString()}`;
                 const q = userMsg.toLowerCase();
 
                 if (q.includes("hi") || q.includes("hello") || q.includes("hey") || q.includes("kaise")) {
-                    reply = `Hello! I am Pro AI, your intelligent Web3 & multi-chain co-pilot. I can help you analyze Arc Testnet telemetry, execute USDC/EURC swaps, explain smart contracts, or answer questions about Bitcoin, Ethereum, Solana, and coding in any language! What would you like to explore?`;
+                    reply = "Hello! I am Pro AI, your intelligent Web3 & multi-chain co-pilot. How can I assist you today?";
                 } else if (q.includes("arc") || q.includes("testnet")) {
-                    reply = `Arc L1 Testnet is a high-performance Layer-1 blockchain engineered for enterprise-grade financial applications.
-Key specs:
-- Block Time: ~450ms sub-second finality
-- Native Gas Token: USDC (0x3600000000000000000000000000000000000000)
-- Consortium Validators: Circle Alpha, BlackRock, Visa Settlement, DTCC
-- RPC Endpoint: https://rpc.testnet.arc.io`;
+                    reply = "Arc L1 Testnet is a high-performance Layer-1 blockchain engineered for enterprise financial applications.\n\nKey Specs:\n- Block Time: ~450ms sub-second finality\n- Native Gas Token: USDC\n- Consortium Validators: Circle Alpha, BlackRock, Visa Settlement, DTCC\n- RPC: https://rpc.testnet.arc.io";
                 } else if (q.includes("swap") || q.includes("eurc") || q.includes("usdc") || q.includes("dex")) {
-                    reply = `To execute a swap on Arc Testnet:
-1. Go to Swap & AMM tab.
-2. Connect your Web3 wallet (MetaMask / WalletConnect).
-3. Select USDC -> EURC or EURC -> USDC.
-4. Click Execute Arc Web3 Swap. Allowance strategy is automatically configured to 'approve'.`;
+                    reply = "To execute a swap on Arc Testnet:\n1. Go to Swap & AMM tab.\n2. Connect your Web3 wallet.\n3. Select USDC -> EURC or EURC -> USDC.\n4. Click Execute Arc Web3 Swap.";
                 } else if (q.includes("gas") || q.includes("fee")) {
-                    reply = `Arc Testnet gas fees are paid natively in USDC and are ultra-predictable at ~0.001 USDC per transaction, ensuring zero fee volatility for institutional applications.`;
+                    reply = "Arc Testnet gas fees are paid natively in USDC and are ultra-predictable at ~0.001 USDC per transaction.";
                 } else if (q.includes("btc") || q.includes("bitcoin")) {
-                    reply = `Bitcoin (BTC) is currently trading at ~$64,200.00 with an AI sentiment prediction of Bullish (+4.2%). Key catalysts include strong exchange net-outflows and post-halving miner hash-rate ATH stability.`;
+                    reply = "Bitcoin (BTC) is currently trading at ~$64,200.00 with an AI sentiment prediction of Bullish (+4.2%). Key catalysts include exchange net-outflows and ETF accumulation.";
                 } else if (q.includes("eth") || q.includes("ethereum")) {
-                    reply = `Ethereum (ETH) is trading at ~$3,240.50 with a Bullish forecast (+5.8%) targeting $3,428.00. L2 settlement volumes and institutional staking inflows remain strong.`;
-                } else if (q.includes("code") || q.includes("solidity") || q.includes("contract") || q.includes("function")) {
-                    reply = `Here is a standard ERC-20 interface snippet for Arc Testnet tokens:
-function balanceOf(address account) external view returns (uint256);
-function transfer(address recipient, uint256 amount) external returns (bool);`;
+                    reply = "Ethereum (ETH) is trading at ~$3,240.50 with a Bullish forecast (+5.8%) targeting $3,428.00.";
                 } else {
-                    reply = `I have analyzed your query: "${userMsg}".
-
-As Pro AI, I confirm that all Arc Testnet telemetry, live RPC endpoints (https://rpc.testnet.arc.io), and DEX swaps are fully operational and active in real time. Let me know if you need specific technical parameters or transaction tracking!`;
+                    reply = "I have processed your query: \"" + userMsg + "\".\n\nAs Pro AI, I confirm that all Arc Testnet telemetry, live RPC endpoints, and DEX swaps are fully operational.";
                 }
 
                 const aiBubble = document.createElement('div');
                 aiBubble.className = 'flex gap-3';
-                aiBubble.innerHTML = `
-                    <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center shrink-0">
-                        <span class="text-purple-300 font-bold text-xs">AI</span>
-                    </div>
-                    <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-4 text-slate-200 max-w-[85%] text-xs leading-relaxed whitespace-pre-line">
-                        ${reply}
-                    </div>
-                `;
+                aiBubble.innerHTML = '<div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center shrink-0"><span class="text-purple-300 font-bold text-xs">AI</span></div><div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-4 text-slate-200 max-w-[85%] text-xs leading-relaxed whitespace-pre-line">' + reply.replace(/\n/g, '<br>') + '</div>';
                 chatBox.appendChild(aiBubble);
                 chatBox.scrollTop = chatBox.scrollHeight;
 
-                // Save to history
-                proAiChatHistory.push({ prompt: userMsg, response: reply });
+                proAiChatHistory.push({ prompt: userMsg, response: reply.replace(/\n/g, '<br>') });
                 localStorage.setItem('arcpulse_pro_ai_history', JSON.stringify(proAiChatHistory.slice(-20)));
                 renderProAiHistory();
-            }, 500);
+            }, 400);
         }
         
         // COINMARKETCAP MULTI-COIN PREDICTION DATA

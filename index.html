@@ -235,7 +235,7 @@
     </header>
 
     <!-- PERSISTENT LEFT SIDEBAR NAVIGATION BAR -->
-    <aside id="mainSidebar" class="fixed inset-y-0 left-0 z-50 w-60 bg-slate-900/80 backdrop-blur-xl border-r border-slate-800 text-slate-100 flex flex-col justify-between p-4 shadow-2xl overflow-y-auto sidebar-mobile-hidden lg:transform-none">
+    <aside id="mainSidebar" class="fixed inset-y-0 left-0 z-50 w-60 bg-slate-900 border-r border-slate-800 text-slate-100 flex flex-col justify-between p-4 shadow-2xl overflow-y-auto sidebar-mobile-hidden lg:transform-none">
         
         <div class="space-y-5">
             <!-- Brand & Logo Header -->
@@ -313,7 +313,12 @@
 
                 <button onclick="switchPage('assistant')" id="nav-btn-assistant" class="sidebar-link w-full">
                     <i data-lucide="bot" class="w-5 h-5 shrink-0"></i>
-                    <span data-i18n="nav_assistant">AI Assistant</span>
+                    <span data-i18n="nav_assistant">Pro AI</span>
+                </button>
+
+                <button onclick="switchPage('games')" id="nav-btn-games" class="sidebar-link w-full">
+                    <i data-lucide="gamepad-2" class="w-5 h-5 shrink-0"></i>
+                    <span data-i18n="nav_games">Games</span>
                 </button>
 
                 <button onclick="switchPage('prediction')" id="nav-btn-prediction" class="sidebar-link w-full">
@@ -1241,52 +1246,60 @@
 
     
         <!-- AI ASSISTANT SECTION -->
-        <section id="view-assistant" class="page-view hidden space-y-6 max-w-5xl mx-auto">
-            <div class="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 border border-slate-800 shadow-xl text-white">
+        
+        <!-- PRO AI SECTION -->
+        <section id="view-assistant" class="page-view hidden space-y-6 max-w-6xl mx-auto">
+            <div class="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 border border-slate-800 shadow-xl text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
                     <div class="p-3 rounded-xl bg-purple-600/30 border border-purple-500/50">
                         <i data-lucide="sparkles" class="w-6 h-6 text-purple-300"></i>
                     </div>
                     <div>
-                        <h2 class="text-2xl font-bold tracking-tight" data-i18n="ai_assistant_title">Gemini Web3 AI Assistant</h2>
-                        <p class="text-xs text-slate-300" data-i18n="ai_assistant_subtitle">Real-time intelligent assistance for Arc Network, token swaps, and multi-chain analytics.</p>
+                        <h2 class="text-2xl font-bold tracking-tight">Pro AI Assistant</h2>
+                        <p class="text-xs text-slate-300">Your versatile intelligent co-pilot for Web3, crypto markets, coding, and general knowledge.</p>
                     </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button onclick="startNewProAiChat()" class="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span>New Chat</span>
+                    </button>
+                    <button onclick="clearProAiHistory()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition-all">
+                        Clear History
+                    </button>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                <!-- Prompt Chips -->
-                <div class="lg:col-span-1 space-y-3">
-                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1" data-i18n="quick_prompts">Quick Prompts</div>
-                    <button onclick="sendQuickPrompt('Explain Arc L1 Testnet features')" class="w-full text-left p-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700 text-xs font-medium text-slate-200 transition-all">
-                        Explain Arc L1 Testnet
-                    </button>
-                    <button onclick="sendQuickPrompt('How do I swap USDC for EURC?')" class="w-full text-left p-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700 text-xs font-medium text-slate-200 transition-all">
-                        How to swap USDC -> EURC?
-                    </button>
-                    <button onclick="sendQuickPrompt('What are current gas fees on Arc Testnet?')" class="w-full text-left p-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700 text-xs font-medium text-slate-200 transition-all">
-                        Check Arc Gas Fees
-                    </button>
-                    <button onclick="sendQuickPrompt('Analyze current EURC/USDC price stability')" class="w-full text-left p-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700 text-xs font-medium text-slate-200 transition-all">
-                        Analyze Token Stability
-                    </button>
+                <!-- Chat History Sidebar -->
+                <div class="lg:col-span-1 bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+                    <div class="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider">
+                        <span>Chat History</span>
+                        <i data-lucide="history" class="w-4 h-4 text-slate-500"></i>
+                    </div>
+                    <div id="proAiHistoryList" class="space-y-2 max-h-[440px] overflow-y-auto pr-1 text-xs">
+                        <div class="p-2.5 rounded-xl bg-purple-600/20 border border-purple-500/40 text-purple-200 font-semibold cursor-pointer">
+                            Current Session
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Chat Area -->
+                <!-- Chat Box -->
                 <div class="lg:col-span-3 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col h-[520px] shadow-lg">
                     <div id="aiChatBox" class="flex-1 p-4 overflow-y-auto space-y-4 font-sans text-sm">
                         <div class="flex gap-3">
                             <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center shrink-0">
                                 <i data-lucide="bot" class="w-4 h-4 text-purple-300"></i>
                             </div>
-                            <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-4 text-slate-200 max-w-[85%]">
-                                Greetings! I am your AI Web3 Assistant powered by Gemini intelligence. Ask me anything about Arc Testnet, token swaps, gas fees, or market trends in any language.
+                            <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-4 text-slate-200 max-w-[85%] text-xs leading-relaxed">
+                                Hello! I am <strong>Pro AI</strong>, your high-performance AI assistant. Ask me anything about Arc Testnet, token swaps, smart contract coding, technical market analysis, or general topics in any language!
                             </div>
                         </div>
                     </div>
 
                     <div class="p-3 border-t border-slate-800 bg-slate-950/60 flex items-center gap-2 rounded-b-2xl">
-                        <input id="aiChatInput" type="text" placeholder="Ask AI Assistant anything..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500" onkeydown="if(event.key === 'Enter') handleAiChatSend()">
+                        <input id="aiChatInput" type="text" placeholder="Ask Pro AI anything..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500" onkeydown="if(event.key === 'Enter') handleAiChatSend()">
                         <button onclick="handleAiChatSend()" class="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5">
                             <span>Send</span>
                             <i data-lucide="send" class="w-3.5 h-3.5"></i>
@@ -1295,202 +1308,100 @@
                 </div>
             </div>
         </section>
+    
 
         <!-- PRICE PREDICTIONS SECTION -->
-        <section id="view-prediction" class="page-view hidden space-y-6 max-w-6xl mx-auto">
+        
+        <!-- COINMARKETCAP PREDICTION & TRADE INTELLIGENCE SECTION -->
+        <section id="view-prediction" class="page-view hidden space-y-6 max-w-7xl mx-auto">
             <div class="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-slate-800 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
                 <div>
-                    <h2 class="text-2xl font-bold tracking-tight" data-i18n="prediction_title">Chain Price Predictions & Market Intelligence</h2>
-                    <p class="text-xs text-slate-300" data-i18n="prediction_subtitle">AI-driven predictive market models, trend forecasts, and root cause analysis across major blockchain networks.</p>
+                    <h2 class="text-2xl font-bold tracking-tight">CoinMarketCap Predictions & Trade Intelligence</h2>
+                    <p class="text-xs text-slate-300">AI-powered forecast telemetry, interactive price graphs, and Long vs Short leverage analysis for top market cryptocurrencies.</p>
                 </div>
-                <div class="px-3 py-1.5 rounded-lg bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 text-xs font-semibold">
-                    Real-time Predictive Telemetry
+                <div class="w-full md:w-auto">
+                    <input id="coinSearchInput" type="text" oninput="filterPredictionCoins()" placeholder="Search coins (BTC, ETH, SOL...)" class="bg-slate-800 border border-slate-700 text-xs text-white px-3.5 py-2 rounded-xl focus:outline-none focus:border-purple-500 w-full md:w-56">
                 </div>
             </div>
 
-            <!-- Multi-Chain Forecast Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                <!-- Arc L1 -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 hover:border-purple-500/50 transition-all shadow-md">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-9 h-9 rounded-xl bg-purple-600/20 border border-purple-500/40 flex items-center justify-center font-bold text-purple-300">ARC</div>
-                            <div>
-                                <h3 class="font-bold text-slate-100 text-sm">Arc L1 Native (USDC)</h3>
-                                <p class="text-[11px] text-slate-400">Arc Testnet Ecosystem</p>
-                            </div>
-                        </div>
-                        <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold">Bullish +2.4%</span>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2 text-xs py-2 border-y border-slate-800">
-                        <div>
-                            <span class="text-slate-400 block text-[11px]">Current Price</span>
-                            <span class="font-bold text-slate-100">$1.0000 USDC</span>
-                        </div>
-                        <div>
-                            <span class="text-slate-400 block text-[11px]">Forecast Target</span>
-                            <span class="font-bold text-emerald-400">$1.0000 (Stable Peg)</span>
-                        </div>
-                    </div>
-                    <div class="space-y-1.5">
-                        <span class="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">Root Cause Analysis</span>
-                        <p class="text-xs text-slate-400 leading-relaxed">
-                            Institutional validator onboardings (+12 consortium nodes) and Circle AppKit DEX pool deposit inflows ensure 100% peg stability and zero-slippage liquidity.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Ethereum -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 hover:border-purple-500/50 transition-all shadow-md">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-9 h-9 rounded-xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center font-bold text-blue-300">ETH</div>
-                            <div>
-                                <h3 class="font-bold text-slate-100 text-sm">Ethereum</h3>
-                                <p class="text-[11px] text-slate-400">Layer 1 Mainnet</p>
-                            </div>
-                        </div>
-                        <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold">Bullish +5.8%</span>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2 text-xs py-2 border-y border-slate-800">
-                        <div>
-                            <span class="text-slate-400 block text-[11px]">Current Price</span>
-                            <span class="font-bold text-slate-100">$3,240.50</span>
-                        </div>
-                        <div>
-                            <span class="text-slate-400 block text-[11px]">Forecast Target</span>
-                            <span class="font-bold text-emerald-400">$3,428.00</span>
-                        </div>
-                    </div>
-                    <div class="space-y-1.5">
-                        <span class="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">Root Cause Analysis</span>
-                        <p class="text-xs text-slate-400 leading-relaxed">
-                            L2 gas settlement volume surge and institutional ETF staking net inflows (+18% weekly average) driving upward momentum.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Bitcoin -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 hover:border-purple-500/50 transition-all shadow-md">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-9 h-9 rounded-xl bg-amber-600/20 border border-amber-500/40 flex items-center justify-center font-bold text-amber-300">BTC</div>
-                            <div>
-                                <h3 class="font-bold text-slate-100 text-sm">Bitcoin</h3>
-                                <p class="text-[11px] text-slate-400">Digital Gold</p>
-                            </div>
-                        </div>
-                        <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold">Bullish +4.2%</span>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2 text-xs py-2 border-y border-slate-800">
-                        <div>
-                            <span class="text-slate-400 block text-[11px]">Current Price</span>
-                            <span class="font-bold text-slate-100">$64,200.00</span>
-                        </div>
-                        <div>
-                            <span class="text-slate-400 block text-[11px]">Forecast Target</span>
-                            <span class="font-bold text-emerald-400">$66,900.00</span>
-                        </div>
-                    </div>
-                    <div class="space-y-1.5">
-                        <span class="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">Root Cause Analysis</span>
-                        <p class="text-xs text-slate-400 leading-relaxed">
-                            Exchange net outflows reach 3-month highs alongside post-halving miner hash-rate stabilization.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Solana -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 hover:border-purple-500/50 transition-all shadow-md">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-9 h-9 rounded-xl bg-teal-600/20 border border-teal-500/40 flex items-center justify-center font-bold text-teal-300">SOL</div>
-                            <div>
-                                <h3 class="font-bold text-slate-100 text-sm">Solana</h3>
-                                <p class="text-[11px] text-slate-400">High Throughput L1</p>
-                            </div>
-                        </div>
-                        <span class="px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/40 text-xs font-bold">Bearish -3.1%</span>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2 text-xs py-2 border-y border-slate-800">
-                        <div>
-                            <span class="text-slate-400 block text-[11px]">Current Price</span>
-                            <span class="font-bold text-slate-100">$148.20</span>
-                        </div>
-                        <div>
-                            <span class="text-slate-400 block text-[11px]">Forecast Target</span>
-                            <span class="font-bold text-rose-400">$143.60</span>
-                        </div>
-                    </div>
-                    <div class="space-y-1.5">
-                        <span class="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">Root Cause Analysis</span>
-                        <p class="text-xs text-slate-400 leading-relaxed">
-                            Short-term network congestion during peak DEX token launches causing temporary transaction retry delays and profit-taking.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Polygon -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 hover:border-purple-500/50 transition-all shadow-md">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-9 h-9 rounded-xl bg-purple-600/20 border border-purple-500/40 flex items-center justify-center font-bold text-purple-300">POL</div>
-                            <div>
-                                <h3 class="font-bold text-slate-100 text-sm">Polygon</h3>
-                                <p class="text-[11px] text-slate-400">Polygon 2.0 Ecosystem</p>
-                            </div>
-                        </div>
-                        <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold">Bullish +7.5%</span>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2 text-xs py-2 border-y border-slate-800">
-                        <div>
-                            <span class="text-slate-400 block text-[11px]">Current Price</span>
-                            <span class="font-bold text-slate-100">$0.5800</span>
-                        </div>
-                        <div>
-                            <span class="text-slate-400 block text-[11px]">Forecast Target</span>
-                            <span class="font-bold text-emerald-400">$0.6235</span>
-                        </div>
-                    </div>
-                    <div class="space-y-1.5">
-                        <span class="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">Root Cause Analysis</span>
-                        <p class="text-xs text-slate-400 leading-relaxed">
-                            Migration phase completion for POL token upgrade and zkEVM mainnet cross-chain bridge activity up +32%.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Arbitrum -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 hover:border-purple-500/50 transition-all shadow-md">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-9 h-9 rounded-xl bg-cyan-600/20 border border-cyan-500/40 flex items-center justify-center font-bold text-cyan-300">ARB</div>
-                            <div>
-                                <h3 class="font-bold text-slate-100 text-sm">Arbitrum One</h3>
-                                <p class="text-[11px] text-slate-400">Ethereum Rollup</p>
-                            </div>
-                        </div>
-                        <span class="px-2.5 py-1 rounded-full bg-slate-700 text-slate-300 border border-slate-600 text-xs font-bold">Neutral +0.5%</span>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2 text-xs py-2 border-y border-slate-800">
-                        <div>
-                            <span class="text-slate-400 block text-[11px]">Current Price</span>
-                            <span class="font-bold text-slate-100">$0.9400</span>
-                        </div>
-                        <div>
-                            <span class="text-slate-400 block text-[11px]">Forecast Target</span>
-                            <span class="font-bold text-slate-300">$0.9450</span>
-                        </div>
-                    </div>
-                    <div class="space-y-1.5">
-                        <span class="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">Root Cause Analysis</span>
-                        <p class="text-xs text-slate-400 leading-relaxed">
-                            Balanced DEX volume offset by scheduled token vesting unlocks, leading to sideways consolidation.
-                        </p>
-                    </div>
-                </div>
+            <!-- Multi-Coin Forecast Grid -->
+            <div id="predictionCoinsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Dynamic Coins Rendered via JS -->
             </div>
         </section>
+
+        <!-- INTERACTIVE COIN PRICE CHART MODAL -->
+        <div id="coinChartModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+            <div class="bg-slate-900 border border-slate-800 text-slate-100 rounded-2xl max-w-3xl w-full p-6 space-y-5 shadow-2xl relative">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div id="modalCoinIcon" class="w-10 h-10 rounded-xl bg-purple-600/30 border border-purple-500/40 flex items-center justify-center font-bold text-purple-300">BTC</div>
+                        <div>
+                            <h3 id="modalCoinName" class="text-lg font-bold text-white">Bitcoin (BTC)</h3>
+                            <p id="modalCoinCategory" class="text-xs text-slate-400">Digital Gold • CoinMarketCap Rank #1</p>
+                        </div>
+                    </div>
+                    <button onclick="closeCoinChartModal()" class="p-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-white">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <!-- SVG Interactive Price Graph -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-slate-400">24-Hour Price Action & AI Forecast Trend</span>
+                        <span id="modalCoinPrice" class="font-bold text-emerald-400 text-base">$64,200.00 (+4.2%)</span>
+                    </div>
+                    <div class="bg-slate-950 rounded-xl p-4 border border-slate-800/80">
+                        <svg class="w-full h-44" viewBox="0 0 500 150">
+                            <!-- Grid lines -->
+                            <line x1="0" y1="30" x2="500" y2="30" stroke="#1e293b" stroke-dasharray="4"/>
+                            <line x1="0" y1="75" x2="500" y2="75" stroke="#1e293b" stroke-dasharray="4"/>
+                            <line x1="0" y1="120" x2="500" y2="120" stroke="#1e293b" stroke-dasharray="4"/>
+                            
+                            <!-- Gradient Area -->
+                            <defs>
+                                <linearGradient id="chartGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stop-color="#10b981" stop-opacity="0.35"/>
+                                    <stop offset="100%" stop-color="#10b981" stop-opacity="0.0"/>
+                                </linearGradient>
+                            </defs>
+                            <path d="M0,120 Q80,90 150,105 T300,50 T450,25 L500,20 L500,150 L0,150 Z" fill="url(#chartGrad)"/>
+                            <!-- Trend Line -->
+                            <path d="M0,120 Q80,90 150,105 T300,50 T450,25 L500,20" fill="none" stroke="#10b981" stroke-width="3.5" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Long vs Short Advantage Metrics -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    <div class="bg-slate-800/60 border border-slate-700/80 rounded-xl p-4 space-y-2">
+                        <div class="flex items-center justify-between text-emerald-400 font-bold">
+                            <span class="flex items-center gap-1.5"><i data-lucide="trending-up" class="w-4 h-4"></i> Long Advantage</span>
+                            <span id="modalLongRatio">72% Long Interest</span>
+                        </div>
+                        <p class="text-slate-300 text-[11px]">Strong buying sentiment driven by spot exchange net outflows and institutional ETF accumulation.</p>
+                        <div class="pt-2 text-[11px] text-slate-400 flex justify-between border-t border-slate-700">
+                            <span>Recommended Leverage: <strong>5x - 10x</strong></span>
+                            <span>Take Profit: <strong id="modalTp">$66,900</strong></span>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800/60 border border-slate-700/80 rounded-xl p-4 space-y-2">
+                        <div class="flex items-center justify-between text-rose-400 font-bold">
+                            <span class="flex items-center gap-1.5"><i data-lucide="trending-down" class="w-4 h-4"></i> Short Risk</span>
+                            <span id="modalShortRatio">28% Short Interest</span>
+                        </div>
+                        <p class="text-slate-300 text-[11px]">Low liquidation risk with strong support levels preventing sharp downside corrections.</p>
+                        <div class="pt-2 text-[11px] text-slate-400 flex justify-between border-t border-slate-700">
+                            <span>Stop Loss Target: <strong id="modalSl">$62,800</strong></span>
+                            <span>Confidence: <strong>88%</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
 
         <!-- CLEAN SETTINGS SECTION (Zero Emojis / Badges) -->
         <section id="view-settings" class="page-view hidden space-y-6 max-w-4xl mx-auto">
@@ -1550,6 +1461,131 @@
                             <option value="ru">Русский (Russian)</option>
                             <option value="pt">Português (Portuguese)</option>
                         </select>
+                    </div>
+                </div>
+            </div>
+        </section>
+    
+    
+        <!-- WEB3 GAMES ARCADE SECTION (COMING SOON) -->
+        <section id="view-games" class="page-view hidden space-y-6 max-w-6xl mx-auto">
+            <div class="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 border border-slate-800 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+                <div>
+                    <h2 class="text-2xl font-bold tracking-tight">Web3 Gaming Arcade</h2>
+                    <p class="text-xs text-slate-300">Play-to-Earn games, provably fair mini-games, and decentralized gaming tournaments on Arc L1.</p>
+                </div>
+                <span class="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold">
+                    Ecosystem Launch Preview
+                </span>
+            </div>
+
+            <!-- Games Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Game 1 -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 relative overflow-hidden shadow-lg hover:border-purple-500/50 transition-all">
+                    <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold">
+                        COMING SOON
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-purple-600/20 border border-purple-500/40 flex items-center justify-center text-purple-300">
+                        <i data-lucide="zap" class="w-6 h-6"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <h3 class="font-bold text-white text-base">Arc Runner 3D</h3>
+                        <p class="text-xs text-slate-400">Cyberpunk 3D endless runner on Arc L1 with instant micro-token rewards.</p>
+                    </div>
+                    <div class="pt-2 flex items-center justify-between text-xs text-slate-500 border-t border-slate-800">
+                        <span>Genre: Arcade / Action</span>
+                        <span>Arc Network</span>
+                    </div>
+                </div>
+
+                <!-- Game 2 -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 relative overflow-hidden shadow-lg hover:border-purple-500/50 transition-all">
+                    <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold">
+                        COMING SOON
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-300">
+                        <i data-lucide="swords" class="w-6 h-6"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <h3 class="font-bold text-white text-base">Crypto Chess Arena</h3>
+                        <p class="text-xs text-slate-400">Peer-to-peer staked chess tournaments secured by smart contract escrow.</p>
+                    </div>
+                    <div class="pt-2 flex items-center justify-between text-xs text-slate-500 border-t border-slate-800">
+                        <span>Genre: Strategy / PvP</span>
+                        <span>Multi-Chain</span>
+                    </div>
+                </div>
+
+                <!-- Game 3 -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 relative overflow-hidden shadow-lg hover:border-purple-500/50 transition-all">
+                    <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold">
+                        COMING SOON
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-600/20 border border-emerald-500/40 flex items-center justify-center text-emerald-300">
+                        <i data-lucide="dices" class="w-6 h-6"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <h3 class="font-bold text-white text-base">Web3 Jackpot Slots</h3>
+                        <p class="text-xs text-slate-400">Provably fair decentralized slot machine with instant USDC payout vault.</p>
+                    </div>
+                    <div class="pt-2 flex items-center justify-between text-xs text-slate-500 border-t border-slate-800">
+                        <span>Genre: Casino / Chance</span>
+                        <span>Arc Testnet</span>
+                    </div>
+                </div>
+
+                <!-- Game 4 -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 relative overflow-hidden shadow-lg hover:border-purple-500/50 transition-all">
+                    <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold">
+                        COMING SOON
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-amber-600/20 border border-amber-500/40 flex items-center justify-center text-amber-300">
+                        <i data-lucide="coins" class="w-6 h-6"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <h3 class="font-bold text-white text-base">Token Flip</h3>
+                        <p class="text-xs text-slate-400">Instant double-or-nothing coin flip powered by Chainlink VRF randomness.</p>
+                    </div>
+                    <div class="pt-2 flex items-center justify-between text-xs text-slate-500 border-t border-slate-800">
+                        <span>Genre: Mini-Game</span>
+                        <span>Arc L1</span>
+                    </div>
+                </div>
+
+                <!-- Game 5 -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 relative overflow-hidden shadow-lg hover:border-purple-500/50 transition-all">
+                    <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold">
+                        COMING SOON
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-rose-600/20 border border-rose-500/40 flex items-center justify-center text-rose-300">
+                        <i data-lucide="shield" class="w-6 h-6"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <h3 class="font-bold text-white text-base">Arc Defender</h3>
+                        <p class="text-xs text-slate-400">Tower defense strategy game with upgradable NFT defense turrets.</p>
+                    </div>
+                    <div class="pt-2 flex items-center justify-between text-xs text-slate-500 border-t border-slate-800">
+                        <span>Genre: Tower Defense</span>
+                        <span>NFT Gaming</span>
+                    </div>
+                </div>
+
+                <!-- Game 6 -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 relative overflow-hidden shadow-lg hover:border-purple-500/50 transition-all">
+                    <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold">
+                        COMING SOON
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-cyan-600/20 border border-cyan-500/40 flex items-center justify-center text-cyan-300">
+                        <i data-lucide="spade" class="w-6 h-6"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <h3 class="font-bold text-white text-base">DeFi Hold'em Poker</h3>
+                        <p class="text-xs text-slate-400">Zero-knowledge private card poker tables with multi-chain stablecoin pots.</p>
+                    </div>
+                    <div class="pt-2 flex items-center justify-between text-xs text-slate-500 border-t border-slate-800">
+                        <span>Genre: Cards / ZK</span>
+                        <span>Arc Testnet</span>
                     </div>
                 </div>
             </div>
@@ -3235,6 +3271,245 @@ Timestamp: ${new Date().toISOString()}`;
                 if (window.lucide) window.lucide.createIcons();
             }, 600);
         }
+    </script>
+    
+
+    <script>
+        // COINMARKETCAP MULTI-COIN PREDICTION DATA
+        const PREDICTION_COINS = [
+            { symbol: 'BTC', name: 'Bitcoin', category: 'Digital Gold #1', price: '$64,200.00', target: '$66,900.00', change: '+4.2%', isBull: true, longRatio: '72% Long', shortRatio: '28% Short', tp: '$66,900', sl: '$62,800', leverage: '5x - 10x', confidence: '88%', reason: 'Strong buying sentiment driven by spot exchange net outflows and institutional ETF accumulation.' },
+            { symbol: 'ETH', name: 'Ethereum', category: 'Layer 1 Smart Contracts #2', price: '$3,240.50', target: '$3,428.00', change: '+5.8%', isBull: true, longRatio: '68% Long', shortRatio: '32% Short', tp: '$3,428', sl: '$3,180', leverage: '5x - 8x', confidence: '84%', reason: 'L2 gas settlement volume surge and institutional ETF staking net inflows (+18% weekly average).' },
+            { symbol: 'ARC', name: 'Arc L1 Native (USDC)', category: 'Arc Testnet Ecosystem', price: '$1.0000', target: '$1.0000', change: '+2.4%', isBull: true, longRatio: '95% Long', shortRatio: '5% Short', tp: '$1.00', sl: '$0.999', leverage: '1x - 3x', confidence: '99%', reason: 'Institutional validator onboardings (+12 consortium nodes) and Circle AppKit DEX pool deposit inflows.' },
+            { symbol: 'SOL', name: 'Solana', category: 'High-Throughput L1 #5', price: '$148.20', target: '$143.60', change: '-3.1%', isBull: false, longRatio: '34% Long', shortRatio: '66% Short', tp: '$143.60', sl: '$153.00', leverage: '3x - 5x', confidence: '76%', reason: 'Short-term network congestion during peak DEX token launches causing temporary retry delays.' },
+            { symbol: 'BNB', name: 'BNB Chain', category: 'Exchange & L1 #4', price: '$572.40', target: '$598.00', change: '+4.5%', isBull: true, longRatio: '62% Long', shortRatio: '38% Short', tp: '$598.00', sl: '$555.00', leverage: '5x', confidence: '81%', reason: 'Launchpool staking demand and gas burn rate increase.' },
+            { symbol: 'XRP', name: 'Ripple XRP', category: 'Cross-Border Payments #6', price: '$0.5640', target: '$0.6120', change: '+8.5%', isBull: true, longRatio: '78% Long', shortRatio: '22% Short', tp: '$0.6120', sl: '$0.5350', leverage: '5x - 10x', confidence: '86%', reason: 'Regulatory clarity milestone and bank settlement pilot announcements.' },
+            { symbol: 'ADA', name: 'Cardano', category: 'Layer 1 Blockchain #10', price: '$0.3480', target: '$0.3350', change: '-3.7%', isBull: false, longRatio: '40% Long', shortRatio: '60% Short', tp: '$0.3350', sl: '$0.3620', leverage: '3x', confidence: '72%', reason: 'Consolidation below major EMA resistance levels.' },
+            { symbol: 'DOGE', name: 'Dogecoin', category: 'Meme #8', price: '$0.1040', target: '$0.1180', change: '+13.4%', isBull: true, longRatio: '82% Long', shortRatio: '18% Short', tp: '$0.1180', sl: '$0.0960', leverage: '3x - 5x', confidence: '79%', reason: 'Social sentiment momentum surge and whale wallet accumulation.' },
+            { symbol: 'AVAX', name: 'Avalanche', category: 'Subnet L1 #12', price: '$22.80', target: '$24.50', change: '+7.4%', isBull: true, longRatio: '65% Long', shortRatio: '35% Short', tp: '$24.50', sl: '$21.20', leverage: '5x', confidence: '83%', reason: 'Institutional subnet deployment and gaming ecosystem transaction expansion.' },
+            { symbol: 'LINK', name: 'Chainlink', category: 'DeFi Oracle #14', price: '$11.45', target: '$12.80', change: '+11.8%', isBull: true, longRatio: '75% Long', shortRatio: '25% Short', tp: '$12.80', sl: '$10.70', leverage: '5x', confidence: '89%', reason: 'CCIP cross-chain interoperability protocol adoption by major banking consortiums.' },
+            { symbol: 'POL', name: 'Polygon', category: 'Polygon 2.0 ZK #19', price: '$0.5800', target: '$0.6235', change: '+7.5%', isBull: true, longRatio: '70% Long', shortRatio: '30% Short', tp: '$0.6235', sl: '$0.5400', leverage: '5x', confidence: '85%', reason: 'POL token migration phase completion and zkEVM bridge volume up +32%.' },
+            { symbol: 'SUI', name: 'Sui Network', category: 'Move L1 #21', price: '$0.9200', target: '$1.0800', change: '+17.4%', isBull: true, longRatio: '85% Long', shortRatio: '15% Short', tp: '$1.0800', sl: '$0.8400', leverage: '5x - 10x', confidence: '91%', reason: 'DeFi TVL hitting new ATH ($600M+) with deep liquidity incentives.' },
+            { symbol: 'APT', name: 'Aptos', category: 'Move L1 #24', price: '$6.40', target: '$7.10', change: '+10.9%', isBull: true, longRatio: '67% Long', shortRatio: '33% Short', tp: '$7.10', sl: '$5.90', leverage: '5x', confidence: '80%', reason: 'Key ecosystem integration with institutional custody providers.' },
+            { symbol: 'PEPE', name: 'Pepe', category: 'Meme #25', price: '$0.0000078', target: '$0.0000092', change: '+17.9%', isBull: true, longRatio: '88% Long', shortRatio: '12% Short', tp: '$0.0000092', sl: '$0.0000069', leverage: '3x - 5x', confidence: '77%', reason: 'High DEX volume trading and community momentum expansion.' }
+        ];
+
+        function renderPredictionCoins(coinsToRender) {
+            const grid = document.getElementById('predictionCoinsGrid');
+            if (!grid) return;
+
+            grid.innerHTML = '';
+            coinsToRender.forEach(c => {
+                const card = document.createElement('div');
+                card.onclick = () => openCoinChartModal(c.symbol);
+                card.className = 'bg-slate-900 border border-slate-800 hover:border-purple-500/60 rounded-2xl p-5 space-y-4 transition-all shadow-md cursor-pointer group';
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-purple-600/20 border border-purple-500/40 flex items-center justify-center font-bold text-purple-300 group-hover:scale-105 transition-transform">
+                                ${c.symbol}
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-100 text-sm group-hover:text-purple-300 transition-colors">${c.name}</h3>
+                                <p class="text-[11px] text-slate-400">${c.category}</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full text-xs font-bold ${c.isBull ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-rose-500/20 text-rose-400 border border-rose-500/40'}">
+                            ${c.isBull ? 'Bullish' : 'Bearish'} ${c.change}
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 text-xs py-2 border-y border-slate-800">
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">Current Price</span>
+                            <span class="font-bold text-slate-100">${c.price}</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">Forecast Target</span>
+                            <span class="font-bold ${c.isBull ? 'text-emerald-400' : 'text-rose-400'}">${c.target}</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between items-center text-[11px] font-semibold">
+                            <span class="text-slate-300">Long vs Short ratio</span>
+                            <span class="${c.isBull ? 'text-emerald-400' : 'text-rose-400'}">${c.longRatio}</span>
+                        </div>
+                        <p class="text-xs text-slate-400 leading-relaxed line-clamp-2">${c.reason}</p>
+                    </div>
+
+                    <div class="pt-2 flex items-center justify-between text-[11px] text-purple-400 font-semibold group-hover:underline">
+                        <span>Click to view interactive chart & analysis</span>
+                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        function filterPredictionCoins() {
+            const query = document.getElementById('coinSearchInput')?.value?.toLowerCase() || '';
+            const filtered = PREDICTION_COINS.filter(c => c.symbol.toLowerCase().includes(query) || c.name.toLowerCase().includes(query) || c.category.toLowerCase().includes(query));
+            renderPredictionCoins(filtered);
+        }
+
+        function openCoinChartModal(symbol) {
+            const coin = PREDICTION_COINS.find(c => c.symbol === symbol) || PREDICTION_COINS[0];
+            
+            const modal = document.getElementById('coinChartModal');
+            if (!modal) return;
+
+            safeSetText('modalCoinName', `${coin.name} (${coin.symbol})`);
+            safeSetText('modalCoinCategory', coin.category);
+            safeSetText('modalCoinPrice', `${coin.price} (${coin.change})`);
+            safeSetText('modalLongRatio', coin.longRatio);
+            safeSetText('modalShortRatio', coin.shortRatio);
+            safeSetText('modalTp', coin.tp);
+            safeSetText('modalSl', coin.sl);
+
+            const icon = document.getElementById('modalCoinIcon');
+            if (icon) icon.innerText = coin.symbol;
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeCoinChartModal() {
+            const modal = document.getElementById('coinChartModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        // PRO AI CHAT & HISTORY LOGIC
+        let proAiChatHistory = JSON.parse(localStorage.getItem('arcpulse_pro_ai_history') || '[]');
+
+        function renderProAiHistory() {
+            const list = document.getElementById('proAiHistoryList');
+            if (!list) return;
+
+            if (proAiChatHistory.length === 0) {
+                list.innerHTML = `
+                    <div class="p-2.5 rounded-xl bg-purple-600/20 border border-purple-500/40 text-purple-200 font-semibold cursor-pointer">
+                        Current Active Session
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = `
+                <div onclick="startNewProAiChat()" class="p-2.5 rounded-xl bg-purple-600/20 border border-purple-500/40 text-purple-200 font-semibold cursor-pointer flex items-center justify-between">
+                    <span>+ New Session</span>
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                </div>
+            `;
+
+            proAiChatHistory.slice().reverse().forEach((item, idx) => {
+                const div = document.createElement('div');
+                div.className = 'p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 text-slate-300 font-medium cursor-pointer truncate';
+                div.innerText = item.prompt;
+                div.onclick = () => loadProAiPrompt(item);
+                list.appendChild(div);
+            });
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        function startNewProAiChat() {
+            const chatBox = document.getElementById('aiChatBox');
+            if (chatBox) {
+                chatBox.innerHTML = `
+                    <div class="flex gap-3">
+                        <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center shrink-0">
+                            <i data-lucide="bot" class="w-4 h-4 text-purple-300"></i>
+                        </div>
+                        <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-4 text-slate-200 max-w-[85%] text-xs leading-relaxed">
+                            Started a new chat session! How can <strong>Pro AI</strong> assist you today?
+                        </div>
+                    </div>
+                `;
+            }
+            showToast('New Chat Started', 'Cleared active chat buffer', 'info');
+        }
+
+        function clearProAiHistory() {
+            proAiChatHistory = [];
+            localStorage.removeItem('arcpulse_pro_ai_history');
+            renderProAiHistory();
+            startNewProAiChat();
+            showToast('History Cleared', 'Pro AI chat history wiped', 'success');
+        }
+
+        function loadProAiPrompt(item) {
+            const chatBox = document.getElementById('aiChatBox');
+            if (!chatBox) return;
+
+            chatBox.innerHTML = `
+                <div class="flex gap-3 justify-end">
+                    <div class="bg-purple-600 text-white rounded-2xl p-3.5 text-xs max-w-[80%]">${item.prompt}</div>
+                </div>
+                <div class="flex gap-3">
+                    <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center shrink-0">
+                        <i data-lucide="bot" class="w-4 h-4 text-purple-300"></i>
+                    </div>
+                    <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-4 text-slate-200 max-w-[85%] text-xs leading-relaxed">${item.response}</div>
+                </div>
+            `;
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        // STRICT 24-HOUR DAILY QUEST CLAIM LOCK LOGIC
+        function claimDailyCheckin() {
+            if (!currentAccount) {
+                handleWalletClick();
+                return;
+            }
+
+            const now = new Date().getTime();
+            const lastClaim = parseInt(localStorage.getItem(`arcpulse_last_quest_claim_${currentAccount.toLowerCase()}`) || '0');
+            const twentyFourHours = 24 * 60 * 60 * 1000;
+
+            if (now - lastClaim < twentyFourHours) {
+                const remaining = twentyFourHours - (now - lastClaim);
+                const hours = Math.floor(remaining / (1000 * 60 * 60));
+                const mins = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+                showToast('Already Claimed Today!', `Next daily quest claim available in ${hours}h ${mins}m`, 'error');
+                return;
+            }
+
+            userPoints += 50;
+            localStorage.setItem(`arcpulse_last_quest_claim_${currentAccount.toLowerCase()}`, now.toString());
+            safeSetText('userPointsVal', `${userPoints} PTS`);
+            showToast('Quest Claimed!', '+50 Builder PTS added! Next claim available in 24 hours.', 'success');
+            updateQuestTimerStatus();
+        }
+
+        function updateQuestTimerStatus() {
+            if (!currentAccount) return;
+            const now = new Date().getTime();
+            const lastClaim = parseInt(localStorage.getItem(`arcpulse_last_quest_claim_${currentAccount.toLowerCase()}`) || '0');
+            const twentyFourHours = 24 * 60 * 60 * 1000;
+            const questBtn = document.getElementById('dailyQuestClaimBtn');
+
+            if (now - lastClaim < twentyFourHours) {
+                const remaining = twentyFourHours - (now - lastClaim);
+                const hours = Math.floor(remaining / (1000 * 60 * 60));
+                const mins = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+                if (questBtn) {
+                    questBtn.innerText = `Claimed (Next in ${hours}h ${mins}m)`;
+                    questBtn.className = 'w-full py-2.5 px-4 rounded-xl bg-slate-800 text-slate-400 border border-slate-700 font-bold text-xs cursor-not-allowed';
+                }
+            } else {
+                if (questBtn) {
+                    questBtn.innerText = 'Claim Daily 50 PTS';
+                    questBtn.className = 'btn-pixel w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs cursor-pointer';
+                }
+            }
+        }
+
+        // Initialize on DOM Ready
+        document.addEventListener('DOMContentLoaded', () => {
+            renderPredictionCoins(PREDICTION_COINS);
+            renderProAiHistory();
+            updateQuestTimerStatus();
+            setInterval(updateQuestTimerStatus, 30000);
+        });
     </script>
     
 </body>

@@ -1,10 +1,10 @@
 import 'dotenv/config';
-import { AppKit } from "@circle-fin/app-kit";
+import { AppKit, type SwapParams } from "@circle-fin/app-kit";
 import { ArcTestnet } from "@circle-fin/app-kit/chains";
 import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
 
 /**
- * Circle AppKit Swap using Circle Wallets Adapter (Developer-Controlled Wallets)
+ * Circle AppKit Swap using Circle Wallets Adapter with explicit SwapParams typing
  * USDC -> EURC on Arc Testnet (Chain ID 5042002)
  * Built for ArcPulse Ecosystem by ProManas
  */
@@ -12,7 +12,7 @@ import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
 async function main() {
   const apiKey = process.env.CIRCLE_API_KEY;
   const entitySecret = process.env.CIRCLE_ENTITY_SECRET;
-  const walletAddress = process.env.USER_WALLET_ADDRESS || process.env.CIRCLE_WALLET_ADDRESS || "0xe45F6e7673F5451360ed11E05Ce7913d0104a432";
+  const sourceWalletAddress = process.env.USER_WALLET_ADDRESS || process.env.CIRCLE_WALLET_ADDRESS || "0xe45F6e7673F5451360ed11E05Ce7913d0104a432";
 
   if (!apiKey || apiKey.includes("your_api_key")) {
     throw new Error("CIRCLE_API_KEY missing in .env");
@@ -24,7 +24,7 @@ async function main() {
 
   console.log("🚀 Initiating Circle AppKit Swap with Circle Wallets Adapter on Arc Testnet...");
   console.log(`📌 Chain: ${ArcTestnet.name || 'Arc Testnet'} (Chain ID: ${ArcTestnet.chainId || 5042002})`);
-  console.log(`📌 Wallet Address: ${walletAddress}`);
+  console.log(`📌 Wallet Address: ${sourceWalletAddress}`);
   console.log("📌 Route: 1.00 USDC -> EURC");
 
   const kit = new AppKit();
@@ -33,18 +33,23 @@ async function main() {
     entitySecret: entitySecret,
   });
 
-  try {
-    const result = await kit.swap({
-      from: { adapter, chain: ArcTestnet, address: walletAddress },
-      tokenIn: "USDC",
-      tokenOut: "EURC",
-      amountIn: "1.00",
-      config: {
-        slippageBps: 300,
-        allowanceStrategy: "approve",
-      },
-    } as any);
+  const swapParams: SwapParams = {
+    from: {
+      adapter,
+      chain: ArcTestnet,
+      address: sourceWalletAddress,
+    },
+    tokenIn: "USDC",
+    tokenOut: "EURC",
+    amountIn: "1.00",
+    config: {
+      ...(process.env.KIT_KEY ? { kitKey: process.env.KIT_KEY } : {}),
+      allowanceStrategy: "approve", // SCA ke liye zaroori
+    },
+  } as any;
 
+  try {
+    const result = await kit.swap(swapParams);
     console.log("🎉 Swap Executed Successfully!", JSON.stringify(result, null, 2));
   } catch (error: any) {
     console.log("📌 Circle AppKit Swap Status:", error?.message || error);

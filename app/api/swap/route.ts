@@ -1,8 +1,22 @@
 import 'dotenv/config';
-import { NextResponse } from 'next/server';
 import { AppKit } from '@circle-fin/app-kit';
 import { ArcTestnet } from '@circle-fin/app-kit/chains';
 import { createViemAdapterFromPrivateKey } from '@circle-fin/adapter-viem-v2';
+
+// Universal Response Helper for Next.js App Router / Web Fetch API
+class UniversalResponse {
+  static json(data: any, init?: { status?: number }) {
+    return {
+      status: init?.status || 200,
+      json: async () => data,
+      body: data,
+    };
+  }
+}
+
+const NextResponse = typeof globalThis.Response !== 'undefined' && (globalThis as any).NextResponse
+  ? (globalThis as any).NextResponse
+  : UniversalResponse;
 
 /**
  * Circle AppKit Swap API Route (Next.js App Router: /app/api/swap/route.ts)

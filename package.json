@@ -49,6 +49,8 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.11.0",
+    "@types/react": "^19.2.18",
+    "next": "^16.3.0",
     "ts-node": "^10.9.2",
     "tsx": "^4.23.12",
     "typescript": "^5.3.3"
@@ -63,7 +65,7 @@
     "connectkit": "^1.7.3",
     "dotenv": "^17.4.2",
     "ethers": "^6.17.0",
-    "viem": "^2.21.0",
+    "viem": "^2.55.13",
     "wagmi": "^2.5.0"
   },
   "overrides": {

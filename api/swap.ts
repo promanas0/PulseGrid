@@ -1,8 +1,11 @@
 import 'dotenv/config';
-import type { NextApiRequest, NextApiResponse } from 'next';
 import { AppKit } from '@circle-fin/app-kit';
 import { ArcTestnet } from '@circle-fin/app-kit/chains';
 import { createViemAdapterFromPrivateKey } from '@circle-fin/adapter-viem-v2';
+
+// Type definitions for Next.js API Route compatibility
+type NextApiRequest = any;
+type NextApiResponse = any;
 
 /**
  * Circle AppKit Swap API Route (Next.js Pages Router: /api/swap)

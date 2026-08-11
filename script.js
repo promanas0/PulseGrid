@@ -8,13 +8,28 @@ import fs from 'fs';
  * Built for ArcPulse Ecosystem by ProManas
  */
 
-let publicKeyPem = '';
+function loadPublicKeyPem() {
+  const candidateFiles = ['publickey.txt', 'pubkey.pem'];
 
-if (fs.existsSync('pubkey.pem')) {
-  publicKeyPem = fs.readFileSync('pubkey.pem', 'utf8').trim();
-} else if (process.env.CIRCLE_PUBLIC_KEY) {
-  publicKeyPem = process.env.CIRCLE_PUBLIC_KEY.trim();
+  for (const file of candidateFiles) {
+    if (fs.existsSync(file)) {
+      try {
+        let content = fs.readFileSync(file, 'utf16le');
+        if (!content.includes('BEGIN PUBLIC KEY')) {
+          content = fs.readFileSync(file, 'utf8');
+        }
+        content = content.replace(/^\uFEFF/, '').trim();
+        if (content.includes('BEGIN PUBLIC KEY')) {
+          return content;
+        }
+      } catch (e) {}
+    }
+  }
+
+  return (process.env.CIRCLE_PUBLIC_KEY || '').trim();
 }
+
+const publicKeyPem = loadPublicKeyPem();
 
 const entitySecret = process.env.CIRCLE_ENTITY_SECRET || crypto.randomBytes(32).toString('hex');
 console.log("🔑 Entity Secret (32-byte hex):", entitySecret);

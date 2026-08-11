@@ -5,7 +5,7 @@ pragma solidity ^0.8.20;
  * @title ArcPulseSpenderRouter
  * @dev Official ERC-20 (USDC & EURC) & Native AMM DEX Spender Router for Arc Testnet (Chain ID 5042002).
  * Supports both ERC-20 USDC (0x3600000000000000000000000000000000000000) & Native USDC.
- * Built by ProManas (ProBuilder Studio) for ArcPulse Ecosystem.
+ * ArcPulse Ecosystem.
  */
 
 interface IERC20 {

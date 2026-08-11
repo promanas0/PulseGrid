@@ -51,7 +51,7 @@
     "usdc",
     "eurc"
   ],
-  "author": "ProManas (ProBuilder Studio)",
+  "author": "ArcPulse Ecosystem",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.11.0",

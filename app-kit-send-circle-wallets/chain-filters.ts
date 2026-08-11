@@ -2,7 +2,7 @@ import { AppKit } from "@circle-fin/app-kit";
 
 /**
  * Circle AppKit - Multi-Kit Chain Query & Filtering Suite
- * Built for ArcPulse Ecosystem by ProManas
+ * ArcPulse Ecosystem.
  */
 
 const kit = new AppKit();

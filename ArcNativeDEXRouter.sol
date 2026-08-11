@@ -5,7 +5,7 @@ pragma solidity ^0.8.20;
  * @title ArcNativeDEXRouter
  * @dev Full Spender ERC-20 & Native AMM DEX Router for Arc Testnet.
  * Supports token approvals (approve/allowance), transferFrom, liquidity pools & swaps.
- * Built by ProManas (ProBuilder Studio) for ArcPulse ecosystem.
+ * ArcPulse Ecosystem.
  */
 
 interface IERC20 {

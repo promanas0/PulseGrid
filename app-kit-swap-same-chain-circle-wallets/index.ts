@@ -4,7 +4,7 @@ import type { SwapParams } from "@circle-fin/app-kit";
 
 /**
  * Circle AppKit - Same Chain USDC -> EURC Swap on Arc Testnet
- * Powered by ArcPulse Ecosystem by ProManas
+ * ArcPulse Ecosystem.
  */
 
 const kit = new AppKit();

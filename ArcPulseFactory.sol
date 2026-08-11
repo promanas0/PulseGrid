@@ -5,7 +5,7 @@ pragma solidity ^0.8.20;
  * @title ArcPulseFactory
  * @dev Official Uniswap V2-style Factory Contract for Arc Testnet (Chain ID 5042002).
  * Deploys and manages Liquidity Pair pools for ArcPulse DEX.
- * Built by ProManas (ProBuilder Studio) for ArcPulse Ecosystem.
+ * ArcPulse Ecosystem.
  */
 
 contract ArcPulsePair {

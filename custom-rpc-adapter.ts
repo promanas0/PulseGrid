@@ -6,7 +6,7 @@ import { AppKit } from "@circle-fin/app-kit";
 /**
  * Circle AppKit - Custom RPC Client Factory with Viem Private Key Adapter
  * Configures dedicated RPC endpoints, retry count, and timeouts for Ethereum Sepolia & Arc Testnet
- * Built for ArcPulse Ecosystem by ProManas
+ * ArcPulse Ecosystem.
  */
 
 const alchemyKey = process.env.ALCHEMY_KEY || "demo";

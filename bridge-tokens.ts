@@ -5,7 +5,7 @@ import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
  * Circle AppKit - Cross-Chain CCTP Bridge to Arc Testnet
  * Transfer 1.00 USDC from Ethereum Sepolia -> Arc Testnet
  * Handles Step-by-Step CCTP Inspection & Selective Retry on Error
- * Built for ArcPulse Ecosystem by ProManas
+ * ArcPulse Ecosystem.
  */
 
 const kit = new AppKit();

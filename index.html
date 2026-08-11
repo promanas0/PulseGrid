@@ -5,7 +5,7 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ArcPulse - Built by ProManas | ProBuilder Studio | Arc Network Ecosystem</title>
+    <title>ArcPulse - Arc L1 Web3 Ecosystem & DEX Engine</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -34,9 +34,9 @@
                         }
                     },
                     fontFamily: {
-                        pixel: ['"Pixelify Sans"', '"Press Start 2P"', 'cursive', 'sans-serif'],
-                        arcade: ['"Press Start 2P"', 'cursive', 'monospace'],
-                        silkscreen: ['"Silkscreen"', 'monospace'],
+                        pixel: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        arcade: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        silkscreen: ['"Plus Jakarta Sans"', 'sans-serif'],
                         sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
                         mono: ['"Fira Code"', 'monospace']
                     }
@@ -47,7 +47,7 @@
     <!-- Google Pixel & Modern Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Press+Start+2P&family=Silkscreen:wght@400;700&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Inter:wght@300..800&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -104,7 +104,7 @@
 
         /* Pixel Buttons */
         .btn-pixel {
-            font-family: 'Pixelify Sans', cursive, sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             font-weight: 700;
             border: 2.5px solid #0F172A;
             box-shadow: 4px 4px 0px #0F172A;
@@ -123,7 +123,7 @@
         }
 
         .btn-pixel-sm {
-            font-family: 'Pixelify Sans', cursive, sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             font-weight: 700;
             border: 2px solid #0F172A;
             box-shadow: 3px 3px 0px #0F172A;
@@ -146,7 +146,7 @@
         }
 
         .sidebar-link {
-            font-family: 'Pixelify Sans', cursive, sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             font-size: 15px;
             font-weight: 700;
             border: 2.5px solid transparent;
@@ -235,7 +235,7 @@
     </header>
 
     <!-- PERSISTENT LEFT SIDEBAR NAVIGATION BAR -->
-    <aside id="mainSidebar" class="fixed inset-y-0 left-0 z-50 w-72 sm:w-80 bg-white border-r-4 border-slate-950 flex flex-col justify-between p-4 shadow-[6px_0px_0px_rgba(0,0,0,0.05)] overflow-y-auto sidebar-mobile-hidden lg:transform-none">
+    <aside id="mainSidebar" class="fixed inset-y-0 left-0 z-50 w-60 bg-slate-900/80 backdrop-blur-xl border-r border-slate-800 text-slate-100 flex flex-col justify-between p-4 shadow-2xl overflow-y-auto sidebar-mobile-hidden lg:transform-none">
         
         <div class="space-y-5">
             <!-- Brand & Logo Header -->
@@ -260,6 +260,23 @@
                 
             </div>
 
+            
+    <!-- Language Selector Dropdown -->
+    <div class="relative inline-block text-left my-2 px-2">
+        <select id="languageSelector" onchange="changeLanguage(this.value)" class="w-full bg-slate-800 text-slate-200 text-xs font-semibold rounded-lg px-3 py-2 border border-slate-700 focus:outline-none focus:border-purple-500 cursor-pointer">
+            <option value="en">English (US)</option>
+            <option value="hi">हिंदी (Hindi)</option>
+            <option value="es">Español (Spanish)</option>
+            <option value="fr">Français (French)</option>
+            <option value="de">Deutsch (German)</option>
+            <option value="zh">中文 (Chinese)</option>
+            <option value="ja">日本語 (Japanese)</option>
+            <option value="ar">العربية (Arabic)</option>
+            <option value="ru">Русский (Russian)</option>
+            <option value="pt">Português (Portuguese)</option>
+        </select>
+    </div>
+    
             <!-- Navigation Options -->
             <nav class="space-y-1.5">
                 <div class="text-[10px] font-silkscreen text-slate-400 uppercase tracking-widest px-2 mb-1.5">Main Menu</div>
@@ -294,9 +311,19 @@
                     <span>Circle Escrow</span>
                 </button>
 
-                <button onclick="switchPage('agent')" id="nav-btn-agent" class="sidebar-link w-full">
-                    <i data-lucide="bot" class="w-5 h-5 shrink-0 text-slate-700"></i>
-                    <span>AI Agent Hub</span>
+                <button onclick="switchPage('assistant')" id="nav-btn-assistant" class="sidebar-link w-full">
+                    <i data-lucide="bot" class="w-5 h-5 shrink-0"></i>
+                    <span data-i18n="nav_assistant">AI Assistant</span>
+                </button>
+
+                <button onclick="switchPage('prediction')" id="nav-btn-prediction" class="sidebar-link w-full">
+                    <i data-lucide="trending-up" class="w-5 h-5 shrink-0"></i>
+                    <span data-i18n="nav_prediction">Price Predictions</span>
+                </button>
+
+                <button onclick="switchPage('settings')" id="nav-btn-settings" class="sidebar-link w-full">
+                    <i data-lucide="settings" class="w-5 h-5 shrink-0"></i>
+                    <span data-i18n="nav_settings">Settings</span>
                 </button>
 
                 <button onclick="switchPage('daily')" id="nav-btn-daily" class="sidebar-link w-full">
@@ -1212,6 +1239,322 @@
             </div>
         </section>
 
+    
+        <!-- AI ASSISTANT SECTION -->
+        <section id="view-assistant" class="page-view hidden space-y-6 max-w-5xl mx-auto">
+            <div class="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 border border-slate-800 shadow-xl text-white">
+                <div class="flex items-center gap-3">
+                    <div class="p-3 rounded-xl bg-purple-600/30 border border-purple-500/50">
+                        <i data-lucide="sparkles" class="w-6 h-6 text-purple-300"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold tracking-tight" data-i18n="ai_assistant_title">Gemini Web3 AI Assistant</h2>
+                        <p class="text-xs text-slate-300" data-i18n="ai_assistant_subtitle">Real-time intelligent assistance for Arc Network, token swaps, and multi-chain analytics.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <!-- Prompt Chips -->
+                <div class="lg:col-span-1 space-y-3">
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider px-1" data-i18n="quick_prompts">Quick Prompts</div>
+                    <button onclick="sendQuickPrompt('Explain Arc L1 Testnet features')" class="w-full text-left p-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700 text-xs font-medium text-slate-200 transition-all">
+                        Explain Arc L1 Testnet
+                    </button>
+                    <button onclick="sendQuickPrompt('How do I swap USDC for EURC?')" class="w-full text-left p-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700 text-xs font-medium text-slate-200 transition-all">
+                        How to swap USDC -> EURC?
+                    </button>
+                    <button onclick="sendQuickPrompt('What are current gas fees on Arc Testnet?')" class="w-full text-left p-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700 text-xs font-medium text-slate-200 transition-all">
+                        Check Arc Gas Fees
+                    </button>
+                    <button onclick="sendQuickPrompt('Analyze current EURC/USDC price stability')" class="w-full text-left p-3 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700 text-xs font-medium text-slate-200 transition-all">
+                        Analyze Token Stability
+                    </button>
+                </div>
+
+                <!-- Chat Area -->
+                <div class="lg:col-span-3 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col h-[520px] shadow-lg">
+                    <div id="aiChatBox" class="flex-1 p-4 overflow-y-auto space-y-4 font-sans text-sm">
+                        <div class="flex gap-3">
+                            <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center shrink-0">
+                                <i data-lucide="bot" class="w-4 h-4 text-purple-300"></i>
+                            </div>
+                            <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-4 text-slate-200 max-w-[85%]">
+                                Greetings! I am your AI Web3 Assistant powered by Gemini intelligence. Ask me anything about Arc Testnet, token swaps, gas fees, or market trends in any language.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-3 border-t border-slate-800 bg-slate-950/60 flex items-center gap-2 rounded-b-2xl">
+                        <input id="aiChatInput" type="text" placeholder="Ask AI Assistant anything..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500" onkeydown="if(event.key === 'Enter') handleAiChatSend()">
+                        <button onclick="handleAiChatSend()" class="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5">
+                            <span>Send</span>
+                            <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PRICE PREDICTIONS SECTION -->
+        <section id="view-prediction" class="page-view hidden space-y-6 max-w-6xl mx-auto">
+            <div class="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-slate-800 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+                <div>
+                    <h2 class="text-2xl font-bold tracking-tight" data-i18n="prediction_title">Chain Price Predictions & Market Intelligence</h2>
+                    <p class="text-xs text-slate-300" data-i18n="prediction_subtitle">AI-driven predictive market models, trend forecasts, and root cause analysis across major blockchain networks.</p>
+                </div>
+                <div class="px-3 py-1.5 rounded-lg bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 text-xs font-semibold">
+                    Real-time Predictive Telemetry
+                </div>
+            </div>
+
+            <!-- Multi-Chain Forecast Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Arc L1 -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 hover:border-purple-500/50 transition-all shadow-md">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-purple-600/20 border border-purple-500/40 flex items-center justify-center font-bold text-purple-300">ARC</div>
+                            <div>
+                                <h3 class="font-bold text-slate-100 text-sm">Arc L1 Native (USDC)</h3>
+                                <p class="text-[11px] text-slate-400">Arc Testnet Ecosystem</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold">Bullish +2.4%</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs py-2 border-y border-slate-800">
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">Current Price</span>
+                            <span class="font-bold text-slate-100">$1.0000 USDC</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">Forecast Target</span>
+                            <span class="font-bold text-emerald-400">$1.0000 (Stable Peg)</span>
+                        </div>
+                    </div>
+                    <div class="space-y-1.5">
+                        <span class="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">Root Cause Analysis</span>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Institutional validator onboardings (+12 consortium nodes) and Circle AppKit DEX pool deposit inflows ensure 100% peg stability and zero-slippage liquidity.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Ethereum -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 hover:border-purple-500/50 transition-all shadow-md">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center font-bold text-blue-300">ETH</div>
+                            <div>
+                                <h3 class="font-bold text-slate-100 text-sm">Ethereum</h3>
+                                <p class="text-[11px] text-slate-400">Layer 1 Mainnet</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold">Bullish +5.8%</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs py-2 border-y border-slate-800">
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">Current Price</span>
+                            <span class="font-bold text-slate-100">$3,240.50</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">Forecast Target</span>
+                            <span class="font-bold text-emerald-400">$3,428.00</span>
+                        </div>
+                    </div>
+                    <div class="space-y-1.5">
+                        <span class="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">Root Cause Analysis</span>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            L2 gas settlement volume surge and institutional ETF staking net inflows (+18% weekly average) driving upward momentum.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Bitcoin -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 hover:border-purple-500/50 transition-all shadow-md">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-amber-600/20 border border-amber-500/40 flex items-center justify-center font-bold text-amber-300">BTC</div>
+                            <div>
+                                <h3 class="font-bold text-slate-100 text-sm">Bitcoin</h3>
+                                <p class="text-[11px] text-slate-400">Digital Gold</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold">Bullish +4.2%</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs py-2 border-y border-slate-800">
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">Current Price</span>
+                            <span class="font-bold text-slate-100">$64,200.00</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">Forecast Target</span>
+                            <span class="font-bold text-emerald-400">$66,900.00</span>
+                        </div>
+                    </div>
+                    <div class="space-y-1.5">
+                        <span class="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">Root Cause Analysis</span>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Exchange net outflows reach 3-month highs alongside post-halving miner hash-rate stabilization.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Solana -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 hover:border-purple-500/50 transition-all shadow-md">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-teal-600/20 border border-teal-500/40 flex items-center justify-center font-bold text-teal-300">SOL</div>
+                            <div>
+                                <h3 class="font-bold text-slate-100 text-sm">Solana</h3>
+                                <p class="text-[11px] text-slate-400">High Throughput L1</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/40 text-xs font-bold">Bearish -3.1%</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs py-2 border-y border-slate-800">
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">Current Price</span>
+                            <span class="font-bold text-slate-100">$148.20</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">Forecast Target</span>
+                            <span class="font-bold text-rose-400">$143.60</span>
+                        </div>
+                    </div>
+                    <div class="space-y-1.5">
+                        <span class="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">Root Cause Analysis</span>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Short-term network congestion during peak DEX token launches causing temporary transaction retry delays and profit-taking.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Polygon -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 hover:border-purple-500/50 transition-all shadow-md">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-purple-600/20 border border-purple-500/40 flex items-center justify-center font-bold text-purple-300">POL</div>
+                            <div>
+                                <h3 class="font-bold text-slate-100 text-sm">Polygon</h3>
+                                <p class="text-[11px] text-slate-400">Polygon 2.0 Ecosystem</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold">Bullish +7.5%</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs py-2 border-y border-slate-800">
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">Current Price</span>
+                            <span class="font-bold text-slate-100">$0.5800</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">Forecast Target</span>
+                            <span class="font-bold text-emerald-400">$0.6235</span>
+                        </div>
+                    </div>
+                    <div class="space-y-1.5">
+                        <span class="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">Root Cause Analysis</span>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Migration phase completion for POL token upgrade and zkEVM mainnet cross-chain bridge activity up +32%.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Arbitrum -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 hover:border-purple-500/50 transition-all shadow-md">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-cyan-600/20 border border-cyan-500/40 flex items-center justify-center font-bold text-cyan-300">ARB</div>
+                            <div>
+                                <h3 class="font-bold text-slate-100 text-sm">Arbitrum One</h3>
+                                <p class="text-[11px] text-slate-400">Ethereum Rollup</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full bg-slate-700 text-slate-300 border border-slate-600 text-xs font-bold">Neutral +0.5%</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs py-2 border-y border-slate-800">
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">Current Price</span>
+                            <span class="font-bold text-slate-100">$0.9400</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">Forecast Target</span>
+                            <span class="font-bold text-slate-300">$0.9450</span>
+                        </div>
+                    </div>
+                    <div class="space-y-1.5">
+                        <span class="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">Root Cause Analysis</span>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Balanced DEX volume offset by scheduled token vesting unlocks, leading to sideways consolidation.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CLEAN SETTINGS SECTION (Zero Emojis / Badges) -->
+        <section id="view-settings" class="page-view hidden space-y-6 max-w-4xl mx-auto">
+            <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 text-white shadow-xl">
+                <h2 class="text-2xl font-bold tracking-tight" data-i18n="settings_title">Application Settings</h2>
+                <p class="text-xs text-slate-400 mt-1" data-i18n="settings_subtitle">Configure user profile, connected wallets, display preferences, and regional localization.</p>
+            </div>
+
+            <div class="space-y-6">
+                <!-- User & Wallet Management -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300 border-b border-slate-800 pb-2">User & Wallet Manager</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div class="space-y-1.5">
+                            <label class="block text-slate-400 font-semibold">Active Connected Address</label>
+                            <input id="settingsWalletAddress" type="text" readonly value="Not Connected" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-slate-200 font-mono focus:outline-none">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="block text-slate-400 font-semibold">Arc Network RPC Endpoint</label>
+                            <input id="settingsRpcUrl" type="text" value="https://rpc.testnet.arc.io" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-slate-200 font-mono focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Appearance & Theme Toggle -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300 border-b border-slate-800 pb-2">Appearance & Theme</h3>
+                    <div class="flex items-center justify-between text-xs">
+                        <div>
+                            <span class="block font-semibold text-slate-200">Color Theme</span>
+                            <span class="text-slate-400 text-[11px]">Switch between dark mode and light mode interface styling</span>
+                        </div>
+                        <div class="flex items-center gap-2 bg-slate-800 p-1 rounded-xl border border-slate-700">
+                            <button onclick="setTheme('dark')" id="themeDarkBtn" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-600 text-white transition-all">Dark</button>
+                            <button onclick="setTheme('light')" id="themeLightBtn" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all">Light</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Localization Language -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300 border-b border-slate-800 pb-2">Localization</h3>
+                    <div class="flex items-center justify-between text-xs">
+                        <div>
+                            <span class="block font-semibold text-slate-200">Interface Language</span>
+                            <span class="text-slate-400 text-[11px]">Select your preferred primary UI language</span>
+                        </div>
+                        <select onchange="changeLanguage(this.value)" class="bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold rounded-xl px-3.5 py-2 focus:outline-none focus:border-purple-500">
+                            <option value="en">English (US)</option>
+                            <option value="hi">हिंदी (Hindi)</option>
+                            <option value="es">Español (Spanish)</option>
+                            <option value="fr">Français (French)</option>
+                            <option value="de">Deutsch (German)</option>
+                            <option value="zh">中文 (Chinese)</option>
+                            <option value="ja">日本語 (Japanese)</option>
+                            <option value="ar">العربية (Arabic)</option>
+                            <option value="ru">Русский (Russian)</option>
+                            <option value="pt">Português (Portuguese)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </section>
+    
     </main>
 
     <!-- MODALS -->
@@ -1414,7 +1757,7 @@
                 <span class="font-bold text-slate-950">ArcPulse</span> © 2026. Powered by Circle Arc Testnet.
             </div>
             <div class="text-slate-600">
-                Built by <span class="text-purple-700 font-bold">ProManas</span> (<span class="text-teal-700 font-bold">ProBuilder Studio</span>)
+                Built by <span class="text-purple-700 font-bold"></span> (<span class="text-teal-700 font-bold"></span>)
             </div>
         </div>
     </footer>
@@ -1632,6 +1975,9 @@
                 renderWalletView();
             } else if (pageId === 'portfolio') {
                 renderPortfolioView();
+            } else if (pageId === 'settings') {
+                const settingsAddr = document.getElementById('settingsWalletAddress');
+                if (settingsAddr) settingsAddr.value = currentAccount || 'Not Connected';
             }
 
             if (window.innerWidth < 1024) {
@@ -2680,5 +3026,216 @@ Timestamp: ${new Date().toISOString()}`;
             initApp();
         }
     </script>
+
+    <script>
+        // Multi-Language Translation Dictionary (10 Languages)
+        const i18nDict = {
+            en: {
+                nav_assistant: "AI Assistant",
+                nav_prediction: "Price Predictions",
+                nav_settings: "Settings",
+                ai_assistant_title: "Gemini Web3 AI Assistant",
+                ai_assistant_subtitle: "Real-time intelligent assistance for Arc Network, token swaps, and multi-chain analytics.",
+                quick_prompts: "Quick Prompts",
+                prediction_title: "Chain Price Predictions & Market Intelligence",
+                prediction_subtitle: "AI-driven predictive market models, trend forecasts, and root cause analysis across major blockchain networks.",
+                settings_title: "Application Settings",
+                settings_subtitle: "Configure user profile, connected wallets, display preferences, and regional localization."
+            },
+            hi: {
+                nav_assistant: "एआई सहायक",
+                nav_prediction: "मूल्य पूर्वानुमान",
+                nav_settings: "सेटिंग्स",
+                ai_assistant_title: "जेमिनी वेब3 एआई सहायक",
+                ai_assistant_subtitle: "आर्क नेटवर्क और टोकन स्वैप के लिए त्वरित बुद्धिमत्ता सहायता।",
+                quick_prompts: "त्वरित सुझाव",
+                prediction_title: "चेन मूल्य पूर्वानुमान एवं बाजार विश्लेषण",
+                prediction_subtitle: "ब्लॉकचेन नेटवर्क के लिए एआई संचालित पूर्वानुमान मॉडल।",
+                settings_title: "एप्लिकेशन सेटिंग्स",
+                settings_subtitle: "उपयोगकर्ता प्रोफ़ाइल और डिस्प्ले प्राथमिकताओं को कॉन्फ़िगर करें।"
+            },
+            es: {
+                nav_assistant: "Asistente IA",
+                nav_prediction: "Predicciones de Precios",
+                nav_settings: "Ajustes",
+                ai_assistant_title: "Asistente IA Gemini Web3",
+                ai_assistant_subtitle: "Asistencia inteligente en tiempo real para Arc Network y swaps.",
+                quick_prompts: "Prompts Rápidos",
+                prediction_title: "Predicciones de Precios y Mercado",
+                prediction_subtitle: "Modelos predictivos del mercado impulsados por IA.",
+                settings_title: "Ajustes de la Aplicación",
+                settings_subtitle: "Configure perfiles de usuario y preferencias de pantalla."
+            },
+            fr: {
+                nav_assistant: "Assistant IA",
+                nav_prediction: "Prédictions de Prix",
+                nav_settings: "Paramètres",
+                ai_assistant_title: "Assistant IA Gemini Web3",
+                ai_assistant_subtitle: "Assistance intelligente en temps réel pour Arc Network.",
+                quick_prompts: "Prompts Rapides",
+                prediction_title: "Prédictions de Prix et Analyse de Marché",
+                prediction_subtitle: "Modèles prédictifs du marché propulsés par IA.",
+                settings_title: "Paramètres de l'Application",
+                settings_subtitle: "Configurez le profil utilisateur et l'affichage."
+            },
+            de: {
+                nav_assistant: "KI-Assistent",
+                nav_prediction: "Preisprognosen",
+                nav_settings: "Einstellungen",
+                ai_assistant_title: "Gemini Web3 KI-Assistent",
+                ai_assistant_subtitle: "Echtzeit-Unterstützung für Arc Network und Token-Swaps.",
+                quick_prompts: "Schnellanfragen",
+                prediction_title: "Chain-Preisprognosen & Marktanalysen",
+                prediction_subtitle: "KI-gestützte Prognosemodelle für Blockchain-Netzwerke.",
+                settings_title: "Anwendungseinstellungen",
+                settings_subtitle: "Konfigurieren Sie Benutzerprofile und Anzeigeeinstellungen."
+            },
+            zh: {
+                nav_assistant: "AI 助手",
+                nav_prediction: "价格预测",
+                nav_settings: "设置",
+                ai_assistant_title: "Gemini Web3 AI 助手",
+                ai_assistant_subtitle: "针对 Arc 网络和代币兑换的实时智能助手。",
+                quick_prompts: "快捷提示",
+                prediction_title: "跨链价格预测与市场情报",
+                prediction_subtitle: "人工智能驱动的区块链预测模型。",
+                settings_title: "应用设置",
+                settings_subtitle: "配置用户资料和显示偏好。"
+            },
+            ja: {
+                nav_assistant: "AI アシスタント",
+                nav_prediction: "価格予測",
+                nav_settings: "設定",
+                ai_assistant_title: "Gemini Web3 AI アシスタント",
+                ai_assistant_subtitle: "Arc NetworkおよびトークンスワップのリアルタイムAIサポート。",
+                quick_prompts: "クイックプロンプト",
+                prediction_title: "価格予測＆分析",
+                prediction_subtitle: "主要ブロックチェーンのAI予測モデル。",
+                settings_title: "アプリケーション設定",
+                settings_subtitle: "ユーザープロファイルと表示設定を構成。"
+            },
+            ar: {
+                nav_assistant: "مساعد الذكاء الاصطناعي",
+                nav_prediction: "توقعات الأسعار",
+                nav_settings: "الإعدادات",
+                ai_assistant_title: "مساعد جيميناي للويب 3",
+                ai_assistant_subtitle: "مساعدة ذكية فورية لشبكة Arc وتداول التوكنات.",
+                quick_prompts: "مطالبات سريعة",
+                prediction_title: "توقعات أسعار السلاسل وتحليلات السوق",
+                prediction_subtitle: "نماذج التنبؤ بالسوق المدعومة بالذكاء الاصطناعي.",
+                settings_title: "إعدادات التطبيق",
+                settings_subtitle: "تهيئة ملف المستخدم وتفضيلات العرض."
+            },
+            ru: {
+                nav_assistant: "ИИ Помощник",
+                nav_prediction: "Прогнозы Цен",
+                nav_settings: "Настройки",
+                ai_assistant_title: "Gemini Web3 ИИ Помощник",
+                ai_assistant_subtitle: "Интеллектуальная помощь в реальном времени для Arc Network.",
+                quick_prompts: "Быстрые подсказки",
+                prediction_title: "Прогнозы Цен и Аналитика Рынка",
+                prediction_subtitle: "Прогностические модели рынка на базе ИИ.",
+                settings_title: "Настройки Приложения",
+                settings_subtitle: "Настройка профиля пользователя и параметров отображения."
+            },
+            pt: {
+                nav_assistant: "Assistente IA",
+                nav_prediction: "Previsões de Preços",
+                nav_settings: "Configurações",
+                ai_assistant_title: "Assistente IA Gemini Web3",
+                ai_assistant_subtitle: "Assistência inteligente em tempo real para a rede Arc.",
+                quick_prompts: "Prompts Rápidos",
+                prediction_title: "Previsões de Preços e Análise de Mercado",
+                prediction_subtitle: "Modelos preditivos de mercado orientados por IA.",
+                settings_title: "Configurações do Aplicativo",
+                settings_subtitle: "Configure o perfil do usuário e preferências."
+            }
+        };
+
+        function changeLanguage(lang) {
+            const dict = i18nDict[lang] || i18nDict['en'];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (dict[key]) {
+                    el.textContent = dict[key];
+                }
+            });
+            const sel = document.getElementById('languageSelector');
+            if (sel) sel.value = lang;
+        }
+
+        function setTheme(mode) {
+            if (mode === 'dark') {
+                document.documentElement.classList.add('dark');
+                document.body.style.backgroundColor = '#0F172A';
+                document.body.style.color = '#F8FAFC';
+                document.getElementById('themeDarkBtn')?.classList.add('bg-purple-600', 'text-white');
+                document.getElementById('themeLightBtn')?.classList.remove('bg-purple-600', 'text-white');
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.body.style.backgroundColor = '#FFFFFF';
+                document.body.style.color = '#0F172A';
+                document.getElementById('themeLightBtn')?.classList.add('bg-purple-600', 'text-white');
+                document.getElementById('themeDarkBtn')?.classList.remove('bg-purple-600', 'text-white');
+            }
+        }
+
+        function sendQuickPrompt(promptText) {
+            const input = document.getElementById('aiChatInput');
+            if (input) {
+                input.value = promptText;
+                handleAiChatSend();
+            }
+        }
+
+        function handleAiChatSend() {
+            const input = document.getElementById('aiChatInput');
+            const chatBox = document.getElementById('aiChatBox');
+            if (!input || !chatBox || !input.value.trim()) return;
+
+            const userMsg = input.value.trim();
+            input.value = '';
+
+            // User Message
+            const userBubble = document.createElement('div');
+            userBubble.className = 'flex gap-3 justify-end';
+            userBubble.innerHTML = `
+                <div class="bg-purple-600 text-white rounded-2xl p-3.5 text-xs max-w-[80%]">
+                    ${userMsg}
+                </div>
+            `;
+            chatBox.appendChild(userBubble);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // AI Simulated Intelligent Reply
+            setTimeout(() => {
+                let reply = "I am processing your query on Arc L1 Testnet telemetry. ";
+                if (userMsg.toLowerCase().includes("arc") || userMsg.toLowerCase().includes("testnet")) {
+                    reply += "Arc L1 Testnet features sub-second finality (~450ms), native USDC gas settlement, and Circle AppKit SDK integration.";
+                } else if (userMsg.toLowerCase().includes("swap") || userMsg.toLowerCase().includes("eurc")) {
+                    reply += "To execute a swap from USDC to EURC, navigate to 'Swap & AMM', enter the amount, and click 'Execute Arc Web3 Swap'. Allowance strategy is set to 'approve'.";
+                } else if (userMsg.toLowerCase().includes("gas")) {
+                    reply += "Arc Testnet gas fees are ultra-predictable at ~0.001 USDC per transaction.";
+                } else {
+                    reply += "Your request has been verified against Circle AppKit & Arc L1 smart contract protocols.";
+                }
+
+                const aiBubble = document.createElement('div');
+                aiBubble.className = 'flex gap-3';
+                aiBubble.innerHTML = `
+                    <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center shrink-0">
+                        <i data-lucide="bot" class="w-4 h-4 text-purple-300"></i>
+                    </div>
+                    <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-4 text-slate-200 max-w-[85%] text-xs">
+                        ${reply}
+                    </div>
+                `;
+                chatBox.appendChild(aiBubble);
+                chatBox.scrollTop = chatBox.scrollHeight;
+                if (window.lucide) window.lucide.createIcons();
+            }, 600);
+        }
+    </script>
+    
 </body>
 </html>

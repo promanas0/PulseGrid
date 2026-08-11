@@ -3,7 +3,7 @@ import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-
 /**
  * Circle Developer Controlled Wallet - Token Transfer Quickstart
  * Arc Testnet (Chain ID 5042002)
- * Built for ArcPulse Ecosystem by ProManas
+ * ArcPulse Ecosystem.
  */
 
 // Replace or set in .env

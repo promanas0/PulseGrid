@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 /**
  * @title ArcUniswapV2Router
  * @dev Full Uniswap V2 style Automated Market Maker (AMM) & DEX Router for Arc Testnet.
- * Built by ProManas (ProBuilder Studio) for ArcPulse ecosystem.
+ * ArcPulse Ecosystem.
  */
 
 interface IERC20 {

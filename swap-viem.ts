@@ -7,7 +7,7 @@ import { createViemAdapterFromPrivateKey, createViemAdapterFromProvider } from "
  * Circle AppKit Swap using Viem V2 Adapter with official viem/chains arcTestnet
  * USDC -> EURC on Arc Testnet (Chain ID 5042002)
  * Supports Browser Provider (window.ethereum) & Private Key Adapters
- * Built for ArcPulse Ecosystem by ProManas
+ * ArcPulse Ecosystem.
  */
 
 interface EIP6963ProviderDetail {

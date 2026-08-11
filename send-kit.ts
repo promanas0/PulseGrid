@@ -3,7 +3,7 @@ import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
 
 /**
  * Circle AppKit - Send USDC to a Wallet on Arc Testnet
- * Built for ArcPulse Ecosystem by ProManas
+ * ArcPulse Ecosystem.
  */
 
 const kit = new AppKit();

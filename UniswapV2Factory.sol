@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 /**
  * @title UniswapV2Factory & Pair
  * @dev Official Uniswap V2 Core Factory Implementation for Arc Testnet.
- * Built by ProManas (ProBuilder Studio).
+ * 
  */
 
 interface IERC20 {

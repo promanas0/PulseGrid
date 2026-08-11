@@ -4,7 +4,7 @@ import type { SendParams } from "@circle-fin/app-kit";
 
 /**
  * Circle AppKit Send USDC using Circle Wallets Adapter on Arc Testnet
- * Built for ArcPulse Ecosystem by ProManas
+ * ArcPulse Ecosystem.
  */
 
 const kit = new AppKit();

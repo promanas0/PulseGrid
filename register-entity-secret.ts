@@ -6,7 +6,7 @@ import { registerEntitySecretCiphertext } from "@circle-fin/developer-controlled
  * Circle Developer-Controlled Wallets — Entity Secret Registration & Recovery Generator
  * Generates a 32-byte hex entity secret, registers ciphertext with Circle API,
  * downloads recovery file, and saves CIRCLE_ENTITY_SECRET to .env
- * Built for ArcPulse Ecosystem by ProManas
+ * ArcPulse Ecosystem.
  */
 
 async function main() {

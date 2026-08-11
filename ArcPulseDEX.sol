@@ -5,7 +5,7 @@ pragma solidity ^0.8.20;
  * @title ArcPulseDEX (Arc Native & Token Spender DEX Router)
  * @dev Full Spender AMM DEX Router for Arc Testnet (Chain ID 5042002).
  * Supports token approvals (approve/allowance), transferFrom, liquidity pools & atomic swaps.
- * Built by ProManas (ProBuilder Studio) for ArcPulse Ecosystem.
+ * ArcPulse Ecosystem.
  */
 
 interface IERC20 {

@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 /**
  * @title UniswapV2Router02
  * @dev Official Uniswap V2 Router02 Contract for Arc Testnet.
- * Built by ProManas (ProBuilder Studio).
+ * 
  */
 
 interface IUniswapV2Factory {

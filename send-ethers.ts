@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 
 /**
  * Ethers.js v6 Native USDC Transfer on Arc Testnet (Chain ID 5042002)
- * Built for ArcPulse Ecosystem by ProManas
+ * ArcPulse Ecosystem.
  */
 
 async function main() {

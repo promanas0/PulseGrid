@@ -1,6 +1,6 @@
 #  ArchPulse — Arc Testnet Infrastructure & Execution Suite
 
-> **Built by ProManas** for the Circle [Arc Network](https://www.arc.io/) Builder Ecosystem.
+> Arc L1 Web3 Ecosystem & DEX Engine for Circle Testnet.
 
 **ArchPulse** is a high-performance, single-page Web3 decentralized application (dApp) purpose-built for Circle's **Arc Testnet** Layer-1 blockchain. Designed with an orange, black, and yellow glassmorphic aesthetic, ArchPulse empowers users and developers to monitor live network telemetry, perform instant USDC stablecoin swaps, and engage with daily builder quests.
 
@@ -32,4 +32,4 @@
    ```bash
    git clone [https://github.com/your-username/archpulse.git](https://github.com/your-username/archpulse.git)
    cd archpulse# archpulse
-High-performance Web3 infrastructure suite built for Circle's Arc Testnet. Featuring real-time network telemetry monitoring, instant stablecoin DEX swaps, daily builder quests, and multi-wallet support. Built by ProManas. 
+High-performance Web3 infrastructure suite built for Circle's Arc Testnet. Featuring real-time network telemetry monitoring, instant stablecoin DEX swaps, daily builder quests, and multi-wallet support. . 

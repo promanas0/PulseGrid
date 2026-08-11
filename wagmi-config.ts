@@ -4,7 +4,7 @@ import { getDefaultConfig } from "connectkit";
 
 /**
  * ArcPulse - ConnectKit & Wagmi Config with Arc Testnet Support
- * Built for ArcPulse Ecosystem by ProManas
+ * ArcPulse Ecosystem.
  */
 
 export const config = createConfig(

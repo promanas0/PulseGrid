@@ -3,7 +3,7 @@ import crypto from 'crypto';
 /**
  * Circle Developer Controlled Wallets — RSA-OAEP Entity Secret Encryptor (TypeScript)
  * Encrypts 32-byte hex entity secret with Circle Public Key PEM
- * Built for ArcPulse Ecosystem by ProManas
+ * ArcPulse Ecosystem.
  */
 
 export interface EncryptionResult {

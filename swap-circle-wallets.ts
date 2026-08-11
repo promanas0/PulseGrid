@@ -6,7 +6,7 @@ import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
 /**
  * Circle AppKit Swap using Circle Wallets Adapter with explicit SwapParams typing
  * USDC -> EURC on Arc Testnet (Chain ID 5042002)
- * Built for ArcPulse Ecosystem by ProManas
+ * ArcPulse Ecosystem.
  */
 
 async function main() {

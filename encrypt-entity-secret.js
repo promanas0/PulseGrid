@@ -4,7 +4,7 @@ const fs = require('fs');
 /**
  * Circle Developer Controlled Wallets — RSA-OAEP Entity Secret Encryptor
  * Encrypts 32-byte hex entity secret with Circle Public Key PEM
- * Built for ArcPulse Ecosystem by ProManas
+ * ArcPulse Ecosystem.
  */
 
 function encryptEntitySecretWithPublicKey(publicKeyPem, customEntitySecret) {

@@ -2084,7 +2084,12 @@ Timestamp: ${new Date().toISOString()}`;
 
             } catch(txErr) {
                 console.error("Swap transaction rejected:", txErr);
-                showToast('Transaction Cancelled', txErr.message || 'Transaction rejected in wallet app', 'error');
+                if (txErr.code === 4001 || txErr?.cause?.code === 4001 || txErr?.message?.includes("User denied") || txErr?.message?.includes("rejected")) {
+                    console.log("User ne cancel kiya");
+                    showToast('Transaction Cancelled', 'You cancelled the transaction in your wallet app.', 'error');
+                } else {
+                    showToast('Transaction Error', txErr.message || 'Transaction rejected in wallet app', 'error');
+                }
             }
         }
 

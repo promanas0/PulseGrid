@@ -65,7 +65,11 @@ async function main() {
 
     console.log("🎉 Swap Executed Successfully!", JSON.stringify(result, null, 2));
   } catch (error: any) {
-    console.log("📌 Circle AppKit Swap Status:", error?.message || error);
+    if (error?.code === 4001 || error?.cause?.code === 4001 || error?.message?.includes("User denied") || error?.message?.includes("rejected")) {
+      console.log("User ne cancel kiya"); // ❌ User cancelled transaction in wallet
+    } else {
+      console.log("📌 Circle AppKit Swap Status:", error?.message || error);
+    }
   }
 }
 

@@ -70,9 +70,9 @@ export async function getInjectedWalletProvider(rdns: string = "io.metamask"): P
 
 export async function executeSwapWithInjectedWallet(
   rdns: string = "io.metamask",
-  amountIn: string = "7",
-  tokenIn: string = "EURC",
-  tokenOut: string = "USDC"
+  amountIn: string = "1.00",
+  tokenIn: string = "USDC",
+  tokenOut: string = "EURC"
 ) {
   const provider = await getInjectedWalletProvider(rdns);
   await provider.request({ method: "eth_requestAccounts", params: undefined });

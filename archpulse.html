@@ -257,9 +257,7 @@
                     </button>
                 </div>
 
-                <div class="text-center pt-1 border-t border-slate-200">
-                    <p class="text-[11px] text-slate-600 font-medium">Built by <span class="text-purple-700 font-bold">ProManas</span> (<span class="text-teal-700 font-bold">ProBuilder Studio</span>)</p>
-                </div>
+                
             </div>
 
             <!-- Navigation Options -->
@@ -276,52 +274,34 @@
                     <span>Swap & AMM</span>
                 </button>
 
-                <button onclick="switchPage('wallet')" id="nav-btn-wallet" class="sidebar-link w-full justify-between">
-                    <div class="flex items-center gap-2.5">
-                        <i data-lucide="wallet" class="w-5 h-5 shrink-0 text-purple-700"></i>
-                        <span>Arc Web3 Wallet</span>
-                    </div>
-                    <span class="font-silkscreen text-[8px] bg-sky-100 text-sky-900 border border-sky-600 px-1.5 py-0.5 rounded font-bold">WALLETCONNECT</span>
+                <button onclick="switchPage('wallet')" id="nav-btn-wallet" class="sidebar-link w-full">
+                    <i data-lucide="wallet" class="w-5 h-5 shrink-0 text-slate-700"></i>
+                    <span>Arc Web3 Wallet</span>
                 </button>
 
-                <button onclick="switchPage('portfolio')" id="nav-btn-portfolio" class="sidebar-link w-full justify-between">
-                    <div class="flex items-center gap-2.5">
-                        <i data-lucide="pie-chart" class="w-5 h-5 shrink-0 text-indigo-600"></i>
-                        <span>Portfolio & Analytics</span>
-                    </div>
-                    <span class="font-silkscreen text-[8px] bg-indigo-100 text-indigo-900 border border-indigo-500 px-1.5 py-0.5 rounded font-bold">STATS</span>
+                <button onclick="switchPage('portfolio')" id="nav-btn-portfolio" class="sidebar-link w-full">
+                    <i data-lucide="pie-chart" class="w-5 h-5 shrink-0 text-slate-700"></i>
+                    <span>Portfolio & Analytics</span>
                 </button>
 
-                <button onclick="switchPage('market')" id="nav-btn-market" class="sidebar-link w-full justify-between">
-                    <div class="flex items-center gap-2.5">
-                        <i data-lucide="shopping-cart" class="w-5 h-5 shrink-0 text-teal-600"></i>
-                        <span>NFT & Token Market</span>
-                    </div>
-                    <span class="font-silkscreen text-[8px] bg-amber-100 text-amber-900 border border-amber-500 px-1.5 py-0.5 rounded font-bold">SOON</span>
+                <button onclick="switchPage('market')" id="nav-btn-market" class="sidebar-link w-full">
+                    <i data-lucide="shopping-cart" class="w-5 h-5 shrink-0 text-slate-700"></i>
+                    <span>NFT & Token Market</span>
                 </button>
 
-                <button onclick="switchPage('escrow')" id="nav-btn-escrow" class="sidebar-link w-full justify-between">
-                    <div class="flex items-center gap-2.5">
-                        <i data-lucide="shield-check" class="w-5 h-5 shrink-0 text-emerald-600"></i>
-                        <span>Circle Escrow</span>
-                    </div>
-                    <span class="font-silkscreen text-[8px] bg-emerald-100 text-emerald-800 border border-emerald-500 px-1.5 py-0.5 rounded">AI AUDIT</span>
+                <button onclick="switchPage('escrow')" id="nav-btn-escrow" class="sidebar-link w-full">
+                    <i data-lucide="shield-check" class="w-5 h-5 shrink-0 text-slate-700"></i>
+                    <span>Circle Escrow</span>
                 </button>
 
-                <button onclick="switchPage('agent')" id="nav-btn-agent" class="sidebar-link w-full justify-between">
-                    <div class="flex items-center gap-2.5">
-                        <i data-lucide="bot" class="w-5 h-5 shrink-0 text-purple-600"></i>
-                        <span>AI Agent Hub</span>
-                    </div>
-                    <span class="font-silkscreen text-[8px] bg-purple-100 text-purple-800 border border-purple-500 px-1.5 py-0.5 rounded">PROTOCOL</span>
+                <button onclick="switchPage('agent')" id="nav-btn-agent" class="sidebar-link w-full">
+                    <i data-lucide="bot" class="w-5 h-5 shrink-0 text-slate-700"></i>
+                    <span>AI Agent Hub</span>
                 </button>
 
-                <button onclick="switchPage('daily')" id="nav-btn-daily" class="sidebar-link w-full justify-between">
-                    <div class="flex items-center gap-2.5">
-                        <i data-lucide="trophy" class="w-5 h-5 shrink-0 text-amber-500"></i>
-                        <span>Daily Quests</span>
-                    </div>
-                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                <button onclick="switchPage('daily')" id="nav-btn-daily" class="sidebar-link w-full">
+                    <i data-lucide="trophy" class="w-5 h-5 shrink-0 text-slate-700"></i>
+                    <span>Daily Quests</span>
                 </button>
 
                 <button onclick="switchPage('about')" id="nav-btn-about" class="sidebar-link w-full">
@@ -341,20 +321,14 @@
                     <span class="text-[9px] bg-purple-900 text-purple-200 px-1.5 py-0.5 rounded font-mono">5042002</span>
                 </button>
 
-                <button onclick="openFaucetModal()" class="btn-pixel-sm w-full py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 rounded-xl text-xs font-bold flex items-center justify-between">
-                    <span class="flex items-center gap-2">
-                        <i data-lucide="droplet" class="w-4 h-4 text-emerald-600"></i>
-                        USDC & EURC Faucet
-                    </span>
-                    <span class="font-silkscreen text-[9px] bg-emerald-200 text-emerald-900 px-1.5 py-0.5 rounded">FREE</span>
+                <button onclick="openFaucetModal()" class="btn-pixel-sm w-full py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 rounded-xl text-xs font-bold flex items-center justify-start gap-2">
+                    <i data-lucide="droplet" class="w-4 h-4 text-emerald-600"></i>
+                    <span>USDC & EURC Faucet</span>
                 </button>
 
-                <button onclick="openTxHistoryModal()" class="btn-pixel-sm w-full py-2 px-3 bg-purple-50 hover:bg-purple-100 text-purple-900 rounded-xl text-xs font-bold flex items-center justify-between">
-                    <span class="flex items-center gap-2">
-                        <i data-lucide="history" class="w-4 h-4 text-purple-600"></i>
-                        Tx History
-                    </span>
-                    <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-purple-400"></i>
+                <button onclick="openTxHistoryModal()" class="btn-pixel-sm w-full py-2 px-3 bg-purple-50 hover:bg-purple-100 text-purple-900 rounded-xl text-xs font-bold flex items-center justify-start gap-2">
+                    <i data-lucide="history" class="w-4 h-4 text-purple-600"></i>
+                    <span>Tx History</span>
                 </button>
             </div>
         </div>

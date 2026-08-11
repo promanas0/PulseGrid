@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { NextResponse } from 'next/server';
 import { AppKit } from '@circle-fin/app-kit';
 import { ArcTestnet } from '@circle-fin/app-kit/chains';

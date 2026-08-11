@@ -3206,6 +3206,7 @@ Timestamp: ${new Date().toISOString()}`;
         }
 
         function handleAiChatSend() {
+
             const input = document.getElementById('aiChatInput');
             const chatBox = document.getElementById('aiChatBox');
             if (!input || !chatBox || !input.value.trim()) return;
@@ -3213,7 +3214,7 @@ Timestamp: ${new Date().toISOString()}`;
             const userMsg = input.value.trim();
             input.value = '';
 
-            // User Message
+            // Render User Message
             const userBubble = document.createElement('div');
             userBubble.className = 'flex gap-3 justify-end';
             userBubble.innerHTML = `
@@ -3224,54 +3225,96 @@ Timestamp: ${new Date().toISOString()}`;
             chatBox.appendChild(userBubble);
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // AI Simulated Intelligent Reply
+            // Render Typing Indicator
+            const typingBubble = document.createElement('div');
+            typingBubble.id = 'aiTypingIndicator';
+            typingBubble.className = 'flex gap-3 items-center';
+            typingBubble.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center shrink-0">
+                    <span class="text-purple-300 font-bold text-xs">AI</span>
+                </div>
+                <div class="bg-slate-800 border border-slate-700 rounded-2xl px-4 py-2 text-slate-400 text-xs italic animate-pulse">
+                    Pro AI is thinking...
+                </div>
+            `;
+            chatBox.appendChild(typingBubble);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Generate Intelligent AI Reply
             setTimeout(() => {
-                let reply = "I am processing your query on Arc L1 Testnet telemetry. ";
-                if (userMsg.toLowerCase().includes("arc") || userMsg.toLowerCase().includes("testnet")) {
-                    reply += "Arc L1 Testnet features sub-second finality (~450ms), native USDC gas settlement, and Circle AppKit SDK integration.";
-                } else if (userMsg.toLowerCase().includes("swap") || userMsg.toLowerCase().includes("eurc")) {
-                    reply += "To execute a swap from USDC to EURC, navigate to 'Swap & AMM', enter the amount, and click 'Execute Arc Web3 Swap'. Allowance strategy is set to 'approve'.";
-                } else if (userMsg.toLowerCase().includes("gas")) {
-                    reply += "Arc Testnet gas fees are ultra-predictable at ~0.001 USDC per transaction.";
+                const indicator = document.getElementById('aiTypingIndicator');
+                if (indicator) indicator.remove();
+
+                let reply = "";
+                const q = userMsg.toLowerCase();
+
+                if (q.includes("hi") || q.includes("hello") || q.includes("hey") || q.includes("kaise")) {
+                    reply = `Hello! I am Pro AI, your intelligent Web3 & multi-chain co-pilot. I can help you analyze Arc Testnet telemetry, execute USDC/EURC swaps, explain smart contracts, or answer questions about Bitcoin, Ethereum, Solana, and coding in any language! What would you like to explore?`;
+                } else if (q.includes("arc") || q.includes("testnet")) {
+                    reply = `Arc L1 Testnet is a high-performance Layer-1 blockchain engineered for enterprise-grade financial applications.
+Key specs:
+- Block Time: ~450ms sub-second finality
+- Native Gas Token: USDC (0x3600000000000000000000000000000000000000)
+- Consortium Validators: Circle Alpha, BlackRock, Visa Settlement, DTCC
+- RPC Endpoint: https://rpc.testnet.arc.io`;
+                } else if (q.includes("swap") || q.includes("eurc") || q.includes("usdc") || q.includes("dex")) {
+                    reply = `To execute a swap on Arc Testnet:
+1. Go to Swap & AMM tab.
+2. Connect your Web3 wallet (MetaMask / WalletConnect).
+3. Select USDC -> EURC or EURC -> USDC.
+4. Click Execute Arc Web3 Swap. Allowance strategy is automatically configured to 'approve'.`;
+                } else if (q.includes("gas") || q.includes("fee")) {
+                    reply = `Arc Testnet gas fees are paid natively in USDC and are ultra-predictable at ~0.001 USDC per transaction, ensuring zero fee volatility for institutional applications.`;
+                } else if (q.includes("btc") || q.includes("bitcoin")) {
+                    reply = `Bitcoin (BTC) is currently trading at ~$64,200.00 with an AI sentiment prediction of Bullish (+4.2%). Key catalysts include strong exchange net-outflows and post-halving miner hash-rate ATH stability.`;
+                } else if (q.includes("eth") || q.includes("ethereum")) {
+                    reply = `Ethereum (ETH) is trading at ~$3,240.50 with a Bullish forecast (+5.8%) targeting $3,428.00. L2 settlement volumes and institutional staking inflows remain strong.`;
+                } else if (q.includes("code") || q.includes("solidity") || q.includes("contract") || q.includes("function")) {
+                    reply = `Here is a standard ERC-20 interface snippet for Arc Testnet tokens:
+function balanceOf(address account) external view returns (uint256);
+function transfer(address recipient, uint256 amount) external returns (bool);`;
                 } else {
-                    reply += "Your request has been verified against Circle AppKit & Arc L1 smart contract protocols.";
+                    reply = `I have analyzed your query: "${userMsg}".
+
+As Pro AI, I confirm that all Arc Testnet telemetry, live RPC endpoints (https://rpc.testnet.arc.io), and DEX swaps are fully operational and active in real time. Let me know if you need specific technical parameters or transaction tracking!`;
                 }
 
                 const aiBubble = document.createElement('div');
                 aiBubble.className = 'flex gap-3';
                 aiBubble.innerHTML = `
                     <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center shrink-0">
-                        <i data-lucide="bot" class="w-4 h-4 text-purple-300"></i>
+                        <span class="text-purple-300 font-bold text-xs">AI</span>
                     </div>
-                    <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-4 text-slate-200 max-w-[85%] text-xs">
+                    <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-4 text-slate-200 max-w-[85%] text-xs leading-relaxed whitespace-pre-line">
                         ${reply}
                     </div>
                 `;
                 chatBox.appendChild(aiBubble);
                 chatBox.scrollTop = chatBox.scrollHeight;
-                if (window.lucide) window.lucide.createIcons();
-            }, 600);
-        }
-    </script>
-    
 
-    <script>
+                // Save to history
+                proAiChatHistory.push({ prompt: userMsg, response: reply });
+                localStorage.setItem('arcpulse_pro_ai_history', JSON.stringify(proAiChatHistory.slice(-20)));
+                renderProAiHistory();
+            }, 500);
+        }
+        
         // COINMARKETCAP MULTI-COIN PREDICTION DATA
         const PREDICTION_COINS = [
-            { symbol: 'BTC', name: 'Bitcoin', category: 'Digital Gold #1', price: '$64,200.00', target: '$66,900.00', change: '+4.2%', isBull: true, longRatio: '72% Long', shortRatio: '28% Short', tp: '$66,900', sl: '$62,800', leverage: '5x - 10x', confidence: '88%', reason: 'Strong buying sentiment driven by spot exchange net outflows and institutional ETF accumulation.' },
-            { symbol: 'ETH', name: 'Ethereum', category: 'Layer 1 Smart Contracts #2', price: '$3,240.50', target: '$3,428.00', change: '+5.8%', isBull: true, longRatio: '68% Long', shortRatio: '32% Short', tp: '$3,428', sl: '$3,180', leverage: '5x - 8x', confidence: '84%', reason: 'L2 gas settlement volume surge and institutional ETF staking net inflows (+18% weekly average).' },
-            { symbol: 'ARC', name: 'Arc L1 Native (USDC)', category: 'Arc Testnet Ecosystem', price: '$1.0000', target: '$1.0000', change: '+2.4%', isBull: true, longRatio: '95% Long', shortRatio: '5% Short', tp: '$1.00', sl: '$0.999', leverage: '1x - 3x', confidence: '99%', reason: 'Institutional validator onboardings (+12 consortium nodes) and Circle AppKit DEX pool deposit inflows.' },
-            { symbol: 'SOL', name: 'Solana', category: 'High-Throughput L1 #5', price: '$148.20', target: '$143.60', change: '-3.1%', isBull: false, longRatio: '34% Long', shortRatio: '66% Short', tp: '$143.60', sl: '$153.00', leverage: '3x - 5x', confidence: '76%', reason: 'Short-term network congestion during peak DEX token launches causing temporary retry delays.' },
-            { symbol: 'BNB', name: 'BNB Chain', category: 'Exchange & L1 #4', price: '$572.40', target: '$598.00', change: '+4.5%', isBull: true, longRatio: '62% Long', shortRatio: '38% Short', tp: '$598.00', sl: '$555.00', leverage: '5x', confidence: '81%', reason: 'Launchpool staking demand and gas burn rate increase.' },
-            { symbol: 'XRP', name: 'Ripple XRP', category: 'Cross-Border Payments #6', price: '$0.5640', target: '$0.6120', change: '+8.5%', isBull: true, longRatio: '78% Long', shortRatio: '22% Short', tp: '$0.6120', sl: '$0.5350', leverage: '5x - 10x', confidence: '86%', reason: 'Regulatory clarity milestone and bank settlement pilot announcements.' },
-            { symbol: 'ADA', name: 'Cardano', category: 'Layer 1 Blockchain #10', price: '$0.3480', target: '$0.3350', change: '-3.7%', isBull: false, longRatio: '40% Long', shortRatio: '60% Short', tp: '$0.3350', sl: '$0.3620', leverage: '3x', confidence: '72%', reason: 'Consolidation below major EMA resistance levels.' },
-            { symbol: 'DOGE', name: 'Dogecoin', category: 'Meme #8', price: '$0.1040', target: '$0.1180', change: '+13.4%', isBull: true, longRatio: '82% Long', shortRatio: '18% Short', tp: '$0.1180', sl: '$0.0960', leverage: '3x - 5x', confidence: '79%', reason: 'Social sentiment momentum surge and whale wallet accumulation.' },
-            { symbol: 'AVAX', name: 'Avalanche', category: 'Subnet L1 #12', price: '$22.80', target: '$24.50', change: '+7.4%', isBull: true, longRatio: '65% Long', shortRatio: '35% Short', tp: '$24.50', sl: '$21.20', leverage: '5x', confidence: '83%', reason: 'Institutional subnet deployment and gaming ecosystem transaction expansion.' },
-            { symbol: 'LINK', name: 'Chainlink', category: 'DeFi Oracle #14', price: '$11.45', target: '$12.80', change: '+11.8%', isBull: true, longRatio: '75% Long', shortRatio: '25% Short', tp: '$12.80', sl: '$10.70', leverage: '5x', confidence: '89%', reason: 'CCIP cross-chain interoperability protocol adoption by major banking consortiums.' },
-            { symbol: 'POL', name: 'Polygon', category: 'Polygon 2.0 ZK #19', price: '$0.5800', target: '$0.6235', change: '+7.5%', isBull: true, longRatio: '70% Long', shortRatio: '30% Short', tp: '$0.6235', sl: '$0.5400', leverage: '5x', confidence: '85%', reason: 'POL token migration phase completion and zkEVM bridge volume up +32%.' },
-            { symbol: 'SUI', name: 'Sui Network', category: 'Move L1 #21', price: '$0.9200', target: '$1.0800', change: '+17.4%', isBull: true, longRatio: '85% Long', shortRatio: '15% Short', tp: '$1.0800', sl: '$0.8400', leverage: '5x - 10x', confidence: '91%', reason: 'DeFi TVL hitting new ATH ($600M+) with deep liquidity incentives.' },
-            { symbol: 'APT', name: 'Aptos', category: 'Move L1 #24', price: '$6.40', target: '$7.10', change: '+10.9%', isBull: true, longRatio: '67% Long', shortRatio: '33% Short', tp: '$7.10', sl: '$5.90', leverage: '5x', confidence: '80%', reason: 'Key ecosystem integration with institutional custody providers.' },
-            { symbol: 'PEPE', name: 'Pepe', category: 'Meme #25', price: '$0.0000078', target: '$0.0000092', change: '+17.9%', isBull: true, longRatio: '88% Long', shortRatio: '12% Short', tp: '$0.0000092', sl: '$0.0000069', leverage: '3x - 5x', confidence: '77%', reason: 'High DEX volume trading and community momentum expansion.' }
+            { symbol: 'BTC', name: 'Bitcoin', category: 'Digital Gold #1', price: '$64,200.00', target: '$66,900.00', change: '+4.2%', isBull: true, longRatio: '72% Long', shortRatio: '28% Short', tp: '$66,900', sl: '$62,800', leverage: '5x - 10x', confidence: '88%', reason: 'Strong buying sentiment driven by spot exchange net outflows and institutional ETF accumulation.', logo: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png' },
+            { symbol: 'ETH', name: 'Ethereum', category: 'Layer 1 Smart Contracts #2', price: '$3,240.50', target: '$3,428.00', change: '+5.8%', isBull: true, longRatio: '68% Long', shortRatio: '32% Short', tp: '$3,428', sl: '$3,180', leverage: '5x - 8x', confidence: '84%', reason: 'L2 gas settlement volume surge and institutional ETF staking net inflows (+18% weekly average).', logo: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png' },
+            { symbol: 'ARC', name: 'Arc L1 Native (USDC)', category: 'Arc Testnet Ecosystem', price: '$1.0000', target: '$1.0000', change: '+2.4%', isBull: true, longRatio: '95% Long', shortRatio: '5% Short', tp: '$1.00', sl: '$0.999', leverage: '1x - 3x', confidence: '99%', reason: 'Institutional validator onboardings (+12 consortium nodes) and Circle AppKit DEX pool deposit inflows.', logo: 'https://raw.githubusercontent.com/promanas0/archpulse/main/logo.png' },
+            { symbol: 'SOL', name: 'Solana', category: 'High-Throughput L1 #5', price: '$148.20', target: '$143.60', change: '-3.1%', isBull: false, longRatio: '34% Long', shortRatio: '66% Short', tp: '$143.60', sl: '$153.00', leverage: '3x - 5x', confidence: '76%', reason: 'Short-term network congestion during peak DEX token launches causing temporary retry delays.', logo: 'https://assets.coingecko.com/coins/images/4128/small/solana.png' },
+            { symbol: 'BNB', name: 'BNB Chain', category: 'Exchange & L1 #4', price: '$572.40', target: '$598.00', change: '+4.5%', isBull: true, longRatio: '62% Long', shortRatio: '38% Short', tp: '$598.00', sl: '$555.00', leverage: '5x', confidence: '81%', reason: 'Launchpool staking demand and gas burn rate increase.', logo: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png' },
+            { symbol: 'XRP', name: 'Ripple XRP', category: 'Cross-Border Payments #6', price: '$0.5640', target: '$0.6120', change: '+8.5%', isBull: true, longRatio: '78% Long', shortRatio: '22% Short', tp: '$0.6120', sl: '$0.5350', leverage: '5x - 10x', confidence: '86%', reason: 'Regulatory clarity milestone and bank settlement pilot announcements.', logo: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png' },
+            { symbol: 'ADA', name: 'Cardano', category: 'Layer 1 Blockchain #10', price: '$0.3480', target: '$0.3350', change: '-3.7%', isBull: false, longRatio: '40% Long', shortRatio: '60% Short', tp: '$0.3350', sl: '$0.3620', leverage: '3x', confidence: '72%', reason: 'Consolidation below major EMA resistance levels.', logo: 'https://assets.coingecko.com/coins/images/975/small/cardano.png' },
+            { symbol: 'DOGE', name: 'Dogecoin', category: 'Meme #8', price: '$0.1040', target: '$0.1180', change: '+13.4%', isBull: true, longRatio: '82% Long', shortRatio: '18% Short', tp: '$0.1180', sl: '$0.0960', leverage: '3x - 5x', confidence: '79%', reason: 'Social sentiment momentum surge and whale wallet accumulation.', logo: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png' },
+            { symbol: 'AVAX', name: 'Avalanche', category: 'Subnet L1 #12', price: '$22.80', target: '$24.50', change: '+7.4%', isBull: true, longRatio: '65% Long', shortRatio: '35% Short', tp: '$24.50', sl: '$21.20', leverage: '5x', confidence: '83%', reason: 'Institutional subnet deployment and gaming ecosystem transaction expansion.', logo: 'https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png' },
+            { symbol: 'LINK', name: 'Chainlink', category: 'DeFi Oracle #14', price: '$11.45', target: '$12.80', change: '+11.8%', isBull: true, longRatio: '75% Long', shortRatio: '25% Short', tp: '$12.80', sl: '$0.70', leverage: '5x', confidence: '89%', reason: 'CCIP cross-chain interoperability protocol adoption by major banking consortiums.', logo: 'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png' },
+            { symbol: 'POL', name: 'Polygon', category: 'Polygon 2.0 ZK #19', price: '$0.5800', target: '$0.6235', change: '+7.5%', isBull: true, longRatio: '70% Long', shortRatio: '30% Short', tp: '$0.6235', sl: '$0.5400', leverage: '5x', confidence: '85%', reason: 'POL token migration phase completion and zkEVM bridge volume up +32%.', logo: 'https://assets.coingecko.com/coins/images/4713/small/polygon.png' },
+            { symbol: 'SUI', name: 'Sui Network', category: 'Move L1 #21', price: '$0.9200', target: '$1.0800', change: '+17.4%', isBull: true, longRatio: '85% Long', shortRatio: '15% Short', tp: '$1.0800', sl: '$0.8400', leverage: '5x - 10x', confidence: '91%', reason: 'DeFi TVL hitting new ATH ($600M+) with deep liquidity incentives.', logo: 'https://assets.coingecko.com/coins/images/26375/small/sui_asset.png' },
+            { symbol: 'APT', name: 'Aptos', category: 'Move L1 #24', price: '$6.40', target: '$7.10', change: '+10.9%', isBull: true, longRatio: '67% Long', shortRatio: '33% Short', tp: '$7.10', sl: '$5.90', leverage: '5x', confidence: '80%', reason: 'Key ecosystem integration with institutional custody providers.', logo: 'https://assets.coingecko.com/coins/images/26455/small/aptos_round.png' },
+            { symbol: 'PEPE', name: 'Pepe', category: 'Meme #25', price: '$0.0000078', target: '$0.0000092', change: '+17.9%', isBull: true, longRatio: '88% Long', shortRatio: '12% Short', tp: '$0.0000092', sl: '$0.0000069', leverage: '3x - 5x', confidence: '77%', reason: 'High DEX volume trading and community momentum expansion.', logo: 'https://assets.coingecko.com/coins/images/29850/small/pepe-token.png' }
         ];
 
         function renderPredictionCoins(coinsToRender) {
@@ -3285,9 +3328,44 @@ Timestamp: ${new Date().toISOString()}`;
                 card.className = 'bg-slate-900 border border-slate-800 hover:border-purple-500/60 rounded-2xl p-5 space-y-4 transition-all shadow-md cursor-pointer group';
                 card.innerHTML = `
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-9 h-9 rounded-xl bg-purple-600/20 border border-purple-500/40 flex items-center justify-center font-bold text-purple-300 group-hover:scale-105 transition-transform">
-                                ${c.symbol}
+                        <div class="flex items-center gap-3">
+                            <img src="${c.logo}" alt="${c.name}" class="w-10 h-10 rounded-xl object-contain bg-slate-800/80 p-1 border border-slate-700/80 shrink-0 group-hover:scale-105 transition-transform" onerror="this.src='logo.png'">
+                            <div>
+                                <h3 class="font-bold text-slate-100 text-sm group-hover:text-purple-300 transition-colors">${c.name}</h3>
+                                <p class="text-[11px] text-slate-400">${c.category}</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full text-xs font-bold ${c.isBull ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-rose-500/20 text-rose-400 border border-rose-500/40'}">
+                            ${c.isBull ? 'Bullish' : 'Bearish'} ${c.change}
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 text-xs py-2 border-y border-slate-800">
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">Current Price</span>
+                            <span class="font-bold text-slate-100">${c.price}</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[11px]">Forecast Target</span>
+                            <span class="font-bold ${c.isBull ? 'text-emerald-400' : 'text-rose-400'}">${c.target}</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between items-center text-[11px] font-semibold">
+                            <span class="text-slate-300">Long vs Short ratio</span>
+                            <span class="${c.isBull ? 'text-emerald-400' : 'text-rose-400'}">${c.longRatio}</span>
+                        </div>
+                        <p class="text-xs text-slate-400 leading-relaxed line-clamp-2">${c.reason}</p>
+                    </div>
+
+                    <div class="pt-2 flex items-center justify-between text-[11px] text-purple-400 font-semibold group-hover:underline">
+                        <span>Click to view interactive chart & analysis</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
                             </div>
                             <div>
                                 <h3 class="font-bold text-slate-100 text-sm group-hover:text-purple-300 transition-colors">${c.name}</h3>
@@ -3341,6 +3419,20 @@ Timestamp: ${new Date().toISOString()}`;
             if (!modal) return;
 
             safeSetText('modalCoinName', `${coin.name} (${coin.symbol})`);
+            safeSetText('modalCoinCategory', coin.category);
+            safeSetText('modalCoinPrice', `${coin.price} (${coin.change})`);
+            safeSetText('modalLongRatio', coin.longRatio);
+            safeSetText('modalShortRatio', coin.shortRatio);
+            safeSetText('modalTp', coin.tp);
+            safeSetText('modalSl', coin.sl);
+
+            const iconContainer = document.getElementById('modalCoinIcon');
+            if (iconContainer) {
+                iconContainer.innerHTML = `<img src="${coin.logo}" alt="${coin.name}" class="w-full h-full object-contain p-0.5 rounded-lg" onerror="this.src='logo.png'">`;
+            }
+
+            modal.classList.remove('hidden');
+        } (${coin.symbol})`);
             safeSetText('modalCoinCategory', coin.category);
             safeSetText('modalCoinPrice', `${coin.price} (${coin.change})`);
             safeSetText('modalLongRatio', coin.longRatio);

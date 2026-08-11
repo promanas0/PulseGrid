@@ -3335,47 +3335,7 @@ Timestamp: ${new Date().toISOString()}`;
                 grid.appendChild(card);
             });
         }
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-slate-100 text-sm group-hover:text-purple-300 transition-colors">${c.name}</h3>
-                                <p class="text-[11px] text-slate-400">${c.category}</p>
-                            </div>
-                        </div>
-                        <span class="px-2.5 py-1 rounded-full text-xs font-bold ${c.isBull ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-rose-500/20 text-rose-400 border border-rose-500/40'}">
-                            ${c.isBull ? 'Bullish' : 'Bearish'} ${c.change}
-                        </span>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 text-xs py-2 border-y border-slate-800">
-                        <div>
-                            <span class="text-slate-400 block text-[11px]">Current Price</span>
-                            <span class="font-bold text-slate-100">${c.price}</span>
-                        </div>
-                        <div>
-                            <span class="text-slate-400 block text-[11px]">Forecast Target</span>
-                            <span class="font-bold ${c.isBull ? 'text-emerald-400' : 'text-rose-400'}">${c.target}</span>
-                        </div>
-                    </div>
-
-                    <div class="space-y-1.5">
-                        <div class="flex justify-between items-center text-[11px] font-semibold">
-                            <span class="text-slate-300">Long vs Short ratio</span>
-                            <span class="${c.isBull ? 'text-emerald-400' : 'text-rose-400'}">${c.longRatio}</span>
-                        </div>
-                        <p class="text-xs text-slate-400 leading-relaxed line-clamp-2">${c.reason}</p>
-                    </div>
-
-                    <div class="pt-2 flex items-center justify-between text-[11px] text-purple-400 font-semibold group-hover:underline">
-                        <span>Click to view interactive chart & analysis</span>
-                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-            if (window.lucide) window.lucide.createIcons();
-        }
-
-        function filterPredictionCoins() {
+                            function filterPredictionCoins() {
             const query = document.getElementById('coinSearchInput')?.value?.toLowerCase() || '';
             const filtered = PREDICTION_COINS.filter(c => c.symbol.toLowerCase().includes(query) || c.name.toLowerCase().includes(query) || c.category.toLowerCase().includes(query));
             renderPredictionCoins(filtered);

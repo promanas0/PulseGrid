@@ -59,6 +59,7 @@
     "@circle-fin/developer-controlled-wallets": "^10.8.0",
     "@circle-fin/swap-kit": "^1.5.1",
     "connectkit": "^1.7.3",
+    "dotenv": "^17.4.2",
     "ethers": "^6.17.0",
     "viem": "^2.21.0",
     "wagmi": "^2.5.0"

@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ArcPulse - Built by ProManas | ProBuilder Studio | Arc Network Ecosystem</title>
+    <title>ArcPulse | Arc Network Ecosystem</title>
+    <link rel="icon" type="image/png" href="logo.png">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -227,12 +228,10 @@
 <body class="min-h-screen bg-white text-slate-900 pixel-grid-bg flex flex-col lg:flex-row antialiased selection:bg-purple-600 selection:text-white">
 
     <!-- MOBILE TOP HEADER -->
-    <header class="lg:hidden sticky top-0 z-50 w-full bg-white border-b-4 border-slate-950 px-4 py-3 flex items-center justify-between shadow-md">
+    <header class="lg:hidden sticky top-0 z-50 w-full bg-white/60 backdrop-blur-md border-b-4 border-slate-950 px-4 py-3 flex items-center justify-between shadow-md">
         <div class="flex items-center gap-3 cursor-pointer" onclick="switchPage('monitor')">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-700 via-indigo-600 to-teal-500 border-2 border-slate-950 shadow-[2px_2px_0px_#0F172A] flex items-center justify-center">
-                <svg viewBox="0 0 100 100" class="w-6 h-6 filter drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]">
-                    <path d="M 18 82 C 22 40, 38 18, 50 18 C 62 18, 78 40, 82 82 C 70 65, 58 28, 50 28 C 42 28, 30 65, 18 82 Z" fill="#FFFFFF" />
-                </svg>
+            <div class="w-10 h-10 rounded-xl bg-white border-2 border-slate-950 shadow-[2px_2px_0px_#0F172A] flex items-center justify-center p-0.5 overflow-hidden">
+                <img src="logo.png" alt="ArcPulse Logo" class="w-full h-full object-contain rounded-lg">
             </div>
             <div>
                 <span class="font-pixel text-xl font-black tracking-wider text-slate-950">ArcPulse</span>
@@ -252,11 +251,8 @@
             <div class="pb-4 border-b-3 border-slate-950 space-y-2">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3 cursor-pointer" onclick="switchPage('monitor')">
-                        <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-purple-700 via-indigo-600 to-teal-500 border-3 border-slate-950 shadow-[3px_3px_0px_#0F172A] p-1 flex items-center justify-center group hover:scale-105 transition-transform">
-                            <svg viewBox="0 0 100 100" class="w-full h-full filter drop-shadow-[0_2px_4px_rgba(255,255,255,0.9)]">
-                                <path d="M 18 82 C 22 40, 38 18, 50 18 C 62 18, 78 40, 82 82 C 70 65, 58 28, 50 28 C 42 28, 30 65, 18 82 Z" fill="#FFFFFF" />
-                                <path d="M 45 72 C 55 60, 70 65, 80 82 C 68 75, 55 70, 45 72 Z" fill="#E2E8F0" opacity="0.9" />
-                            </svg>
+                        <div class="w-11 h-11 rounded-xl bg-white border-3 border-slate-950 shadow-[3px_3px_0px_#0F172A] p-0.5 flex items-center justify-center overflow-hidden group hover:scale-105 transition-transform">
+                            <img src="logo.png" alt="ArcPulse Logo" class="w-full h-full object-contain rounded-lg">
                         </div>
 
                         <div>
@@ -270,11 +266,6 @@
                     <button onclick="toggleMobileSidebar()" class="lg:hidden p-1.5 rounded-lg border-2 border-slate-950 text-slate-700 hover:text-slate-950">
                         <i data-lucide="x" class="w-5 h-5"></i>
                     </button>
-                </div>
-
-                <!-- Centered Tagline -->
-                <div class="text-center pt-1 border-t border-slate-200">
-                    <p class="text-[11px] text-slate-600 font-medium">Built by <span class="text-purple-700 font-bold">ProManas</span> (<span class="text-teal-700 font-bold">ProBuilder Studio</span>)</p>
                 </div>
             </div>
 
@@ -1226,13 +1217,11 @@
     <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
     <!-- CENTERED MAIN FOOTER -->
-    <footer class="mt-auto border-t-3 border-slate-950 bg-white py-6 text-center text-xs text-slate-600 font-medium">
+    <footer class="mt-auto border-t-3 border-slate-950 bg-white/70 backdrop-blur-md py-6 text-center text-xs text-slate-600 font-medium">
         <div class="max-w-7xl mx-auto px-4 flex flex-col items-center justify-center gap-2 text-center">
-            <div class="font-pixel text-sm">
+            <div class="font-pixel text-sm flex items-center gap-2 justify-center">
+                <img src="logo.png" alt="ArcPulse Logo" class="w-5 h-5 rounded object-contain border border-slate-950">
                 <span class="font-bold text-slate-950">ArcPulse</span> © 2026. Powered by Circle Arc Testnet.
-            </div>
-            <div class="text-slate-600">
-                Built by <span class="text-purple-700 font-bold">ProManas</span> (<span class="text-teal-700 font-bold">ProBuilder Studio</span>)
             </div>
         </div>
     </footer>

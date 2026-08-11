@@ -1,5 +1,22 @@
+import 'dotenv/config';
+import fs from 'fs';
 import { AppKit } from "@circle-fin/app-kit";
 import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
+
+// Load .env variables manually
+if (fs.existsSync('.env')) {
+  const envConfig = fs.readFileSync('.env', 'utf-8');
+  envConfig.split('\n').forEach(line => {
+    const parts = line.split('=');
+    if (parts.length > 1) {
+      const key = parts[0].trim();
+      const value = parts.slice(1).join('=').trim();
+      if (key && !key.startsWith('#')) {
+        process.env[key] = value;
+      }
+    }
+  });
+}
 
 /**
  * Circle AppKit Send USDC using Circle Wallets Adapter (JS runner)

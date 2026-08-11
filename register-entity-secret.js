@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { randomBytes } from "node:crypto";
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { registerEntitySecretCiphertext } from "@circle-fin/developer-controlled-wallets";

@@ -121,13 +121,26 @@ async function main() {
   }
 
   try {
-    const result = await kit.swap({
+    // Step 1: Swap execute karo
+    const result: any = await kit.swap({
       from: { adapter: viemAdapter, chain: ArcTestnet },
       tokenIn: "USDC",
       tokenOut: "EURC",
       amountIn: "1.00",
       config: { slippageBps: 300 } // 3% slippage
     });
+
+    console.log("TX Hash:", result?.txHash || result?.hash);
+
+    // Step 2: Swap COMPLETE hone ka wait karo (if KIT_KEY present)
+    if (result && process.env.KIT_KEY) {
+      console.log("⏳ Waiting for Swap to COMPLETE...");
+      const status: any = await kit.waitForSwap({
+        result,
+        kitKey: process.env.KIT_KEY,
+      } as any);
+      console.log("Final status:", status?.progress?.status || status?.status || "COMPLETED");
+    }
 
     console.log("🎉 Swap Executed Successfully!", JSON.stringify(result, null, 2));
   } catch (error: any) {

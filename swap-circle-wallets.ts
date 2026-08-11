@@ -49,7 +49,20 @@ async function main() {
   } as any;
 
   try {
-    const result = await kit.swap(swapParams);
+    // Step 1: Swap execute karo
+    const result: any = await kit.swap(swapParams);
+    console.log("TX Hash:", result?.txHash || result?.hash);
+
+    // Step 2: Swap COMPLETE hone ka wait karo (if KIT_KEY present)
+    if (result && process.env.KIT_KEY) {
+      console.log("⏳ Waiting for Swap to COMPLETE...");
+      const status: any = await kit.waitForSwap({
+        result,
+        kitKey: process.env.KIT_KEY,
+      } as any);
+      console.log("Final status:", status?.progress?.status || status?.status || "COMPLETED");
+    }
+
     console.log("🎉 Swap Executed Successfully!", JSON.stringify(result, null, 2));
   } catch (error: any) {
     console.log("📌 Circle AppKit Swap Status:", error?.message || error);

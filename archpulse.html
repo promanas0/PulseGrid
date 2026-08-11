@@ -333,12 +333,12 @@
             <div class="space-y-2 pt-2 border-t-2 border-slate-200">
                 <div class="text-[10px] font-silkscreen text-slate-400 uppercase tracking-widest px-2 mb-1">Ecosystem Tools</div>
 
-                <button onclick="switchOrAddArcNetwork()" class="btn-pixel-sm w-full py-2 px-3 bg-slate-50 hover:bg-slate-100 text-slate-800 rounded-xl text-xs font-bold flex items-center justify-between">
-                    <span class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        Arc Testnet (5042002)
+                <button onclick="manualSwitchToArcNetwork()" class="btn-pixel-sm w-full py-2.5 px-3 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-bold flex items-center justify-between shadow-[2px_2px_0px_#0F172A] transition-transform active:translate-y-0.5">
+                    <span class="flex items-center gap-2 font-pixel">
+                        <i data-lucide="globe" class="w-4 h-4 text-purple-200"></i>
+                        Switch Arc Network
                     </span>
-                    <i data-lucide="globe" class="w-4 h-4 text-purple-600"></i>
+                    <span class="text-[9px] bg-purple-900 text-purple-200 px-1.5 py-0.5 rounded font-mono">5042002</span>
                 </button>
 
                 <button onclick="openFaucetModal()" class="btn-pixel-sm w-full py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 rounded-xl text-xs font-bold flex items-center justify-between">
@@ -588,7 +588,10 @@
                             <div class="text-[11px] text-slate-600 font-medium">Protocol: Circle App Kit & Arc Testnet DEX Pool</div>
                         </div>
                     </div>
-                    <span class="px-2.5 py-1 rounded-full bg-teal-100 text-teal-900 font-bold text-[10px] border border-teal-500 shrink-0">CHAIN: 5042002</span>
+                    <button onclick="manualSwitchToArcNetwork()" class="px-3 py-1.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs border-2 border-slate-950 shadow-[2px_2px_0px_#0F172A] flex items-center gap-1.5 shrink-0 transition-transform active:translate-y-0.5">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-purple-200"></i>
+                        <span>Switch Arc Network (5042002)</span>
+                    </button>
                 </div>
 
                 <div class="flex bg-slate-100 p-1.5 rounded-2xl border-2 border-slate-950">
@@ -1481,40 +1484,38 @@
             if (modal) modal.classList.add('hidden');
         }
 
-        async function switchOrAddArcNetwork() {
+        async function manualSwitchToArcNetwork() {
             const provider = activeWeb3Provider || window.ethereum;
-            if (!provider || !provider.request) return;
-
-            const targetChainIdHex = '0x4cef52'; // 5042002 in hex!
-
+            if (!provider || !provider.request) {
+                showToast('No Wallet Found', 'Please connect MetaMask or WalletConnect first', 'error');
+                return;
+            }
+            const targetChainIdHex = '0x4cef52'; // 5042002 in hex
             try {
-                const currentChainId = await provider.request({ method: 'eth_chainId' });
-                if (currentChainId && currentChainId.toLowerCase() === targetChainIdHex) {
-                    console.log("Verified: Connected to Arc Testnet Chain (5042002 / 0x4cef52)");
-                    return;
-                }
-
-                // Request MetaMask to switch to exact Chain ID 5042002
                 await provider.request({
                     method: 'wallet_switchEthereumChain',
                     params: [{ chainId: targetChainIdHex }]
                 });
-            } catch (switchError) {
-                console.warn("Network switch notice:", switchError);
-                try {
-                    await provider.request({
-                        method: 'wallet_addEthereumChain',
-                        params: [{
-                            chainId: targetChainIdHex,
-                            chainName: 'Arc Testnet (5042002)',
-                            nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
-                            rpcUrls: ['https://rpc.testnet.arc.network', 'https://rpc.testnet.arc.io'],
-                            blockExplorerUrls: ['https://testnet.arcscan.app']
-                        }]
-                    });
-                } catch (addError) {
-                    console.error("Could not auto-add Arc Testnet network:", addError);
-                    showToast('Chain ID Mismatch', 'In MetaMask, please switch network to Arc Testnet with Chain ID 5042002 (0x4cef52)', 'warning');
+                showToast('Network Switched!', 'Switched to Arc Testnet (Chain ID 5042002)', 'success');
+            } catch (err) {
+                if (err.code === 4902 || (err.message && err.message.includes('Unrecognized chain ID'))) {
+                    try {
+                        await provider.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [{
+                                chainId: targetChainIdHex,
+                                chainName: 'Arc Testnet',
+                                nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
+                                rpcUrls: ['https://rpc.testnet.arc.io', 'https://rpc.testnet.arc.network'],
+                                blockExplorerUrls: ['https://testnet.arcscan.app']
+                            }]
+                        });
+                        showToast('Network Added!', 'Arc Testnet added to wallet', 'success');
+                    } catch (addErr) {
+                        showToast('Switch Error', addErr.message || 'Could not switch network in wallet', 'error');
+                    }
+                } else {
+                    showToast('Network Notice', err.message || 'Network switch requested in wallet', 'info');
                 }
             }
         }
@@ -1546,8 +1547,7 @@
                     if (accounts && accounts.length > 0) {
                         account = accounts[0];
                         activeWeb3Provider = window.ethereum;
-                        await switchOrAddArcNetwork();
-                    }
+                                            }
                 } else {
                     showToast('Provider Missing', `${providerType} wallet not detected. Use WalletConnect!`, 'error');
                     return;
@@ -1827,8 +1827,7 @@ Timestamp: ${new Date().toISOString()}`;
             }
 
             try {
-                await switchOrAddArcNetwork();
-                showToast('Transaction Pending', `Confirming Swap of ${amt} ${payToken.symbol} in wallet...`, 'info');
+                                showToast('Transaction Pending', `Confirming Swap of ${amt} ${payToken.symbol} in wallet...`, 'info');
 
                 let txHash = null;
                 const ratio = payToken.usdRate / receiveToken.usdRate;

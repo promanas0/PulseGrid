@@ -39,6 +39,8 @@
     "register-entity-secret:ts": "tsx --env-file=.env register-entity-secret.ts",
     "encrypt-entity-secret": "node --env-file=.env encrypt-entity-secret.js",
     "encrypt-entity-secret:ts": "tsx --env-file=.env encrypt-entity-secret.ts",
+    "get-public-key": "node --env-file=.env get-public-key.js",
+    "get-public-key:ts": "tsx --env-file=.env get-public-key.ts",
     "server": "node server.mjs",
     "build": "echo 'Build complete'"
   },

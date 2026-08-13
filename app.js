@@ -1823,13 +1823,32 @@ Timestamp: ${new Date().toISOString()}`;
 
         function saveGeminiApiKey() {
             const input = document.getElementById('geminiApiKeyInput');
-            const keyVal = input ? input.value.trim() : '';
+            const assistantInput = document.getElementById('geminiApiKeyInputAssistant');
+            const keyVal = input && input.value.trim() ? input.value.trim() : (assistantInput ? assistantInput.value.trim() : '');
             if (keyVal) {
                 localStorage.setItem('arcpulse_gemini_api_key', keyVal);
-                showToast('Gemini API Key Saved! 🚀', 'Direct Official Google Gemini AI Model is now ACTIVE!', 'success');
+                if (input) input.value = keyVal;
+                if (assistantInput) assistantInput.value = keyVal;
+                showToast('Gemini API Key Saved! 🚀', 'Direct Official Google Gemini 2.0 / 1.5 AI Model is now ACTIVE!', 'success');
             } else {
                 localStorage.removeItem('arcpulse_gemini_api_key');
-                showToast('Gemini Key Cleared', 'Reverted to free AI fallback mode', 'info');
+                if (input) input.value = '';
+                if (assistantInput) assistantInput.value = '';
+                showToast('Gemini Key Cleared', 'Reverted to free AI mode', 'info');
+            }
+        }
+
+        function saveGeminiApiKeyFromAssistant() {
+            const assistantInput = document.getElementById('geminiApiKeyInputAssistant');
+            const input = document.getElementById('geminiApiKeyInput');
+            const keyVal = assistantInput && assistantInput.value.trim() ? assistantInput.value.trim() : (input ? input.value.trim() : '');
+            if (keyVal) {
+                localStorage.setItem('arcpulse_gemini_api_key', keyVal);
+                if (input) input.value = keyVal;
+                if (assistantInput) assistantInput.value = keyVal;
+                showToast('Gemini API Key Saved! 🚀', 'Direct Official Google Gemini 2.0 / 1.5 AI Model is now ACTIVE!', 'success');
+            } else {
+                saveGeminiApiKey();
             }
         }
 
@@ -1878,8 +1897,15 @@ Timestamp: ${new Date().toISOString()}`;
             if (q.includes("name") || q.includes("naam") || q.includes("who are you") || q.includes("tum kaun ho")) {
                 return "Mera naam **Pro AI** hai! Main Google Gemini technology par built ek super-smart Web3 AI Assistant hu. Main aapke har sawaal ka detailed reply de sakta hu!";
             }
+        // INTELLIGENT CONVERSATIONAL KNOWLEDGE ENGINE (DYNAMIC OFFLINE & HYBRID AI)
+        function generateSmartAiResponse(userMsg) {
+            const q = userMsg.toLowerCase().trim();
+
+            if (q.includes("name") || q.includes("naam") || q.includes("who are you") || q.includes("tum kaun ho")) {
+                return "Mera naam **Pro AI** (Gemini Web3 Engine) hai! Main Google Gemini technology par built ek super-smart Web3 AI Assistant hu. Main aapke har query ka detailed markdown reply de sakta hu!";
+            }
             if (q.includes('kaise ho') || q.includes('kese ho') || q.includes('how are you')) {
-                return "Main ekdum badhiya hu! Main AI hu toh humesha 100% active rehta hu 😄! Aap bataiye aap kaise hain? Aaj main aapki kya help kar sakta hu?";
+                return "Main ekdum badhiya hu! Main AI hu toh 100% active rehta hu 😄! Aap bataiye aap kaise hain? Aaj main aapki Web3 ya Coding me kya madad karu?";
             }
             if (q === 'hi' || q === 'hello' || q === 'hey' || q === 'namaste' || q === 'helo' || q === 'hlo') {
                 return "Hello! Main Pro AI (Gemini Web3 Engine) hu! Aap mujhse Web3, Arc Testnet, Coding, Crypto Prices ya kisi bhi general topic par question pooch sakte hain. Aaj main aapki kya madad karu?";
@@ -1897,22 +1923,24 @@ Timestamp: ${new Date().toISOString()}`;
                 return "Haan bilkul! Mujhe Hindi aur Hinglish dono achhi tarah aati hain. Aap bina kisi hesitation ke Hindi ya Hinglish me kuch bhi pooch sakte hain!";
             }
             if (q.includes("arc") || q.includes("testnet")) {
-                return "Arc L1 Testnet ek high-performance enterprise Layer-1 blockchain hai:\n\n- **Block Time**: ~450ms sub-second finality\n- **Native Gas Token**: USDC\n- **Chain ID**: 5042002\n- **RPC Endpoint**: https://rpc.testnet.arc.io";
+                return "### Arc L1 Testnet Overview\nArc L1 Testnet ek high-performance enterprise Layer-1 blockchain hai:\n\n- **Block Time**: ~450ms sub-second finality\n- **Native Gas Token**: USDC\n- **Chain ID**: 5042002\n- **RPC Endpoint**: https://rpc.testnet.arc.network\n- **Consortium Validators**: Circle, BlackRock, Visa, DTCC, BNY";
             }
             if (q.includes("swap") || q.includes("dex")) {
-                return "ArcPulse DEX par aap USDC ➔ EURC aur EURC ➔ USDC zero-slippage AMM swaps perform kar sakte hain. Sub-second finality aur ultra-low gas fee (~0.001 USDC) milti hai.";
+                return "### ArcPulse DEX AMM Swap\nArcPulse DEX par aap USDC ➔ EURC aur EURC ➔ USDC zero-slippage AMM swaps perform kar sakte hain:\n\n1. **Sub-second Finality**: Swaps complete in < 500ms.\n2. **Ultra-Low Gas Fee**: ~0.001 USDC native gas fee.\n3. **Points Reward**: Har confirmed swap par **+50 Builder PTS** milte hain!";
             }
             if (q.includes("btc") || q.includes("bitcoin")) {
-                return "Bitcoin (BTC) Forecast:\n- Current Price: **~$64,200.00**\n- Trend: **Bullish (+4.2%)**\n- Target: **$66,900.00**";
+                return "### Bitcoin (BTC) Intelligence & Forecast\n- **Current Price**: ~$64,250.00\n- **Market Trend**: Bullish (+4.2% 24h)\n- **Key Support**: $62,000.00\n- **Resistance Target**: $66,900.00\n\n*Analysis*: Institutional inflows and ETF volume remain strong.";
             }
             if (q.includes("eth") || q.includes("ethereum")) {
-                return "Ethereum (ETH) Forecast:\n- Current Price: **~$3,240.50**\n- Trend: **Bullish (+5.8%)**\n- Target: **$3,428.00**";
+                return "### Ethereum (ETH) Intelligence & Forecast\n- **Current Price**: ~$3,240.50\n- **Market Trend**: Bullish (+5.8% 24h)\n- **Key Support**: $3,100.00\n- **Resistance Target**: $3,450.00\n\n*Analysis*: Layer-2 activity and staking queue reaching multi-month highs.";
             }
             if (q.includes("code") || q.includes("solidity") || q.includes("function") || q.includes("contract")) {
-                return "Here is a standard ERC-20 Solidity contract interface snippet:\n\n```solidity\ninterface IERC20 {\n    function balanceOf(address account) external view returns (uint256);\n    function transfer(address recipient, uint256 amount) external returns (bool);\n}\n```";
+                return "### Solidity Smart Contract Example\nHere is a complete ERC-20 token interface snippet:\n\n```solidity\n// SPDX-License-Identifier: MIT\npragma solidity ^0.8.20;\n\ninterface IERC20 {\n    function totalSupply() external view returns (uint256);\n    function balanceOf(address account) external view returns (uint256);\n    function transfer(address recipient, uint256 amount) external returns (bool);\n    function allowance(address owner, address spender) external view returns (uint256);\n    function approve(address spender, uint256 amount) external returns (bool);\n}\n```";
             }
 
-            return `Main aapke question: **"${userMsg}"** ko ache se samajh gaya hu!\n\nMain ek Real Gemini AI Assistant hu. Arc L1 Testnet (Chain ID 5042002), Circle DEX Swap, Smart Contracts, aur live RPC telemetry (https://rpc.testnet.arc.io) completely operational hain!`;
+            // Dynamic Contextual Fallback Response
+            return `### Pro AI Intelligence Response\n\nAapke question: **"${userMsg}"** par detailed analysis:\n\n- **Topic Focus**: Web3 & Intelligent Automated Assistant\n- **Status**: Pro AI Engine Active & Synced with Arc L1 Testnet (Chain ID 5042002)\n- **Recommendation**: Aap apni official **Google Gemini API Key** (from [aistudio.google.com](https://aistudio.google.com/)) Settings me paste karke 100% direct Google Gemini AI responses enable kar sakte hain!`;
+        }
         }
 
         function setTheme(mode) {
@@ -1975,9 +2003,9 @@ Timestamp: ${new Date().toISOString()}`;
                 const userKey = localStorage.getItem('arcpulse_gemini_api_key');
                 const activeKey = userKey && userKey.trim().length > 10 ? userKey.trim() : null;
 
-                // 1. Direct Official Google Gemini API (if user entered custom key)
+                // 1. Official Google Gemini REST API Integration (when Key is provided)
                 if (activeKey) {
-                    const modelsToTry = ['gemini-2.0-flash', 'gemini-1.5-flash'];
+                    const modelsToTry = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
                     for (const modelName of modelsToTry) {
                         if (aiReplyText) break;
                         try {
@@ -1988,8 +2016,9 @@ Timestamp: ${new Date().toISOString()}`;
                                 body: JSON.stringify({
                                     contents: [
                                         {
+                                            role: 'user',
                                             parts: [
-                                                { text: `You are Gemini Web3 AI assistant for Arc L1. Respond helpful, friendly and detailed in user's language with markdown. Question: ${userMsg}` }
+                                                { text: `You are Gemini Web3 AI, an intelligent AI assistant. Provide detailed, helpful answers with markdown formatting, code snippets, and bullet points in the user's language.\n\nUser Question: ${userMsg}` }
                                             ]
                                         }
                                     ]
@@ -2001,7 +2030,7 @@ Timestamp: ${new Date().toISOString()}`;
                             } else if (geminiData?.error) {
                                 console.warn(`Gemini API Model ${modelName} error:`, geminiData.error);
                                 if (modelsToTry.indexOf(modelName) === modelsToTry.length - 1) {
-                                    showToast('Gemini API Alert', `API key note: ${geminiData.error.message || 'Invalid Key'}. Using free AI fallback.`, 'warning');
+                                    showToast('Gemini API Alert ⚠️', `API Key Warning: ${geminiData.error.message || 'Key invalid'}. Using fallback LLM mode.`, 'warning');
                                 }
                             }
                         } catch(geminiErr) {
@@ -2010,59 +2039,27 @@ Timestamp: ${new Date().toISOString()}`;
                     }
                 }
 
-                // 2. Try POST to Pollinations AI LLM API
+                // 2. High-Speed Free LLM GET Fallback (when no Key or Key error)
                 if (!aiReplyText) {
                     try {
                         const controller = new AbortController();
                         const timeoutId = setTimeout(() => controller.abort(), 7000);
-
-                        const response = await fetch('https://text.pollinations.ai/', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                messages: [
-                                    { 
-                                        role: 'system', 
-                                        content: 'You are Gemini Web3 AI, a world-class intelligent AI assistant like Google Gemini. Answer any question in detail with friendly tone, markdown formatting, bullet points, and code blocks when helpful.' 
-                                    },
-                                    { role: 'user', content: userMsg }
-                                ],
-                                seed: Math.floor(Math.random() * 1000000)
-                            }),
-                            signal: controller.signal
-                        });
+                        const freeLlmUrl = `https://text.pollinations.ai/${encodeURIComponent(userMsg)}?model=openai`;
+                        const res = await fetch(freeLlmUrl, { signal: controller.signal });
                         clearTimeout(timeoutId);
 
-                        if (response.ok) {
-                            const raw = await response.text();
-                            if (raw && raw.trim().length > 2) {
-                                aiReplyText = raw.trim();
-                            }
-                        }
-                    } catch(e) {
-                        console.warn("Pollinations POST API error:", e);
-                    }
-                }
-
-                // 3. Try GET direct endpoint fallback
-                if (!aiReplyText) {
-                    try {
-                        const controller = new AbortController();
-                        const timeoutId = setTimeout(() => controller.abort(), 5000);
-                        const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(userMsg)}`, {
-                            signal: controller.signal
-                        });
-                        clearTimeout(timeoutId);
                         if (res.ok) {
                             const txt = await res.text();
-                            if (txt && txt.trim().length > 2) {
+                            if (txt && txt.trim().length > 10 && !txt.includes('"error":')) {
                                 aiReplyText = txt.trim();
                             }
                         }
-                    } catch(e) {}
+                    } catch(e) {
+                        console.warn("Free LLM fetch error:", e);
+                    }
                 }
 
-                // 4. Smart Conversational Fallback
+                // 3. Dynamic Knowledge Engine Fallback
                 if (!aiReplyText) {
                     aiReplyText = generateSmartAiResponse(userMsg);
                 }
@@ -2216,11 +2213,13 @@ Timestamp: ${new Date().toISOString()}`;
                 if (typeof startMainnetCountdown === 'function') {
                     startMainnetCountdown();
                 }
-                // Restore saved Gemini API Key into UI input on startup
+                // Restore saved Gemini API Key into UI inputs on startup
                 const savedGeminiKey = localStorage.getItem('arcpulse_gemini_api_key');
                 const apiKeyInput = document.getElementById('geminiApiKeyInput');
-                if (apiKeyInput && savedGeminiKey) {
-                    apiKeyInput.value = savedGeminiKey;
+                const apiKeyInputAssistant = document.getElementById('geminiApiKeyInputAssistant');
+                if (savedGeminiKey) {
+                    if (apiKeyInput) apiKeyInput.value = savedGeminiKey;
+                    if (apiKeyInputAssistant) apiKeyInputAssistant.value = savedGeminiKey;
                 }
 
                 loadQuestState();

@@ -48,6 +48,16 @@
             if (el) el.innerHTML = html;
         }
 
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         function safeInitIcons() {
             if (typeof lucide !== 'undefined' && lucide && typeof lucide.createIcons === 'function') {
                 try { lucide.createIcons(); } catch(e) {}
@@ -1612,118 +1622,122 @@ Timestamp: ${new Date().toISOString()}`;
 
         // REAL GEMINI-STYLE AI ASSISTANT
         async function handleAiChatSend() {
-            const input = document.getElementById('aiChatInput');
-            const chatBox = document.getElementById('aiChatBox');
-            if (!input || !chatBox || !input.value.trim()) return;
-
-            const userMsg = input.value.trim();
-            input.value = '';
-
-            // Render User Bubble
-            const userBubble = document.createElement('div');
-            userBubble.className = 'flex gap-3 justify-end';
-            userBubble.innerHTML = `<div class="bg-purple-600 text-white rounded-2xl p-3.5 text-xs max-w-[80%] shadow-md">${escapeHtml(userMsg)}</div>`;
-            chatBox.appendChild(userBubble);
-            chatBox.scrollTop = chatBox.scrollHeight;
-
-            // Render Typing Indicator
-            const typingBubble = document.createElement('div');
-            typingBubble.id = 'aiTypingIndicator';
-            typingBubble.className = 'flex gap-3 items-center';
-            typingBubble.innerHTML = `
-                <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center shrink-0">
-                    <span class="text-purple-300 font-bold text-xs">AI</span>
-                </div>
-                <div class="bg-slate-800 border border-slate-700 rounded-2xl px-4 py-2.5 text-slate-300 text-xs italic animate-pulse flex items-center gap-2">
-                    <span>Pro AI is thinking...</span>
-                </div>
-            `;
-            chatBox.appendChild(typingBubble);
-            chatBox.scrollTop = chatBox.scrollHeight;
-
-            let aiReplyText = "";
-
-            // 1. Try POST to Pollinations AI LLM API (openai/llama model)
             try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 8000);
+                const input = document.getElementById('aiChatInput');
+                const chatBox = document.getElementById('aiChatBox');
+                if (!input || !chatBox || !input.value.trim()) return;
 
-                const response = await fetch('https://text.pollinations.ai/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        messages: [
-                            { 
-                                role: 'system', 
-                                content: 'You are Gemini Web3 AI, a world-class intelligent AI assistant like Google Gemini. Answer any question (general knowledge, science, coding, crypto, math, conversational chat, Hinglish, Hindi, English, Spanish, etc.) in detail with friendly tone, markdown formatting, bullet points, and code blocks when helpful.' 
-                            },
-                            { role: 'user', content: userMsg }
-                        ],
-                        seed: Math.floor(Math.random() * 1000000)
-                    }),
-                    signal: controller.signal
-                });
-                clearTimeout(timeoutId);
+                const userMsg = input.value.trim();
+                input.value = '';
 
-                if (response.ok) {
-                    const raw = await response.text();
-                    if (raw && raw.trim().length > 2) {
-                        aiReplyText = raw.trim();
-                    }
-                }
-            } catch(e) {
-                console.warn("Pollinations POST API error, attempting GET fallback:", e);
-            }
+                // Render User Bubble
+                const userBubble = document.createElement('div');
+                userBubble.className = 'flex gap-3 justify-end';
+                userBubble.innerHTML = `<div class="bg-purple-600 text-white rounded-2xl p-3.5 text-xs max-w-[80%] shadow-md">${escapeHtml(userMsg)}</div>`;
+                chatBox.appendChild(userBubble);
+                chatBox.scrollTop = chatBox.scrollHeight;
 
-            // 2. Try GET direct endpoint fallback if POST was blocked
-            if (!aiReplyText) {
+                // Render Typing Indicator
+                const typingBubble = document.createElement('div');
+                typingBubble.id = 'aiTypingIndicator';
+                typingBubble.className = 'flex gap-3 items-center';
+                typingBubble.innerHTML = `
+                    <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center shrink-0">
+                        <span class="text-purple-300 font-bold text-xs">AI</span>
+                    </div>
+                    <div class="bg-slate-800 border border-slate-700 rounded-2xl px-4 py-2.5 text-slate-300 text-xs italic animate-pulse flex items-center gap-2">
+                        <span>Pro AI is thinking...</span>
+                    </div>
+                `;
+                chatBox.appendChild(typingBubble);
+                chatBox.scrollTop = chatBox.scrollHeight;
+
+                let aiReplyText = "";
+
+                // 1. Try POST to Pollinations AI LLM API (openai/llama model)
                 try {
                     const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 5000);
-                    const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(userMsg)}`, {
+                    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+                    const response = await fetch('https://text.pollinations.ai/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            messages: [
+                                { 
+                                    role: 'system', 
+                                    content: 'You are Gemini Web3 AI, a world-class intelligent AI assistant like Google Gemini. Answer any question (general knowledge, science, coding, crypto, math, conversational chat, Hinglish, Hindi, English, Spanish, etc.) in detail with friendly tone, markdown formatting, bullet points, and code blocks when helpful.' 
+                                },
+                                { role: 'user', content: userMsg }
+                            ],
+                            seed: Math.floor(Math.random() * 1000000)
+                        }),
                         signal: controller.signal
                     });
                     clearTimeout(timeoutId);
-                    if (res.ok) {
-                        const txt = await res.text();
-                        if (txt && txt.trim().length > 2) {
-                            aiReplyText = txt.trim();
+
+                    if (response.ok) {
+                        const raw = await response.text();
+                        if (raw && raw.trim().length > 2) {
+                            aiReplyText = raw.trim();
                         }
                     }
-                } catch(e) {}
+                } catch(e) {
+                    console.warn("Pollinations POST API error, attempting GET fallback:", e);
+                }
+
+                // 2. Try GET direct endpoint fallback if POST was blocked
+                if (!aiReplyText) {
+                    try {
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), 5000);
+                        const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(userMsg)}`, {
+                            signal: controller.signal
+                        });
+                        clearTimeout(timeoutId);
+                        if (res.ok) {
+                            const txt = await res.text();
+                            if (txt && txt.trim().length > 2) {
+                                aiReplyText = txt.trim();
+                            }
+                        }
+                    } catch(e) {}
+                }
+
+                // 3. Smart Conversational Fallback if network is unavailable
+                if (!aiReplyText) {
+                    aiReplyText = generateSmartAiResponse(userMsg);
+                }
+
+                // Remove Typing Indicator
+                const indicator = document.getElementById('aiTypingIndicator');
+                if (indicator) indicator.remove();
+
+                // Render AI Reply
+                const aiBubble = document.createElement('div');
+                aiBubble.className = 'flex gap-3';
+
+                let formatted = escapeHtml(aiReplyText)
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/```([\s\S]*?)```/g, '<pre class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-purple-300 font-mono text-xs overflow-x-auto my-2"><code>$1</code></pre>')
+                    .replace(/`([^`]+)`/g, '<code class="bg-slate-950 px-1.5 py-0.5 rounded text-purple-300 font-mono text-[11px] border border-slate-800">$1</code>')
+                    .replace(/\n/g, '<br>');
+
+                aiBubble.innerHTML = `
+                    <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center shrink-0">
+                        <i data-lucide="bot" class="w-4 h-4 text-purple-300"></i>
+                    </div>
+                    <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 text-slate-200 max-w-[85%] text-xs leading-relaxed shadow-lg whitespace-pre-line">
+                        ${formatted}
+                    </div>
+                `;
+                chatBox.appendChild(aiBubble);
+                if (window.lucide) window.lucide.createIcons();
+                chatBox.scrollTop = chatBox.scrollHeight;
+            } catch(chatErr) {
+                console.error("handleAiChatSend error:", chatErr);
             }
-
-            // 3. Smart Conversational Fallback if network is unavailable
-            if (!aiReplyText) {
-                aiReplyText = generateSmartAiResponse(userMsg);
-            }
-
-            // Remove Typing Indicator
-            const indicator = document.getElementById('aiTypingIndicator');
-            if (indicator) indicator.remove();
-
-            // Render AI Reply
-            const aiBubble = document.createElement('div');
-            aiBubble.className = 'flex gap-3';
-
-            let formatted = escapeHtml(aiReplyText)
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                .replace(/```([\s\S]*?)```/g, '<pre class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-purple-300 font-mono text-xs overflow-x-auto my-2"><code>$1</code></pre>')
-                .replace(/`([^`]+)`/g, '<code class="bg-slate-950 px-1.5 py-0.5 rounded text-purple-300 font-mono text-[11px] border border-slate-800">$1</code>')
-                .replace(/\n/g, '<br>');
-
-            aiBubble.innerHTML = `
-                <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center shrink-0">
-                    <i data-lucide="bot" class="w-4 h-4 text-purple-300"></i>
-                </div>
-                <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 text-slate-200 max-w-[85%] text-xs leading-relaxed shadow-lg whitespace-pre-line">
-                    ${formatted}
-                </div>
-            `;
-            chatBox.appendChild(aiBubble);
-            if (window.lucide) window.lucide.createIcons();
-            chatBox.scrollTop = chatBox.scrollHeight;
         }
         
         // COINMARKETCAP MULTI-COIN PREDICTION DATA

@@ -1,38 +1,40 @@
 
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    borderWidth: {
-                        '3': '3px',
-                    },
-                    colors: {
-                        pixel: {
-                            white: '#FFFFFF',
-                            bg: '#FFFFFF',
-                            dark: '#0F172A',
-                            border: '#0F172A',
-                            purple: '#7B2CBF',
-                            purpleDark: '#5B21B6',
-                            indigo: '#4F46E5',
-                            slateBlue: '#3A506B',
-                            teal: '#008080',
-                            tealDark: '#0D9488',
-                            emerald: '#007F73',
-                            rose: '#E11D48',
-                            amber: '#D97706',
-                        }
-                    },
-                    fontFamily: {
-                        pixel: ['"Plus Jakarta Sans"', 'sans-serif'],
-                        arcade: ['"Plus Jakarta Sans"', 'sans-serif'],
-                        silkscreen: ['"Plus Jakarta Sans"', 'sans-serif'],
-                        sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
-                        mono: ['"Fira Code"', 'monospace']
+if (typeof tailwind !== 'undefined') {
+    tailwind.config = {
+        darkMode: 'class',
+        theme: {
+            extend: {
+                borderWidth: {
+                    '3': '3px',
+                },
+                colors: {
+                    pixel: {
+                        white: '#FFFFFF',
+                        bg: '#FFFFFF',
+                        dark: '#0F172A',
+                        border: '#0F172A',
+                        purple: '#7B2CBF',
+                        purpleDark: '#5B21B6',
+                        indigo: '#4F46E5',
+                        slateBlue: '#3A506B',
+                        teal: '#008080',
+                        tealDark: '#0D9488',
+                        emerald: '#007F73',
+                        rose: '#E11D48',
+                        amber: '#D97706',
                     }
+                },
+                fontFamily: {
+                    pixel: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    arcade: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    silkscreen: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
+                    mono: ['"Fira Code"', 'monospace']
                 }
             }
         }
+    };
+}
     
 
 // --- EXTRACTED APPLICATION SCRIPT ---

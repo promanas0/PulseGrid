@@ -770,6 +770,9 @@ Timestamp: ${new Date().toISOString()}`;
                 // Update UI Balances cleanly from RPC
                 await fetchBalances();
 
+                const ratio = payToken.usdRate / receiveToken.usdRate;
+                const receiveAmt = amt * ratio;
+
                 const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 saveTxRecord(currentAccount, {
                     txHash: txHash,

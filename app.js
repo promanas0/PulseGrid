@@ -1555,24 +1555,38 @@ Timestamp: ${new Date().toISOString()}`;
                 });
             }
 
-            const sel = document.getElementById('languageSelector');
-            if (sel) sel.value = lang;
-
-            showToast('Language Switched', `Interface language updated to ${lang.toUpperCase()}`, 'success');
+        function saveGeminiApiKey() {
+            const input = document.getElementById('geminiApiKeyInput');
+            if (input && input.value.trim()) {
+                localStorage.setItem('arcpulse_gemini_api_key', input.value.trim());
+                showToast('Gemini API Key Saved! 🚀', 'Direct Official Google Gemini AI Model is now ACTIVE!', 'success');
+            } else {
+                localStorage.removeItem('arcpulse_gemini_api_key');
+                showToast('Gemini Key Cleared', 'Reverted to default AI model', 'info');
+            }
         }
 
         // INTELLIGENT CONVERSATIONAL AI KNOWLEDGE ENGINE
         function generateSmartAiResponse(userMsg) {
             const q = userMsg.toLowerCase().trim();
 
-            if (q === 'hi' || q === 'hello' || q === 'hey' || q === 'namaste' || q === 'helo' || q === 'hlo') {
-                return "Hello! Main Pro AI (Gemini Web3 Engine) hu! Main aapki har cheez me help kar sakta hu—jaise Web3, Arc Testnet, Coding, Crypto Prices ya koi bhi general topic. Aaj aap kya poochhna chahte hain?";
+            if (q.includes("name") || q.includes("naam") || q.includes("who are you") || q.includes("tum kaun ho")) {
+                return "Mera naam **Pro AI** hai! Main Google Gemini technology par built ek super-smart Web3 AI Assistant hu. Main aapke har sawaal ka detailed reply de sakta hu!";
             }
             if (q.includes('kaise ho') || q.includes('kese ho') || q.includes('how are you')) {
                 return "Main ekdum badhiya hu! Main AI hu toh humesha 100% active rehta hu 😄! Aap bataiye aap kaise hain? Aaj main aapki kya help kar sakta hu?";
             }
-            if (q.includes('kaun ho') || q.includes('who are you') || q.includes('tum kaun ho')) {
-                return "Main **Pro AI** hu, Google Gemini tech par built ek super-smart AI Assistant! Main kisi bhi language me aapke sawalon ka answer de sakta hu.";
+            if (q === 'hi' || q === 'hello' || q === 'hey' || q === 'namaste' || q === 'helo' || q === 'hlo') {
+                return "Hello! Main Pro AI (Gemini Web3 Engine) hu! Aap mujhse Web3, Arc Testnet, Coding, Crypto Prices ya kisi bhi general topic par question pooch sakte hain. Aaj main aapki kya madad karu?";
+            }
+            if (q.includes("kya haal hai") || q.includes("whats up") || q.includes("kya chal raha hai")) {
+                return "Sab ekdum badhiya chal raha hai! Aap bataiye aaj kya naya explore karna chahte hain?";
+            }
+            if (q.includes("kya kar sakte ho") || q.includes("what can you do") || q.includes("help")) {
+                return "Main aapke liye bohot saare kaam kar sakta hu:\n\n1. **Web3 & DEX**: Arc Testnet swaps, gas fees, aur wallet setup samjha sakta hu.\n2. **Coding**: Solidity, JavaScript, Python code write aur debug kar sakta hu.\n3. **Crypto Intelligence**: Bitcoin, Ethereum, Solana market predictions de sakta hu.\n4. **General Chat**: General knowledge, math, science, aur natural bhasha me aapse baatcheet kar sakta hu!";
+            }
+            if (q.includes("joke") || q.includes("chutkula") || q.includes("hanso")) {
+                return "Haha, ek mazaedar developer joke suniye:\n\n*Ek programmer ne dukan wale se kaha: '1 dozen ande le aao, aur agar seb milein toh 6 le aana.' Programmer 6 dozen ande le kar ghar aaya! Wife ne pucha: 'Itne ande kyu laye?' Programmer: 'Kyunki seb mil gaye the!'* 😂";
             }
             if (/\b(hindi|hinglish)\b/i.test(q) || q.includes("hindi aati hai")) {
                 return "Haan bilkul! Mujhe Hindi aur Hinglish dono achhi tarah aati hain. Aap bina kisi hesitation ke Hindi ya Hinglish me kuch bhi pooch sakte hain!";
@@ -1593,7 +1607,7 @@ Timestamp: ${new Date().toISOString()}`;
                 return "Here is a standard ERC-20 Solidity contract interface snippet:\n\n```solidity\ninterface IERC20 {\n    function balanceOf(address account) external view returns (uint256);\n    function transfer(address recipient, uint256 amount) external returns (bool);\n}\n```";
             }
 
-            return `Main aapke question: **"${userMsg}"** ko ache se samajh gaya hu!\n\nMain ek Real Gemini AI Assistant ki tarah training mode me hu. Arc L1 Testnet (Chain ID 5042002), Circle DEX Swap, Smart Contracts, aur live RPC telemetry (https://rpc.testnet.arc.io) completely operational hain!`;
+            return `Main aapke question: **"${userMsg}"** ko ache se samajh gaya hu!\n\nMain ek Real Gemini AI Assistant hu. Aap Settings me apni free Google Gemini API Key add kar ke direct Gemini AI responses enable kar sakte hain, ya mujhse koi bhi Web3 / Coding / General question pooch sakte hain!`;
         }
 
         function setTheme(mode) {
@@ -1653,40 +1667,69 @@ Timestamp: ${new Date().toISOString()}`;
                 chatBox.scrollTop = chatBox.scrollHeight;
 
                 let aiReplyText = "";
+                const storedGeminiKey = localStorage.getItem('arcpulse_gemini_api_key') || "";
 
-                // 1. Try POST to Pollinations AI LLM API (openai/llama model)
-                try {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-                    const response = await fetch('https://text.pollinations.ai/', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            messages: [
-                                { 
-                                    role: 'system', 
-                                    content: 'You are Gemini Web3 AI, a world-class intelligent AI assistant like Google Gemini. Answer any question (general knowledge, science, coding, crypto, math, conversational chat, Hinglish, Hindi, English, Spanish, etc.) in detail with friendly tone, markdown formatting, bullet points, and code blocks when helpful.' 
-                                },
-                                { role: 'user', content: userMsg }
-                            ],
-                            seed: Math.floor(Math.random() * 1000000)
-                        }),
-                        signal: controller.signal
-                    });
-                    clearTimeout(timeoutId);
-
-                    if (response.ok) {
-                        const raw = await response.text();
-                        if (raw && raw.trim().length > 2) {
-                            aiReplyText = raw.trim();
+                // 1. Direct Official Google Gemini API (if user set API Key)
+                if (storedGeminiKey) {
+                    try {
+                        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${storedGeminiKey}`;
+                        const geminiRes = await fetch(geminiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                contents: [
+                                    {
+                                        parts: [
+                                            { text: `You are Gemini Web3 AI assistant. Respond helpful and detailed in user's language. Question: ${userMsg}` }
+                                        ]
+                                    }
+                                ]
+                            })
+                        });
+                        const geminiData = await geminiRes.json();
+                        if (geminiData?.candidates?.[0]?.content?.parts?.[0]?.text) {
+                            aiReplyText = geminiData.candidates[0].content.parts[0].text;
                         }
+                    } catch(geminiErr) {
+                        console.warn("Direct Gemini API error:", geminiErr);
                     }
-                } catch(e) {
-                    console.warn("Pollinations POST API error, attempting GET fallback:", e);
                 }
 
-                // 2. Try GET direct endpoint fallback if POST was blocked
+                // 2. Try POST to Pollinations AI LLM API
+                if (!aiReplyText) {
+                    try {
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), 7000);
+
+                        const response = await fetch('https://text.pollinations.ai/', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                messages: [
+                                    { 
+                                        role: 'system', 
+                                        content: 'You are Gemini Web3 AI, a world-class intelligent AI assistant like Google Gemini. Answer any question in detail with friendly tone, markdown formatting, bullet points, and code blocks when helpful.' 
+                                    },
+                                    { role: 'user', content: userMsg }
+                                ],
+                                seed: Math.floor(Math.random() * 1000000)
+                            }),
+                            signal: controller.signal
+                        });
+                        clearTimeout(timeoutId);
+
+                        if (response.ok) {
+                            const raw = await response.text();
+                            if (raw && raw.trim().length > 2) {
+                                aiReplyText = raw.trim();
+                            }
+                        }
+                    } catch(e) {
+                        console.warn("Pollinations POST API error:", e);
+                    }
+                }
+
+                // 3. Try GET direct endpoint fallback
                 if (!aiReplyText) {
                     try {
                         const controller = new AbortController();
@@ -1704,7 +1747,7 @@ Timestamp: ${new Date().toISOString()}`;
                     } catch(e) {}
                 }
 
-                // 3. Smart Conversational Fallback if network is unavailable
+                // 4. Smart Conversational Fallback
                 if (!aiReplyText) {
                     aiReplyText = generateSmartAiResponse(userMsg);
                 }

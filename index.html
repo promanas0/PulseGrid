@@ -1426,6 +1426,26 @@
                         </select>
                     </div>
                 </div>
+
+                <!-- Google Gemini AI Configuration -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-lg">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300">Google Gemini AI Engine Integration</h3>
+                        <span class="px-2.5 py-0.5 rounded-full bg-purple-600/20 text-purple-300 border border-purple-500/40 text-[10px] font-bold">100% FREE API KEY</span>
+                    </div>
+                    <div class="space-y-3 text-xs">
+                        <p class="text-slate-400 leading-relaxed">
+                            Connect your official <strong>Google Gemini API Key</strong> for 100% direct AI responses just like Gemini Web AI! Get your free key instantly without credit card at 
+                            <a href="https://aistudio.google.com/" target="_blank" class="text-purple-400 font-bold hover:underline">Google AI Studio (aistudio.google.com)</a>.
+                        </p>
+                        <div class="flex flex-col sm:flex-row items-center gap-2">
+                            <input id="geminiApiKeyInput" type="password" placeholder="Paste your Gemini API Key (e.g. AIzaSy...)" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white font-mono focus:outline-none focus:border-purple-500 text-xs">
+                            <button onclick="saveGeminiApiKey()" class="w-full sm:w-auto px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl transition-all shrink-0">
+                                Save Key
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
     

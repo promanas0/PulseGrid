@@ -1104,53 +1104,82 @@ Timestamp: ${new Date().toISOString()}`;
             setInterval(update, 1000);
         }
 
-        let currentLiveBlock = 56258045;
-
-        function startLiveTelemetryTicker() {
-            setInterval(() => {
-                currentLiveBlock += 1;
-                safeSetText('statBlockHeight', `#${currentLiveBlock.toLocaleString()}`);
-            }, 1200);
-
-            setInterval(() => {
-                const liveTps = 1420 + Math.floor(Math.random() * 90);
-                safeSetText('statTps', `${liveTps.toLocaleString()} TPS`);
-            }, 2500);
-
-            fetchRealRpcBlock();
-            setInterval(fetchRealRpcBlock, 6000);
-        }
+        let currentLiveBlock = 0;
+        let lastRpcLatencyMs = 0;
+        let lastGasGwei = "0.001";
 
         async function fetchRealRpcBlock() {
+            const startMs = performance.now();
+            let targetRpc = (typeof ARC_RPC_URL !== 'undefined') ? ARC_RPC_URL : 'https://rpc.testnet.arc.io';
+            let targetRpcAlt = (typeof ARC_RPC_URL_ALT !== 'undefined') ? ARC_RPC_URL_ALT : 'https://rpc.testnet.arc.network';
+            
             try {
-                const response = await fetch(ARC_RPC_URL, {
+                let res = await fetch(targetRpc, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_blockNumber', params: [], id: 1 })
-                });
-                const data = await response.json();
-                if (data && data.result) {
-                    const realHeight = parseInt(data.result, 16);
-                    if (realHeight > 0) {
-                        currentLiveBlock = realHeight;
-                        safeSetText('statBlockHeight', `#${currentLiveBlock.toLocaleString()}`);
+                }).catch(() => null);
+
+                if (!res || !res.ok) {
+                    targetRpc = targetRpcAlt;
+                    res = await fetch(targetRpc, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_blockNumber', params: [], id: 1 })
+                    }).catch(() => null);
+                }
+
+                const endMs = performance.now();
+                if (endMs > startMs) {
+                    lastRpcLatencyMs = Math.round(endMs - startMs);
+                }
+
+                if (res && res.ok) {
+                    const data = await res.json();
+                    if (data && data.result) {
+                        const realHeight = parseInt(data.result, 16);
+                        if (realHeight > 0) {
+                            currentLiveBlock = realHeight;
+                            safeSetText('statBlockHeight', `#${currentLiveBlock.toLocaleString()}`);
+                        }
                     }
                 }
-            } catch(e) {}
+
+                // Fetch Real Gas Price
+                const gasRes = await fetch(targetRpc, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_gasPrice', params: [], id: 2 })
+                }).catch(() => null);
+
+                if (gasRes && gasRes.ok) {
+                    const gasData = await gasRes.json();
+                    if (gasData && gasData.result) {
+                        const gasWei = parseInt(gasData.result, 16);
+                        if (gasWei > 0) {
+                            lastGasGwei = (gasWei / 1e9).toFixed(3);
+                            safeSetText('statGasFeeText', `${lastGasGwei} Gwei (~0.001 USDC)`);
+                        }
+                    }
+                }
+            } catch(e) {
+                console.warn("Live RPC Telemetry error:", e);
+            }
         }
 
-        function refreshTelemetry() {
+        function startLiveTelemetryTicker() {
+            fetchRealRpcBlock();
+            setInterval(fetchRealRpcBlock, 3000);
+        }
+
+        async function refreshTelemetry() {
             const icon = document.getElementById('refreshIcon');
             if (icon) icon.classList.add('animate-spin');
 
-            fetchRealRpcBlock();
-            setTimeout(() => {
-                safeSetText('statBlockHeight', `#${currentLiveBlock.toLocaleString()}`);
-                const liveTps = 1420 + Math.floor(Math.random() * 90);
-                safeSetText('statTps', `${liveTps.toLocaleString()} TPS`);
-                if (icon) icon.classList.remove('animate-spin');
-                showToast('Telemetry Updated', 'Fetched latest live block telemetry on Arc L1', 'info');
-            }, 600);
+            await fetchRealRpcBlock();
+            
+            if (icon) icon.classList.remove('animate-spin');
+            showToast('Telemetry Updated', `Live Arc L1 Block #${currentLiveBlock.toLocaleString()} fetched (${lastRpcLatencyMs}ms RPC latency)`, 'info');
         }
 
         function openFaucetModal() {
@@ -1554,16 +1583,15 @@ Timestamp: ${new Date().toISOString()}`;
             if (sel) sel.value = lang;
         }
 
-        const DEFAULT_GEMINI_KEY = ['AQ.Ab8RN6KKuJP-0vvEWNR9W1', '-QO_ARxjBgON-ZleuFZqFXkOqj8A'].join('');
-
         function saveGeminiApiKey() {
             const input = document.getElementById('geminiApiKeyInput');
-            if (input && input.value.trim()) {
-                localStorage.setItem('arcpulse_gemini_api_key', input.value.trim());
+            const keyVal = input ? input.value.trim() : '';
+            if (keyVal) {
+                localStorage.setItem('arcpulse_gemini_api_key', keyVal);
                 showToast('Gemini API Key Saved! 🚀', 'Direct Official Google Gemini AI Model is now ACTIVE!', 'success');
             } else {
                 localStorage.removeItem('arcpulse_gemini_api_key');
-                showToast('Gemini Key Cleared', 'Reverted to default AI model key', 'info');
+                showToast('Gemini Key Cleared', 'Reverted to free AI fallback mode', 'info');
             }
         }
 
@@ -1599,13 +1627,10 @@ Timestamp: ${new Date().toISOString()}`;
             setInterval(updateTimer, 1000);
         }
 
-        // LIVE BLOCK HEIGHT & NETWORK TELEMETRY TIMER (~450ms block time)
-        let currentBlockNumber = 56258045;
+        // LIVE BLOCK HEIGHT & NETWORK TELEMETRY TIMER
         function startLiveTelemetryTimer() {
-            setInterval(() => {
-                currentBlockNumber += 1;
-                safeSetText('statBlockHeight', `#${currentBlockNumber.toLocaleString()}`);
-            }, 450);
+            fetchRealRpcBlock();
+            setInterval(fetchRealRpcBlock, 3000);
         }
 
         // INTELLIGENT CONVERSATIONAL AI KNOWLEDGE ENGINE
@@ -1709,31 +1734,41 @@ Timestamp: ${new Date().toISOString()}`;
                 chatBox.scrollTop = chatBox.scrollHeight;
 
                 let aiReplyText = "";
-                const activeKey = localStorage.getItem('arcpulse_gemini_api_key') || DEFAULT_GEMINI_KEY;
+                const userKey = localStorage.getItem('arcpulse_gemini_api_key');
+                const activeKey = userKey && userKey.trim().length > 10 ? userKey.trim() : null;
 
-                // 1. Direct Official Google Gemini API (using active key)
+                // 1. Direct Official Google Gemini API (if user entered custom key)
                 if (activeKey) {
-                    try {
-                        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeKey}`;
-                        const geminiRes = await fetch(geminiUrl, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                contents: [
-                                    {
-                                        parts: [
-                                            { text: `You are Gemini Web3 AI assistant. Respond helpful, friendly and detailed in user's language. Question: ${userMsg}` }
-                                        ]
-                                    }
-                                ]
-                            })
-                        });
-                        const geminiData = await geminiRes.json();
-                        if (geminiData?.candidates?.[0]?.content?.parts?.[0]?.text) {
-                            aiReplyText = geminiData.candidates[0].content.parts[0].text;
+                    const modelsToTry = ['gemini-2.0-flash', 'gemini-1.5-flash'];
+                    for (const modelName of modelsToTry) {
+                        if (aiReplyText) break;
+                        try {
+                            const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${activeKey}`;
+                            const geminiRes = await fetch(geminiUrl, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    contents: [
+                                        {
+                                            parts: [
+                                                { text: `You are Gemini Web3 AI assistant for Arc L1. Respond helpful, friendly and detailed in user's language with markdown. Question: ${userMsg}` }
+                                            ]
+                                        }
+                                    ]
+                                })
+                            });
+                            const geminiData = await geminiRes.json();
+                            if (geminiRes.ok && geminiData?.candidates?.[0]?.content?.parts?.[0]?.text) {
+                                aiReplyText = geminiData.candidates[0].content.parts[0].text;
+                            } else if (geminiData?.error) {
+                                console.warn(`Gemini API Model ${modelName} error:`, geminiData.error);
+                                if (modelsToTry.indexOf(modelName) === modelsToTry.length - 1) {
+                                    showToast('Gemini API Alert', `API key note: ${geminiData.error.message || 'Invalid Key'}. Using free AI fallback.`, 'warning');
+                                }
+                            }
+                        } catch(geminiErr) {
+                            console.warn(`Direct Gemini API ${modelName} error:`, geminiErr);
                         }
-                    } catch(geminiErr) {
-                        console.warn("Direct Gemini API error:", geminiErr);
                     }
                 }
 
@@ -1943,6 +1978,13 @@ Timestamp: ${new Date().toISOString()}`;
                 if (typeof startMainnetCountdown === 'function') {
                     startMainnetCountdown();
                 }
+                // Restore saved Gemini API Key into UI input on startup
+                const savedGeminiKey = localStorage.getItem('arcpulse_gemini_api_key');
+                const apiKeyInput = document.getElementById('geminiApiKeyInput');
+                if (apiKeyInput && savedGeminiKey) {
+                    apiKeyInput.value = savedGeminiKey;
+                }
+
                 if (typeof startLiveTelemetryTimer === 'function') {
                     startLiveTelemetryTimer();
                 }

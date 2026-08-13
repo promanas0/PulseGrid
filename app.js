@@ -96,7 +96,7 @@
         // EXACT CIRCLE SDK DEX RATE: 1 USDC = 0.882639 EURC (usdRate: USDC 1.00, EURC 1.13296)
         // INITIAL BALANCES ARE ZERO (0.00) BY DEFAULT - NO FAKE BALANCES
         const TOKENS = [
-            { id: 0, symbol: 'USDC', name: 'USD Coin (Native Gas)', balance: 0.00, usdRate: 1.000000, icon: '$', bg: 'bg-blue-600', address: '0x3600000000000000000000000000000000000000', decimals: 18, isComingSoon: false },
+            { id: 0, symbol: 'USDC', name: 'USD Coin (ERC-20)', balance: 0.00, usdRate: 1.000000, icon: '$', bg: 'bg-blue-600', address: '0x3600000000000000000000000000000000000000', decimals: 6, isComingSoon: false },
             { id: 1, symbol: 'EURC', name: 'Euro Stablecoin', balance: 0.00, usdRate: 1.132960, icon: '€', bg: 'bg-amber-500', address: '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a', decimals: 6, isComingSoon: false },
             { id: 2, symbol: 'eBTC', name: 'Arc Wrapped Bitcoin', balance: 0.00, usdRate: 62500.00, icon: '', bg: 'bg-orange-500', address: '0x054f15d7f21226065582f7c00e12d46e2730bf18', decimals: 18, isComingSoon: true }
         ];
@@ -683,8 +683,8 @@ Timestamp: ${new Date().toISOString()}`;
                 const web3Provider = new ethers.providers.Web3Provider(provider);
                 const signer = web3Provider.getSigner();
 
-                const tokenAddress = payToken.address || (payToken.symbol === 'USDC' ? ERC20_USDC_ADDRESS : ERC20_EURC_ADDRESS);
-                const tokenDecimals = payToken.decimals || 6;
+                const tokenAddress = (payToken.symbol === 'USDC') ? ERC20_USDC_ADDRESS : ERC20_EURC_ADDRESS;
+                const tokenDecimals = 6; // ERC-20 USDC & EURC both use 6 decimals on Arc Testnet
                 const amountInUnits = ethers.utils.parseUnits(amt.toString(), tokenDecimals);
 
                 const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
@@ -703,7 +703,7 @@ Timestamp: ${new Date().toISOString()}`;
                 if (allowance.lt(amountInUnits)) {
                     showToast('Step 1/2: Approve Spender', `Please approve Spender Router (${SPENDER_ROUTER_ADDRESS.substring(0, 6)}...${SPENDER_ROUTER_ADDRESS.slice(-4)}) in MetaMask...`, 'info');
                     
-                    const approveTx = await tokenContract.approve(SPENDER_ROUTER_ADDRESS, ethers.constants.MaxUint256);
+                    const approveTx = await tokenContract.approve(SPENDER_ROUTER_ADDRESS, amountInUnits);
                     showToast('Approval Broadcasted', `Tx: ${approveTx.hash.substring(0, 10)}... Waiting for block confirmation`, 'info');
                     await approveTx.wait();
                     showToast('Spender Approved! 🚀', 'Step 1 complete! Now confirm the Swap in MetaMask (Step 2/2)...', 'success');

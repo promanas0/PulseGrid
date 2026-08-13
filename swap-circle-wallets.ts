@@ -6,7 +6,7 @@ import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
 /**
  * Circle AppKit Swap using Circle Wallets Adapter with explicit SwapParams typing
  * USDC -> EURC on Arc Testnet (Chain ID 5042002)
- * ArcPulse Ecosystem.
+ * Built for ArcPulse Ecosystem by ProManas
  */
 
 async function main() {
@@ -25,7 +25,7 @@ async function main() {
   console.log("🚀 Initiating Circle AppKit Swap with Circle Wallets Adapter on Arc Testnet...");
   console.log(`📌 Chain: ${ArcTestnet.name || 'Arc Testnet'} (Chain ID: ${ArcTestnet.chainId || 5042002})`);
   console.log(`📌 Wallet Address: ${sourceWalletAddress}`);
-  console.log("📌 Route: 1.00 USDC -> EURC");
+  console.log("📌 Route: 7 EURC -> USDC");
 
   const kit = new AppKit();
   const adapter = createCircleWalletsAdapter({
@@ -39,12 +39,12 @@ async function main() {
       chain: ArcTestnet,
       address: sourceWalletAddress,
     },
-    tokenIn: "USDC",
-    tokenOut: "EURC",
-    amountIn: "1.00",
+    tokenIn: "EURC",   // EURC -> USDC swap
+    tokenOut: "USDC",
+    amountIn: "7",     // string amount
     config: {
       ...(process.env.KIT_KEY ? { kitKey: process.env.KIT_KEY } : {}),
-      allowanceStrategy: "approve", // SCA ke liye zaroori
+      allowanceStrategy: "approve", // SCA ke liye
     },
   } as any;
 
@@ -65,11 +65,7 @@ async function main() {
 
     console.log("🎉 Swap Executed Successfully!", JSON.stringify(result, null, 2));
   } catch (error: any) {
-    if (error?.code === 4001 || error?.cause?.code === 4001 || error?.message?.includes("User denied") || error?.message?.includes("rejected")) {
-      console.log("User ne cancel kiya"); // ❌ User cancelled transaction in wallet
-    } else {
-      console.log("📌 Circle AppKit Swap Status:", error?.message || error);
-    }
+    console.log("📌 Circle AppKit Swap Status:", error?.message || error);
   }
 }
 

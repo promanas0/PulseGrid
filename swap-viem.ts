@@ -7,7 +7,7 @@ import { createViemAdapterFromPrivateKey, createViemAdapterFromProvider } from "
  * Circle AppKit Swap using Viem V2 Adapter with official viem/chains arcTestnet
  * USDC -> EURC on Arc Testnet (Chain ID 5042002)
  * Supports Browser Provider (window.ethereum) & Private Key Adapters
- * ArcPulse Ecosystem.
+ * Built for ArcPulse Ecosystem by ProManas
  */
 
 interface EIP6963ProviderDetail {
@@ -70,9 +70,9 @@ export async function getInjectedWalletProvider(rdns: string = "io.metamask"): P
 
 export async function executeSwapWithInjectedWallet(
   rdns: string = "io.metamask",
-  amountIn: string = "1.00",
-  tokenIn: string = "USDC",
-  tokenOut: string = "EURC"
+  amountIn: string = "1",
+  tokenIn: string = "EURC",
+  tokenOut: string = "USDC"
 ) {
   const provider = await getInjectedWalletProvider(rdns);
   await provider.request({ method: "eth_requestAccounts", params: undefined });
@@ -153,11 +153,7 @@ async function main() {
 
     console.log("🎉 Swap Executed Successfully!", JSON.stringify(result, null, 2));
   } catch (error: any) {
-    if (error?.code === 4001 || error?.cause?.code === 4001 || error?.message?.includes("User denied") || error?.message?.includes("rejected")) {
-      console.log("User ne cancel kiya"); // ❌ User cancelled transaction in wallet
-    } else {
-      console.log("📌 Circle AppKit Viem Swap Status:", error?.message || error);
-    }
+    console.log("📌 Circle AppKit Viem Swap Status:", error?.message || error);
   }
 }
 

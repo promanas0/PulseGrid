@@ -68,6 +68,25 @@
         const ARC_RPC_URL = 'https://rpc.testnet.arc.io';
         const ARC_RPC_URL_ALT = 'https://rpc.testnet.arc.network';
         
+        // Official Deployed ArcPulse Spender Router Address & ABIs
+        const SPENDER_ROUTER_ADDRESS = '0x7EF2e0048f5bAeDe046f6BF797943daF4ED8CB47';
+        const ERC20_USDC_ADDRESS = '0x3600000000000000000000000000000000000000';
+        const ERC20_EURC_ADDRESS = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a';
+
+        const SPENDER_ROUTER_ABI = [
+            "function swapUSDCtoEURC(uint256 amountUSDC) returns (uint256 eurcOut)",
+            "function swapNativeUSDCtoEURC() payable returns (uint256 eurcOut)",
+            "function swapEURCtoUSDC(uint256 amountEURC) returns (uint256 usdcOut)",
+            "function checkAllowance(address token, address user) view returns (uint256)",
+            "function getReserves() view returns (uint256 usdcErc20Units, uint256 nativeWei, uint256 eurcUnits)"
+        ];
+
+        const ERC20_ABI = [
+            "function allowance(address owner, address spender) view returns (uint256)",
+            "function approve(address spender, uint256 amount) returns (bool)",
+            "function balanceOf(address account) view returns (uint256)"
+        ];
+
         function stringToHex(str) {
             return '0x' + Array.from(str).map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join('');
         }
@@ -630,7 +649,7 @@ Timestamp: ${new Date().toISOString()}`;
             updateTokenBalancesUI();
         }
 
-        // CLEAN WEB3 SWAP EXECUTION
+        // REAL WEB3 SPENDER ROUTER SWAP EXECUTION (2-STEP: APPROVE SPENDER -> SWAP)
         async function executeRealSwap() {
             if (!currentAccount) {
                 handleWalletClick();
@@ -657,35 +676,60 @@ Timestamp: ${new Date().toISOString()}`;
             }
 
             try {
-                                showToast('Transaction Pending', `Confirming Swap of ${amt} ${payToken.symbol} in wallet...`, 'info');
+                if (!window.ethers) {
+                    throw new Error("Ethers.js library not loaded in browser.");
+                }
 
-                let txHash = null;
+                const web3Provider = new ethers.providers.Web3Provider(provider);
+                const signer = web3Provider.getSigner();
+
+                const tokenAddress = payToken.address || (payToken.symbol === 'USDC' ? ERC20_USDC_ADDRESS : ERC20_EURC_ADDRESS);
+                const tokenDecimals = payToken.decimals || 6;
+                const amountInUnits = ethers.utils.parseUnits(amt.toString(), tokenDecimals);
+
+                const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
+                const routerContract = new ethers.Contract(SPENDER_ROUTER_ADDRESS, SPENDER_ROUTER_ABI, signer);
+
+                // STEP 1: CHECK & APPROVE SPENDER ALLOWANCE (POPUP 1 IN METAMASK)
+                showToast('Checking Spender Allowance...', `Verifying approval for Spender Router (${SPENDER_ROUTER_ADDRESS.substring(0, 6)}...)`, 'info');
+                
+                let allowance = ethers.BigNumber.from(0);
+                try {
+                    allowance = await tokenContract.allowance(currentAccount, SPENDER_ROUTER_ADDRESS);
+                } catch(e) {
+                    console.warn("Allowance check warning:", e);
+                }
+
+                if (allowance.lt(amountInUnits)) {
+                    showToast('Step 1/2: Approve Spender', `Please approve Spender Router (${SPENDER_ROUTER_ADDRESS.substring(0, 6)}...${SPENDER_ROUTER_ADDRESS.slice(-4)}) in MetaMask...`, 'info');
+                    
+                    const approveTx = await tokenContract.approve(SPENDER_ROUTER_ADDRESS, ethers.constants.MaxUint256);
+                    showToast('Approval Broadcasted', `Tx: ${approveTx.hash.substring(0, 10)}... Waiting for block confirmation`, 'info');
+                    await approveTx.wait();
+                    showToast('Spender Approved! 🚀', 'Step 1 complete! Now confirm the Swap in MetaMask (Step 2/2)...', 'success');
+                } else {
+                    showToast('Spender Already Approved', 'Sufficient allowance exists. Proceeding directly to Swap...', 'info');
+                }
+
+                // STEP 2: EXECUTE SWAP TRANSACTION (POPUP 2 IN METAMASK)
+                showToast('Step 2/2: Confirm Swap', `Confirming Swap of ${amt} ${payToken.symbol} on Spender Router...`, 'info');
+
+                let swapTx;
+                if (payToken.symbol === 'USDC') {
+                    swapTx = await routerContract.swapUSDCtoEURC(amountInUnits);
+                } else if (payToken.symbol === 'EURC') {
+                    swapTx = await routerContract.swapEURCtoUSDC(amountInUnits);
+                } else {
+                    throw new Error(`Unsupported token symbol: ${payToken.symbol}`);
+                }
+
+                showToast('Swap Broadcasted!', `Tx: ${swapTx.hash.substring(0, 10)}... Confirming block on Arc Testnet`, 'info');
+                await swapTx.wait();
+                const txHash = swapTx.hash;
+
+                // Update UI Balances
                 const ratio = payToken.usdRate / receiveToken.usdRate;
                 const receiveAmt = amt * ratio;
-
-                if (provider.request) {
-                    txHash = await provider.request({
-                        method: 'eth_sendTransaction',
-                        params: [{
-                            from: currentAccount,
-                            to: currentAccount,
-                            value: '0x0'
-                        }]
-                    });
-                } else if (window.ethers) {
-                    const web3Provider = new ethers.providers.Web3Provider(provider);
-                    const signer = web3Provider.getSigner();
-                    const tx = await signer.sendTransaction({
-                        to: currentAccount,
-                        value: 0
-                    });
-                    txHash = tx.hash;
-                }
-
-                if (!txHash) {
-                    txHash = "0x" + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('');
-                }
-
                 payToken.balance = Math.max(0, payToken.balance - amt);
                 receiveToken.balance += receiveAmt;
                 updateTokenBalancesUI();
@@ -694,7 +738,7 @@ Timestamp: ${new Date().toISOString()}`;
                 const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 saveTxRecord(currentAccount, {
                     txHash: txHash,
-                    type: 'Token Swap',
+                    type: 'Spender DEX Swap',
                     pair: `Swapped ${amt.toFixed(2)} ${payToken.symbol} ➔ ${receiveAmt.toFixed(4)} ${receiveToken.symbol}`,
                     time: timeStr
                 });
@@ -703,15 +747,14 @@ Timestamp: ${new Date().toISOString()}`;
                 const output = document.getElementById('receiveAmountInput');
                 if (output) output.value = '';
 
-                showToast('Swap Broadcasted!', `Tx Hash: ${txHash.substring(0, 10)}... Verified on Arc L1 Explorer`, 'success');
+                showToast('Swap Confirmed! 🎉', `Tx Hash: ${txHash.substring(0, 10)}... Verified on Arc Explorer`, 'success');
 
             } catch(txErr) {
-                console.error("Swap transaction rejected:", txErr);
+                console.error("Swap transaction failed:", txErr);
                 if (txErr.code === 4001 || txErr?.cause?.code === 4001 || txErr?.message?.includes("User denied") || txErr?.message?.includes("rejected")) {
-                    console.log("User ne cancel kiya");
                     showToast('Transaction Cancelled', 'You cancelled the transaction in your wallet app.', 'error');
                 } else {
-                    showToast('Transaction Error', txErr.message || 'Transaction rejected in wallet app', 'error');
+                    showToast('Transaction Error', txErr.reason || txErr.message || 'Transaction rejected in wallet app', 'error');
                 }
             }
         }

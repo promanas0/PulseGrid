@@ -4,7 +4,6 @@ pragma solidity ^0.8.20;
 /**
  * @title ArcPulseSpenderRouter
  * @dev Official ERC-20 (USDC & EURC) & Native AMM DEX Spender Router for Arc Testnet (Chain ID 5042002).
- * Supports both ERC-20 USDC (0x3600000000000000000000000000000000000000) & Native USDC.
  * ArcPulse Ecosystem.
  */
 
@@ -21,7 +20,6 @@ contract ArcPulseSpenderRouter {
     string public name = "ArcPulse Universal Spender Router";
     string public symbol = "ARC-SPENDER-V4";
     address public owner;
-    address public factory;
 
     // Official Arc Testnet Token Addresses
     address public constant USDC_ADDRESS = 0x3600000000000000000000000000000000000000; // ERC-20 USDC (6 dec)
@@ -35,15 +33,15 @@ contract ArcPulseSpenderRouter {
     event SwapUSDCforEURC(address indexed user, uint256 usdcIn, uint256 eurcOut);
     event SwapEURCforUSDC(address indexed user, uint256 eurcIn, uint256 usdcOut);
     event LiquidityAdded(address indexed provider, uint256 usdcAmount, uint256 eurcAmount);
+    event RatesUpdated(uint256 newRateUSDCtoEURC, uint256 newRateEURCtoUSDC);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "ArcPulseSpenderRouter: FORBIDDEN");
         _;
     }
 
-    constructor(address _factory) {
+    constructor() {
         owner = msg.sender;
-        factory = _factory;
     }
 
     receive() external payable {}
@@ -59,7 +57,6 @@ contract ArcPulseSpenderRouter {
     /**
      * @notice Swap ERC-20 USDC Tokens (6 decimals) for EURC Tokens (6 decimals)
      * Requires IERC20(USDC_ADDRESS).approve(address(this), amountUSDC) prior to swap.
-     * Selector: 0xb4e1f727
      */
     function swapUSDCtoEURC(uint256 amountUSDC) external returns (uint256 eurcOut) {
         require(amountUSDC > 0, "Must specify USDC amount");
@@ -84,9 +81,8 @@ contract ArcPulseSpenderRouter {
     /**
      * @notice Swap Native USDC (18 decimals in wei) for EURC Tokens (6 decimals)
      * User sends native USDC as msg.value.
-     * Selector: 0xe89fdb69
      */
-    function swapUSDCtoEURC() external payable returns (uint256 eurcOut) {
+    function swapNativeUSDCtoEURC() external payable returns (uint256 eurcOut) {
         uint256 usdcInWei = msg.value;
         require(usdcInWei > 0, "Must send native USDC");
 
@@ -108,7 +104,6 @@ contract ArcPulseSpenderRouter {
     /**
      * @notice Swap EURC Tokens (6 decimals) for USDC Tokens (6 decimals or Native)
      * Requires IERC20(EURC_ADDRESS).approve(address(this), amountEURC) prior to swap.
-     * Selector: 0x0bdd4f29
      */
     function swapEURCtoUSDC(uint256 amountEURC) external returns (uint256 usdcOut) {
         require(amountEURC > 0, "Must specify EURC amount");
@@ -144,10 +139,25 @@ contract ArcPulseSpenderRouter {
         emit LiquidityAdded(msg.sender, usdcAmount > 0 ? usdcAmount : msg.value, eurcAmount);
     }
 
+    /**
+     * @notice Set swap rates (Only Owner)
+     */
+    function setRates(uint256 _rateUSDCtoEURC, uint256 _rateEURCtoUSDC) external onlyOwner {
+        rateUSDCtoEURC = _rateUSDCtoEURC;
+        rateEURCtoUSDC = _rateEURCtoUSDC;
+        emit RatesUpdated(_rateUSDCtoEURC, _rateEURCtoUSDC);
+    }
+
+    /**
+     * @notice Get pool reserve balances
+     */
     function getReserves() external view returns (uint256 usdcErc20Units, uint256 nativeWei, uint256 eurcUnits) {
         return (IERC20(USDC_ADDRESS).balanceOf(address(this)), address(this).balance, IERC20(EURC_ADDRESS).balanceOf(address(this)));
     }
 
+    /**
+     * @notice Withdraw funds (Only Owner)
+     */
     function withdrawAll() external onlyOwner {
         if (address(this).balance > 0) {
             payable(owner).transfer(address(this).balance);

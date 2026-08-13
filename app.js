@@ -550,27 +550,47 @@ Timestamp: ${new Date().toISOString()}`;
         async function fetchBalances(accountAddress = currentAccount) {
             if (!accountAddress) return;
             try {
-                const usdcRes = await fetch(ARC_RPC_URL, {
+                // 1. Native Gas USDC (18 decimals)
+                const usdcNativeRes = await fetch(ARC_RPC_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_getBalance', params: [accountAddress, 'latest'], id: 1 })
                 }).then(r => r.json());
 
+                // 2. ERC-20 USDC (0x3600..., 6 decimals)
+                const usdcContract = '0x3600000000000000000000000000000000000000';
+                const balanceOfDataUSDC = '0x70a08231' + accountAddress.substring(2).padStart(64, '0');
+                const usdcErc20Res = await fetch(ARC_RPC_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_call', params: [{ to: usdcContract, data: balanceOfDataUSDC }, 'latest'], id: 2 })
+                }).then(r => r.json());
+
+                // 3. ERC-20 EURC (0x89B5..., 6 decimals)
                 const eurcContract = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a';
-                const balanceOfData = '0x70a08231' + accountAddress.substring(2).padStart(64, '0');
+                const balanceOfDataEURC = '0x70a08231' + accountAddress.substring(2).padStart(64, '0');
                 const eurcRes = await fetch(ARC_RPC_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_call', params: [{ to: eurcContract, data: balanceOfData }, 'latest'], id: 2 })
+                    body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_call', params: [{ to: eurcContract, data: balanceOfDataEURC }, 'latest'], id: 3 })
                 }).then(r => r.json());
 
-                if (usdcRes?.result) {
-                    TOKENS[0].balance = Number(BigInt(usdcRes.result)) / 1e18;
+                let nativeUsdc = 0;
+                let erc20Usdc = 0;
+                let erc20Eurc = 0;
+
+                if (usdcNativeRes?.result) {
+                    nativeUsdc = Number(BigInt(usdcNativeRes.result)) / 1e18;
+                }
+                if (usdcErc20Res?.result && usdcErc20Res.result !== '0x') {
+                    erc20Usdc = Number(BigInt(usdcErc20Res.result)) / 1e6;
+                }
+                if (eurcRes?.result && eurcRes.result !== '0x') {
+                    erc20Eurc = Number(BigInt(eurcRes.result)) / 1e6;
                 }
 
-                if (eurcRes?.result && eurcRes.result !== '0x') {
-                    TOKENS[1].balance = Number(BigInt(eurcRes.result)) / 1e6;
-                }
+                TOKENS[0].balance = nativeUsdc + erc20Usdc;
+                TOKENS[1].balance = erc20Eurc;
 
                 updateTokenBalancesUI();
                 renderWalletView();
@@ -649,7 +669,7 @@ Timestamp: ${new Date().toISOString()}`;
             updateTokenBalancesUI();
         }
 
-        // REAL WEB3 SPENDER ROUTER SWAP EXECUTION (2-STEP: APPROVE SPENDER -> SWAP)
+        // REAL WEB3 SPENDER ROUTER SWAP EXECUTION (SUPPORTING NATIVE USDC & ERC-20 TOKENS)
         async function executeRealSwap() {
             if (!currentAccount) {
                 handleWalletClick();
@@ -682,43 +702,63 @@ Timestamp: ${new Date().toISOString()}`;
 
                 const web3Provider = new ethers.providers.Web3Provider(provider);
                 const signer = web3Provider.getSigner();
-
-                const tokenAddress = (payToken.symbol === 'USDC') ? ERC20_USDC_ADDRESS : ERC20_EURC_ADDRESS;
-                const tokenDecimals = 6; // ERC-20 USDC & EURC both use 6 decimals on Arc Testnet
-                const amountInUnits = ethers.utils.parseUnits(amt.toString(), tokenDecimals);
-
-                const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
                 const routerContract = new ethers.Contract(SPENDER_ROUTER_ADDRESS, SPENDER_ROUTER_ABI, signer);
 
-                // STEP 1: CHECK & APPROVE SPENDER ALLOWANCE (POPUP 1 IN METAMASK)
-                showToast('Checking Spender Allowance...', `Verifying approval for Spender Router (${SPENDER_ROUTER_ADDRESS.substring(0, 6)}...)`, 'info');
-                
-                let allowance = ethers.BigNumber.from(0);
-                try {
-                    allowance = await tokenContract.allowance(currentAccount, SPENDER_ROUTER_ADDRESS);
-                } catch(e) {
-                    console.warn("Allowance check warning:", e);
-                }
-
-                if (allowance.lt(amountInUnits)) {
-                    showToast('Step 1/2: Approve Spender', `Please approve Spender Router (${SPENDER_ROUTER_ADDRESS.substring(0, 6)}...${SPENDER_ROUTER_ADDRESS.slice(-4)}) in MetaMask...`, 'info');
-                    
-                    const approveTx = await tokenContract.approve(SPENDER_ROUTER_ADDRESS, amountInUnits);
-                    showToast('Approval Broadcasted', `Tx: ${approveTx.hash.substring(0, 10)}... Waiting for block confirmation`, 'info');
-                    await approveTx.wait();
-                    showToast('Spender Approved! 🚀', 'Step 1 complete! Now confirm the Swap in MetaMask (Step 2/2)...', 'success');
-                } else {
-                    showToast('Spender Already Approved', 'Sufficient allowance exists. Proceeding directly to Swap...', 'info');
-                }
-
-                // STEP 2: EXECUTE SWAP TRANSACTION (POPUP 2 IN METAMASK)
-                showToast('Step 2/2: Confirm Swap', `Confirming Swap of ${amt} ${payToken.symbol} on Spender Router...`, 'info');
-
                 let swapTx;
+
                 if (payToken.symbol === 'USDC') {
-                    swapTx = await routerContract.swapUSDCtoEURC(amountInUnits);
+                    const erc20Contract = new ethers.Contract(ERC20_USDC_ADDRESS, ERC20_ABI, signer);
+                    let erc20Bal = ethers.BigNumber.from(0);
+                    try {
+                        erc20Bal = await erc20Contract.balanceOf(currentAccount);
+                    } catch(e) {}
+
+                    const amountInUnits6 = ethers.utils.parseUnits(amt.toString(), 6);
+
+                    if (erc20Bal.gte(amountInUnits6)) {
+                        // User has ERC-20 USDC -> 2-Step Spender Flow (Approve + Swap)
+                        let allowance = ethers.BigNumber.from(0);
+                        try {
+                            allowance = await erc20Contract.allowance(currentAccount, SPENDER_ROUTER_ADDRESS);
+                        } catch(e) {}
+
+                        if (allowance.lt(amountInUnits6)) {
+                            showToast('Step 1/2: Approve Spender', `Please approve Spender Router (${SPENDER_ROUTER_ADDRESS.substring(0, 6)}...) in MetaMask...`, 'info');
+                            const approveTx = await erc20Contract.approve(SPENDER_ROUTER_ADDRESS, amountInUnits6);
+                            showToast('Approval Broadcasted', `Tx: ${approveTx.hash.substring(0, 10)}... Waiting for block confirmation`, 'info');
+                            await approveTx.wait();
+                            showToast('Spender Approved! 🚀', 'Step 1 complete! Now confirm Swap (Step 2/2)...', 'success');
+                        }
+
+                        showToast('Step 2/2: Confirm Swap', `Confirming Swap of ${amt} ERC-20 USDC on Spender Router...`, 'info');
+                        swapTx = await routerContract.swapUSDCtoEURC(amountInUnits6);
+                    } else {
+                        // User has Native USDC -> Payable Direct Swap (No Approve Needed)
+                        const amountInWei18 = ethers.utils.parseUnits(amt.toString(), 18);
+                        showToast('Confirming Native Swap', `Confirming Swap of ${amt} Native USDC on Spender Router in MetaMask...`, 'info');
+                        swapTx = await routerContract.swapNativeUSDCtoEURC({ value: amountInWei18 });
+                    }
+
                 } else if (payToken.symbol === 'EURC') {
-                    swapTx = await routerContract.swapEURCtoUSDC(amountInUnits);
+                    // ERC-20 EURC Swap -> 2-Step Spender Flow (Approve + Swap)
+                    const erc20Contract = new ethers.Contract(ERC20_EURC_ADDRESS, ERC20_ABI, signer);
+                    const amountInUnits6 = ethers.utils.parseUnits(amt.toString(), 6);
+
+                    let allowance = ethers.BigNumber.from(0);
+                    try {
+                        allowance = await erc20Contract.allowance(currentAccount, SPENDER_ROUTER_ADDRESS);
+                    } catch(e) {}
+
+                    if (allowance.lt(amountInUnits6)) {
+                        showToast('Step 1/2: Approve Spender', `Please approve Spender Router (${SPENDER_ROUTER_ADDRESS.substring(0, 6)}...) in MetaMask...`, 'info');
+                        const approveTx = await erc20Contract.approve(SPENDER_ROUTER_ADDRESS, amountInUnits6);
+                        showToast('Approval Broadcasted', `Tx: ${approveTx.hash.substring(0, 10)}... Waiting for block confirmation`, 'info');
+                        await approveTx.wait();
+                        showToast('Spender Approved! 🚀', 'Step 1 complete! Now confirm Swap (Step 2/2)...', 'success');
+                    }
+
+                    showToast('Step 2/2: Confirm Swap', `Confirming Swap of ${amt} EURC on Spender Router...`, 'info');
+                    swapTx = await routerContract.swapEURCtoUSDC(amountInUnits6);
                 } else {
                     throw new Error(`Unsupported token symbol: ${payToken.symbol}`);
                 }

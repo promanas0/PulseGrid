@@ -69,7 +69,7 @@
         const ARC_RPC_URL_ALT = 'https://rpc.testnet.arc.network';
         
         // Official Deployed ArcPulse Spender Router Address & ABIs
-        const SPENDER_ROUTER_ADDRESS = '0x7EF2e0048f5bAeDe046f6BF797943daF4ED8CB47';
+        const SPENDER_ROUTER_ADDRESS = '0x24EC9947C9Bd6c5ab4a3357A50c78D064176af31';
         const ERC20_USDC_ADDRESS = '0x3600000000000000000000000000000000000000';
         const ERC20_EURC_ADDRESS = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a';
 

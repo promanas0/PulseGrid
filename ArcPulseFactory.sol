@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 /**
  * @title ArcPulseFactory
- * @dev Official Uniswap V2-style Factory Contract for Arc Testnet (Chain ID 5042002).
+ * @dev Official Factory Contract for Arc Testnet (Chain ID 5042002).
  * Deploys and manages Liquidity Pair pools for ArcPulse DEX.
  * ArcPulse Ecosystem.
  */
@@ -49,8 +49,8 @@ contract ArcPulseFactory {
 
     event PairCreated(address indexed token0, address indexed token1, address pair, uint256 pairIndex);
 
-    constructor(address _feeToSetter) {
-        feeToSetter = _feeToSetter;
+    constructor() {
+        feeToSetter = msg.sender;
     }
 
     function allPairsLength() external view returns (uint256) {
@@ -71,7 +71,7 @@ contract ArcPulseFactory {
         
         ArcPulsePair(pair).initialize(token0, token1);
         getPair[token0][token1] = pair;
-        getPair[token1][token0] = pair; // populate mapping in both directions
+        getPair[token1][token0] = pair;
         allPairs.push(pair);
 
         emit PairCreated(token0, token1, pair, allPairs.length);

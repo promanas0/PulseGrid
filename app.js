@@ -589,7 +589,7 @@ Timestamp: ${new Date().toISOString()}`;
                     erc20Eurc = Number(BigInt(eurcRes.result)) / 1e6;
                 }
 
-                TOKENS[0].balance = nativeUsdc + erc20Usdc;
+                TOKENS[0].balance = nativeUsdc;
                 TOKENS[1].balance = erc20Eurc;
 
                 updateTokenBalancesUI();
@@ -767,12 +767,7 @@ Timestamp: ${new Date().toISOString()}`;
                 await swapTx.wait();
                 const txHash = swapTx.hash;
 
-                // Update UI Balances
-                const ratio = payToken.usdRate / receiveToken.usdRate;
-                const receiveAmt = amt * ratio;
-                payToken.balance = Math.max(0, payToken.balance - amt);
-                receiveToken.balance += receiveAmt;
-                updateTokenBalancesUI();
+                // Update UI Balances cleanly from RPC
                 await fetchBalances();
 
                 const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });

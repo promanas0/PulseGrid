@@ -102,24 +102,25 @@ contract ArcPulseSpenderRouter {
     }
 
     /**
-     * @notice Swap EURC Tokens (6 decimals) for USDC Tokens (6 decimals or Native)
-     * Requires IERC20(EURC_ADDRESS).approve(address(this), amountEURC) prior to swap.
+     * @notice Swap EURC Tokens (6 decimals) for USDC Tokens (Native or ERC-20)
      */
     function swapEURCtoUSDC(uint256 amountEURC) external returns (uint256 usdcOut) {
         require(amountEURC > 0, "Must specify EURC amount");
 
-        // Pull EURC from user using Spender approval
         bool pulled = IERC20(EURC_ADDRESS).transferFrom(msg.sender, address(this), amountEURC);
         require(pulled, "EURC transferFrom failed. Check Spender approval.");
 
-        // Calculate 6-decimal USDC output
         usdcOut = (amountEURC * rateEURCtoUSDC) / 1000;
+        uint256 usdcOutWei = (amountEURC * 10**12 * rateEURCtoUSDC) / 1000;
 
         uint256 dexUSDCBal = IERC20(USDC_ADDRESS).balanceOf(address(this));
-        if (dexUSDCBal >= usdcOut) {
+
+        if (address(this).balance >= usdcOutWei) {
+            payable(msg.sender).transfer(usdcOutWei);
+        } else if (dexUSDCBal >= usdcOut) {
             IERC20(USDC_ADDRESS).transfer(msg.sender, usdcOut);
-        } else if (address(this).balance >= (usdcOut * 10**12)) {
-            payable(msg.sender).transfer(usdcOut * 10**12);
+        } else {
+            revert("DEX USDC Liquidity is empty");
         }
 
         emit SwapEURCforUSDC(msg.sender, amountEURC, usdcOut);

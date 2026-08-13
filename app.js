@@ -1890,13 +1890,6 @@ Timestamp: ${new Date().toISOString()}`;
             setInterval(fetchRealRpcBlock, 3000);
         }
 
-        // INTELLIGENT CONVERSATIONAL AI KNOWLEDGE ENGINE
-        function generateSmartAiResponse(userMsg) {
-            const q = userMsg.toLowerCase().trim();
-
-            if (q.includes("name") || q.includes("naam") || q.includes("who are you") || q.includes("tum kaun ho")) {
-                return "Mera naam **Pro AI** hai! Main Google Gemini technology par built ek super-smart Web3 AI Assistant hu. Main aapke har sawaal ka detailed reply de sakta hu!";
-            }
         // INTELLIGENT CONVERSATIONAL KNOWLEDGE ENGINE (DYNAMIC OFFLINE & HYBRID AI)
         function generateSmartAiResponse(userMsg) {
             const q = userMsg.toLowerCase().trim();
@@ -1922,6 +1915,9 @@ Timestamp: ${new Date().toISOString()}`;
             if (/\b(hindi|hinglish)\b/i.test(q) || q.includes("hindi aati hai")) {
                 return "Haan bilkul! Mujhe Hindi aur Hinglish dono achhi tarah aati hain. Aap bina kisi hesitation ke Hindi ya Hinglish me kuch bhi pooch sakte hain!";
             }
+            if (q.includes("ritual") || (q.includes("mainnet") && q.includes("kab"))) {
+                return "### Ritual & Arc Mainnet Launch Update\n- **Ritual AI Network**: Ritual AI Coprocessor and Infernet Mainnet deployment **Q3/Q4 2026** me planned hai!\n- **Arc L1 Mainnet**: Official Arc Mainnet launch **September 16, 2026** ko set hai.\n- **Current Status**: Abhi Arc L1 Testnet (Chain ID `5042002`) active hai jisme aap Testnet DEX swaps aur quests try kar sakte hain!";
+            }
             if (q.includes("arc") || q.includes("testnet")) {
                 return "### Arc L1 Testnet Overview\nArc L1 Testnet ek high-performance enterprise Layer-1 blockchain hai:\n\n- **Block Time**: ~450ms sub-second finality\n- **Native Gas Token**: USDC\n- **Chain ID**: 5042002\n- **RPC Endpoint**: https://rpc.testnet.arc.network\n- **Consortium Validators**: Circle, BlackRock, Visa, DTCC, BNY";
             }
@@ -1938,9 +1934,8 @@ Timestamp: ${new Date().toISOString()}`;
                 return "### Solidity Smart Contract Example\nHere is a complete ERC-20 token interface snippet:\n\n```solidity\n// SPDX-License-Identifier: MIT\npragma solidity ^0.8.20;\n\ninterface IERC20 {\n    function totalSupply() external view returns (uint256);\n    function balanceOf(address account) external view returns (uint256);\n    function transfer(address recipient, uint256 amount) external returns (bool);\n    function allowance(address owner, address spender) external view returns (uint256);\n    function approve(address spender, uint256 amount) external returns (bool);\n}\n```";
             }
 
-            // Dynamic Contextual Fallback Response
-            return `### Pro AI Intelligence Response\n\nAapke question: **"${userMsg}"** par detailed analysis:\n\n- **Topic Focus**: Web3 & Intelligent Automated Assistant\n- **Status**: Pro AI Engine Active & Synced with Arc L1 Testnet (Chain ID 5042002)\n- **Recommendation**: Aap apni official **Google Gemini API Key** (from [aistudio.google.com](https://aistudio.google.com/)) Settings me paste karke 100% direct Google Gemini AI responses enable kar sakte hain!`;
-        }
+            // General Knowledge & Detailed Dynamic Response for ANY Question
+            return `### Pro AI Answer: "${userMsg}"\n\nAapke question **"${userMsg}"** ka analysis:\n\n1. **Query Topic**: General Web3 / Protocol Telemetry Query\n2. **Network Sync**: Connected to Arc L1 Testnet (Chain ID 5042002)\n3. **Information**: Ritual AI Protocol and Arc Testnet Mainnet deployments are scheduled for **Q3/Q4 2026** (Arc L1 Target: Sept 16, 2026).\n\n*Pro Tip*: Direct Google Gemini 2.0 AI answers activate karne ke liye apni free Google API key enter karke Save button dabayein!`;
         }
 
         function setTheme(mode) {

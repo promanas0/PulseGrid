@@ -2014,7 +2014,7 @@ Timestamp: ${new Date().toISOString()}`;
                                         {
                                             role: 'user',
                                             parts: [
-                                                { text: `You are Gemini Web3 AI, an intelligent AI assistant. Provide detailed, helpful answers with markdown formatting, code snippets, and bullet points in the user's language.\n\nUser Question: ${userMsg}` }
+                                                { text: `You are Gemini Web3 AI, a world-class intelligent assistant like Google Gemini. Provide natural, friendly, and direct answers in the user's language using clean markdown and bullet points. Do NOT include any code blocks or smart contract code unless the user explicitly asks for code or programming examples.\n\nUser Question: ${userMsg}` }
                                             ]
                                         }
                                     ]

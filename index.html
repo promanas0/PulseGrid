@@ -980,42 +980,195 @@
             </div>
         </section>
 
-        <!-- PAGE 8: DAILY QUESTS VIEW -->
+        <!-- PAGE 8: DAILY QUESTS & REWARDS HUB -->
         <section id="view-daily" class="page-view hidden space-y-8">
+            <!-- Header Card with Streak, Total Points, Reset Timer -->
             <div class="pixel-card p-6 sm:p-8 space-y-6">
-                <div class="flex items-center justify-between pb-6 border-b-2 border-slate-950">
-                    <div class="flex items-center gap-3">
-                        <i data-lucide="trophy" class="w-8 h-8 text-amber-500"></i>
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-6 border-b-2 border-slate-950">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 border-2 border-slate-950 flex items-center justify-center text-slate-950 shadow-md shrink-0">
+                            <i data-lucide="trophy" class="w-8 h-8"></i>
+                        </div>
                         <div>
-                            <h2 class="font-pixel text-2xl font-black text-slate-950">Daily Quests & Testnet Rewards</h2>
-                            <p class="text-xs text-slate-600 font-medium">Earn Builder Points by interacting with ArcPulse features daily</p>
+                            <h2 class="font-pixel text-2xl sm:text-3xl font-black text-slate-950">Daily Quests & Testnet Rewards</h2>
+                            <p class="text-xs text-slate-600 font-medium mt-1">Complete daily Web3 tasks, confirm on-chain swaps, and claim exclusive NFT Badges</p>
                         </div>
                     </div>
-                    <div class="text-right font-mono">
-                        <div class="text-[10px] text-slate-500 uppercase font-silkscreen">Points Earned</div>
-                        <div id="userPointsVal" class="font-pixel text-2xl font-black text-amber-600">0 PTS</div>
+                    
+                    <div class="flex items-center gap-4 shrink-0">
+                        <div class="px-4 py-2.5 rounded-xl bg-amber-500/10 border-2 border-amber-500/30 text-center font-mono">
+                            <div class="text-[10px] text-amber-700 uppercase font-silkscreen font-bold">Daily Streak</div>
+                            <div id="questStreakText" class="font-pixel text-xl font-black text-amber-600 flex items-center justify-center gap-1">
+                                <span>🔥</span> <span id="questStreakCount">0</span> Days
+                            </div>
+                        </div>
+
+                        <div class="px-5 py-2.5 rounded-xl bg-purple-700 text-white border-2 border-slate-950 text-center font-mono shadow-md">
+                            <div class="text-[10px] text-purple-200 uppercase font-silkscreen font-bold">Total Points</div>
+                            <div id="userPointsVal" class="font-pixel text-2xl font-black text-amber-300">0 PTS</div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
-                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between">
-                        <div>
-                            <div class="font-bold text-slate-950">Daily Check-In Quest</div>
-                            <div class="text-[11px] text-slate-500">+50 Builder PTS per day</div>
-                        </div>
-                        <button onclick="claimDailyCheckin()" class="btn-pixel-sm px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-bold">
-                            Check-In
-                        </button>
+                <!-- 3-TIER NFT BADGES SECTION -->
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-pixel text-lg font-bold text-slate-950 flex items-center gap-2">
+                            <i data-lucide="award" class="w-5 h-5 text-purple-700"></i>
+                            3-Tier NFT Badges & Membership Passes
+                        </h3>
+                        <span class="text-xs font-mono text-slate-500 font-bold">Unlock badges at 2k, 10k & 30k PTS</span>
                     </div>
 
-                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between">
-                        <div>
-                            <div class="font-bold text-slate-950">Daily Swap Quest</div>
-                            <div class="text-[11px] text-slate-500">+100 Builder PTS per swap</div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <!-- Badge 1: 2k PTS (Bronze) -->
+                        <div class="p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 to-amber-100/50 border-2 border-amber-500 space-y-4 font-mono text-xs shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div class="w-12 h-12 rounded-xl bg-amber-600 border-2 border-slate-950 flex items-center justify-center text-white font-bold text-xl shadow">
+                                    🥉
+                                </div>
+                                <span class="px-2.5 py-1 rounded-full bg-amber-200 text-amber-900 border border-amber-500 text-[10px] font-bold">2,000 PTS Target</span>
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-950 text-sm">Arc Pioneer Badge</div>
+                                <div class="text-[11px] text-slate-600 mt-0.5">Early Arc L1 Testnet Explorer</div>
+                            </div>
+                            <div class="space-y-1.5">
+                                <div class="flex justify-between text-[11px] font-bold">
+                                    <span class="text-slate-600">Progress</span>
+                                    <span id="badge1ProgressText" class="text-amber-700">0 / 2,000 PTS</span>
+                                </div>
+                                <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden border border-slate-400">
+                                    <div id="badge1ProgressBar" class="h-full bg-amber-500 transition-all duration-500" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <button id="badge1ClaimBtn" onclick="claimBadgeTier(1)" class="w-full btn-pixel-sm py-2.5 rounded-xl bg-slate-300 text-slate-600 font-bold cursor-not-allowed opacity-60" disabled>
+                                Locked (2,000 PTS)
+                            </button>
                         </div>
-                        <button onclick="switchPage('swap')" class="btn-pixel-sm px-4 py-2 rounded-xl bg-purple-700 text-white font-bold">
-                            Go Swap
-                        </button>
+
+                        <!-- Badge 2: 10k PTS (Silver) -->
+                        <div class="p-5 rounded-2xl bg-gradient-to-br from-slate-200/50 to-slate-100 border-2 border-slate-400 space-y-4 font-mono text-xs shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div class="w-12 h-12 rounded-xl bg-slate-400 border-2 border-slate-950 flex items-center justify-center text-slate-950 font-bold text-xl shadow">
+                                    🥈
+                                </div>
+                                <span class="px-2.5 py-1 rounded-full bg-slate-200 text-slate-900 border border-slate-400 text-[10px] font-bold">10,000 PTS Target</span>
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-950 text-sm">Arc DEX Champion</div>
+                                <div class="text-[11px] text-slate-600 mt-0.5">High Volume Trader & Swapper</div>
+                            </div>
+                            <div class="space-y-1.5">
+                                <div class="flex justify-between text-[11px] font-bold">
+                                    <span class="text-slate-600">Progress</span>
+                                    <span id="badge2ProgressText" class="text-slate-700">0 / 10,000 PTS</span>
+                                </div>
+                                <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden border border-slate-400">
+                                    <div id="badge2ProgressBar" class="h-full bg-slate-600 transition-all duration-500" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <button id="badge2ClaimBtn" onclick="claimBadgeTier(2)" class="w-full btn-pixel-sm py-2.5 rounded-xl bg-slate-300 text-slate-600 font-bold cursor-not-allowed opacity-60" disabled>
+                                Locked (10,000 PTS)
+                            </button>
+                        </div>
+
+                        <!-- Badge 3: 30k PTS (Gold) -->
+                        <div class="p-5 rounded-2xl bg-gradient-to-br from-yellow-300/20 to-amber-200/50 border-2 border-yellow-500 space-y-4 font-mono text-xs shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <div class="w-12 h-12 rounded-xl bg-yellow-500 border-2 border-slate-950 flex items-center justify-center text-slate-950 font-bold text-xl shadow">
+                                    🥇
+                                </div>
+                                <span class="px-2.5 py-1 rounded-full bg-yellow-200 text-yellow-950 border border-yellow-500 text-[10px] font-bold">30,000 PTS Target</span>
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-950 text-sm">Arc Protocol Legend</div>
+                                <div class="text-[11px] text-slate-600 mt-0.5">Elite Institutional Beneficiary</div>
+                            </div>
+                            <div class="space-y-1.5">
+                                <div class="flex justify-between text-[11px] font-bold">
+                                    <span class="text-slate-600">Progress</span>
+                                    <span id="badge3ProgressText" class="text-yellow-800">0 / 30,000 PTS</span>
+                                </div>
+                                <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden border border-slate-400">
+                                    <div id="badge3ProgressBar" class="h-full bg-yellow-500 transition-all duration-500" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <button id="badge3ClaimBtn" onclick="claimBadgeTier(3)" class="w-full btn-pixel-sm py-2.5 rounded-xl bg-slate-300 text-slate-600 font-bold cursor-not-allowed opacity-60" disabled>
+                                Locked (30,000 PTS)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- REAL INTERACTIVE TASKS LIST -->
+                <div class="space-y-4 pt-4 border-t-2 border-slate-950">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-pixel text-lg font-bold text-slate-950 flex items-center gap-2">
+                            <i data-lucide="check-square" class="w-5 h-5 text-teal-600"></i>
+                            Real Web3 Quests & Daily Tasks
+                        </h3>
+                        <span id="dailyResetTimerText" class="text-xs font-mono text-purple-700 font-bold flex items-center gap-1">
+                            <i data-lucide="clock" class="w-3.5 h-3.5"></i> Resets daily
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
+                        <!-- Task 1: Daily Check-In with Wallet Sign -->
+                        <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between gap-3">
+                            <div class="space-y-1">
+                                <div class="font-bold text-slate-950 flex items-center gap-2">
+                                    <span>Daily Web3 Check-In</span>
+                                    <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-900 border border-purple-300 text-[10px] font-bold">+100 PTS</span>
+                                </div>
+                                <div class="text-[11px] text-slate-500">Sign a wallet message once per day to verify identity</div>
+                            </div>
+                            <button id="dailyCheckinBtn" onclick="claimDailyCheckin()" class="btn-pixel-sm px-4 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold shrink-0">
+                                Check-In (Sign)
+                            </button>
+                        </div>
+
+                        <!-- Task 2: Per Swap Points (+50 PTS) -->
+                        <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between gap-3">
+                            <div class="space-y-1">
+                                <div class="font-bold text-slate-950 flex items-center gap-2">
+                                    <span>Perform Arc DEX Swap</span>
+                                    <span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-900 border border-indigo-300 text-[10px] font-bold">+50 PTS / Swap</span>
+                                </div>
+                                <div id="taskSwapProgressText" class="text-[11px] text-slate-500">Earn +50 PTS for every confirmed on-chain DEX swap</div>
+                            </div>
+                            <button onclick="switchPage('swap')" class="btn-pixel-sm px-4 py-2.5 rounded-xl bg-indigo-600 text-white font-bold shrink-0">
+                                Go Swap
+                            </button>
+                        </div>
+
+                        <!-- Task 3: Swap Master (5 Swaps) -->
+                        <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between gap-3">
+                            <div class="space-y-1">
+                                <div class="font-bold text-slate-950 flex items-center gap-2">
+                                    <span>Swap Master (5 Swaps)</span>
+                                    <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] font-bold">+250 PTS</span>
+                                </div>
+                                <div id="task5SwapsText" class="text-[11px] text-slate-500">Progress: 0 / 5 Swaps</div>
+                            </div>
+                            <button id="task5SwapsClaimBtn" onclick="claimTask('task5Swaps')" class="btn-pixel-sm px-4 py-2.5 rounded-xl bg-slate-300 text-slate-600 font-bold shrink-0 cursor-not-allowed opacity-60" disabled>
+                                Locked (0/5)
+                            </button>
+                        </div>
+
+                        <!-- Task 4: AI Assistant Connect -->
+                        <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between gap-3">
+                            <div class="space-y-1">
+                                <div class="font-bold text-slate-950 flex items-center gap-2">
+                                    <span>Connect Gemini AI</span>
+                                    <span class="px-2 py-0.5 rounded bg-teal-100 text-teal-900 border border-teal-300 text-[10px] font-bold">+100 PTS</span>
+                                </div>
+                                <div class="text-[11px] text-slate-500">Chat with Pro AI or save your Gemini API Key</div>
+                            </div>
+                            <button id="taskAiClaimBtn" onclick="claimTask('taskAi')" class="btn-pixel-sm px-4 py-2.5 rounded-xl bg-teal-600 text-white font-bold shrink-0">
+                                Connect AI
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

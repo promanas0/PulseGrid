@@ -801,6 +801,11 @@ Timestamp: ${new Date().toISOString()}`;
 
                 showToast('Swap Confirmed! 🎉', `Tx Hash: ${txHash.substring(0, 10)}... Verified on Arc Explorer`, 'success');
 
+                // Award +50 Points for confirmed on-chain DEX Swap
+                if (typeof onSwapConfirmedOnChain === 'function') {
+                    onSwapConfirmedOnChain();
+                }
+
             } catch(txErr) {
                 console.error("Swap transaction failed:", txErr);
                 if (txErr.code === 4001 || txErr?.cause?.code === 4001 || txErr?.message?.includes("User denied") || txErr?.message?.includes("rejected")) {
@@ -957,14 +962,247 @@ Timestamp: ${new Date().toISOString()}`;
             showToast('AI Agent Active', 'ERC-8004 Autonomous Agent executed market cycle on Arc L1', 'success');
         }
 
-        function claimDailyCheckin() {
+        // --- QUESTS & REWARDS ENGINE STATE ---
+        let questState = {
+            points: 0,
+            streak: 0,
+            lastCheckinDate: '',
+            swapsCompleted: 0,
+            claimedTasks: {
+                task5Swaps: false,
+                taskAi: false
+            },
+            claimedBadges: {
+                badge1: false,
+                badge2: false,
+                badge3: false
+            }
+        };
+
+        function loadQuestState() {
+            try {
+                const saved = localStorage.getItem('arcpulse_quests_state_v2');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    questState = Object.assign(questState, parsed);
+                }
+                userPoints = questState.points || 0;
+            } catch(e) {}
+            updateQuestUI();
+        }
+
+        function saveQuestState() {
+            try {
+                questState.points = userPoints;
+                localStorage.setItem('arcpulse_quests_state_v2', JSON.stringify(questState));
+            } catch(e) {}
+            updateQuestUI();
+        }
+
+        function getTodayDateString() {
+            const d = new Date();
+            return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+        }
+
+        async function claimDailyCheckin() {
             if (!currentAccount) {
+                showToast('Wallet Required ⚠️', 'Please connect your Web3 wallet to sign daily check-in!', 'warning');
                 handleWalletClick();
                 return;
             }
-            userPoints += 50;
-            safeSetText('userPointsVal', `${userPoints} PTS`);
-            showToast('Quest Claimed!', '+50 Builder PTS added to your account', 'success');
+
+            const today = getTodayDateString();
+            if (questState.lastCheckinDate === today) {
+                showToast('Already Checked-In! ✅', 'You have already checked-in for today. Come back tomorrow!', 'info');
+                return;
+            }
+
+            // Request Web3 Signature from Wallet
+            try {
+                showToast('Signature Requested ✍️', 'Please sign authentication message in your wallet...', 'info');
+                
+                const timestamp = Date.now();
+                const msgText = `ArcPulse Daily Check-In Verification\nWallet: ${currentAccount}\nDate: ${today}\nTimestamp: ${timestamp}`;
+                const hexMsg = '0x' + Array.from(new TextEncoder().encode(msgText)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+                let signature = null;
+                const provider = activeWeb3Provider || window.ethereum;
+                if (provider && provider.request) {
+                    signature = await provider.request({
+                        method: 'personal_sign',
+                        params: [hexMsg, currentAccount]
+                    });
+                }
+
+                if (signature) {
+                    // Check streak continuity (yesterday vs today)
+                    const yesterday = new Date(Date.now() - 86400000);
+                    const yesterdayStr = `${yesterday.getUTCFullYear()}-${String(yesterday.getUTCMonth() + 1).padStart(2, '0')}-${String(yesterday.getUTCDate()).padStart(2, '0')}`;
+                    
+                    if (questState.lastCheckinDate === yesterdayStr) {
+                        questState.streak += 1;
+                    } else {
+                        questState.streak = 1;
+                    }
+
+                    questState.lastCheckinDate = today;
+                    userPoints += 100;
+                    saveQuestState();
+
+                    showToast('Daily Check-In Success! 🎉', `+100 Points earned! Active Streak: ${questState.streak} Days 🔥`, 'success');
+                }
+            } catch(err) {
+                console.warn("Check-in signature error/rejected:", err);
+                showToast('Check-In Cancelled', 'Wallet signature was cancelled or rejected.', 'error');
+            }
+        }
+
+        // Awarded ONLY AFTER on-chain DEX Swap is confirmed
+        function onSwapConfirmedOnChain() {
+            questState.swapsCompleted = (questState.swapsCompleted || 0) + 1;
+            userPoints += 50; // Per Swap +50 PTS
+            saveQuestState();
+            showToast('+50 Points Earned! 🚀', 'Confirmed DEX Swap on Arc L1 added +50 Builder PTS!', 'success');
+        }
+
+        function claimTask(taskId) {
+            if (taskId === 'task5Swaps') {
+                if (questState.swapsCompleted >= 5 && !questState.claimedTasks.task5Swaps) {
+                    questState.claimedTasks.task5Swaps = true;
+                    userPoints += 250;
+                    saveQuestState();
+                    showToast('Task Claimed! 🏆', '+250 Points awarded for 5 DEX Swaps!', 'success');
+                } else if (questState.claimedTasks.task5Swaps) {
+                    showToast('Already Claimed ✅', 'You have already claimed this task!', 'info');
+                } else {
+                    showToast('Task Locked 🔒', `Perform 5 swaps first (Current: ${questState.swapsCompleted}/5)`, 'warning');
+                }
+            } else if (taskId === 'taskAi') {
+                const savedKey = localStorage.getItem('arcpulse_gemini_api_key');
+                if ((savedKey || questState.claimedTasks.taskAi) && !questState.claimedTasks.taskAi) {
+                    questState.claimedTasks.taskAi = true;
+                    userPoints += 100;
+                    saveQuestState();
+                    showToast('Task Claimed! 🤖', '+100 Points awarded for connecting Gemini AI!', 'success');
+                } else if (questState.claimedTasks.taskAi) {
+                    showToast('Already Claimed ✅', 'You have already claimed this task!', 'info');
+                } else {
+                    switchPage('assistant');
+                    showToast('Connect AI', 'Save your Gemini API Key or chat with Pro AI to complete this task!', 'info');
+                }
+            }
+        }
+
+        function claimBadgeTier(tier) {
+            const targets = { 1: 2000, 2: 10000, 3: 30000 };
+            const badgeKeys = { 1: 'badge1', 2: 'badge2', 3: 'badge3' };
+            const badgeNames = { 1: 'Arc Pioneer Badge (Bronze)', 2: 'Arc DEX Champion Badge (Silver)', 3: 'Arc Protocol Legend Badge (Gold)' };
+
+            const targetPts = targets[tier];
+            const key = badgeKeys[tier];
+
+            if (userPoints < targetPts) {
+                showToast('Points Target Needed 🔒', `You need ${targetPts.toLocaleString()} PTS to unlock this badge. Current: ${userPoints.toLocaleString()} PTS`, 'warning');
+                return;
+            }
+
+            if (questState.claimedBadges && questState.claimedBadges[key]) {
+                showToast('Already Claimed ✅', `You already own the ${badgeNames[tier]} NFT!`, 'info');
+                return;
+            }
+
+            if (!questState.claimedBadges) questState.claimedBadges = {};
+            questState.claimedBadges[key] = true;
+            saveQuestState();
+            showToast('NFT Badge Unlocked! 🎖️', `Congratulations! You claimed the ${badgeNames[tier]}!`, 'success');
+        }
+
+        function updateQuestUI() {
+            safeSetText('userPointsVal', `${userPoints.toLocaleString()} PTS`);
+            safeSetText('questStreakCount', questState.streak || 0);
+
+            const today = getTodayDateString();
+            const checkinBtn = document.getElementById('dailyCheckinBtn');
+            if (checkinBtn) {
+                if (questState.lastCheckinDate === today) {
+                    checkinBtn.innerText = 'Checked-In Today ✅';
+                    checkinBtn.className = 'btn-pixel-sm px-4 py-2.5 rounded-xl bg-slate-200 text-slate-600 font-bold shrink-0 cursor-not-allowed';
+                    checkinBtn.disabled = true;
+                } else {
+                    checkinBtn.innerText = 'Check-In (Sign)';
+                    checkinBtn.className = 'btn-pixel-sm px-4 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold shrink-0';
+                    checkinBtn.disabled = false;
+                }
+            }
+
+            // Update Badges Progress Bars & Claim Buttons
+            const badgeTargets = [
+                { id: 1, target: 2000, key: 'badge1' },
+                { id: 2, target: 10000, key: 'badge2' },
+                { id: 3, target: 30000, key: 'badge3' }
+            ];
+
+            badgeTargets.forEach(b => {
+                const pct = Math.min(100, Math.round((userPoints / b.target) * 100));
+                const pBar = document.getElementById(`badge${b.id}ProgressBar`);
+                const pText = document.getElementById(`badge${b.id}ProgressText`);
+                const btn = document.getElementById(`badge${b.id}ClaimBtn`);
+
+                if (pBar) pBar.style.width = `${pct}%`;
+                if (pText) pText.innerText = `${userPoints.toLocaleString()} / ${b.target.toLocaleString()} PTS (${pct}%)`;
+
+                if (btn) {
+                    if (questState.claimedBadges && questState.claimedBadges[b.key]) {
+                        btn.innerText = 'Claimed ✅';
+                        btn.className = 'w-full btn-pixel-sm py-2.5 rounded-xl bg-emerald-600 text-white font-bold cursor-default';
+                        btn.disabled = true;
+                    } else if (userPoints >= b.target) {
+                        btn.innerText = 'Claim Badge 🎖️';
+                        btn.className = 'w-full btn-pixel-sm py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold animate-pulse shadow-md';
+                        btn.disabled = false;
+                    } else {
+                        btn.innerText = `Locked (${b.target.toLocaleString()} PTS)`;
+                        btn.className = 'w-full btn-pixel-sm py-2.5 rounded-xl bg-slate-300 text-slate-600 font-bold cursor-not-allowed opacity-60';
+                        btn.disabled = true;
+                    }
+                }
+            });
+
+            // Update Task 3 (5 Swaps)
+            const task5Btn = document.getElementById('task5SwapsClaimBtn');
+            const task5Text = document.getElementById('task5SwapsText');
+            if (task5Text) task5Text.innerText = `Progress: ${questState.swapsCompleted || 0} / 5 Swaps`;
+            if (task5Btn) {
+                if (questState.claimedTasks && questState.claimedTasks.task5Swaps) {
+                    task5Btn.innerText = 'Claimed ✅';
+                    task5Btn.className = 'btn-pixel-sm px-4 py-2.5 rounded-xl bg-emerald-600 text-white font-bold shrink-0';
+                    task5Btn.disabled = true;
+                } else if ((questState.swapsCompleted || 0) >= 5) {
+                    task5Btn.innerText = 'Claim +250 PTS 🏆';
+                    task5Btn.className = 'btn-pixel-sm px-4 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold shrink-0 animate-bounce';
+                    task5Btn.disabled = false;
+                } else {
+                    task5Btn.innerText = `Locked (${questState.swapsCompleted || 0}/5)`;
+                    task5Btn.className = 'btn-pixel-sm px-4 py-2.5 rounded-xl bg-slate-300 text-slate-600 font-bold shrink-0 cursor-not-allowed opacity-60';
+                    task5Btn.disabled = true;
+                }
+            }
+
+            // Update Task 4 (AI Connect)
+            const taskAiBtn = document.getElementById('taskAiClaimBtn');
+            if (taskAiBtn) {
+                if (questState.claimedTasks && questState.claimedTasks.taskAi) {
+                    taskAiBtn.innerText = 'Claimed ✅';
+                    taskAiBtn.className = 'btn-pixel-sm px-4 py-2.5 rounded-xl bg-emerald-600 text-white font-bold shrink-0';
+                    taskAiBtn.disabled = true;
+                } else {
+                    const savedKey = localStorage.getItem('arcpulse_gemini_api_key');
+                    if (savedKey) {
+                        taskAiBtn.innerText = 'Claim +100 PTS 🤖';
+                        taskAiBtn.className = 'btn-pixel-sm px-4 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold shrink-0 animate-pulse';
+                    }
+                }
+            }
         }
 
         function switchWalletTab(tabId) {
@@ -1984,6 +2222,8 @@ Timestamp: ${new Date().toISOString()}`;
                 if (apiKeyInput && savedGeminiKey) {
                     apiKeyInput.value = savedGeminiKey;
                 }
+
+                loadQuestState();
 
                 if (typeof startLiveTelemetryTimer === 'function') {
                     startLiveTelemetryTimer();

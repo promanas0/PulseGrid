@@ -62,6 +62,23 @@
             color: #0F172A;
             font-family: 'Plus Jakarta Sans', sans-serif;
             overflow-x: hidden;
+            top: 0px !important;
+            position: static !important;
+        }
+
+        /* Hide Google Translate Iframe & Top Overlay Banner */
+        .goog-te-banner-frame,
+        .goog-te-banner-frame.skiptranslate,
+        iframe.goog-te-banner-frame {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
+        }
+        .goog-te-spinner-pos {
+            display: none !important;
+        }
+        #google_translate_element {
+            display: none !important;
         }
 
         .pixel-grid-bg {

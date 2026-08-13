@@ -264,35 +264,37 @@
         }
 
         function switchPage(pageId) {
-            activePage = pageId;
-            document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.sidebar-link').forEach(btn => btn.classList.remove('active'));
+            try {
+                activePage = pageId;
+                document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.sidebar-link').forEach(btn => btn.classList.remove('active'));
 
-            const activeView = document.getElementById(`view-${pageId}`);
-            if (activeView) activeView.classList.remove('hidden');
+                const activeView = document.getElementById(`view-${pageId}`);
+                if (activeView) activeView.classList.remove('hidden');
 
-            const activeBtn = document.getElementById(`nav-btn-${pageId}`);
-            if (activeBtn) activeBtn.classList.add('active');
+                const activeBtn = document.getElementById(`nav-btn-${pageId}`);
+                if (activeBtn) activeBtn.classList.add('active');
 
-            if (pageId === 'wallet') {
-                renderWalletView();
-            } else if (pageId === 'portfolio') {
-                renderPortfolioView();
-            } else if (pageId === 'prediction') {
-                if (typeof renderPredictionCoins === 'function' && typeof PREDICTION_COINS !== 'undefined') renderPredictionCoins(PREDICTION_COINS);
-            } else if (pageId === 'assistant') {
-                if (typeof renderProAiHistory === 'function') renderProAiHistory();
-            } else if (pageId === 'settings') {
-                const settingsAddr = document.getElementById('settingsWalletAddress');
-                if (settingsAddr) settingsAddr.value = currentAccount || 'Not Connected';
-            }
-
-            if (window.innerWidth < 1024) {
-                const sidebar = document.getElementById('mainSidebar');
-                if (sidebar && sidebar.classList.contains('sidebar-mobile-visible')) {
-                    sidebar.classList.remove('sidebar-mobile-hidden');
-                    sidebar.classList.add('sidebar-mobile-hidden');
+                if (pageId === 'wallet') {
+                    renderWalletView();
+                } else if (pageId === 'portfolio') {
+                    renderPortfolioView();
+                } else if (pageId === 'prediction') {
+                    if (typeof renderPredictionCoins === 'function' && typeof PREDICTION_COINS !== 'undefined') renderPredictionCoins(PREDICTION_COINS);
+                } else if (pageId === 'settings') {
+                    const settingsAddr = document.getElementById('settingsWalletAddress');
+                    if (settingsAddr) settingsAddr.value = currentAccount || 'Not Connected';
                 }
+
+                if (window.innerWidth < 1024) {
+                    const sidebar = document.getElementById('mainSidebar');
+                    if (sidebar && sidebar.classList.contains('sidebar-mobile-visible')) {
+                        sidebar.classList.remove('sidebar-mobile-visible');
+                        sidebar.classList.add('sidebar-mobile-hidden');
+                    }
+                }
+            } catch(err) {
+                console.warn("switchPage warning:", err);
             }
         }
 

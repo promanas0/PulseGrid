@@ -1815,11 +1815,28 @@ Timestamp: ${new Date().toISOString()}`;
             if (window.lucide) window.lucide.createIcons();
         }
 
+        function updateQuestTimerStatus() {
+            try {
+                const timerEl = document.getElementById('dailyQuestTimerText');
+                if (timerEl) {
+                    timerEl.innerText = 'Ready to Claim';
+                }
+            } catch(e) {}
+        }
+
         // STRICT 24-HOUR DAILY QUEST CLAIM LOCK LOGIC
         document.addEventListener('DOMContentLoaded', () => {
-            renderPredictionCoins(PREDICTION_COINS);
-            renderProAiHistory();
-            updateQuestTimerStatus();
-            setInterval(updateQuestTimerStatus, 30000);
+            try {
+                if (typeof renderPredictionCoins === 'function' && typeof PREDICTION_COINS !== 'undefined') {
+                    renderPredictionCoins(PREDICTION_COINS);
+                }
+                if (typeof renderProAiHistory === 'function') {
+                    renderProAiHistory();
+                }
+                updateQuestTimerStatus();
+                setInterval(updateQuestTimerStatus, 30000);
+            } catch(err) {
+                console.warn("DOMContentLoaded initialization warning:", err);
+            }
         });
     

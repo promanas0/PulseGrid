@@ -1551,39 +1551,39 @@ Timestamp: ${new Date().toISOString()}`;
             showToast('Language Switched', `Interface language updated to ${lang.toUpperCase()}`, 'success');
         }
 
-        // INTELLIGENT AI FALLBACK KNOWLEDGE ENGINE
+        // INTELLIGENT CONVERSATIONAL AI KNOWLEDGE ENGINE
         function generateSmartAiResponse(userMsg) {
             const q = userMsg.toLowerCase().trim();
 
-            if (/\b(hindi|hin|hinglish)\b/i.test(q) || q.includes("hindi aati hai") || q.includes("know hindi")) {
-                return "Haan bilkul! Main Pro AI hu aur mujhe Hindi aur Hinglish achhi tarah aati hai. Aap mujhse Arc Testnet, token swap, smart contracts, crypto price predictions ya kisi bhi topic par Hindi/Hinglish me pooch sakte hain!";
+            if (q === 'hi' || q === 'hello' || q === 'hey' || q === 'namaste' || q === 'helo' || q === 'hlo') {
+                return "Hello! Main Pro AI (Gemini Web3 Engine) hu! Main aapki har cheez me help kar sakta hu—jaise Web3, Arc Testnet, Coding, Crypto Prices ya koi bhi general topic. Aaj aap kya poochhna chahte hain?";
             }
-            if (/\b(hi|hello|hey|namaste|greetings)\b/i.test(q) && q.length < 20) {
-                return "Hello! I am Pro AI, your high-performance Web3 co-pilot. How can I assist you today with Arc Testnet, DEX trading, smart contracts, or general knowledge?";
+            if (q.includes('kaise ho') || q.includes('kese ho') || q.includes('how are you')) {
+                return "Main ekdum badhiya hu! Main AI hu toh humesha 100% active rehta hu 😄! Aap bataiye aap kaise hain? Aaj main aapki kya help kar sakta hu?";
             }
-            if (q.includes("kaise ho") || q.includes("how are you")) {
-                return "Main ekdum badiya hu! Main Pro AI hu, aapka AI assistant. Aap bataiye aaj main aapki kya help kar sakta hu?";
+            if (q.includes('kaun ho') || q.includes('who are you') || q.includes('tum kaun ho')) {
+                return "Main **Pro AI** hu, Google Gemini tech par built ek super-smart AI Assistant! Main kisi bhi language me aapke sawalon ka answer de sakta hu.";
             }
-            if (q.includes("arc") || q.includes("testnet") || q.includes("l1")) {
-                return "Arc L1 Testnet is a sub-second finality Layer-1 blockchain built for enterprise Web3 financial settlement.\n\nSpecs:\n- Block Time: ~450ms\n- Gas Currency: Native USDC\n- Chain ID: 5042002\n- RPC URL: https://rpc.testnet.arc.io";
+            if (/\b(hindi|hinglish)\b/i.test(q) || q.includes("hindi aati hai")) {
+                return "Haan bilkul! Mujhe Hindi aur Hinglish dono achhi tarah aati hain. Aap bina kisi hesitation ke Hindi ya Hinglish me kuch bhi pooch sakte hain!";
             }
-            if (q.includes("swap") || q.includes("usdc") || q.includes("eurc") || q.includes("dex")) {
-                return "ArcPulse DEX supports 2-step Spender Router Token Swaps:\n- **USDC ➔ EURC**: Direct Native USDC payable swap or ERC-20 swap.\n- **EURC ➔ USDC**: 2-Step approval & swap (Rate: 1 EURC = 1.082 USDC).\n- **Zero Fee**: Ultra low gas fees (~0.001 USDC).";
+            if (q.includes("arc") || q.includes("testnet")) {
+                return "Arc L1 Testnet ek high-performance enterprise Layer-1 blockchain hai:\n\n- **Block Time**: ~450ms sub-second finality\n- **Native Gas Token**: USDC\n- **Chain ID**: 5042002\n- **RPC Endpoint**: https://rpc.testnet.arc.io";
+            }
+            if (q.includes("swap") || q.includes("dex")) {
+                return "ArcPulse DEX par aap USDC ➔ EURC aur EURC ➔ USDC zero-slippage AMM swaps perform kar sakte hain. Sub-second finality aur ultra-low gas fee (~0.001 USDC) milti hai.";
             }
             if (q.includes("btc") || q.includes("bitcoin")) {
-                return "Bitcoin (BTC) Technical Analysis:\n- Current Price: ~$64,200.00\n- Sentiment: **Bullish (+4.2%)**\n- Target: **$66,900.00**\n- Catalysts: Institutional ETF inflows and exchange net-outflows.";
+                return "Bitcoin (BTC) Forecast:\n- Current Price: **~$64,200.00**\n- Trend: **Bullish (+4.2%)**\n- Target: **$66,900.00**";
             }
             if (q.includes("eth") || q.includes("ethereum")) {
-                return "Ethereum (ETH) Technical Analysis:\n- Current Price: ~$3,240.50\n- Sentiment: **Bullish (+5.8%)**\n- Target: **$3,428.00**\n- Catalysts: L2 gas settlement surge and staking net inflows.";
+                return "Ethereum (ETH) Forecast:\n- Current Price: **~$3,240.50**\n- Trend: **Bullish (+5.8%)**\n- Target: **$3,428.00**";
             }
-            if (q.includes("sol") || q.includes("solana")) {
-                return "Solana (SOL) Technical Analysis:\n- Current Price: ~$148.20\n- Sentiment: **Consolidation (-3.1%)**\n- Support Target: **$143.60**.";
-            }
-            if (q.includes("code") || q.includes("solidity") || q.includes("contract")) {
-                return "Here is a standard ERC-20 interface snippet in Solidity:\n\n`interface IERC20 { function balanceOf(address account) external view returns (uint256); function transfer(address to, uint256 amount) external returns (bool); }`";
+            if (q.includes("code") || q.includes("solidity") || q.includes("function") || q.includes("contract")) {
+                return "Here is a standard ERC-20 Solidity contract interface snippet:\n\n```solidity\ninterface IERC20 {\n    function balanceOf(address account) external view returns (uint256);\n    function transfer(address recipient, uint256 amount) external returns (bool);\n}\n```";
             }
 
-            return `Main aapke sawal: **"${userMsg}"** ko samajh gaya hu!\n\n**Pro AI Intelligence Response:**\nArc Pulse DApp par Arc L1 Testnet (Chain 5042002), Circle AppKit Spender Router swap, Web3 wallet authentication, aur multi-chain analytics 100% active hain. Aap swap & trade seamlessly start kar sakte hain!`;
+            return `Main aapke question: **"${userMsg}"** ko ache se samajh gaya hu!\n\nMain ek Real Gemini AI Assistant ki tarah training mode me hu. Arc L1 Testnet (Chain ID 5042002), Circle DEX Swap, Smart Contracts, aur live RPC telemetry (https://rpc.testnet.arc.io) completely operational hain!`;
         }
 
         function setTheme(mode) {
@@ -1610,7 +1610,7 @@ Timestamp: ${new Date().toISOString()}`;
             }
         }
 
-        // REAL AI ASSISTANT (NO CHAT HISTORY PERSISTENCE)
+        // REAL GEMINI-STYLE AI ASSISTANT
         async function handleAiChatSend() {
             const input = document.getElementById('aiChatInput');
             const chatBox = document.getElementById('aiChatBox');
@@ -1634,7 +1634,7 @@ Timestamp: ${new Date().toISOString()}`;
                 <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center shrink-0">
                     <span class="text-purple-300 font-bold text-xs">AI</span>
                 </div>
-                <div class="bg-slate-800 border border-slate-700 rounded-2xl px-4 py-2 text-slate-300 text-xs italic animate-pulse flex items-center gap-2">
+                <div class="bg-slate-800 border border-slate-700 rounded-2xl px-4 py-2.5 text-slate-300 text-xs italic animate-pulse flex items-center gap-2">
                     <span>Pro AI is thinking...</span>
                 </div>
             `;
@@ -1643,27 +1643,57 @@ Timestamp: ${new Date().toISOString()}`;
 
             let aiReplyText = "";
 
+            // 1. Try POST to Pollinations AI LLM API (openai/llama model)
             try {
-                const systemPrompt = "You are Pro AI, the intelligent Web3 co-pilot of ArcPulse on Arc L1 Testnet (Chain ID 5042002). Provide accurate, helpful, friendly, and structured responses in the user's language (English, Hindi, Hinglish, Spanish, etc.). Question: ";
-                
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 6000);
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-                const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent(systemPrompt + userMsg)}`, {
+                const response = await fetch('https://text.pollinations.ai/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        messages: [
+                            { 
+                                role: 'system', 
+                                content: 'You are Gemini Web3 AI, a world-class intelligent AI assistant like Google Gemini. Answer any question (general knowledge, science, coding, crypto, math, conversational chat, Hinglish, Hindi, English, Spanish, etc.) in detail with friendly tone, markdown formatting, bullet points, and code blocks when helpful.' 
+                            },
+                            { role: 'user', content: userMsg }
+                        ],
+                        seed: Math.floor(Math.random() * 1000000)
+                    }),
                     signal: controller.signal
                 });
                 clearTimeout(timeoutId);
 
                 if (response.ok) {
                     const raw = await response.text();
-                    if (raw && raw.trim().length > 5) {
+                    if (raw && raw.trim().length > 2) {
                         aiReplyText = raw.trim();
                     }
                 }
             } catch(e) {
-                console.warn("Pollinations AI API fetch timed out, falling back to dynamic Web3 AI engine:", e);
+                console.warn("Pollinations POST API error, attempting GET fallback:", e);
             }
 
+            // 2. Try GET direct endpoint fallback if POST was blocked
+            if (!aiReplyText) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 5000);
+                    const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(userMsg)}`, {
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeoutId);
+                    if (res.ok) {
+                        const txt = await res.text();
+                        if (txt && txt.trim().length > 2) {
+                            aiReplyText = txt.trim();
+                        }
+                    }
+                } catch(e) {}
+            }
+
+            // 3. Smart Conversational Fallback if network is unavailable
             if (!aiReplyText) {
                 aiReplyText = generateSmartAiResponse(userMsg);
             }
@@ -1678,7 +1708,9 @@ Timestamp: ${new Date().toISOString()}`;
 
             let formatted = escapeHtml(aiReplyText)
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/`([^`]+)`/g, '<code class="bg-slate-900 px-1 rounded text-purple-300 font-mono text-[11px]">$1</code>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/```([\s\S]*?)```/g, '<pre class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-purple-300 font-mono text-xs overflow-x-auto my-2"><code>$1</code></pre>')
+                .replace(/`([^`]+)`/g, '<code class="bg-slate-950 px-1.5 py-0.5 rounded text-purple-300 font-mono text-[11px] border border-slate-800">$1</code>')
                 .replace(/\n/g, '<br>');
 
             aiBubble.innerHTML = `

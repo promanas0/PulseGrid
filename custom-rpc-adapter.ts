@@ -1,4 +1,4 @@
-import { createViemAdapterFromPrivateKey } from "@circle-fin/adapter-viem-v2";
+﻿import { createViemAdapterFromPrivateKey } from "@circle-fin/adapter-viem-v2";
 import { createPublicClient, createWalletClient, http } from "viem";
 import { arcTestnet, sepolia } from "viem/chains";
 import { AppKit } from "@circle-fin/app-kit";
@@ -6,7 +6,7 @@ import { AppKit } from "@circle-fin/app-kit";
 /**
  * Circle AppKit - Custom RPC Client Factory with Viem Private Key Adapter
  * Configures dedicated RPC endpoints, retry count, and timeouts for Ethereum Sepolia & Arc Testnet
- * ArcPulse Ecosystem.
+ * ArchPulse Ecosystem.
  */
 
 const alchemyKey = process.env.ALCHEMY_KEY || "demo";

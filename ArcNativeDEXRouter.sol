@@ -1,11 +1,11 @@
-// SPDX-License-Identifier: MIT
+﻿// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
 /**
  * @title ArcNativeDEXRouter
  * @dev Full Spender ERC-20 & Native AMM DEX Router for Arc Testnet.
  * Supports token approvals (approve/allowance), transferFrom, liquidity pools & swaps.
- * ArcPulse Ecosystem.
+ * ArchPulse Ecosystem.
  */
 
 interface IERC20 {
@@ -18,7 +18,7 @@ interface IERC20 {
 }
 
 contract ArcNativeDEXRouter {
-    string public name = "ArcPulse Native DEX Router Spender";
+    string public name = "ArchPulse Native DEX Router Spender";
     string public symbol = "ARC-DEX-V2";
     address public owner;
 

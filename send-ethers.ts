@@ -1,8 +1,8 @@
-import { ethers } from "ethers";
+﻿import { ethers } from "ethers";
 
 /**
  * Ethers.js v6 Native USDC Transfer on Arc Testnet (Chain ID 5042002)
- * ArcPulse Ecosystem.
+ * ArchPulse Ecosystem.
  */
 
 async function main() {

@@ -1,9 +1,9 @@
-import { AppKit } from "@circle-fin/app-kit";
+﻿import { AppKit } from "@circle-fin/app-kit";
 import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
 
 /**
  * Circle AppKit - Send USDC to a Wallet on Arc Testnet
- * ArcPulse Ecosystem.
+ * ArchPulse Ecosystem.
  */
 
 const kit = new AppKit();

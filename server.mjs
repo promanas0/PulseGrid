@@ -1,4 +1,4 @@
-import { createServer } from 'node:http';
+﻿import { createServer } from 'node:http';
 import { readFileSync, existsSync, statSync } from 'node:fs';
 import { join, extname } from 'node:path';
 
@@ -35,6 +35,6 @@ const server = createServer((req, res) => {
 });
 
 server.listen(3000, '127.0.0.1', () => {
-  console.log('ArcPulse DApp running on http://127.0.0.1:3000');
+  console.log('ArchPulse DApp running on http://127.0.0.1:3000');
 });
 

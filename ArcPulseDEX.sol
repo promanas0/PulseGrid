@@ -1,11 +1,11 @@
-// SPDX-License-Identifier: MIT
+﻿// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
 /**
- * @title ArcPulseDEX (Arc Native & Token Spender DEX Router)
+ * @title ArchPulseDEX (Arc Native & Token Spender DEX Router)
  * @dev Full Spender AMM DEX Router for Arc Testnet (Chain ID 5042002).
  * Supports token approvals (approve/allowance), transferFrom, liquidity pools & atomic swaps.
- * ArcPulse Ecosystem.
+ * ArchPulse Ecosystem.
  */
 
 interface IERC20 {
@@ -16,8 +16,8 @@ interface IERC20 {
     function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
 }
 
-contract ArcPulseDEX {
-    string public name = "ArcPulse DEX Spender Router";
+contract ArchPulseDEX {
+    string public name = "ArchPulse DEX Spender Router";
     string public symbol = "ARC-DEX-V2";
     address public owner;
 

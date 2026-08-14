@@ -1,4 +1,4 @@
-import 'dotenv/config';
+﻿import 'dotenv/config';
 import { AppKit } from "@circle-fin/app-kit";
 import { ArcTestnet } from "@circle-fin/app-kit/chains";
 import { createViemAdapterFromPrivateKey, createViemAdapterFromProvider } from "@circle-fin/adapter-viem-v2";
@@ -7,7 +7,7 @@ import { createViemAdapterFromPrivateKey, createViemAdapterFromProvider } from "
  * Circle AppKit Swap using Viem V2 Adapter with official viem/chains arcTestnet
  * USDC -> EURC on Arc Testnet (Chain ID 5042002)
  * Supports Browser Provider (window.ethereum) & Private Key Adapters
- * Built for ArcPulse Ecosystem by ProManas
+ * Built for ArchPulse Ecosystem by ProManas
  */
 
 interface EIP6963ProviderDetail {

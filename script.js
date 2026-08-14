@@ -1,10 +1,10 @@
-import 'dotenv/config';
+﻿import 'dotenv/config';
 import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
 
 /**
  * Circle Developer Controlled Wallets — Wallet Creation Script
  * Creates WalletSet and Arc Testnet Smart Contract Account (SCA) Wallet
- * ArcPulse Ecosystem.
+ * ArchPulse Ecosystem.
  */
 
 const apiKey = process.env.CIRCLE_API_KEY || "TEST_API_KEY:bbea6fab16e1195e62e7110a253159d8:18a4019d73e030dde1061aa509d5ccfd";

@@ -1,10 +1,10 @@
-// SPDX-License-Identifier: MIT
+﻿// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
 /**
- * @title ArcPulseSpenderRouter
+ * @title ArchPulseSpenderRouter
  * @dev Official ERC-20 (USDC & EURC) & Native AMM DEX Spender Router for Arc Testnet (Chain ID 5042002).
- * ArcPulse Ecosystem.
+ * ArchPulse Ecosystem.
  */
 
 interface IERC20 {
@@ -16,8 +16,8 @@ interface IERC20 {
     function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
 }
 
-contract ArcPulseSpenderRouter {
-    string public name = "ArcPulse Universal Spender Router";
+contract ArchPulseSpenderRouter {
+    string public name = "ArchPulse Universal Spender Router";
     string public symbol = "ARC-SPENDER-V4";
     address public owner;
 
@@ -36,7 +36,7 @@ contract ArcPulseSpenderRouter {
     event RatesUpdated(uint256 newRateUSDCtoEURC, uint256 newRateEURCtoUSDC);
 
     modifier onlyOwner() {
-        require(msg.sender == owner, "ArcPulseSpenderRouter: FORBIDDEN");
+        require(msg.sender == owner, "ArchPulseSpenderRouter: FORBIDDEN");
         _;
     }
 

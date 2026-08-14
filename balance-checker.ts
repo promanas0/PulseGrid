@@ -1,10 +1,10 @@
-import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
+﻿import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
 import { formatUnits } from "viem";
 
 /**
  * Circle Adapter Action - USDC Balance Inspector on Arc Testnet
  * Uses adapter.prepareAction("usdc.balanceOf") and viem formatUnits
- * ArcPulse Ecosystem.
+ * ArchPulse Ecosystem.
  */
 
 const apiKey = process.env.CIRCLE_API_KEY || "TEST_API_KEY:bbea6fab16e1195e62e7110a253159d8:18a4019d73e030dde1061aa509d5ccfd";

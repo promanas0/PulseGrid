@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+﻿import { randomBytes } from "node:crypto";
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { registerEntitySecretCiphertext } from "@circle-fin/developer-controlled-wallets";
 
@@ -6,7 +6,7 @@ import { registerEntitySecretCiphertext } from "@circle-fin/developer-controlled
  * Circle Developer-Controlled Wallets — Entity Secret Registration & Recovery Generator
  * Generates a 32-byte hex entity secret, registers ciphertext with Circle API,
  * downloads recovery file, and saves CIRCLE_ENTITY_SECRET to .env
- * ArcPulse Ecosystem.
+ * ArchPulse Ecosystem.
  */
 
 async function main() {

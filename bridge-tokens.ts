@@ -1,11 +1,11 @@
-import { AppKit, type BridgeResult } from "@circle-fin/app-kit";
+﻿import { AppKit, type BridgeResult } from "@circle-fin/app-kit";
 import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
 
 /**
  * Circle AppKit - Cross-Chain CCTP Bridge to Arc Testnet
  * Transfer 1.00 USDC from Ethereum Sepolia -> Arc Testnet
  * Handles Step-by-Step CCTP Inspection & Selective Retry on Error
- * ArcPulse Ecosystem.
+ * ArchPulse Ecosystem.
  */
 
 const kit = new AppKit();

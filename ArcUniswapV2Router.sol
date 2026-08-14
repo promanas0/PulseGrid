@@ -1,10 +1,10 @@
-// SPDX-License-Identifier: MIT
+﻿// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
 /**
  * @title ArcUniswapV2Router
  * @dev Full Uniswap V2 style Automated Market Maker (AMM) & DEX Router for Arc Testnet.
- * ArcPulse Ecosystem.
+ * ArchPulse Ecosystem.
  */
 
 interface IERC20 {
@@ -17,7 +17,7 @@ interface IERC20 {
 }
 
 contract ArcUniswapV2Router {
-    string public name = "ArcPulse Uniswap V2 DEX Router";
+    string public name = "ArchPulse Uniswap V2 DEX Router";
     string public symbol = "ARC-V2-ROUTER";
     address public owner;
 

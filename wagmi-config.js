@@ -1,9 +1,9 @@
-import { arcTestnet, mainnet } from "viem/chains";
+﻿import { arcTestnet, mainnet } from "viem/chains";
 import { createConfig, http } from "wagmi";
 import { getDefaultConfig } from "connectkit";
 
 /**
- * ArcPulse - ConnectKit & Wagmi Config with Arc Testnet Support (JS runner)
+ * ArchPulse - ConnectKit & Wagmi Config with Arc Testnet Support (JS runner)
  */
 
 const config = createConfig(
@@ -14,7 +14,7 @@ const config = createConfig(
       [mainnet.id]: http("https://cloudflare-eth.com"),
     },
     walletConnectProjectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || process.env.WALLETCONNECT_PROJECT_ID || "demo-project-id",
-    appName: "ArcPulse DEX",
+    appName: "ArchPulse DEX",
   }),
 );
 

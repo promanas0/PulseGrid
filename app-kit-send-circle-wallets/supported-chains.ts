@@ -1,8 +1,8 @@
-import { AppKit } from "@circle-fin/app-kit";
+﻿import { AppKit } from "@circle-fin/app-kit";
 
 /**
  * Circle AppKit Supported Chains Inspector
- * ArcPulse Ecosystem.
+ * ArchPulse Ecosystem.
  */
 
 const kit = new AppKit();

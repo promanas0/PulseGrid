@@ -1,10 +1,10 @@
-import { AppKit } from "@circle-fin/app-kit";
+﻿import { AppKit } from "@circle-fin/app-kit";
 import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
 import type { SwapParams } from "@circle-fin/app-kit";
 
 /**
  * Circle AppKit - Same Chain USDC -> EURC Swap on Arc Testnet
- * ArcPulse Ecosystem.
+ * ArchPulse Ecosystem.
  */
 
 const kit = new AppKit();

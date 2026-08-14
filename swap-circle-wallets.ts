@@ -1,4 +1,4 @@
-import 'dotenv/config';
+﻿import 'dotenv/config';
 import { AppKit, type SwapParams } from "@circle-fin/app-kit";
 import { ArcTestnet } from "@circle-fin/app-kit/chains";
 import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
@@ -6,7 +6,7 @@ import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
 /**
  * Circle AppKit Swap using Circle Wallets Adapter with explicit SwapParams typing
  * USDC -> EURC on Arc Testnet (Chain ID 5042002)
- * Built for ArcPulse Ecosystem by ProManas
+ * Built for ArchPulse Ecosystem by ProManas
  */
 
 async function main() {

@@ -1,8 +1,8 @@
-import { ethers } from "ethers";
+﻿import { ethers } from "ethers";
 
 /**
  * Arc Testnet Live RPC Gas Price & Fee History Estimator
- * ArcPulse Ecosystem.
+ * ArchPulse Ecosystem.
  */
 
 async function main() {

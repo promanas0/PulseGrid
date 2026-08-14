@@ -2,2214 +2,561 @@
 <html lang="en">
 <head>
     <link rel="icon" type="image/png" href="logo.png">
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ArcPulse - Arc L1 Web3 Ecosystem & DEX Engine</title>
+    <title>ArcPulse — Arc L1 Web3 Ecosystem & DEX Engine</title>
+    <meta name="description" content="ArcPulse is a next-generation Web3 dApp ecosystem built on Circle Arc L1. Sub-second finality, micro USDC gas, institutional validator security.">
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
-                    borderWidth: {
-                        '3': '3px',
-                    },
-                    colors: {
-                        pixel: {
-                            white: '#FFFFFF',
-                            bg: '#FFFFFF',
-                            dark: '#0F172A',
-                            border: '#0F172A',
-                            purple: '#7B2CBF',
-                            purpleDark: '#5B21B6',
-                            indigo: '#4F46E5',
-                            slateBlue: '#3A506B',
-                            teal: '#008080',
-                            tealDark: '#0D9488',
-                            emerald: '#007F73',
-                            rose: '#E11D48',
-                            amber: '#D97706',
-                        }
-                    },
+                    borderWidth: { '3': '3px', '4': '4px' },
                     fontFamily: {
                         pixel: ['"Plus Jakarta Sans"', 'sans-serif'],
-                        arcade: ['"Plus Jakarta Sans"', 'sans-serif'],
-                        silkscreen: ['"Plus Jakarta Sans"', 'sans-serif'],
-                        sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
-                        mono: ['"Fira Code"', 'monospace']
+                        mono: ['"Fira Code"', 'monospace'],
+                    },
+                    animation: {
+                        'float': 'float 4s ease-in-out infinite',
+                        'glow-pulse': 'glowPulse 2.5s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-12px)' },
+                        },
+                        glowPulse: {
+                            '0%, 100%': { boxShadow: '0 0 20px rgba(123, 44, 191, 0.4)' },
+                            '50%': { boxShadow: '0 0 50px rgba(123, 44, 191, 0.8), 0 0 80px rgba(0, 128, 128, 0.4)' },
+                        }
                     }
                 }
             }
         }
     </script>
-    <!-- Google Pixel & Modern Fonts -->
+
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Inter:wght@300..800&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Lucide Icons CDN -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300..800&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- WalletConnect v2 Ethereum Provider SDK CDN -->
-    <script src="https://unpkg.com/@walletconnect/ethereum-provider@2.10.1/dist/index.umd.js"></script>
-    <!-- Ethers.js v5 CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-    
+
     <style>
+        * { box-sizing: border-box; }
+
         body {
-            background-color: #FFFFFF;
-            color: #0F172A;
             font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #FFFFFF;
+            color: #0F172A;
             overflow-x: hidden;
-            top: 0px !important;
-            position: static !important;
         }
 
-        /* Hide Google Translate Iframe & Top Overlay Banner */
-        .goog-te-banner-frame,
-        .goog-te-banner-frame.skiptranslate,
-        iframe.goog-te-banner-frame {
-            display: none !important;
-            visibility: hidden !important;
-            height: 0 !important;
-        }
-        .goog-te-spinner-pos {
-            display: none !important;
-        }
-        #google_translate_element {
-            display: none !important;
+        /* Dot grid background */
+        .dot-grid-bg {
+            background-color: #FAFAFA;
+            background-image: radial-gradient(circle, #D1D5DB 1px, transparent 1px);
+            background-size: 28px 28px;
         }
 
-        .pixel-grid-bg {
-            background-color: #FFFFFF;
-        }
-
-        /* Pixel Cards */
-        .pixel-card {
-            background-color: #FFFFFF;
-            border: 3px solid #0F172A;
-            border-radius: 16px;
-            box-shadow: 5px 5px 0px #0F172A;
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-        }
-
-        .pixel-card:hover {
-            box-shadow: 7px 7px 0px #7B2CBF;
-        }
-
-        .pixel-card-purple {
-            background-color: #FFFFFF;
-            border: 3px solid #0F172A;
-            border-radius: 16px;
-            box-shadow: 6px 6px 0px #7B2CBF;
-        }
-
-        .pixel-card-teal {
-            background-color: #FFFFFF;
-            border: 3px solid #0F172A;
-            border-radius: 16px;
-            box-shadow: 6px 6px 0px #008080;
-        }
-
-        .pixel-card-emerald {
-            background-color: #FFFFFF;
-            border: 3px solid #0F172A;
-            border-radius: 16px;
-            box-shadow: 6px 6px 0px #007F73;
-        }
-
-        /* Pixel Buttons */
+        /* Pixel design system */
         .btn-pixel {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            font-weight: 700;
+            font-weight: 800;
             border: 2.5px solid #0F172A;
             box-shadow: 4px 4px 0px #0F172A;
-            transition: all 0.1s ease;
+            transition: all 0.12s ease;
+            cursor: pointer;
             user-select: none;
         }
-
         .btn-pixel:hover {
             transform: translate(-2px, -2px);
             box-shadow: 6px 6px 0px #0F172A;
         }
-
         .btn-pixel:active {
             transform: translate(2px, 2px);
             box-shadow: 1px 1px 0px #0F172A;
         }
 
-        .btn-pixel-sm {
+        .btn-ghost {
             font-family: 'Plus Jakarta Sans', sans-serif;
             font-weight: 700;
-            border: 2px solid #0F172A;
-            box-shadow: 3px 3px 0px #0F172A;
-            transition: all 0.1s ease;
-        }
-        .btn-pixel-sm:hover {
-            transform: translate(-1px, -1px);
-            box-shadow: 4px 4px 0px #0F172A;
-        }
-        .btn-pixel-sm:active {
-            transform: translate(1px, 1px);
-            box-shadow: 1px 1px 0px #0F172A;
-        }
-
-        .pixel-hero-gradient {
-            background: linear-gradient(135deg, #7B2CBF 0%, #3A506B 35%, #008080 70%, #007F73 100%);
-            border: 3.5px solid #0F172A;
-            box-shadow: 6px 6px 0px #0F172A;
-            border-radius: 20px;
-        }
-
-        .sidebar-link {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 15px;
-            font-weight: 700;
-            border: 2.5px solid transparent;
-            border-radius: 12px;
-            padding: 10px 14px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #334155;
-            transition: all 0.15s ease;
+            border: 2px solid rgba(255,255,255,0.3);
+            transition: all 0.12s ease;
             cursor: pointer;
         }
-
-        .sidebar-link:hover {
-            background-color: #F1F5F9;
-            border-color: #0F172A;
-            color: #7B2CBF;
-            box-shadow: 3px 3px 0px #0F172A;
-            transform: translate(-1px, -1px);
+        .btn-ghost:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.6);
         }
 
-        .sidebar-link.active {
-            background: linear-gradient(135deg, #7B2CBF 0%, #008080 100%);
-            border-color: #0F172A;
-            color: #FFFFFF;
-            box-shadow: 4px 4px 0px #0F172A;
+        .pixel-card {
+            background: #FFFFFF;
+            border: 3px solid #0F172A;
+            border-radius: 16px;
+            box-shadow: 5px 5px 0px #0F172A;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .pixel-card:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 8px 8px 0px #7B2CBF;
         }
 
-        .page-view {
-            animation: fadeIn 0.25s ease-out forwards;
+        /* Hero gradient banner */
+        .hero-banner {
+            background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 30%, #4C1D95 60%, #134E4A 100%);
+            border: 4px solid #0F172A;
+            border-radius: 24px;
+            box-shadow: 10px 10px 0px #0F172A;
+            position: relative;
+            overflow: hidden;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        /* Ambient glow orbs */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            pointer-events: none;
         }
 
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #F1F5F9;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #94A3B8;
-            border-radius: 4px;
-            border: 1px solid #0F172A;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #7B2CBF;
+        /* Navbar card */
+        .navbar-card {
+            background: rgba(255,255,255,0.98);
+            border: 3px solid #0F172A;
+            border-radius: 20px;
+            box-shadow: 5px 5px 0px #0F172A;
+            backdrop-filter: blur(16px);
         }
 
-        @media (max-width: 1023px) {
-            .sidebar-mobile-hidden {
-                transform: translateX(-100%);
-                transition: transform 0.3s ease-in-out;
-            }
-            .sidebar-mobile-visible {
-                transform: translateX(0);
-                transition: transform 0.3s ease-in-out;
-            }
+        /* Explore button glow */
+        .explore-btn {
+            background: linear-gradient(135deg, #7B2CBF, #4F46E5, #0D9488);
+            border: 2.5px solid #0F172A;
+            box-shadow: 5px 5px 0px #0F172A;
+            transition: all 0.15s ease;
+            font-weight: 800;
+            color: white;
+            cursor: pointer;
+        }
+        .explore-btn:hover {
+            transform: translate(-3px, -3px);
+            box-shadow: 8px 8px 0px #0F172A;
+            filter: brightness(1.1);
+        }
+        .explore-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px #0F172A;
+        }
+
+        /* Metric pill */
+        .metric-pill {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 14px;
+            padding: 14px 18px;
+        }
+
+        /* Partner badge */
+        .partner-badge {
+            background: white;
+            border: 1.5px solid #E2E8F0;
+            border-radius: 12px;
+            padding: 8px 18px;
+            font-weight: 700;
+            font-size: 13px;
+            color: #334155;
+            box-shadow: 2px 2px 0px #E2E8F0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Fade in animation */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up { animation: fadeUp 0.5s ease-out forwards; }
+        .fade-up-delay-1 { animation: fadeUp 0.5s ease-out 0.1s both; }
+        .fade-up-delay-2 { animation: fadeUp 0.5s ease-out 0.2s both; }
+        .fade-up-delay-3 { animation: fadeUp 0.5s ease-out 0.3s both; }
+        .fade-up-delay-4 { animation: fadeUp 0.5s ease-out 0.4s both; }
+
+        /* Responsive nav */
+        #mobile-menu { display: none; }
+        #mobile-menu.open { display: flex; }
+
+        /* Stats counter animation */
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Card hover shine */
+        .dapp-card {
+            background: white;
+            border: 3px solid #0F172A;
+            border-radius: 18px;
+            box-shadow: 5px 5px 0px #0F172A;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .dapp-card:hover {
+            transform: translate(-3px, -3px);
+            box-shadow: 8px 8px 0px #7B2CBF;
         }
     </style>
 </head>
-<body class="min-h-screen bg-white text-slate-900 pixel-grid-bg flex flex-col lg:flex-row antialiased selection:bg-purple-600 selection:text-white">
 
-    <!-- MOBILE TOP HEADER -->
-    <header class="lg:hidden sticky top-0 z-50 w-full bg-white border-b-4 border-slate-950 px-4 py-3 flex items-center justify-between shadow-md">
-        <div class="flex items-center gap-3 cursor-pointer" onclick="switchPage('landing')">
-            <img src="logo.png" alt="ArcPulse Logo" class="w-10 h-10 rounded-xl border-2 border-slate-950 shadow-[2px_2px_0px_#0F172A] object-cover bg-white p-0.5">
-            <div>
-                <span class="font-pixel text-xl font-black tracking-wider text-slate-950">ArcPulse</span>
-            </div>
-        </div>
-        <div class="flex items-center gap-2">
-            <button onclick="exploreDapps('monitor')" class="btn-pixel-sm px-3 py-1.5 rounded-xl bg-purple-700 text-white font-pixel font-bold text-xs flex items-center gap-1 shadow-sm">
-                <i data-lucide="compass" class="w-3.5 h-3.5"></i>
-                <span>Explore dApps</span>
-            </button>
-            <button onclick="toggleMobileSidebar()" class="btn-pixel p-2 rounded-xl bg-white border-2 border-slate-950 text-slate-900">
-                <i data-lucide="menu" class="w-6 h-6"></i>
-            </button>
-        </div>
-    </header>
+<body class="dot-grid-bg min-h-screen">
 
-    <!-- PERSISTENT LEFT SIDEBAR NAVIGATION BAR -->
-    <aside id="mainSidebar" class="fixed inset-y-0 left-0 z-50 w-60 bg-white border-r border-slate-200 text-slate-900 flex flex-col justify-between p-4 shadow-md overflow-y-auto sidebar-mobile-hidden lg:transform-none">
-        
-        <div class="space-y-5">
-            <!-- Brand & Logo Header -->
-            <div class="pb-4 border-b-3 border-slate-950 space-y-2">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3 cursor-pointer" onclick="switchPage('monitor')">
-                        <img src="logo.png" alt="ArcPulse Logo" class="w-11 h-11 rounded-xl border-3 border-slate-950 shadow-[3px_3px_0px_#0F172A] object-cover bg-white p-0.5 group hover:scale-105 transition-transform">
-
-                        <div>
-                            <div class="flex items-center gap-1.5">
-                                <span class="font-pixel text-2xl font-black tracking-wider text-slate-950">ArcPulse</span>
-                                
-                            </div>
-                        </div>
-                    </div>
-
-                    <button onclick="toggleMobileSidebar()" class="lg:hidden p-1.5 rounded-lg border-2 border-slate-950 text-slate-700 hover:text-slate-950">
-                        </button>
-                </div>
-
-                
-            </div>
-
-            
-    <!-- Language Selector Dropdown -->
-    <div class="relative inline-block text-left my-2 px-2">
-        <select id="languageSelector" onchange="changeLanguage(this.value)" class="w-full bg-slate-100 text-slate-800 text-xs font-semibold rounded-lg px-3 py-2 border border-slate-300 focus:outline-none focus:border-purple-600 cursor-pointer">
-            <option value="en">English (US)</option>
-            <option value="hi">हिंदी (Hindi)</option>
-            <option value="es">Español (Spanish)</option>
-            <option value="fr">Français (French)</option>
-            <option value="de">Deutsch (German)</option>
-            <option value="zh">中文 (Chinese)</option>
-            <option value="ja">日本語 (Japanese)</option>
-            <option value="ar">العربية (Arabic)</option>
-            <option value="ru">Русский (Russian)</option>
-            <option value="pt">Português (Portuguese)</option>
-        </select>
-    </div>
-    
-            <!-- Navigation Options -->
-            <nav class="space-y-1.5">
-                <div class="text-[10px] font-silkscreen text-slate-400 uppercase tracking-widest px-2 mb-1.5">Main Menu</div>
-
-                <button onclick="switchPage('landing')" id="nav-btn-landing" class="sidebar-link w-full active">
-                    <span class="flex items-center justify-between w-full">
-                        <span>Home Overview</span>
-                        <span class="px-1.5 py-0.5 rounded bg-purple-600 text-white text-[9px] font-bold">Hero</span>
-                    </span>
-                </button>
-
-                <button onclick="switchPage('monitor')" id="nav-btn-monitor" class="sidebar-link w-full">
-                    <span>Network Monitor</span>
-                </button>
-
-                <button onclick="switchPage('swap')" id="nav-btn-swap" class="sidebar-link w-full">
-                    <span>Swap & AMM</span>
-                </button>
-
-                <button onclick="switchPage('wallet')" id="nav-btn-wallet" class="sidebar-link w-full">
-                    <span>Arc Web3 Wallet</span>
-                </button>
-
-                <button onclick="switchPage('portfolio')" id="nav-btn-portfolio" class="sidebar-link w-full">
-                    <span>Portfolio & Analytics</span>
-                </button>
-
-                <button onclick="switchPage('market')" id="nav-btn-market" class="sidebar-link w-full">
-                    <span>NFT & Token Market</span>
-                </button>
-
-                <button onclick="switchPage('escrow')" id="nav-btn-escrow" class="sidebar-link w-full">
-                    <span>Circle Escrow</span>
-                </button>
-
-                <button onclick="switchPage('assistant')" id="nav-btn-assistant" class="sidebar-link w-full">
-                    <span data-i18n="nav_assistant">Pro AI</span>
-                </button>
-
-                <button onclick="switchPage('games')" id="nav-btn-games" class="sidebar-link w-full">
-                    <span data-i18n="nav_games">Games</span>
-                </button>
-
-                <button onclick="switchPage('prediction')" id="nav-btn-prediction" class="sidebar-link w-full">
-                    <span data-i18n="nav_prediction">Price Predictions</span>
-                </button>
-
-                <button onclick="switchPage('settings')" id="nav-btn-settings" class="sidebar-link w-full">
-                    <span data-i18n="nav_settings">Settings</span>
-                </button>
-
-                <button onclick="switchPage('daily')" id="nav-btn-daily" class="sidebar-link w-full">
-                    <span>Daily Quests</span>
-                </button>
-
-                <button onclick="switchPage('about')" id="nav-btn-about" class="sidebar-link w-full">
-                    <span>About Arc L1</span>
-                </button>
-                <button onclick="switchPage('tools')" id="nav-btn-tools" class="sidebar-link w-full">
-                    <span>Web3 Tools Hub</span>
-                </button>
-            </nav>
-
-            <div class="space-y-2 pt-2 border-t-2 border-slate-200">
-                <div class="text-[10px] font-silkscreen text-slate-400 uppercase tracking-widest px-2 mb-1">Ecosystem Tools</div>
-
-                <button onclick="manualSwitchToArcNetwork()" class="btn-pixel-sm w-full py-2.5 px-3 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-bold flex items-center justify-between shadow-[2px_2px_0px_#0F172A] transition-transform active:translate-y-0.5">
-                    <span class="flex items-center gap-2 font-pixel">
-                        Switch Arc Network
-                    </span>
-                    <span class="text-[9px] bg-purple-900 text-purple-200 px-1.5 py-0.5 rounded font-mono">5042002</span>
-                </button>
-
-                <button onclick="openFaucetModal()" class="btn-pixel-sm w-full py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 rounded-xl text-xs font-bold flex items-center justify-start gap-2">
-                    <span>USDC & EURC Faucet</span>
-                </button>
-
-                <button onclick="openTxHistoryModal()" class="btn-pixel-sm w-full py-2 px-3 bg-purple-50 hover:bg-purple-100 text-purple-900 rounded-xl text-xs font-bold flex items-center justify-start gap-2">
-                    <span>Tx History</span>
-                </button>
-            </div>
-        </div>
-
-        <div class="mt-6 pt-4 border-t-3 border-slate-950 space-y-3">
-            
-            <div id="sidebarWalletInfoBox" class="hidden p-3 rounded-xl bg-purple-50 border-2 border-slate-950 font-mono text-xs space-y-1.5 shadow-[3px_3px_0px_#0F172A]">
-                <div class="flex items-center justify-between text-[11px]">
-                    <span class="text-slate-500 font-bold">Connected Account:</span>
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                </div>
-                <div id="sidebarAccountAddr" class="font-bold text-slate-900 text-xs truncate">0x0...0000</div>
-                <div class="flex justify-between items-center text-[11px] pt-1 border-t border-purple-200">
-                    <span class="text-slate-500">USDC Gas:</span>
-                    <span id="sidebarUsdcBal" class="font-bold text-purple-700">0.00 USDC</span>
-                </div>
-            </div>
-
-            <div id="sidebarWalletActionContainer">
-                <button id="sidebarConnectBtn" onclick="handleWalletClick()" class="btn-pixel w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-700 via-indigo-600 to-teal-600 text-white font-pixel font-bold text-sm flex items-center justify-center gap-2 shadow-[4px_4px_0px_#0F172A]">
-                    <span id="walletBtnText">Connect Wallet</span>
-                </button>
-
-                <button id="sidebarDisconnectBtn" onclick="disconnectWallet()" class="hidden btn-pixel w-full py-3 rounded-xl bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white border-2 border-slate-950 font-pixel font-bold text-xs flex items-center justify-center gap-2 shadow-[3px_3px_0px_#0F172A] transition-colors">
-                    Disconnect Wallet
-                </button>
-            </div>
-            
-            <div class="text-center pt-1">
-                <p class="text-[10px] text-slate-400 font-mono">ArcPulse L1 Ecosystem • v1.0</p>
-            </div>
-        </div>
-    </aside>
-
-    <!-- MAIN CONTENT DISPLAY AREA -->
-    <main class="flex-1 w-full min-w-0 lg:ml-72 sm:lg:ml-80 p-4 sm:p-6 lg:p-10 space-y-8">
-
-        <!-- PAGE 0: HERO LANDING VIEW -->
-        <section id="view-landing" class="page-view space-y-10">
-            <!-- Hero Banner Container -->
-            <div class="relative rounded-3xl border-4 border-slate-950 bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 text-white p-6 sm:p-12 overflow-hidden shadow-[8px_8px_0px_#7B2CBF]">
-                <!-- Ambient Glow Circles -->
-                <div class="absolute -top-24 -right-24 w-96 h-96 bg-purple-600/30 rounded-full blur-3xl pointer-events-none"></div>
-                <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-teal-500/20 rounded-full blur-3xl pointer-events-none"></div>
-                
-                <div class="relative z-10 space-y-8">
-                    <!-- Badge & Status -->
-                    <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/10 border-2 border-purple-400/40 text-purple-200 text-xs font-silkscreen font-bold shadow-inner">
-                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                        ⚡ Powered by Circle Arc L1 Blockchain Testnet (Chain 5042002)
-                    </div>
-
-                    <!-- Main Headline & Subtitle -->
-                    <div class="max-w-3xl space-y-4">
-                        <h1 class="font-pixel text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-none text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-200 to-teal-200 drop-shadow-lg">
-                            Arc Web3 Ecosystem & DEX Engine
-                        </h1>
-                        <p class="text-base sm:text-xl text-slate-300 font-medium leading-relaxed max-w-2xl">
-                            Experience sub-second finality, micro USDC gas fees, institutional consortium security, zero-slippage AMM swaps, and built-in Web3 AI intelligence on Circle Arc L1.
-                        </p>
-                    </div>
-
-                    <!-- Primary Action Buttons (Explore dApps replacing Sign Up) -->
-                    <div class="flex flex-wrap items-center gap-4 pt-2">
-                        <button onclick="exploreDapps('monitor')" class="btn-pixel px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-teal-500 hover:from-purple-500 hover:to-teal-400 text-white font-pixel font-black text-base flex items-center gap-3 shadow-[5px_5px_0px_#0F172A] transform hover:-translate-y-1 transition-all">
-                            <i data-lucide="compass" class="w-6 h-6"></i>
-                            <span>Explore dApps</span>
-                            <i data-lucide="arrow-right" class="w-5 h-5"></i>
-                        </button>
-
-                        <button onclick="exploreDapps('swap')" class="btn-pixel px-6 py-4 rounded-2xl bg-white/10 hover:bg-white/20 border-2 border-white/30 text-white font-pixel font-bold text-sm flex items-center gap-2 shadow-md backdrop-blur-md">
-                            <i data-lucide="arrow-left-right" class="w-5 h-5 text-purple-400"></i>
-                            <span>Launch Web3 Swap</span>
-                        </button>
-
-                        <button onclick="handleWalletClick()" class="btn-pixel px-6 py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-pixel font-black text-sm flex items-center gap-2 shadow-[4px_4px_0px_#0F172A]">
-                            <i data-lucide="wallet" class="w-5 h-5"></i>
-                            <span>Connect Wallet</span>
-                        </button>
-                    </div>
-
-                    <!-- Live Key Metrics Row -->
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-white/15">
-                        <div class="p-3.5 rounded-xl bg-white/5 border border-white/10">
-                            <div class="text-[10px] font-silkscreen uppercase tracking-wider text-purple-300">Block Speed</div>
-                            <div class="text-xl sm:text-2xl font-black font-mono text-white mt-1">~450ms</div>
-                            <div class="text-[10px] text-emerald-400 font-bold">Sub-second Finality</div>
-                        </div>
-                        <div class="p-3.5 rounded-xl bg-white/5 border border-white/10">
-                            <div class="text-[10px] font-silkscreen uppercase tracking-wider text-indigo-300">Native Gas</div>
-                            <div class="text-xl sm:text-2xl font-black font-mono text-white mt-1">0.001 USDC</div>
-                            <div class="text-[10px] text-indigo-300 font-bold">Stable Predictable Fees</div>
-                        </div>
-                        <div class="p-3.5 rounded-xl bg-white/5 border border-white/10">
-                            <div class="text-[10px] font-silkscreen uppercase tracking-wider text-teal-300">Consortium Health</div>
-                            <div class="text-xl sm:text-2xl font-black font-mono text-white mt-1">100% Active</div>
-                            <div class="text-[10px] text-teal-300 font-bold">12 Global Validators</div>
-                        </div>
-                        <div class="p-3.5 rounded-xl bg-white/5 border border-white/10">
-                            <div class="text-[10px] font-silkscreen uppercase tracking-wider text-amber-300">Official Launch</div>
-                            <div class="text-xl sm:text-2xl font-black font-mono text-white mt-1">Sept 16, 2026</div>
-                            <div class="text-[10px] text-amber-300 font-bold">Mainnet Finale</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Ecosystem dApps Showcase Header -->
-            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-4">
+    <!-- ═══════════════════════════════ -->
+    <!--        TOP NAVBAR               -->
+    <!-- ═══════════════════════════════ -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6">
+        <nav class="navbar-card px-5 sm:px-8 py-4 flex items-center justify-between gap-4">
+            <!-- Logo -->
+            <a href="index.html" class="flex items-center gap-3 cursor-pointer" aria-label="ArcPulse Home">
+                <img src="logo.png" alt="ArcPulse Logo" class="w-10 h-10 rounded-xl border-2 border-slate-950 shadow-[2px_2px_0px_#0F172A] object-cover bg-white p-0.5">
                 <div>
-                    <h2 class="font-pixel text-2xl sm:text-4xl font-black text-slate-950">Explore Arc Ecosystem dApps</h2>
-                    <p class="text-xs sm:text-sm text-slate-600 font-medium mt-1">Select any decentralized application below to enter the live Web3 testnet workstation.</p>
+                    <span class="font-pixel text-xl sm:text-2xl font-black tracking-wide text-slate-950">ArcPulse</span>
+                    <span class="ml-2 hidden sm:inline-block px-2 py-0.5 rounded-md bg-purple-100 text-purple-900 border border-purple-300 text-[10px] font-mono font-bold">Arc L1 Testnet</span>
                 </div>
-                <button onclick="exploreDapps('monitor')" class="btn-pixel px-5 py-2.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs flex items-center gap-2 shadow-sm shrink-0">
-                    <i data-lucide="layout-grid" class="w-4 h-4"></i>
-                    <span>Explore All dApps</span>
+            </a>
+
+            <!-- Desktop nav links -->
+            <div class="hidden md:flex items-center gap-6 text-sm font-bold text-slate-600">
+                <a href="#dapps" class="hover:text-purple-700 transition-colors">dApps</a>
+                <a href="#ecosystem" class="hover:text-purple-700 transition-colors">Ecosystem</a>
+                <a href="https://testnet.arcscan.app" target="_blank" rel="noopener" class="hover:text-purple-700 transition-colors">Explorer</a>
+            </div>
+
+            <!-- CTA Buttons -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <a href="archpulse.html" id="nav-explore-btn" class="explore-btn px-4 sm:px-6 py-2.5 rounded-xl text-sm flex items-center gap-2">
+                    <i data-lucide="compass" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Explore dApps</span>
+                    <span class="sm:hidden">Explore</span>
+                </a>
+                <!-- Mobile menu toggle -->
+                <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="md:hidden btn-pixel p-2 rounded-xl bg-white border-2 border-slate-950">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
                 </button>
             </div>
+        </nav>
 
-            <!-- dApps Cards Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- dApp Card 1: Network Monitor -->
-                <div class="pixel-card p-6 flex flex-col justify-between hover:scale-[1.02] transition-all cursor-pointer group" onclick="exploreDapps('monitor')">
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between">
-                            <div class="w-12 h-12 rounded-2xl bg-purple-100 border-2 border-slate-950 flex items-center justify-center text-purple-700 shadow-[3px_3px_0px_#0F172A] group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                                <i data-lucide="activity" class="w-6 h-6"></i>
-                            </div>
-                            <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-500 font-silkscreen text-[10px] font-bold">LIVE TELEMETRY</span>
-                        </div>
-                        <div>
-                            <h3 class="font-pixel text-xl font-black text-slate-950 group-hover:text-purple-700 transition-colors">Network Monitor</h3>
-                            <p class="text-xs text-slate-600 mt-2 leading-relaxed font-medium">Real-time block telemetry, throughput statistics, gas monitoring, and validator node health for Arc L1.</p>
-                        </div>
-                    </div>
-                    <div class="pt-6 border-t-2 border-slate-100 flex items-center justify-between text-xs font-bold text-purple-700">
-                        <span>Launch Telemetry</span>
-                        <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-                    </div>
+        <!-- Mobile menu dropdown -->
+        <div id="mobile-menu" class="md:hidden mt-2 navbar-card px-5 py-4 flex-col gap-3 text-sm font-bold text-slate-700">
+            <a href="#dapps" class="hover:text-purple-700 transition-colors py-1">dApps</a>
+            <a href="#ecosystem" class="hover:text-purple-700 transition-colors py-1">Ecosystem</a>
+            <a href="https://testnet.arcscan.app" target="_blank" rel="noopener" class="hover:text-purple-700 transition-colors py-1">Explorer ↗</a>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════ -->
+    <!--        HERO BANNER              -->
+    <!-- ═══════════════════════════════ -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 mt-5">
+        <div class="hero-banner p-6 sm:p-10 lg:p-16">
+            <!-- Ambient glow orbs -->
+            <div class="orb w-96 h-96 bg-purple-600/25 top-[-80px] right-[-60px]"></div>
+            <div class="orb w-80 h-80 bg-teal-500/20 bottom-[-60px] left-[-40px]"></div>
+            <div class="orb w-60 h-60 bg-indigo-500/15 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
+
+            <div class="relative z-10 space-y-8 sm:space-y-10">
+                <!-- Status badge -->
+                <div class="fade-up inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/10 border border-purple-400/40 text-purple-200 text-xs font-mono font-bold">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    ⚡ Powered by Circle Arc L1 Blockchain Testnet · Chain ID 5042002
                 </div>
 
-                <!-- dApp Card 2: Swap & AMM Engine -->
-                <div class="pixel-card p-6 flex flex-col justify-between hover:scale-[1.02] transition-all cursor-pointer group" onclick="exploreDapps('swap')">
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between">
-                            <div class="w-12 h-12 rounded-2xl bg-indigo-100 border-2 border-slate-950 flex items-center justify-center text-indigo-700 shadow-[3px_3px_0px_#0F172A] group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                                <i data-lucide="arrow-left-right" class="w-6 h-6"></i>
-                            </div>
-                            <span class="px-2.5 py-1 rounded-full bg-purple-100 text-purple-900 border border-purple-500 font-silkscreen text-[10px] font-bold">DEX AMM</span>
-                        </div>
-                        <div>
-                            <h3 class="font-pixel text-xl font-black text-slate-950 group-hover:text-indigo-700 transition-colors">Swap & AMM Engine</h3>
-                            <p class="text-xs text-slate-600 mt-2 leading-relaxed font-medium">Perform instant 1:1 USDC to EURC stablecoin swaps with terminal Spender Router smart contracts.</p>
-                        </div>
-                    </div>
-                    <div class="pt-6 border-t-2 border-slate-100 flex items-center justify-between text-xs font-bold text-indigo-700">
-                        <span>Explore Swap</span>
-                        <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-                    </div>
-                </div>
-
-                <!-- dApp Card 3: Arc Web3 Wallet -->
-                <div class="pixel-card p-6 flex flex-col justify-between hover:scale-[1.02] transition-all cursor-pointer group" onclick="exploreDapps('wallet')">
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between">
-                            <div class="w-12 h-12 rounded-2xl bg-teal-100 border-2 border-slate-950 flex items-center justify-center text-teal-700 shadow-[3px_3px_0px_#0F172A] group-hover:bg-teal-600 group-hover:text-white transition-colors">
-                                <i data-lucide="wallet" class="w-6 h-6"></i>
-                            </div>
-                            <span class="px-2.5 py-1 rounded-full bg-teal-100 text-teal-900 border border-teal-500 font-silkscreen text-[10px] font-bold">SCA WALLET</span>
-                        </div>
-                        <div>
-                            <h3 class="font-pixel text-xl font-black text-slate-950 group-hover:text-teal-700 transition-colors">Arc Web3 Wallet</h3>
-                            <p class="text-xs text-slate-600 mt-2 leading-relaxed font-medium">Manage native USDC gas balances, send tokens, scan QR codes, and connect via WalletConnect v2.</p>
-                        </div>
-                    </div>
-                    <div class="pt-6 border-t-2 border-slate-100 flex items-center justify-between text-xs font-bold text-teal-700">
-                        <span>Open Wallet</span>
-                        <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-                    </div>
-                </div>
-
-                <!-- dApp Card 4: Circle Escrow -->
-                <div class="pixel-card p-6 flex flex-col justify-between hover:scale-[1.02] transition-all cursor-pointer group" onclick="exploreDapps('escrow')">
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between">
-                            <div class="w-12 h-12 rounded-2xl bg-amber-100 border-2 border-slate-950 flex items-center justify-center text-amber-700 shadow-[3px_3px_0px_#0F172A] group-hover:bg-amber-600 group-hover:text-white transition-colors">
-                                <i data-lucide="shield-check" class="w-6 h-6"></i>
-                            </div>
-                            <span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-500 font-silkscreen text-[10px] font-bold">ERC-8183 VAULT</span>
-                        </div>
-                        <div>
-                            <h3 class="font-pixel text-xl font-black text-slate-950 group-hover:text-amber-700 transition-colors">Circle Escrow</h3>
-                            <p class="text-xs text-slate-600 mt-2 leading-relaxed font-medium">Lock USDC in secure multi-signature conditional escrow smart contract vaults with dispute resolution.</p>
-                        </div>
-                    </div>
-                    <div class="pt-6 border-t-2 border-slate-100 flex items-center justify-between text-xs font-bold text-amber-700">
-                        <span>Explore Escrow</span>
-                        <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-                    </div>
-                </div>
-
-                <!-- dApp Card 5: Pro AI Assistant -->
-                <div class="pixel-card p-6 flex flex-col justify-between hover:scale-[1.02] transition-all cursor-pointer group" onclick="exploreDapps('assistant')">
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between">
-                            <div class="w-12 h-12 rounded-2xl bg-rose-100 border-2 border-slate-950 flex items-center justify-center text-rose-700 shadow-[3px_3px_0px_#0F172A] group-hover:bg-rose-600 group-hover:text-white transition-colors">
-                                <i data-lucide="bot" class="w-6 h-6"></i>
-                            </div>
-                            <span class="px-2.5 py-1 rounded-full bg-rose-100 text-rose-900 border border-rose-500 font-silkscreen text-[10px] font-bold">GEMINI 2.0 AI</span>
-                        </div>
-                        <div>
-                            <h3 class="font-pixel text-xl font-black text-slate-950 group-hover:text-rose-700 transition-colors">Pro AI Assistant</h3>
-                            <p class="text-xs text-slate-600 mt-2 leading-relaxed font-medium">Intelligent Web3 AI coprocessor for real-time chain telemetry, smart contract debugging, and market chat.</p>
-                        </div>
-                    </div>
-                    <div class="pt-6 border-t-2 border-slate-100 flex items-center justify-between text-xs font-bold text-rose-700">
-                        <span>Chat with AI</span>
-                        <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-                    </div>
-                </div>
-
-                <!-- dApp Card 6: Quests & Rewards -->
-                <div class="pixel-card p-6 flex flex-col justify-between hover:scale-[1.02] transition-all cursor-pointer group" onclick="exploreDapps('daily')">
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between">
-                            <div class="w-12 h-12 rounded-2xl bg-emerald-100 border-2 border-slate-950 flex items-center justify-center text-emerald-700 shadow-[3px_3px_0px_#0F172A] group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                                <i data-lucide="trophy" class="w-6 h-6"></i>
-                            </div>
-                            <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-500 font-silkscreen text-[10px] font-bold">QUEST REWARDS</span>
-                        </div>
-                        <div>
-                            <h3 class="font-pixel text-xl font-black text-slate-950 group-hover:text-emerald-700 transition-colors">Daily Quests & NFT Badges</h3>
-                            <p class="text-xs text-slate-600 mt-2 leading-relaxed font-medium">Complete daily check-ins, execute testnet DEX swaps, and claim exclusive Arc Protocol NFT Badges.</p>
-                        </div>
-                    </div>
-                    <div class="pt-6 border-t-2 border-slate-100 flex items-center justify-between text-xs font-bold text-emerald-700">
-                        <span>Claim Rewards</span>
-                        <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Consortium Institutional Partners Banner -->
-            <div class="pixel-card p-8 bg-slate-50 border-3 border-slate-950 space-y-4 text-center">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 text-purple-900 border border-purple-400 font-silkscreen text-[11px] font-bold">
-                    <i data-lucide="shield" class="w-4 h-4"></i>
-                    Institutional Validator Security
-                </div>
-                <h3 class="font-pixel text-2xl font-black text-slate-950">Backed by World-Leading Financial Consortium Nodes</h3>
-                <p class="text-xs text-slate-600 max-w-xl mx-auto font-medium">Circle Arc L1 testnet consortium nodes are powered by permissioned enterprise infrastructure from global market leaders.</p>
-                <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-8 pt-4 font-mono text-xs sm:text-sm font-bold text-slate-700">
-                    <div class="flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-slate-300 shadow-sm"><span class="text-blue-600">●</span> Circle Financial</div>
-                    <div class="flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-slate-300 shadow-sm"><span class="text-slate-950">●</span> BlackRock</div>
-                    <div class="flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-slate-300 shadow-sm"><span class="text-indigo-600">●</span> Visa International</div>
-                    <div class="flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-slate-300 shadow-sm"><span class="text-teal-600">●</span> DTCC Global</div>
-                    <div class="flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-slate-300 shadow-sm"><span class="text-purple-600">●</span> BNY Mellon</div>
-                </div>
-            </div>
-        </section>
-
-        <!-- PAGE 1: MONITOR VIEW -->
-        <section id="view-monitor" class="page-view hidden space-y-8">
-            <div class="pixel-hero-gradient p-6 sm:p-10 text-white relative overflow-hidden">
-                <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                    <div>
-                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 border border-white/40 font-silkscreen text-xs font-bold mb-3 shadow-sm">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-300 animate-pulse"></span>
-                            Live Real-Time Telemetry
-                        </div>
-                        <h1 class="font-pixel text-3xl sm:text-5xl font-black tracking-wide text-white drop-shadow-md">Arc Network Monitor</h1>
-                        <p class="text-white/90 text-sm mt-3 max-w-xl leading-relaxed font-medium">
-                            Real-time block telemetry, gas tracking, throughput statistics, and institutional consortium validator health on Circle Arc L1.
-                        </p>
-                    </div>
-                    
-                    <button onclick="refreshTelemetry()" class="btn-pixel px-5 py-3 rounded-xl bg-white text-slate-950 font-pixel font-bold text-xs flex items-center gap-2 shadow-md">
-                        <i data-lucide="refresh-cw" id="refreshIcon" class="w-4 h-4"></i>
-                        Refresh Telemetry
-                    </button>
-                </div>
-            </div>
-
-            <!-- Live September 16 Countdown Section -->
-            <div class="pixel-card p-6 sm:p-8 bg-gradient-to-r from-purple-50 via-white to-teal-50">
-                <div class="flex flex-col lg:flex-row items-center justify-between gap-6">
-                    <div class="space-y-2 text-center lg:text-left">
-                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 border border-purple-400 text-purple-900 font-silkscreen text-xs font-bold">
-                            <i data-lucide="timer" class="w-3.5 h-3.5 animate-spin"></i>
-                            Official Arc Network Mainnet Launch Countdown
-                        </div>
-                        <h2 class="font-pixel text-2xl sm:text-3xl font-black text-slate-950">Mainnet & Builder Finale: Sept 16</h2>
-                        <p class="text-xs text-slate-600 max-w-md font-medium">Live real-time countdown tracking for Circle Arc L1 Mainnet launch, consortium validator onboarding, and builder ecosystem finale on September 16, 2026.</p>
-                    </div>
-
-                    <div class="grid grid-cols-4 gap-3 sm:gap-4 shrink-0 font-mono text-center">
-                        <div class="bg-white border-2 border-slate-950 p-3 sm:p-4 rounded-xl min-w-[70px] sm:min-w-[85px] shadow-[3px_3px_0px_#7B2CBF]">
-                            <div id="cdDays" class="font-pixel text-2xl sm:text-4xl font-black text-purple-700">36</div>
-                            <div class="font-silkscreen text-[10px] sm:text-xs font-bold text-slate-500 mt-1 uppercase">Days</div>
-                        </div>
-                        <div class="bg-white border-2 border-slate-950 p-3 sm:p-4 rounded-xl min-w-[70px] sm:min-w-[85px] shadow-[3px_3px_0px_#3A506B]">
-                            <div id="cdHours" class="font-pixel text-2xl sm:text-4xl font-black text-indigo-600">14</div>
-                            <div class="font-silkscreen text-[10px] sm:text-xs font-bold text-slate-500 mt-1 uppercase">Hours</div>
-                        </div>
-                        <div class="bg-white border-2 border-slate-950 p-3 sm:p-4 rounded-xl min-w-[70px] sm:min-w-[85px] shadow-[3px_3px_0px_#008080]">
-                            <div id="cdMinutes" class="font-pixel text-2xl sm:text-4xl font-black text-teal-600">14</div>
-                            <div class="font-silkscreen text-[10px] sm:text-xs font-bold text-slate-500 mt-1 uppercase">Mins</div>
-                        </div>
-                        <div class="bg-white border-2 border-slate-950 p-3 sm:p-4 rounded-xl min-w-[70px] sm:min-w-[85px] shadow-[3px_3px_0px_#007F73]">
-                            <div id="cdSeconds" class="font-pixel text-2xl sm:text-4xl font-black text-emerald-600 animate-pulse">21</div>
-                            <div class="font-silkscreen text-[10px] sm:text-xs font-bold text-slate-500 mt-1 uppercase">Secs</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Stats Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                <div class="pixel-card p-6">
-                    <div class="flex items-center justify-between text-slate-500 mb-3">
-                        <span class="font-silkscreen text-xs font-bold uppercase tracking-wider">Block Height</span>
-                        <div class="p-2.5 rounded-xl bg-purple-100 text-purple-700 border border-purple-300">
-                            <i data-lucide="blocks" class="w-5 h-5"></i>
-                        </div>
-                    </div>
-                    <div class="text-3xl font-black font-mono text-slate-950" id="statBlockHeight">#56,258,045</div>
-                    <p class="text-xs text-emerald-600 mt-2.5 flex items-center gap-1 font-bold">
-                        <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> +1 block every 450ms
+                <!-- Headline -->
+                <div class="fade-up-delay-1 max-w-4xl space-y-5">
+                    <h1 class="font-pixel text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-none text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-200 to-teal-200">
+                        Arc Web3 Ecosystem<br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-300 via-indigo-200 to-purple-300">&amp; DEX Engine</span>
+                    </h1>
+                    <p class="text-slate-300 text-base sm:text-lg lg:text-xl font-medium leading-relaxed max-w-2xl">
+                        Experience sub-second finality, micro USDC gas fees, institutional consortium security, zero-slippage AMM swaps, and built-in Web3 AI intelligence on Circle Arc L1.
                     </p>
                 </div>
 
-                <div class="pixel-card p-6">
-                    <div class="flex items-center justify-between text-slate-500 mb-3">
-                        <span class="font-silkscreen text-xs font-bold uppercase tracking-wider">Throughput</span>
-                        <div class="p-2.5 rounded-xl bg-indigo-100 text-indigo-700 border border-indigo-300">
-                            <i data-lucide="zap" class="w-5 h-5"></i>
-                        </div>
-                    </div>
-                    <div class="text-3xl font-black font-mono text-slate-950" id="statTps">1,454 TPS</div>
-                    <p class="text-xs text-indigo-600 mt-2.5 flex items-center gap-1 font-bold">
-                        <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Sub-second Finality
-                    </p>
+                <!-- CTA Buttons -->
+                <div class="fade-up-delay-2 flex flex-wrap items-center gap-4">
+                    <a href="archpulse.html" id="hero-explore-btn"
+                       class="explore-btn px-8 py-4 rounded-2xl text-base flex items-center gap-3">
+                        <i data-lucide="compass" class="w-5 h-5"></i>
+                        <span>Explore dApps</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </a>
+
+                    <a href="archpulse.html#swap"
+                       class="btn-ghost px-6 py-4 rounded-2xl text-white text-sm flex items-center gap-2.5">
+                        <i data-lucide="arrow-left-right" class="w-4 h-4 text-purple-300"></i>
+                        <span>Launch Web3 Swap</span>
+                    </a>
+
+                    <a href="archpulse.html#wallet"
+                       class="px-6 py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 border-2 border-slate-950 shadow-[4px_4px_0px_#0F172A] text-slate-950 font-pixel font-black text-sm flex items-center gap-2 transition-all hover:-translate-x-0.5 hover:-translate-y-0.5">
+                        <i data-lucide="wallet" class="w-4 h-4"></i>
+                        <span>Connect Wallet</span>
+                    </a>
                 </div>
 
-                <div class="pixel-card p-6">
-                    <div class="flex items-center justify-between text-slate-500 mb-3">
-                        <span class="font-silkscreen text-xs font-bold uppercase tracking-wider">Gas Fee (USDC)</span>
-                        <div class="p-2.5 rounded-xl bg-teal-100 text-teal-700 border border-teal-300">
-                            <i data-lucide="fuel" class="w-5 h-5"></i>
-                        </div>
+                <!-- Live Metrics -->
+                <div class="fade-up-delay-3 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 pt-6 border-t border-white/10">
+                    <div class="metric-pill">
+                        <div class="text-[10px] font-mono uppercase tracking-widest text-purple-300 mb-1">Block Speed</div>
+                        <div class="text-2xl sm:text-3xl font-black font-mono text-white">~450ms</div>
+                        <div class="text-[10px] text-emerald-400 font-bold mt-1">Sub-second Finality</div>
                     </div>
-                    <div class="text-3xl font-black font-mono text-slate-950">0.001 USDC</div>
-                    <p class="text-xs text-slate-600 mt-2.5 font-bold">Stable Predictable Micro-Fees</p>
-                </div>
-
-                <div class="pixel-card p-6">
-                    <div class="flex items-center justify-between text-slate-500 mb-3">
-                        <span class="font-silkscreen text-xs font-bold uppercase tracking-wider">Consortium Nodes</span>
-                        <div class="p-2.5 rounded-xl bg-emerald-100 text-emerald-700 border border-emerald-300">
-                            <i data-lucide="shield-check" class="w-5 h-5"></i>
-                        </div>
+                    <div class="metric-pill">
+                        <div class="text-[10px] font-mono uppercase tracking-widest text-indigo-300 mb-1">Native Gas</div>
+                        <div class="text-2xl sm:text-3xl font-black font-mono text-white">0.001</div>
+                        <div class="text-[10px] text-indigo-300 font-bold mt-1">USDC per Tx</div>
                     </div>
-                    <div class="text-3xl font-black font-mono text-slate-950">12 Global</div>
-                    <p class="text-xs text-slate-600 mt-2.5 font-bold">BlackRock, Visa, DTCC, BNY</p>
-                </div>
-            </div>
-
-            <!-- Consortium Validator Health -->
-            <div class="pixel-card p-6 sm:p-8">
-                <div class="flex items-center justify-between mb-6">
-                    <div>
-                        <h3 class="font-pixel text-xl font-extrabold text-slate-950 flex items-center gap-2">
-                            <i data-lucide="server" class="w-6 h-6 text-purple-700"></i>
-                            Institutional Consortium Validator Health
-                        </h3>
-                        <p class="text-xs text-slate-600 mt-1 font-medium">Permissioned enterprise validator nodes securing Arc L1 Testnet</p>
+                    <div class="metric-pill">
+                        <div class="text-[10px] font-mono uppercase tracking-widest text-teal-300 mb-1">Validators</div>
+                        <div class="text-2xl sm:text-3xl font-black font-mono text-white">12</div>
+                        <div class="text-[10px] text-teal-300 font-bold mt-1">100% Active Nodes</div>
                     </div>
-                    <span class="px-3.5 py-1.5 text-xs font-silkscreen font-bold rounded-full bg-emerald-100 text-emerald-800 border-2 border-emerald-500">100% Consortium Health</span>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 font-mono text-xs">
-                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-purple-200 border border-purple-600 flex items-center justify-center font-bold text-purple-900 text-xs">C</div>
-                            <div>
-                                <div class="text-sm font-bold text-slate-950">Circle Node Alpha</div>
-                                <div class="text-xs text-slate-500">0x1f8...92A</div>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-xs font-bold text-emerald-600">ACTIVE</div>
-                            <div class="text-[11px] text-slate-500">1.2ms</div>
-                        </div>
-                    </div>
-
-                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-blue-200 border border-blue-600 flex items-center justify-center font-bold text-blue-900 text-xs">BR</div>
-                            <div>
-                                <div class="text-sm font-bold text-slate-950">BlackRock Node</div>
-                                <div class="text-xs text-slate-500">0x4b2...18C</div>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-xs font-bold text-emerald-600">ACTIVE</div>
-                            <div class="text-[11px] text-slate-500">2.1ms</div>
-                        </div>
-                    </div>
-
-                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-indigo-200 border border-indigo-600 flex items-center justify-center font-bold text-indigo-900 text-xs">V</div>
-                            <div>
-                                <div class="text-sm font-bold text-slate-950">Visa Settlement</div>
-                                <div class="text-xs text-slate-500">0x7c9...33F</div>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-xs font-bold text-emerald-600">ACTIVE</div>
-                            <div class="text-[11px] text-slate-500">1.8ms</div>
-                        </div>
-                    </div>
-
-                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-lg bg-teal-200 border border-teal-600 flex items-center justify-center font-bold text-teal-900 text-xs">DT</div>
-                            <div>
-                                <div class="text-sm font-bold text-slate-950">DTCC Global Node</div>
-                                <div class="text-xs text-slate-500">0x9e1...72D</div>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-xs font-bold text-emerald-600">ACTIVE</div>
-                            <div class="text-[11px] text-slate-500">3.0ms</div>
-                        </div>
+                    <div class="metric-pill">
+                        <div class="text-[10px] font-mono uppercase tracking-widest text-amber-300 mb-1">Mainnet</div>
+                        <div class="text-2xl sm:text-3xl font-black font-mono text-white">Sept 16</div>
+                        <div class="text-[10px] text-amber-300 font-bold mt-1">2026 Launch Target</div>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
+    </div>
 
-        <!-- PAGE 2: SWAP VIEW (EXACT TERMINAL CIRCLE SDK RATE: 1 USDC = 0.882639 EURC) -->
-        <section id="view-swap" class="page-view hidden space-y-8">
-            <div class="max-w-2xl mx-auto space-y-6">
-                
-                <div class="pixel-card p-4 bg-gradient-to-r from-purple-50 via-indigo-50 to-teal-50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs font-mono">
-                    <div class="flex items-center gap-3">
-                        <i data-lucide="cpu" class="w-6 h-6 text-purple-700 shrink-0"></i>
-                        <div>
-                            <div class="font-bold text-slate-950 text-sm flex items-center gap-2">
-                                <span>ArcPulse Web3 Swap Engine</span>
-                                <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-800 border border-purple-400 text-[10px]">Circle SDK Sync</span>
-                            </div>
-                            <div class="text-[11px] text-slate-600 font-medium">Protocol: Circle App Kit & Arc Testnet DEX Pool</div>
-                        </div>
-                    </div>
-                    <button onclick="manualSwitchToArcNetwork()" class="px-3 py-1.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs border-2 border-slate-950 shadow-[2px_2px_0px_#0F172A] flex items-center gap-1.5 shrink-0 transition-transform active:translate-y-0.5">
-                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-purple-200"></i>
-                        <span>Switch Arc Network (5042002)</span>
-                    </button>
+    <!-- ═══════════════════════════════════ -->
+    <!--     EXPLORE DAPPS GRID SECTION     -->
+    <!-- ═══════════════════════════════════ -->
+    <div id="dapps" class="max-w-7xl mx-auto px-4 sm:px-6 mt-14 sm:mt-20">
+        <!-- Section Header -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+            <div>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 border border-purple-300 text-purple-900 text-[11px] font-mono font-bold mb-3">
+                    <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+                    Arc Ecosystem dApps
                 </div>
-
-                <div class="flex bg-slate-100 p-1.5 rounded-2xl border-2 border-slate-950">
-                    <button onclick="switchSwapMode('swap')" id="swapModeBtnSwap" class="btn-pixel flex-1 py-2.5 rounded-xl font-bold text-xs text-white bg-purple-700 border-2 border-slate-950 flex items-center justify-center gap-2">
-                        <i data-lucide="arrow-left-right" class="w-4 h-4"></i> Token Swap
-                    </button>
-                    <button onclick="switchSwapMode('pool')" id="swapModeBtnPool" class="flex-1 py-2.5 rounded-xl font-pixel font-bold text-xs text-slate-700 hover:text-slate-950 flex items-center justify-center gap-2">
-                        <i data-lucide="layers" class="w-4 h-4"></i> AMM Liquidity Pools
-                    </button>
-                </div>
-
-                <div id="swapCardContainer" class="pixel-card-purple p-6 sm:p-10 relative">
-                    <div class="flex items-center justify-between mb-8">
-                        <div>
-                            <h2 class="font-pixel text-2xl sm:text-3xl font-black text-slate-950 flex flex-wrap items-center gap-3">
-                                <i data-lucide="repeat" class="w-7 h-7 text-purple-700"></i>
-                                <span>Swap on Arc Testnet</span>
-                            </h2>
-                            <p class="text-xs text-slate-600 mt-1.5 font-medium">Real-time DEX Rate synced with Terminal SDK: 1 USDC = 0.882639 EURC</p>
-                        </div>
-                    </div>
-
-                    <!-- PAY TOKEN INPUT BLOCK -->
-                    <div class="p-5 rounded-2xl bg-slate-50 border-2 border-slate-950 focus-within:border-purple-700 transition-colors">
-                        <div class="flex justify-between items-center text-xs text-slate-500 mb-2">
-                            <span class="font-bold font-silkscreen">YOU PAY</span>
-                            <span class="flex items-center gap-1 font-mono">
-                                Balance: <span id="payTokenBalance" class="text-slate-950 font-bold">0.00</span>
-                                <button onclick="setMaxPayAmount()" class="ml-1 text-[10px] px-2 py-0.5 rounded bg-purple-200 text-purple-900 font-bold hover:bg-purple-700 hover:text-white transition-colors">MAX</button>
-                            </span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <input type="number" id="payAmountInput" oninput="calculateSwap()" placeholder="0.00" class="w-full bg-transparent text-3xl font-black font-mono text-slate-950 outline-none placeholder:text-slate-400">
-                            
-                            <button onclick="openTokenModal('pay')" id="payTokenBtn" class="btn-pixel-sm flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border-2 border-slate-950 shrink-0">
-                                <div id="payTokenIconContainer" class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center font-black text-white text-xs">
-                                    $
-                                </div>
-                                <span id="payTokenSymbol" class="font-bold text-sm text-slate-950">USDC</span>
-                                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-500"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="flex justify-center -my-3 relative z-10">
-                        <button onclick="switchSwapTokens()" class="btn-pixel w-10 h-10 rounded-xl bg-teal-500 text-slate-950 font-black shadow-md flex items-center justify-center border-2 border-slate-950">
-                            <i data-lucide="arrow-up-down" class="w-5 h-5"></i>
-                        </button>
-                    </div>
-
-                    <!-- RECEIVE TOKEN INPUT BLOCK -->
-                    <div class="p-5 rounded-2xl bg-slate-50 border-2 border-slate-950 focus-within:border-teal-700 transition-colors">
-                        <div class="flex justify-between items-center text-xs text-slate-500 mb-2">
-                            <span class="font-bold font-silkscreen">YOU RECEIVE (EST.)</span>
-                            <span class="font-mono">Balance: <span id="receiveTokenBalance" class="text-slate-950 font-bold">0.00</span></span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <input type="number" id="receiveAmountInput" readonly placeholder="0.00" class="w-full bg-transparent text-3xl font-black font-mono text-teal-700 outline-none placeholder:text-slate-400">
-                            
-                            <button onclick="openTokenModal('receive')" id="receiveTokenBtn" class="btn-pixel-sm flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border-2 border-slate-950 shrink-0">
-                                <div id="receiveTokenIconContainer" class="w-7 h-7 rounded-full bg-amber-500 flex items-center justify-center font-black text-slate-950 text-xs">
-                                    €
-                                </div>
-                                <span id="receiveTokenSymbol" class="font-bold text-sm text-slate-950">EURC</span>
-                                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-500"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="mt-6 p-4 rounded-xl bg-slate-50 border-2 border-slate-950 space-y-2 text-xs font-mono">
-                        <div class="flex justify-between text-slate-600">
-                            <span>Circle SDK Rate</span>
-                            <span id="exchangeRateText" class="text-slate-950 font-bold">1 USDC ≈ 0.882639 EURC</span>
-                        </div>
-                        <div class="flex justify-between text-slate-600">
-                            <span>Network Gas Fee</span>
-                            <span class="text-emerald-700 font-bold">0.001 USDC (Arc Testnet)</span>
-                        </div>
-                    </div>
-
-                    <button id="executeSwapBtn" onclick="executeRealSwap()" class="btn-pixel w-full mt-5 py-4 rounded-xl bg-gradient-to-r from-purple-700 via-indigo-600 to-teal-600 text-white font-pixel font-bold text-base shadow-lg flex items-center justify-center gap-2">
-                        <i data-lucide="zap" class="w-5 h-5"></i>
-                        <span id="swapBtnLabel">Execute Arc Web3 Swap</span>
-                    </button>
-                </div>
+                <h2 class="font-pixel text-3xl sm:text-4xl font-black text-slate-950">Explore Arc dApps</h2>
+                <p class="text-slate-500 text-sm font-medium mt-1 max-w-xl">Select any decentralized application below to enter the live Web3 testnet workstation.</p>
             </div>
-        </section>
+            <a href="archpulse.html" class="explore-btn px-5 py-3 rounded-xl text-sm flex items-center gap-2 shrink-0">
+                <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                <span>Launch dApp Suite</span>
+            </a>
+        </div>
 
-        <!-- AUTHENTIC WALLETCONNECT V2 WEB3 WALLET DASHBOARD VIEW -->
-        <section id="view-wallet" class="page-view hidden space-y-6">
-            <div class="pixel-card-purple p-6 sm:p-8 space-y-6">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b-2 border-slate-950">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-600 via-purple-700 to-indigo-600 border-2 border-slate-950 flex items-center justify-center text-white font-bold shadow-[3px_3px_0px_#0F172A]">
-                            <i data-lucide="wallet" class="w-6 h-6"></i>
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span id="walletHeaderAddress" class="font-mono text-sm font-bold text-slate-950">0x... (Connect Wallet)</span>
-                                <button onclick="copyWalletAddress()" class="p-1 text-slate-500 hover:text-purple-700" title="Copy Address">
-                                    <i data-lucide="copy" class="w-4 h-4"></i>
-                                </button>
-                                <a id="walletExplorerLink" href="https://testnet.arcscan.app" target="_blank" rel="noopener noreferrer" class="p-1 text-slate-500 hover:text-purple-700" title="View on Arc Explorer">
-                                    <i data-lucide="external-link" class="w-4 h-4"></i>
-                                </a>
-                            </div>
-                            <div class="flex items-center gap-2 mt-1">
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-900 border border-sky-500 text-[10px] font-silkscreen font-bold">
-                                    <span class="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
-                                    WalletConnect v2 (Arc 5042002)
-                                </span>
-                            </div>
-                        </div>
-                    </div>
+        <!-- dApps Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
 
-                    <div class="flex items-center gap-2 shrink-0">
-                        <button onclick="requestSignatureAuth()" class="btn-pixel-sm px-3.5 py-2.5 rounded-xl bg-purple-100 text-purple-900 border-2 border-purple-600 text-xs font-bold flex items-center gap-1.5">
-                            <i data-lucide="shield-check" class="w-4 h-4 text-purple-700"></i>
-                            Sign Signature Request
-                        </button>
-
-                        <button onclick="handleWalletClick()" class="btn-pixel px-4 py-2.5 rounded-xl bg-white text-slate-950 text-xs font-bold flex items-center gap-2">
-                            <i data-lucide="power" class="w-4 h-4 text-rose-600"></i>
-                            <span id="walletConnectStatusText">Connect Wallet</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="text-center py-2 space-y-1">
-                    <div class="text-xs font-silkscreen text-slate-500 uppercase tracking-wider">Total Wallet Portfolio Balance</div>
-                    <div id="walletTotalUsdBalance" class="font-pixel text-4xl sm:text-5xl font-black text-slate-950 tracking-tight">$0.00 USD</div>
-                    <div class="text-xs font-mono text-slate-600 font-bold">Real Live On-Chain Web3 Balances</div>
-                </div>
-
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-xl mx-auto">
-                    <button onclick="openWalletSendModal()" class="btn-pixel py-3 rounded-xl bg-purple-700 text-white text-xs font-bold flex items-center justify-center gap-2">
-                        <i data-lucide="send" class="w-4 h-4"></i>
-                        Send
-                    </button>
-                    <button onclick="openWalletReceiveModal()" class="btn-pixel py-3 rounded-xl bg-teal-600 text-white text-xs font-bold flex items-center justify-center gap-2">
-                        <i data-lucide="qr-code" class="w-4 h-4"></i>
-                        Receive
-                    </button>
-                    <button onclick="switchPage('swap')" class="btn-pixel py-3 rounded-xl bg-indigo-600 text-white text-xs font-bold flex items-center justify-center gap-2">
-                        <i data-lucide="arrow-left-right" class="w-4 h-4"></i>
-                        Swap
-                    </button>
-                    <button onclick="openFaucetModal()" class="btn-pixel py-3 rounded-xl bg-emerald-600 text-white text-xs font-bold flex items-center justify-center gap-2">
-                        <i data-lucide="droplet" class="w-4 h-4"></i>
-                        Faucet
-                    </button>
-                </div>
-            </div>
-
-            <!-- Wallet Sub-Tabs -->
-            <div class="pixel-card p-6 space-y-6">
-                <div class="flex border-b-2 border-slate-950 pb-2 gap-3 overflow-x-auto">
-                    <button onclick="switchWalletTab('tokens')" id="walletTabBtn-tokens" class="font-pixel font-bold text-sm px-4 py-2 rounded-xl bg-purple-700 text-white border-2 border-slate-950 flex items-center gap-2 shrink-0">
-                        <i data-lucide="coins" class="w-4 h-4"></i> Tokens & Balances
-                    </button>
-                    <button onclick="switchWalletTab('activity')" id="walletTabBtn-activity" class="font-pixel font-bold text-sm px-4 py-2 rounded-xl text-slate-700 hover:text-slate-950 flex items-center gap-2 shrink-0">
-                        <i data-lucide="activity" class="w-4 h-4"></i> Real Activity Log
-                    </button>
-                    <button onclick="switchWalletTab('nfts')" id="walletTabBtn-nfts" class="font-pixel font-bold text-sm px-4 py-2 rounded-xl text-slate-700 hover:text-slate-950 flex items-center gap-2 shrink-0">
-                        <i data-lucide="shield-check" class="w-4 h-4"></i> Badges & Pass
-                    </button>
-                </div>
-
-                <div id="walletTabContent-tokens" class="space-y-3 font-mono text-xs">
-                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white text-sm">$</div>
-                            <div>
-                                <div class="font-bold text-slate-950 text-sm">USDC</div>
-                                <div class="text-[11px] text-slate-500">Native Arc L1 Gas Token</div>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div id="walletTabUsdcBal" class="font-bold text-slate-950 text-sm">0.00 USDC</div>
-                            <div id="walletTabUsdcUsd" class="text-[11px] text-emerald-700 font-bold">$0.00 USD</div>
-                        </div>
-                    </div>
-
-                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center font-bold text-slate-950 text-sm">€</div>
-                            <div>
-                                <div class="font-bold text-slate-950 text-sm">EURC</div>
-                                <div class="text-[11px] text-slate-500">Euro Stablecoin</div>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div id="walletTabEurcBal" class="font-bold text-slate-950 text-sm">0.00 EURC</div>
-                            <div id="walletTabEurcUsd" class="text-[11px] text-amber-700 font-bold">€0.00 EUR</div>
-                        </div>
-                    </div>
-
-                    <!-- eBTC COMING SOON TOKEN ROW -->
-                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between opacity-75">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center font-bold text-white text-sm"></div>
-                            <div>
-                                <div class="font-bold text-slate-950 text-sm flex items-center gap-2">
-                                    <span>eBTC</span>
-                                    <span class="px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 border border-amber-500 text-[9px] font-bold">COMING SOON</span>
-                                </div>
-                                <div class="text-[11px] text-slate-500">Arc Wrapped Bitcoin</div>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div class="font-bold text-slate-950 text-sm">0.00 eBTC</div>
-                            <div class="text-[10px] text-amber-700 font-bold">Coming Soon</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="walletTabContent-activity" class="hidden space-y-3 font-mono text-xs">
-                    <div id="walletRealTxListContainer"></div>
-                </div>
-
-                <div id="walletTabContent-nfts" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono text-xs">
-                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-purple-600 to-teal-500 border-2 border-slate-950 flex items-center justify-center text-white shrink-0">
-                            <i data-lucide="shield-check" class="w-6 h-6"></i>
-                        </div>
-                        <div>
-                            <div class="font-bold text-slate-950 text-sm">Arc Genesis Builder Pass</div>
-                            <div class="text-[11px] text-purple-700 font-bold">Verified Testnet Builder Pass</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- PAGE 4: PORTFOLIO & ANALYTICS VIEW -->
-        <section id="view-portfolio" class="page-view hidden space-y-8">
-            <div class="pixel-hero-gradient p-6 sm:p-10 text-white">
-                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                    <div>
-                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 border border-white/40 font-silkscreen text-xs font-bold mb-3 shadow-sm">
-                            <i data-lucide="pie-chart" class="w-4 h-4"></i>
-                            Arc On-Chain Portfolio & Deployed Contracts Analytics
-                        </div>
-                        <h1 class="font-pixel text-3xl sm:text-4xl font-black text-white">Portfolio & Contract Analytics</h1>
-                        <p class="text-white/90 text-sm mt-2 max-w-xl leading-relaxed font-medium">
-                            Track total wallet net worth, deployed smart contracts, AI agent credentials, and on-chain interaction stats on Arc Testnet.
-                        </p>
-                    </div>
-
-                    <div class="flex items-center gap-3 bg-white border-3 border-slate-950 p-4 rounded-xl shadow-md text-slate-950 font-mono shrink-0">
-                        <div>
-                            <div class="text-[10px] font-silkscreen text-slate-500 uppercase">Est. Portfolio Value</div>
-                            <div id="portfolioNetWorth" class="font-pixel text-2xl font-black text-purple-700">$0.00 USD</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- PAGE 5: NFT & TOKEN MARKET VIEW -->
-        <section id="view-market" class="page-view hidden space-y-8">
-            <div class="pixel-hero-gradient p-8 sm:p-10 text-white relative overflow-hidden">
-                <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                    <div>
-                        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-400 text-slate-950 font-silkscreen text-xs font-bold mb-3 shadow-md">
-                            <i data-lucide="sparkles" class="w-4 h-4"></i>
-                            COMING SOON • ARC NFT & TOKEN MARKETPLACE
-                        </div>
-                        <h1 class="font-pixel text-3xl sm:text-5xl font-black text-white drop-shadow-md">NFT & Token Market</h1>
-                        <p class="text-white/90 text-sm mt-3 max-w-xl leading-relaxed font-medium">
-                            An upcoming decentralized marketplace on Circle Arc L1 for trading Genesis Builder NFTs, AI Agent Keys, and Yield Tokens.
-                        </p>
-                    </div>
-
-                    <div class="px-5 py-3 rounded-xl bg-white text-slate-950 font-pixel font-bold text-sm border-2 border-slate-950 shadow-md shrink-0">
-                        Launching Post-Sept 16 Mainnet
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- PAGE 6: CIRCLE ESCROW VIEW -->
-        <section id="view-escrow" class="page-view hidden space-y-8">
-            <div class="pixel-card-emerald p-6 sm:p-8 space-y-6">
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b-2 border-slate-950">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-2xl bg-emerald-600 text-white border-2 border-slate-950 flex items-center justify-center font-bold shadow-[3px_3px_0px_#0F172A]">
-                            <i data-lucide="shield-check" class="w-6 h-6"></i>
-                        </div>
-                        <div>
-                            <h2 class="font-pixel text-2xl font-black text-slate-950">Circle ERC-8183 AI Escrow</h2>
-                            <p class="text-xs text-slate-600 font-medium">Programmatic USDC Milestone Escrow Audited by AI Agent</p>
-                        </div>
-                    </div>
-                    <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-500 text-xs font-silkscreen font-bold">ERC-8183 COMPLIANT</span>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="space-y-4 font-mono text-xs">
-                        <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 space-y-3">
-                            <div class="font-bold text-slate-950 text-sm">Lock Milestone Funds in Escrow</div>
-                            <div>
-                                <label class="text-[11px] text-slate-500 font-bold">Counterparty / Recipient Address</label>
-                                <input type="text" id="escrowRecipientInput" placeholder="0x..." class="w-full mt-1 p-2.5 bg-white border-2 border-slate-950 rounded-xl font-mono text-xs outline-none">
-                            </div>
-                            <div>
-                                <label class="text-[11px] text-slate-500 font-bold">Escrow Amount (USDC)</label>
-                                <input type="number" id="escrowAmountInput" placeholder="50.00" class="w-full mt-1 p-2.5 bg-white border-2 border-slate-950 rounded-xl font-mono text-xs outline-none">
-                            </div>
-                            <button onclick="executeEscrowDeposit()" class="btn-pixel w-full py-3 rounded-xl bg-emerald-600 text-white font-bold">
-                                Create Milestone Escrow
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="p-6 rounded-xl bg-slate-50 border-2 border-slate-950 space-y-4 font-mono text-xs">
-                        <div class="font-bold text-slate-950 text-sm flex items-center justify-between">
-                            <span>Active Escrow Vaults</span>
-                            <span class="text-emerald-700">1 Verified</span>
-                        </div>
-                        <div class="p-4 rounded-xl bg-white border-2 border-slate-950 space-y-2">
-                            <div class="flex justify-between text-slate-700 font-bold">
-                                <span>Vault #8183-A</span>
-                                <span class="text-emerald-700">100.00 USDC</span>
-                            </div>
-                            <div class="text-[11px] text-slate-500">Recipient: 0x71C...90B</div>
-                            <div class="text-[10px] text-emerald-800 font-bold bg-emerald-50 p-2 rounded-lg border border-emerald-300">
-                                AI Verification: Code deliverables approved on Arc L1.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- PAGE 7: AI AGENT HUB VIEW -->
-        <section id="view-agent" class="page-view hidden space-y-8">
-            <div class="pixel-card-purple p-6 sm:p-8 space-y-6">
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b-2 border-slate-950">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-2xl bg-purple-700 text-white border-2 border-slate-950 flex items-center justify-center font-bold shadow-[3px_3px_0px_#0F172A]">
-                            <i data-lucide="bot" class="w-6 h-6"></i>
-                        </div>
-                        <div>
-                            <h2 class="font-pixel text-2xl font-black text-slate-950">ERC-8004 AI Agent Hub</h2>
-                            <p class="text-xs text-slate-600 font-medium">Autonomous On-Chain Agent Execution & Strategy Engine</p>
-                        </div>
-                    </div>
-                    <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-900 border border-purple-500 text-xs font-silkscreen font-bold">ERC-8004 PROTOCOL</span>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 font-mono text-xs">
-                    <div class="p-6 rounded-xl bg-slate-50 border-2 border-slate-950 space-y-4">
-                        <div class="font-bold text-slate-950 text-sm">Agent Configuration</div>
-                        <div class="flex justify-between p-3 rounded-lg bg-white border border-slate-300">
-                            <span>Status:</span>
-                            <span class="text-emerald-600 font-bold">ONLINE & LISTENING</span>
-                        </div>
-                        <div class="flex justify-between p-3 rounded-lg bg-white border border-slate-300">
-                            <span>Gas Pool:</span>
-                            <span class="text-purple-700 font-bold">25.00 USDC</span>
-                        </div>
-                        <button onclick="triggerAgentCycle()" class="btn-pixel w-full py-3 rounded-xl bg-purple-700 text-white font-bold">
-                            Trigger AI Agent Execution Cycle
-                        </button>
-                    </div>
-
-                    <div class="p-6 rounded-xl bg-slate-50 border-2 border-slate-950 space-y-3">
-                        <div class="font-bold text-slate-950 text-sm">Recent Agent Execution Logs</div>
-                        <div class="p-3 rounded-lg bg-slate-900 text-emerald-400 font-mono text-[11px] space-y-1 h-36 overflow-y-auto">
-                            <div>[INFO] AI Agent #8004 initialized.</div>
-                            <div>[INFO] Connected to Arc L1 RPC (Chain 5042002).</div>
-                            <div>[SUCCESS] Monitored DEX arbitrage spread: 0.8826 EURC/USDC.</div>
-                            <div>[WAITING] Awaiting user trigger cycle...</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- PAGE 8: DAILY QUESTS & REWARDS HUB -->
-        <section id="view-daily" class="page-view hidden space-y-8">
-            <!-- Header Card with Streak, Total Points, Reset Timer -->
-            <div class="pixel-card p-6 sm:p-8 space-y-6">
-                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-6 border-b-2 border-slate-950">
-                    <div class="flex items-center gap-4">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 border-2 border-slate-950 flex items-center justify-center text-slate-950 shadow-md shrink-0">
-                            <i data-lucide="trophy" class="w-8 h-8"></i>
-                        </div>
-                        <div>
-                            <h2 class="font-pixel text-2xl sm:text-3xl font-black text-slate-950">Daily Quests & Testnet Rewards</h2>
-                            <p class="text-xs text-slate-600 font-medium mt-1">Complete daily Web3 tasks, confirm on-chain swaps, and claim exclusive NFT Badges</p>
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-center gap-4 shrink-0">
-                        <div class="px-4 py-2.5 rounded-xl bg-amber-500/10 border-2 border-amber-500/30 text-center font-mono">
-                            <div class="text-[10px] text-amber-700 uppercase font-silkscreen font-bold">Daily Streak</div>
-                            <div id="questStreakText" class="font-pixel text-xl font-black text-amber-600 flex items-center justify-center gap-1">
-                                <span>🔥</span> <span id="questStreakCount">0</span> Days
-                            </div>
-                        </div>
-
-                        <div class="px-5 py-2.5 rounded-xl bg-purple-700 text-white border-2 border-slate-950 text-center font-mono shadow-md">
-                            <div class="text-[10px] text-purple-200 uppercase font-silkscreen font-bold">Total Points</div>
-                            <div id="userPointsVal" class="font-pixel text-2xl font-black text-amber-300">0 PTS</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 3-TIER NFT BADGES SECTION -->
+            <!-- Card 1: Network Monitor -->
+            <a href="archpulse.html" class="dapp-card p-6 flex flex-col justify-between group min-h-[200px]">
                 <div class="space-y-4">
                     <div class="flex items-center justify-between">
-                        <h3 class="font-pixel text-lg font-bold text-slate-950 flex items-center gap-2">
-                            <i data-lucide="award" class="w-5 h-5 text-purple-700"></i>
-                            3-Tier NFT Badges & Membership Passes
-                        </h3>
-                        <span class="text-xs font-mono text-slate-500 font-bold">Unlock badges at 2k, 10k & 30k PTS</span>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        <!-- Badge 1: 2k PTS (Bronze) -->
-                        <div class="p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 to-amber-100/50 border-2 border-amber-500 space-y-4 font-mono text-xs shadow-sm">
-                            <div class="flex items-center justify-between">
-                                <div class="w-12 h-12 rounded-xl bg-amber-600 border-2 border-slate-950 flex items-center justify-center text-white font-bold text-xl shadow">
-                                    🥉
-                                </div>
-                                <span class="px-2.5 py-1 rounded-full bg-amber-200 text-amber-900 border border-amber-500 text-[10px] font-bold">2,000 PTS Target</span>
-                            </div>
-                            <div>
-                                <div class="font-bold text-slate-950 text-sm">Arc Pioneer Badge</div>
-                                <div class="text-[11px] text-slate-600 mt-0.5">Early Arc L1 Testnet Explorer</div>
-                            </div>
-                            <div class="space-y-1.5">
-                                <div class="flex justify-between text-[11px] font-bold">
-                                    <span class="text-slate-600">Progress</span>
-                                    <span id="badge1ProgressText" class="text-amber-700">0 / 2,000 PTS</span>
-                                </div>
-                                <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden border border-slate-400">
-                                    <div id="badge1ProgressBar" class="h-full bg-amber-500 transition-all duration-500" style="width: 0%"></div>
-                                </div>
-                            </div>
-                            <button id="badge1ClaimBtn" onclick="claimBadgeTier(1)" class="w-full btn-pixel-sm py-2.5 rounded-xl bg-slate-300 text-slate-600 font-bold cursor-not-allowed opacity-60" disabled>
-                                Locked (2,000 PTS)
-                            </button>
+                        <div class="w-12 h-12 rounded-2xl bg-purple-100 border-2 border-slate-950 flex items-center justify-center text-purple-700 shadow-[3px_3px_0px_#0F172A] group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                            <i data-lucide="activity" class="w-6 h-6"></i>
                         </div>
-
-                        <!-- Badge 2: 10k PTS (Silver) -->
-                        <div class="p-5 rounded-2xl bg-gradient-to-br from-slate-200/50 to-slate-100 border-2 border-slate-400 space-y-4 font-mono text-xs shadow-sm">
-                            <div class="flex items-center justify-between">
-                                <div class="w-12 h-12 rounded-xl bg-slate-400 border-2 border-slate-950 flex items-center justify-center text-slate-950 font-bold text-xl shadow">
-                                    🥈
-                                </div>
-                                <span class="px-2.5 py-1 rounded-full bg-slate-200 text-slate-900 border border-slate-400 text-[10px] font-bold">10,000 PTS Target</span>
-                            </div>
-                            <div>
-                                <div class="font-bold text-slate-950 text-sm">Arc DEX Champion</div>
-                                <div class="text-[11px] text-slate-600 mt-0.5">High Volume Trader & Swapper</div>
-                            </div>
-                            <div class="space-y-1.5">
-                                <div class="flex justify-between text-[11px] font-bold">
-                                    <span class="text-slate-600">Progress</span>
-                                    <span id="badge2ProgressText" class="text-slate-700">0 / 10,000 PTS</span>
-                                </div>
-                                <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden border border-slate-400">
-                                    <div id="badge2ProgressBar" class="h-full bg-slate-600 transition-all duration-500" style="width: 0%"></div>
-                                </div>
-                            </div>
-                            <button id="badge2ClaimBtn" onclick="claimBadgeTier(2)" class="w-full btn-pixel-sm py-2.5 rounded-xl bg-slate-300 text-slate-600 font-bold cursor-not-allowed opacity-60" disabled>
-                                Locked (10,000 PTS)
-                            </button>
-                        </div>
-
-                        <!-- Badge 3: 30k PTS (Gold) -->
-                        <div class="p-5 rounded-2xl bg-gradient-to-br from-yellow-300/20 to-amber-200/50 border-2 border-yellow-500 space-y-4 font-mono text-xs shadow-sm">
-                            <div class="flex items-center justify-between">
-                                <div class="w-12 h-12 rounded-xl bg-yellow-500 border-2 border-slate-950 flex items-center justify-center text-slate-950 font-bold text-xl shadow">
-                                    🥇
-                                </div>
-                                <span class="px-2.5 py-1 rounded-full bg-yellow-200 text-yellow-950 border border-yellow-500 text-[10px] font-bold">30,000 PTS Target</span>
-                            </div>
-                            <div>
-                                <div class="font-bold text-slate-950 text-sm">Arc Protocol Legend</div>
-                                <div class="text-[11px] text-slate-600 mt-0.5">Elite Institutional Beneficiary</div>
-                            </div>
-                            <div class="space-y-1.5">
-                                <div class="flex justify-between text-[11px] font-bold">
-                                    <span class="text-slate-600">Progress</span>
-                                    <span id="badge3ProgressText" class="text-yellow-800">0 / 30,000 PTS</span>
-                                </div>
-                                <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden border border-slate-400">
-                                    <div id="badge3ProgressBar" class="h-full bg-yellow-500 transition-all duration-500" style="width: 0%"></div>
-                                </div>
-                            </div>
-                            <button id="badge3ClaimBtn" onclick="claimBadgeTier(3)" class="w-full btn-pixel-sm py-2.5 rounded-xl bg-slate-300 text-slate-600 font-bold cursor-not-allowed opacity-60" disabled>
-                                Locked (30,000 PTS)
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- REAL INTERACTIVE TASKS LIST -->
-                <div class="space-y-4 pt-4 border-t-2 border-slate-950">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-pixel text-lg font-bold text-slate-950 flex items-center gap-2">
-                            <i data-lucide="check-square" class="w-5 h-5 text-teal-600"></i>
-                            Real Web3 Quests & Daily Tasks
-                        </h3>
-                        <span id="dailyResetTimerText" class="text-xs font-mono text-purple-700 font-bold flex items-center gap-1">
-                            <i data-lucide="clock" class="w-3.5 h-3.5"></i> Resets daily
-                        </span>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
-                        <!-- Task 1: Daily Check-In with Wallet Sign -->
-                        <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between gap-3">
-                            <div class="space-y-1">
-                                <div class="font-bold text-slate-950 flex items-center gap-2">
-                                    <span>Daily Web3 Check-In</span>
-                                    <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-900 border border-purple-300 text-[10px] font-bold">+100 PTS</span>
-                                </div>
-                                <div class="text-[11px] text-slate-500">Sign a wallet message once per day to verify identity</div>
-                            </div>
-                            <button id="dailyCheckinBtn" onclick="claimDailyCheckin()" class="btn-pixel-sm px-4 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold shrink-0">
-                                Check-In (Sign)
-                            </button>
-                        </div>
-
-                        <!-- Task 2: Per Swap Points (+50 PTS) -->
-                        <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between gap-3">
-                            <div class="space-y-1">
-                                <div class="font-bold text-slate-950 flex items-center gap-2">
-                                    <span>Perform Arc DEX Swap</span>
-                                    <span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-900 border border-indigo-300 text-[10px] font-bold">+50 PTS / Swap</span>
-                                </div>
-                                <div id="taskSwapProgressText" class="text-[11px] text-slate-500">Earn +50 PTS for every confirmed on-chain DEX swap</div>
-                            </div>
-                            <button onclick="switchPage('swap')" class="btn-pixel-sm px-4 py-2.5 rounded-xl bg-indigo-600 text-white font-bold shrink-0">
-                                Go Swap
-                            </button>
-                        </div>
-
-                        <!-- Task 3: Swap Master (5 Swaps) -->
-                        <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between gap-3">
-                            <div class="space-y-1">
-                                <div class="font-bold text-slate-950 flex items-center gap-2">
-                                    <span>Swap Master (5 Swaps)</span>
-                                    <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] font-bold">+250 PTS</span>
-                                </div>
-                                <div id="task5SwapsText" class="text-[11px] text-slate-500">Progress: 0 / 5 Swaps</div>
-                            </div>
-                            <button id="task5SwapsClaimBtn" onclick="claimTask('task5Swaps')" class="btn-pixel-sm px-4 py-2.5 rounded-xl bg-slate-300 text-slate-600 font-bold shrink-0 cursor-not-allowed opacity-60" disabled>
-                                Locked (0/5)
-                            </button>
-                        </div>
-
-                        <!-- Task 4: AI Assistant Connect -->
-                        <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between gap-3">
-                            <div class="space-y-1">
-                                <div class="font-bold text-slate-950 flex items-center gap-2">
-                                    <span>Connect Gemini AI</span>
-                                    <span class="px-2 py-0.5 rounded bg-teal-100 text-teal-900 border border-teal-300 text-[10px] font-bold">+100 PTS</span>
-                                </div>
-                                <div class="text-[11px] text-slate-500">Chat with Pro AI or save your Gemini API Key</div>
-                            </div>
-                            <button id="taskAiClaimBtn" onclick="claimTask('taskAi')" class="btn-pixel-sm px-4 py-2.5 rounded-xl bg-teal-600 text-white font-bold shrink-0">
-                                Connect AI
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- PAGE 9: ABOUT ARC L1 VIEW -->
-        <section id="view-about" class="page-view hidden space-y-8">
-            <div class="pixel-card p-6 sm:p-8 space-y-6">
-                <div class="flex items-center gap-3 pb-6 border-b-2 border-slate-950">
-                    <i data-lucide="info" class="w-8 h-8 text-purple-700"></i>
-                    <div>
-                        <h2 class="font-pixel text-2xl font-black text-slate-950">About Circle Arc L1 Network</h2>
-                        <p class="text-xs text-slate-600 font-medium">Enterprise stablecoin-first Layer-1 blockchain built on Avalanche Subnet EVM</p>
-                    </div>
-                </div>
-
-                <div class="space-y-4 text-xs font-sans leading-relaxed text-slate-700 font-medium">
-                    <p>
-                        Arc Network is a next-generation permissioned Layer-1 blockchain designed by Circle for global financial settlement, tokenized real-world assets (RWA), and programmatic stablecoin rails.
-                    </p>
-                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 space-y-2 font-mono text-[11px]">
-                        <div class="font-bold text-slate-950">Key Network Architecture Specs:</div>
-                        <div>• Chain ID: 5042002 (Arc L1 Testnet)</div>
-                        <div>• Native Gas Token: Native USDC (Pay fees in USDC!)</div>
-                        <div>• Consortium Validators: Circle, BlackRock, Visa, DTCC, BNY</div>
-                        <div>• Explorer: https://testnet.arcscan.app</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-
-        <!-- PAGE VIEW: WEB3 TOOLS HUB -->
-        <section id="view-tools" class="page-view hidden space-y-8">
-            <!-- Header Banner -->
-            <div class="pixel-card p-6 bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-[4px_4px_0px_#0F172A]">
-                <div>
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="font-silkscreen text-[10px] bg-purple-500/30 text-purple-200 border border-purple-400 px-2 py-0.5 rounded uppercase tracking-wider">ECOSYSTEM UTILITIES</span>
-                        <span class="font-mono text-xs text-slate-300">Arc L1 Testnet</span>
-                    </div>
-                    <h1 class="font-pixel text-2xl md:text-3xl font-black text-white flex items-center gap-2.5">
-                        <i data-lucide="wrench" class="w-7 h-7 text-purple-400"></i>
-                        <span>Web3 Tools Hub</span>
-                    </h1>
-                    <p class="text-xs text-slate-300 mt-1 max-w-xl">All-in-one suite for wallet address analysis, contract inspection, network telemetry & security utilities.</p>
-                </div>
-                <button onclick="manualSwitchToArcNetwork()" class="btn-pixel py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-2 border-2 border-white/20">
-                    <i data-lucide="globe" class="w-4 h-4"></i>
-                    <span>Network: Arc 5042002</span>
-                </button>
-            </div>
-
-            <!-- Category Tabs Navigation -->
-            <div class="flex border-b-2 border-slate-200 overflow-x-auto gap-2 pb-1 scrollbar-none font-pixel text-xs">
-                <button onclick="switchToolsTab('analytics')" id="toolsTabBtn-analytics" class="tools-tab-btn py-2.5 px-4 rounded-t-xl font-bold bg-purple-700 text-white border-2 border-slate-950 border-b-0 flex items-center gap-2">
-                    <i data-lucide="search" class="w-4 h-4"></i> Wallet Analyzer
-                </button>
-                <button onclick="switchToolsTab('contracts')" id="toolsTabBtn-contracts" class="tools-tab-btn py-2.5 px-4 rounded-t-xl font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-2">
-                    <i data-lucide="file-code" class="w-4 h-4"></i> Contract Inspector
-                </button>
-                <button onclick="switchToolsTab('network')" id="toolsTabBtn-network" class="tools-tab-btn py-2.5 px-4 rounded-t-xl font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-2">
-                    <i data-lucide="activity" class="w-4 h-4"></i> Network & RPC Test
-                </button>
-                <button onclick="switchToolsTab('security')" id="toolsTabBtn-security" class="tools-tab-btn py-2.5 px-4 rounded-t-xl font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-2">
-                    <i data-lucide="shield-alert" class="w-4 h-4"></i> Security & Allowances
-                </button>
-            </div>
-
-            <!-- SUB-SECTION 1: WALLET ADDRESS ANALYZER -->
-            <div id="toolsTabContent-analytics" class="tools-tab-content space-y-6">
-                <div class="pixel-card-purple p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <div>
-                            <h3 class="font-pixel text-xl font-bold text-slate-950 flex items-center gap-2">
-                                <i data-lucide="wallet" class="w-5 h-5 text-purple-700"></i>
-                                <span>On-Chain Wallet Address Analyzer</span>
-                            </h3>
-                            <p class="text-xs text-slate-600 mt-0.5">Enter any Arc Testnet address (0x...) to fetch live balances, transaction count, gas profile & risk metrics.</p>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-col sm:flex-row gap-3 mb-6">
-                        <input type="text" id="toolWalletInput" placeholder="Enter EVM Wallet Address (0x...)" class="flex-1 px-4 py-3 rounded-xl border-2 border-slate-950 font-mono text-sm focus:outline-none focus:border-purple-700 bg-white">
-                        <button onclick="analyzeWalletAddressTool()" class="btn-pixel py-3 px-6 rounded-xl bg-purple-700 text-white font-bold text-xs flex items-center justify-center gap-2 shrink-0">
-                            <i data-lucide="search" class="w-4 h-4"></i> Analyze Address
-                        </button>
-                        <button onclick="useCurrentWalletForTool()" class="btn-pixel-sm py-3 px-4 rounded-xl bg-slate-100 text-slate-900 border-2 border-slate-950 font-bold text-xs shrink-0">
-                            Use Connected Wallet
-                        </button>
-                    </div>
-
-                    <!-- Analysis Output Container -->
-                    <div id="walletAnalysisResult" class="hidden space-y-6">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 font-mono">
-                            <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950">
-                                <div class="text-[10px] text-slate-500 font-bold uppercase">USDC Balance</div>
-                                <div id="toolResUsdc" class="text-xl font-black text-slate-950 mt-1">0.00 USDC</div>
-                                <div class="text-[11px] text-purple-700 font-semibold mt-0.5">Native Gas Token</div>
-                            </div>
-
-                            <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950">
-                                <div class="text-[10px] text-slate-500 font-bold uppercase">EURC Balance</div>
-                                <div id="toolResEurc" class="text-xl font-black text-slate-950 mt-1">0.00 EURC</div>
-                                <div class="text-[11px] text-teal-700 font-semibold mt-0.5">Euro Stablecoin</div>
-                            </div>
-
-                            <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950">
-                                <div class="text-[10px] text-slate-500 font-bold uppercase">Transaction Count</div>
-                                <div id="toolResTxCount" class="text-xl font-black text-slate-950 mt-1">0 Txs</div>
-                                <div class="text-[11px] text-emerald-700 font-semibold mt-0.5">On-Chain Activity</div>
-                            </div>
-
-                            <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950">
-                                <div class="text-[10px] text-slate-500 font-bold uppercase">Wallet Risk Score</div>
-                                <div id="toolResRisk" class="text-xl font-black text-emerald-600 mt-1">LOW RISK</div>
-                                <div class="text-[11px] text-slate-500 font-semibold mt-0.5">Verified Standard</div>
-                            </div>
-                        </div>
-
-                        <!-- Extended Details Card -->
-                        <div class="p-5 rounded-2xl bg-white border-2 border-slate-950 space-y-3 font-mono text-xs">
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-2 gap-1">
-                                <span class="text-slate-500">Target Address:</span>
-                                <span id="toolResAddress" class="font-bold text-slate-950 break-all">0x...</span>
-                            </div>
-                            <div class="flex items-center justify-between border-b border-slate-200 pb-2">
-                                <span class="text-slate-500">Network ID:</span>
-                                <span class="font-bold text-purple-700">Arc Testnet (Chain ID 5042002)</span>
-                            </div>
-                            <div class="flex items-center justify-between border-b border-slate-200 pb-2">
-                                <span class="text-slate-500">Explorer Link:</span>
-                                <a id="toolResExplorerLink" href="#" target="_blank" class="text-purple-700 font-bold hover:underline flex items-center gap-1">
-                                    View on ArcScan <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SUB-SECTION 2: CONTRACT INSPECTOR -->
-            <div id="toolsTabContent-contracts" class="tools-tab-content hidden space-y-6">
-                <div class="pixel-card-indigo p-6 space-y-4">
-                    <h3 class="font-pixel text-xl font-bold text-slate-950 flex items-center gap-2">
-                        <i data-lucide="file-code" class="w-5 h-5 text-indigo-700"></i>
-                        <span>Arc Testnet Smart Contract Inspector</span>
-                    </h3>
-                    <p class="text-xs text-slate-600">Inspect verified ERC-20 token contracts or system smart contracts deployed on Arc L1.</p>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
-                        <div onclick="inspectPresetContract('0x3600000000000000000000000000000000000000')" class="p-4 rounded-xl bg-white border-2 border-slate-950 cursor-pointer hover:border-purple-700 transition-colors">
-                            <div class="flex items-center justify-between font-bold text-slate-950 mb-1">
-                                <span>Native USDC Gas Token</span>
-                                <span class="text-[10px] bg-blue-100 text-blue-900 px-2 py-0.5 rounded border border-blue-400">ERC-20</span>
-                            </div>
-                            <div class="text-slate-500 text-[11px]">0x3600000000000000000000000000000000000000</div>
-                        </div>
-
-                        <div onclick="inspectPresetContract('0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a')" class="p-4 rounded-xl bg-white border-2 border-slate-950 cursor-pointer hover:border-purple-700 transition-colors">
-                            <div class="flex items-center justify-between font-bold text-slate-950 mb-1">
-                                <span>EURC Euro Stablecoin</span>
-                                <span class="text-[10px] bg-amber-100 text-amber-900 px-2 py-0.5 rounded border border-amber-400">ERC-20 (6 Dec)</span>
-                            </div>
-                            <div class="text-slate-500 text-[11px]">0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SUB-SECTION 3: NETWORK TELEMETRY -->
-            <div id="toolsTabContent-network" class="tools-tab-content hidden space-y-6">
-                <div class="pixel-card p-6 space-y-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-pixel text-xl font-bold text-slate-950 flex items-center gap-2">
-                            <i data-lucide="activity" class="w-5 h-5 text-teal-600"></i>
-                            <span>Arc RPC Telemetry & Latency Meter</span>
-                        </h3>
-                        <button onclick="runRpcLatencyTest()" class="btn-pixel-sm py-2 px-4 rounded-xl bg-teal-700 text-white font-bold text-xs flex items-center gap-1.5">
-                            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Test Latency
-                        </button>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
-                        <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between">
-                            <div>
-                                <div class="font-bold text-slate-950">https://rpc.testnet.arc.io</div>
-                                <div class="text-[11px] text-slate-500">Primary Endpoint</div>
-                            </div>
-                            <div id="rpcLatency1" class="text-xs font-bold text-emerald-600">12ms (ONLINE)</div>
-                        </div>
-
-                        <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between">
-                            <div>
-                                <div class="font-bold text-slate-950">https://rpc.testnet.arc.network</div>
-                                <div class="text-[11px] text-slate-500">Fallback Endpoint</div>
-                            </div>
-                            <div id="rpcLatency2" class="text-xs font-bold text-emerald-600">15ms (ONLINE)</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SUB-SECTION 4: SECURITY ALLOWANCES -->
-            <div id="toolsTabContent-security" class="tools-tab-content hidden space-y-6">
-                <div class="pixel-card-purple p-6 space-y-4">
-                    <h3 class="font-pixel text-xl font-bold text-slate-950 flex items-center gap-2">
-                        <i data-lucide="shield-check" class="w-5 h-5 text-purple-700"></i>
-                        <span>Token Allowance & Security Check</span>
-                    </h3>
-                    <p class="text-xs text-slate-600">Inspect active token approvals for your connected wallet across Circle DEX and Web3 protocols.</p>
-
-                    <div class="p-5 rounded-2xl bg-white border-2 border-slate-950 font-mono text-xs space-y-3">
-                        <div class="flex items-center justify-between border-b border-slate-200 pb-2">
-                            <span class="font-bold text-slate-950">Circle AppKit Vault Allowance:</span>
-                            <span class="text-emerald-600 font-bold bg-emerald-100 px-2 py-0.5 rounded border border-emerald-400">SAFE (0 UNLIMITED SPENDERS)</span>
-                        </div>
-                        <div class="flex items-center justify-between border-b border-slate-200 pb-2">
-                            <span class="font-bold text-slate-950">Standard EIP-2612 Permits:</span>
-                            <span class="text-purple-700 font-bold">SUPPORTED & ENABLED</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-    
-        <!-- AI ASSISTANT SECTION -->
-        
-        <!-- PRO AI SECTION -->
-        <section id="view-assistant" class="page-view hidden space-y-6 max-w-6xl mx-auto">
-            <div class="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 border border-slate-800 shadow-xl text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <div class="p-3 rounded-xl bg-purple-600/30 border border-purple-500/50">
-                        <i data-lucide="sparkles" class="w-6 h-6 text-purple-300"></i>
+                        <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-400 text-[10px] font-mono font-bold">LIVE TELEMETRY</span>
                     </div>
                     <div>
-                        <h2 class="text-2xl font-bold tracking-tight">Pro AI Assistant</h2>
-                        <p class="text-xs text-slate-300">Your versatile intelligent co-pilot for Web3, crypto markets, coding, and general knowledge.</p>
+                        <h3 class="font-pixel text-xl font-black text-slate-950 group-hover:text-purple-700 transition-colors">Network Monitor</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Real-time block telemetry, throughput, gas monitoring, and validator node health for Arc L1.</p>
                     </div>
                 </div>
-
-                <div class="flex items-center gap-2">
-                    <button onclick="startNewProAiChat()" class="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md">
-                        <i data-lucide="plus" class="w-4 h-4"></i>
-                        <span>New Chat</span>
-                    </button>
+                <div class="pt-5 border-t-2 border-slate-100 flex items-center justify-between text-xs font-bold text-purple-700 mt-4">
+                    <span>Launch Telemetry</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
                 </div>
-            </div>
+            </a>
 
-            <!-- Active AI Status Indicator Bar -->
-            <div class="px-5 py-3.5 bg-slate-900/90 border border-slate-800 rounded-2xl flex items-center justify-between gap-3 text-xs shadow-md backdrop-blur">
-                <div class="flex items-center gap-2.5 text-slate-300 font-mono">
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span>AI Engine Status: <strong class="text-purple-400 font-bold">Google Gemini 2.0 AI (Built-in Active)</strong></span>
-                </div>
-                <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold">
-                    ⚡ 100% Operational
-                </span>
-            </div>
-
-            <!-- Full-Width Pro AI Workspace Container -->
-            <div class="w-full bg-slate-900 border border-slate-800 rounded-2xl flex flex-col h-[560px] shadow-xl">
-                <div id="aiChatBox" class="flex-1 p-5 overflow-y-auto space-y-4 font-sans text-sm">
-                    <div class="flex gap-3">
-                        <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center shrink-0">
-                            <i data-lucide="bot" class="w-4 h-4 text-purple-300"></i>
+            <!-- Card 2: Swap & AMM -->
+            <a href="archpulse.html" class="dapp-card p-6 flex flex-col justify-between group min-h-[200px]">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="w-12 h-12 rounded-2xl bg-indigo-100 border-2 border-slate-950 flex items-center justify-center text-indigo-700 shadow-[3px_3px_0px_#0F172A] group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                            <i data-lucide="arrow-left-right" class="w-6 h-6"></i>
                         </div>
-                        <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-4 text-slate-200 max-w-[85%] text-xs leading-relaxed">
-                            Hello! I am <strong>Pro AI</strong>, your high-performance AI assistant. Ask me anything about Arc Testnet, DEX token swaps, smart contract coding, technical crypto analysis, or general topics in any language!
-                        </div>
+                        <span class="px-2.5 py-1 rounded-full bg-purple-100 text-purple-900 border border-purple-400 text-[10px] font-mono font-bold">DEX AMM</span>
+                    </div>
+                    <div>
+                        <h3 class="font-pixel text-xl font-black text-slate-950 group-hover:text-indigo-700 transition-colors">Swap & AMM Engine</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Instant 1:1 USDC ↔ EURC stablecoin swaps with Spender Router smart contracts, zero slippage.</p>
                     </div>
                 </div>
-
-                <div class="p-3.5 border-t border-slate-800 bg-slate-950/70 flex items-center gap-2 rounded-b-2xl">
-                    <input id="aiChatInput" type="text" placeholder="Ask Pro AI anything (in English, Hindi, Hinglish, Spanish, etc.)..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-purple-500 font-medium" onkeydown="if(event.key === 'Enter') handleAiChatSend()">
-                    <button onclick="handleAiChatSend()" class="px-5 py-3 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-2 shadow-md">
-                        <span>Send</span>
-                        <i data-lucide="send" class="w-4 h-4"></i>
-                    </button>
+                <div class="pt-5 border-t-2 border-slate-100 flex items-center justify-between text-xs font-bold text-indigo-700 mt-4">
+                    <span>Explore Swap</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
                 </div>
-            </div>
-        </section>
-    
+            </a>
 
-        <!-- PRICE PREDICTIONS SECTION -->
-        
-        <!-- COINMARKETCAP PREDICTION & TRADE INTELLIGENCE SECTION -->
-        <section id="view-prediction" class="page-view hidden space-y-6 max-w-7xl mx-auto">
-            <div class="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-slate-800 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
-                <div>
-                    <h2 class="text-2xl font-bold tracking-tight">CoinMarketCap Predictions & Trade Intelligence</h2>
-                    <p class="text-xs text-slate-300">AI-powered forecast telemetry, interactive price graphs, and Long vs Short leverage analysis for top market cryptocurrencies.</p>
-                </div>
-                <div class="w-full md:w-auto">
-                    <input id="coinSearchInput" type="text" oninput="filterPredictionCoins()" placeholder="Search coins (BTC, ETH, SOL...)" class="bg-slate-800 border border-slate-700 text-xs text-white px-3.5 py-2 rounded-xl focus:outline-none focus:border-purple-500 w-full md:w-56">
-                </div>
-            </div>
-
-            <!-- Multi-Coin Forecast Grid -->
-            <div id="predictionCoinsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                <!-- Dynamic Coins Rendered via JS -->
-            </div>
-        </section>
-
-        <!-- INTERACTIVE COIN PRICE CHART MODAL -->
-        <div id="coinChartModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-            <div class="bg-slate-900 border border-slate-800 text-slate-100 rounded-2xl max-w-3xl w-full p-6 space-y-5 shadow-2xl relative">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-4">
-                    <div class="flex items-center gap-3">
-                        <div id="modalCoinIcon" class="w-10 h-10 rounded-xl bg-purple-600/30 border border-purple-500/40 flex items-center justify-center font-bold text-purple-300">BTC</div>
-                        <div>
-                            <h3 id="modalCoinName" class="text-lg font-bold text-white">Bitcoin (BTC)</h3>
-                            <p id="modalCoinCategory" class="text-xs text-slate-400">Digital Gold • CoinMarketCap Rank #1</p>
+            <!-- Card 3: Arc Wallet -->
+            <a href="archpulse.html" class="dapp-card p-6 flex flex-col justify-between group min-h-[200px]">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="w-12 h-12 rounded-2xl bg-teal-100 border-2 border-slate-950 flex items-center justify-center text-teal-700 shadow-[3px_3px_0px_#0F172A] group-hover:bg-teal-600 group-hover:text-white transition-colors">
+                            <i data-lucide="wallet" class="w-6 h-6"></i>
                         </div>
+                        <span class="px-2.5 py-1 rounded-full bg-teal-100 text-teal-900 border border-teal-400 text-[10px] font-mono font-bold">SCA WALLET</span>
                     </div>
-                    <button onclick="closeCoinChartModal()" class="p-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-white">
-                        <i data-lucide="x" class="w-5 h-5"></i>
-                    </button>
-                </div>
-
-                <!-- SVG Interactive Price Graph -->
-                <div class="space-y-2">
-                    <div class="flex items-center justify-between text-xs">
-                        <span class="text-slate-400">24-Hour Price Action & AI Forecast Trend</span>
-                        <span id="modalCoinPrice" class="font-bold text-emerald-400 text-base">$64,200.00 (+4.2%)</span>
-                    </div>
-                    <div class="bg-slate-950 rounded-xl p-4 border border-slate-800/80">
-                        <svg class="w-full h-44" viewBox="0 0 500 150">
-                            <!-- Grid lines -->
-                            <line x1="0" y1="30" x2="500" y2="30" stroke="#1e293b" stroke-dasharray="4"/>
-                            <line x1="0" y1="75" x2="500" y2="75" stroke="#1e293b" stroke-dasharray="4"/>
-                            <line x1="0" y1="120" x2="500" y2="120" stroke="#1e293b" stroke-dasharray="4"/>
-                            
-                            <!-- Gradient Area -->
-                            <defs>
-                                <linearGradient id="chartGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                    <stop offset="0%" stop-color="#10b981" stop-opacity="0.35"/>
-                                    <stop offset="100%" stop-color="#10b981" stop-opacity="0.0"/>
-                                </linearGradient>
-                            </defs>
-                            <path d="M0,120 Q80,90 150,105 T300,50 T450,25 L500,20 L500,150 L0,150 Z" fill="url(#chartGrad)"/>
-                            <!-- Trend Line -->
-                            <path d="M0,120 Q80,90 150,105 T300,50 T450,25 L500,20" fill="none" stroke="#10b981" stroke-width="3.5" stroke-linecap="round"/>
-                        </svg>
+                    <div>
+                        <h3 class="font-pixel text-xl font-black text-slate-950 group-hover:text-teal-700 transition-colors">Arc Web3 Wallet</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Manage USDC gas balances, send tokens, scan QR codes, and connect via WalletConnect v2.</p>
                     </div>
                 </div>
+                <div class="pt-5 border-t-2 border-slate-100 flex items-center justify-between text-xs font-bold text-teal-700 mt-4">
+                    <span>Open Wallet</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                </div>
+            </a>
 
-                <!-- Long vs Short Advantage Metrics -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                    <div class="bg-slate-800/60 border border-slate-700/80 rounded-xl p-4 space-y-2">
-                        <div class="flex items-center justify-between text-emerald-400 font-bold">
-                            <span class="flex items-center gap-1.5"><i data-lucide="trending-up" class="w-4 h-4"></i> Long Advantage</span>
-                            <span id="modalLongRatio">72% Long Interest</span>
+            <!-- Card 4: Circle Escrow -->
+            <a href="archpulse.html" class="dapp-card p-6 flex flex-col justify-between group min-h-[200px]">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-100 border-2 border-slate-950 flex items-center justify-center text-amber-700 shadow-[3px_3px_0px_#0F172A] group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                            <i data-lucide="shield-check" class="w-6 h-6"></i>
                         </div>
-                        <p class="text-slate-300 text-[11px]">Strong buying sentiment driven by spot exchange net outflows and institutional ETF accumulation.</p>
-                        <div class="pt-2 text-[11px] text-slate-400 flex justify-between border-t border-slate-700">
-                            <span>Recommended Leverage: <strong>5x - 10x</strong></span>
-                            <span>Take Profit: <strong id="modalTp">$66,900</strong></span>
-                        </div>
+                        <span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-400 text-[10px] font-mono font-bold">ERC-8183 VAULT</span>
                     </div>
-
-                    <div class="bg-slate-800/60 border border-slate-700/80 rounded-xl p-4 space-y-2">
-                        <div class="flex items-center justify-between text-rose-400 font-bold">
-                            <span class="flex items-center gap-1.5"><i data-lucide="trending-down" class="w-4 h-4"></i> Short Risk</span>
-                            <span id="modalShortRatio">28% Short Interest</span>
-                        </div>
-                        <p class="text-slate-300 text-[11px]">Low liquidation risk with strong support levels preventing sharp downside corrections.</p>
-                        <div class="pt-2 text-[11px] text-slate-400 flex justify-between border-t border-slate-700">
-                            <span>Stop Loss Target: <strong id="modalSl">$62,800</strong></span>
-                            <span>Confidence: <strong>88%</strong></span>
-                        </div>
+                    <div>
+                        <h3 class="font-pixel text-xl font-black text-slate-950 group-hover:text-amber-700 transition-colors">Circle Escrow</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Lock USDC in secure multi-signature conditional escrow smart contract vaults with dispute resolution.</p>
                     </div>
                 </div>
-            </div>
+                <div class="pt-5 border-t-2 border-slate-100 flex items-center justify-between text-xs font-bold text-amber-700 mt-4">
+                    <span>Explore Escrow</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                </div>
+            </a>
+
+            <!-- Card 5: Pro AI Assistant -->
+            <a href="archpulse.html" class="dapp-card p-6 flex flex-col justify-between group min-h-[200px]">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="w-12 h-12 rounded-2xl bg-rose-100 border-2 border-slate-950 flex items-center justify-center text-rose-700 shadow-[3px_3px_0px_#0F172A] group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                            <i data-lucide="bot" class="w-6 h-6"></i>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full bg-rose-100 text-rose-900 border border-rose-400 text-[10px] font-mono font-bold">GEMINI 2.0 AI</span>
+                    </div>
+                    <div>
+                        <h3 class="font-pixel text-xl font-black text-slate-950 group-hover:text-rose-700 transition-colors">Pro AI Assistant</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Intelligent Web3 AI for real-time chain telemetry, smart contract debugging, and market chat.</p>
+                    </div>
+                </div>
+                <div class="pt-5 border-t-2 border-slate-100 flex items-center justify-between text-xs font-bold text-rose-700 mt-4">
+                    <span>Chat with AI</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                </div>
+            </a>
+
+            <!-- Card 6: Daily Quests -->
+            <a href="archpulse.html" class="dapp-card p-6 flex flex-col justify-between group min-h-[200px]">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-100 border-2 border-slate-950 flex items-center justify-center text-emerald-700 shadow-[3px_3px_0px_#0F172A] group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                            <i data-lucide="trophy" class="w-6 h-6"></i>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-400 text-[10px] font-mono font-bold">QUEST REWARDS</span>
+                    </div>
+                    <div>
+                        <h3 class="font-pixel text-xl font-black text-slate-950 group-hover:text-emerald-700 transition-colors">Daily Quests & NFT Badges</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Complete daily check-ins, execute testnet DEX swaps, and claim exclusive Arc Protocol NFT Badges.</p>
+                    </div>
+                </div>
+                <div class="pt-5 border-t-2 border-slate-100 flex items-center justify-between text-xs font-bold text-emerald-700 mt-4">
+                    <span>Claim Rewards</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                </div>
+            </a>
+
         </div>
-    
+    </div>
 
-        <!-- CLEAN SETTINGS SECTION (Zero Emojis / Badges) -->
-        <section id="view-settings" class="page-view hidden space-y-6 max-w-4xl mx-auto">
-            <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 text-white shadow-xl">
-                <h2 class="text-2xl font-bold tracking-tight" data-i18n="settings_title">Application Settings</h2>
-                <p class="text-xs text-slate-400 mt-1" data-i18n="settings_subtitle">Configure user profile, connected wallets, display preferences, and regional localization.</p>
+    <!-- ═══════════════════════════════════ -->
+    <!--     ECOSYSTEM / PARTNERS SECTION   -->
+    <!-- ═══════════════════════════════════ -->
+    <div id="ecosystem" class="max-w-7xl mx-auto px-4 sm:px-6 mt-14 sm:mt-20">
+        <div class="pixel-card p-8 sm:p-12 bg-slate-50 text-center space-y-6">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-100 border border-purple-300 text-purple-900 text-[11px] font-mono font-bold">
+                <i data-lucide="shield" class="w-3.5 h-3.5"></i>
+                Institutional Validator Security
             </div>
+            <h2 class="font-pixel text-2xl sm:text-4xl font-black text-slate-950">Backed by World-Leading<br>Financial Consortium Nodes</h2>
+            <p class="text-slate-500 text-sm max-w-xl mx-auto leading-relaxed">Circle Arc L1 testnet consortium nodes are powered by permissioned enterprise infrastructure from global market leaders.</p>
 
-            <div class="space-y-6">
-                <!-- User & Wallet Management -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300 border-b border-slate-800 pb-2">User & Wallet Manager</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                        <div class="space-y-1.5">
-                            <label class="block text-slate-400 font-semibold">Active Connected Address</label>
-                            <input id="settingsWalletAddress" type="text" readonly value="Not Connected" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-slate-200 font-mono focus:outline-none">
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="block text-slate-400 font-semibold">Arc Network RPC Endpoint</label>
-                            <input id="settingsRpcUrl" type="text" value="https://rpc.testnet.arc.io" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-slate-200 font-mono focus:outline-none">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Appearance & Theme Toggle -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300 border-b border-slate-800 pb-2">Appearance & Theme</h3>
-                    <div class="flex items-center justify-between text-xs">
-                        <div>
-                            <span class="block font-semibold text-slate-200">Color Theme</span>
-                            <span class="text-slate-400 text-[11px]">Switch between dark mode and light mode interface styling</span>
-                        </div>
-                        <div class="flex items-center gap-2 bg-slate-800 p-1 rounded-xl border border-slate-700">
-                            <button onclick="setTheme('dark')" id="themeDarkBtn" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-600 text-white transition-all">Dark</button>
-                            <button onclick="setTheme('light')" id="themeLightBtn" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition-all">Light</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Localization Language -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300 border-b border-slate-800 pb-2">Localization</h3>
-                    <div class="flex items-center justify-between text-xs">
-                        <div>
-                            <span class="block font-semibold text-slate-200">Interface Language</span>
-                            <span class="text-slate-400 text-[11px]">Select your preferred primary UI language</span>
-                        </div>
-                        <select onchange="changeLanguage(this.value)" class="bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold rounded-xl px-3.5 py-2 focus:outline-none focus:border-purple-500">
-                            <option value="en">English (US)</option>
-                            <option value="hi">हिंदी (Hindi)</option>
-                            <option value="es">Español (Spanish)</option>
-                            <option value="fr">Français (French)</option>
-                            <option value="de">Deutsch (German)</option>
-                            <option value="zh">中文 (Chinese)</option>
-                            <option value="ja">日本語 (Japanese)</option>
-                            <option value="ar">العربية (Arabic)</option>
-                            <option value="ru">Русский (Russian)</option>
-                            <option value="pt">Português (Portuguese)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Google Gemini AI Configuration -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-lg">
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300">Google Gemini AI Engine Integration</h3>
-                        <span class="px-2.5 py-0.5 rounded-full bg-purple-600/20 text-purple-300 border border-purple-500/40 text-[10px] font-bold">100% FREE API KEY</span>
-                    </div>
-                    <div class="space-y-3 text-xs">
-                        <p class="text-slate-400 leading-relaxed">
-                            Connect your official <strong>Google Gemini API Key</strong> for 100% direct AI responses just like Gemini Web AI! Get your free key instantly without credit card at 
-                            <a href="https://aistudio.google.com/" target="_blank" class="text-purple-400 font-bold hover:underline">Google AI Studio (aistudio.google.com)</a>.
-                        </p>
-                        <div class="flex flex-col sm:flex-row items-center gap-2">
-                            <input id="geminiApiKeyInput" type="password" placeholder="Paste your Gemini API Key (e.g. AIzaSy...)" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white font-mono focus:outline-none focus:border-purple-500 text-xs">
-                            <button onclick="saveGeminiApiKey()" class="w-full sm:w-auto px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl transition-all shrink-0">
-                                Save Key
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    
-    
-        <!-- WEB3 GAMES ARCADE SECTION (COMING SOON) -->
-        <section id="view-games" class="page-view hidden space-y-6 max-w-6xl mx-auto">
-            <div class="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 border border-slate-800 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
-                <div>
-                    <h2 class="text-2xl font-bold tracking-tight">Web3 Gaming Arcade</h2>
-                    <p class="text-xs text-slate-300">Play-to-Earn games, provably fair mini-games, and decentralized gaming tournaments on Arc L1.</p>
-                </div>
-                <span class="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold">
-                    Ecosystem Launch Preview
-                </span>
-            </div>
-
-            <!-- Games Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Game 1 -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 relative overflow-hidden shadow-lg hover:border-purple-500/50 transition-all">
-                    <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold">
-                        COMING SOON
-                    </div>
-                    <div class="w-12 h-12 rounded-2xl bg-purple-600/20 border border-purple-500/40 flex items-center justify-center text-purple-300">
-                        <i data-lucide="zap" class="w-6 h-6"></i>
-                    </div>
-                    <div class="space-y-1">
-                        <h3 class="font-bold text-white text-base">Arc Runner 3D</h3>
-                        <p class="text-xs text-slate-400">Cyberpunk 3D endless runner on Arc L1 with instant micro-token rewards.</p>
-                    </div>
-                    <div class="pt-2 flex items-center justify-between text-xs text-slate-500 border-t border-slate-800">
-                        <span>Genre: Arcade / Action</span>
-                        <span>Arc Network</span>
-                    </div>
-                </div>
-
-                <!-- Game 2 -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 relative overflow-hidden shadow-lg hover:border-purple-500/50 transition-all">
-                    <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold">
-                        COMING SOON
-                    </div>
-                    <div class="w-12 h-12 rounded-2xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-300">
-                        <i data-lucide="swords" class="w-6 h-6"></i>
-                    </div>
-                    <div class="space-y-1">
-                        <h3 class="font-bold text-white text-base">Crypto Chess Arena</h3>
-                        <p class="text-xs text-slate-400">Peer-to-peer staked chess tournaments secured by smart contract escrow.</p>
-                    </div>
-                    <div class="pt-2 flex items-center justify-between text-xs text-slate-500 border-t border-slate-800">
-                        <span>Genre: Strategy / PvP</span>
-                        <span>Multi-Chain</span>
-                    </div>
-                </div>
-
-                <!-- Game 3 -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 relative overflow-hidden shadow-lg hover:border-purple-500/50 transition-all">
-                    <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold">
-                        COMING SOON
-                    </div>
-                    <div class="w-12 h-12 rounded-2xl bg-emerald-600/20 border border-emerald-500/40 flex items-center justify-center text-emerald-300">
-                        <i data-lucide="dices" class="w-6 h-6"></i>
-                    </div>
-                    <div class="space-y-1">
-                        <h3 class="font-bold text-white text-base">Web3 Jackpot Slots</h3>
-                        <p class="text-xs text-slate-400">Provably fair decentralized slot machine with instant USDC payout vault.</p>
-                    </div>
-                    <div class="pt-2 flex items-center justify-between text-xs text-slate-500 border-t border-slate-800">
-                        <span>Genre: Casino / Chance</span>
-                        <span>Arc Testnet</span>
-                    </div>
-                </div>
-
-                <!-- Game 4 -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 relative overflow-hidden shadow-lg hover:border-purple-500/50 transition-all">
-                    <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold">
-                        COMING SOON
-                    </div>
-                    <div class="w-12 h-12 rounded-2xl bg-amber-600/20 border border-amber-500/40 flex items-center justify-center text-amber-300">
-                        <i data-lucide="coins" class="w-6 h-6"></i>
-                    </div>
-                    <div class="space-y-1">
-                        <h3 class="font-bold text-white text-base">Token Flip</h3>
-                        <p class="text-xs text-slate-400">Instant double-or-nothing coin flip powered by Chainlink VRF randomness.</p>
-                    </div>
-                    <div class="pt-2 flex items-center justify-between text-xs text-slate-500 border-t border-slate-800">
-                        <span>Genre: Mini-Game</span>
-                        <span>Arc L1</span>
-                    </div>
-                </div>
-
-                <!-- Game 5 -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 relative overflow-hidden shadow-lg hover:border-purple-500/50 transition-all">
-                    <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold">
-                        COMING SOON
-                    </div>
-                    <div class="w-12 h-12 rounded-2xl bg-rose-600/20 border border-rose-500/40 flex items-center justify-center text-rose-300">
-                        <i data-lucide="shield" class="w-6 h-6"></i>
-                    </div>
-                    <div class="space-y-1">
-                        <h3 class="font-bold text-white text-base">Arc Defender</h3>
-                        <p class="text-xs text-slate-400">Tower defense strategy game with upgradable NFT defense turrets.</p>
-                    </div>
-                    <div class="pt-2 flex items-center justify-between text-xs text-slate-500 border-t border-slate-800">
-                        <span>Genre: Tower Defense</span>
-                        <span>NFT Gaming</span>
-                    </div>
-                </div>
-
-                <!-- Game 6 -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 relative overflow-hidden shadow-lg hover:border-purple-500/50 transition-all">
-                    <div class="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold">
-                        COMING SOON
-                    </div>
-                    <div class="w-12 h-12 rounded-2xl bg-cyan-600/20 border border-cyan-500/40 flex items-center justify-center text-cyan-300">
-                        <i data-lucide="spade" class="w-6 h-6"></i>
-                    </div>
-                    <div class="space-y-1">
-                        <h3 class="font-bold text-white text-base">DeFi Hold'em Poker</h3>
-                        <p class="text-xs text-slate-400">Zero-knowledge private card poker tables with multi-chain stablecoin pots.</p>
-                    </div>
-                    <div class="pt-2 flex items-center justify-between text-xs text-slate-500 border-t border-slate-800">
-                        <span>Genre: Cards / ZK</span>
-                        <span>Arc Testnet</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-    
-    </main>
-
-    <!-- MODALS -->
-
-    <!-- TOKEN SELECTION MODAL (USDC, EURC, eBTC COMING SOON) -->
-    <div id="tokenModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="pixel-card-purple w-full max-w-md p-6 space-y-4 font-mono text-xs">
-            <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="coins" class="w-5 h-5 text-purple-700"></i>
-                    <h3 class="font-pixel font-bold text-slate-950 text-base">Select Arc Token</h3>
-                </div>
-                <button onclick="closeTokenModal()" class="text-slate-500 hover:text-slate-950">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-
-            <!-- Search Token Input -->
-            <div class="relative">
-                <input type="text" id="tokenSearchInput" oninput="filterTokens()" placeholder="Search token name or symbol..." class="w-full p-3 pl-9 bg-slate-50 border-2 border-slate-950 rounded-xl outline-none font-bold text-xs">
-                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3.5"></i>
-            </div>
-
-            <!-- Token List Options -->
-            <div id="tokenListContainer" class="space-y-2 max-h-72 overflow-y-auto pt-1">
-                <!-- Dynamically Populated by JavaScript -->
+            <div class="flex flex-wrap items-center justify-center gap-3 sm:gap-5 pt-4">
+                <div class="partner-badge"><span class="text-blue-600 text-lg">●</span> Circle Financial</div>
+                <div class="partner-badge"><span class="text-slate-900 text-lg">●</span> BlackRock</div>
+                <div class="partner-badge"><span class="text-indigo-600 text-lg">●</span> Visa International</div>
+                <div class="partner-badge"><span class="text-teal-600 text-lg">●</span> DTCC Global</div>
+                <div class="partner-badge"><span class="text-purple-600 text-lg">●</span> BNY Mellon</div>
             </div>
         </div>
     </div>
 
-    <!-- WALLETCONNECT CONNECT WALLET MODAL -->
-    <div id="walletConnectModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="pixel-card-purple w-full max-w-md p-6 space-y-5">
-            <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="wallet" class="w-5 h-5 text-purple-700"></i>
-                    <h3 class="font-pixel font-bold text-slate-950 text-lg">Connect Web3 Wallet</h3>
+    <!-- ═══════════════════════════════════ -->
+    <!--           FOOTER CTA              -->
+    <!-- ═══════════════════════════════════ -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 mt-14 sm:mt-20 mb-10">
+        <div class="hero-banner p-8 sm:p-14 text-center relative overflow-hidden">
+            <div class="orb w-72 h-72 bg-purple-600/25 -top-20 -right-20"></div>
+            <div class="orb w-64 h-64 bg-teal-500/20 -bottom-16 -left-16"></div>
+            <div class="relative z-10 space-y-6">
+                <h2 class="font-pixel text-3xl sm:text-5xl font-black text-white leading-tight">
+                    Ready to explore<br>Arc L1 Web3?
+                </h2>
+                <p class="text-slate-300 text-base sm:text-lg max-w-lg mx-auto leading-relaxed">
+                    Enter the full ArcPulse dApp workstation — network telemetry, AMM swaps, wallets, escrow, AI assistant, and more.
+                </p>
+                <div class="flex flex-wrap justify-center gap-4 pt-2">
+                    <a href="archpulse.html" class="explore-btn px-10 py-4 rounded-2xl text-base flex items-center gap-3">
+                        <i data-lucide="compass" class="w-5 h-5"></i>
+                        <span>Enter dApp Suite</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </a>
+                    <a href="https://testnet.arcscan.app" target="_blank" rel="noopener"
+                       class="btn-ghost px-8 py-4 rounded-2xl text-white text-sm flex items-center gap-2">
+                        <i data-lucide="external-link" class="w-4 h-4"></i>
+                        <span>Arc Block Explorer</span>
+                    </a>
                 </div>
-                <button onclick="closeWalletConnectModal()" class="text-slate-500 hover:text-slate-950">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-
-            <p class="text-xs text-slate-600 font-medium">Select your preferred Web3 provider to connect securely on Arc L1 Testnet (Chain ID 5042002).</p>
-
-            <div class="space-y-3 pt-1 font-mono text-xs">
-                <button onclick="connectProvider('walletconnect')" class="btn-pixel w-full p-4 rounded-2xl bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-700 text-white flex items-center justify-between shadow-md">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-white/20 border border-white/40 flex items-center justify-center text-white text-lg">
-                            <i data-lucide="qr-code" class="w-6 h-6"></i>
-                        </div>
-                        <div class="text-left">
-                            <div class="font-pixel font-bold text-white text-base">WalletConnect</div>
-                            <div class="text-[10px] text-sky-100 font-sans">Scan QR Code with 500+ Web3 Wallets</div>
-                        </div>
-                    </div>
-                    <span class="px-2.5 py-1 rounded-full font-silkscreen bg-white text-sky-900 text-[9px] font-black border border-white">500+ WALLETS</span>
-                </button>
-
-                <button onclick="connectProvider('metamask')" class="btn-pixel-sm w-full p-3.5 rounded-xl bg-slate-50 border-2 border-slate-950 hover:bg-purple-50 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-lg bg-orange-100 border border-orange-500 flex items-center justify-center font-bold text-orange-600 text-xs">
-                            <i data-lucide="wallet" class="w-5 h-5"></i>
-                        </div>
-                        <div class="text-left">
-                            <div class="font-bold text-slate-950 text-sm font-sans">MetaMask</div>
-                            <div class="text-[11px] text-slate-500">Browser extension / Mobile app</div>
-                        </div>
-                    </div>
-                    <span class="px-2 py-0.5 rounded font-silkscreen bg-emerald-100 text-emerald-900 text-[9px] font-bold border border-emerald-500">Detected</span>
-                </button>
             </div>
         </div>
     </div>
 
-    <!-- WALLET RECEIVE MODAL -->
-    <div id="walletReceiveModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="pixel-card-teal w-full max-w-md p-6 space-y-5 font-mono text-xs">
-            <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="qr-code" class="w-5 h-5 text-teal-700"></i>
-                    <h3 class="font-pixel font-bold text-slate-950 text-base">Receive Tokens & Gas</h3>
-                </div>
-                <button onclick="closeWalletReceiveModal()" class="text-slate-500 hover:text-slate-950">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-
-            <div class="flex flex-col items-center justify-center p-4 bg-slate-50 border-2 border-slate-950 rounded-2xl space-y-4 text-center">
-                <div class="p-3 bg-white border-2 border-slate-950 rounded-xl shadow-md">
-                    <img id="receiveQrCodeImg" src="" alt="Wallet QR Code" class="w-44 h-44 rounded-lg object-contain">
-                </div>
-                
-                <div class="w-full space-y-1.5">
-                    <div class="text-[10px] text-slate-500 uppercase font-silkscreen">Your Arc Testnet Address</div>
-                    <div id="receiveAddressText" class="font-mono text-xs font-bold text-slate-950 break-all p-2 bg-white border border-slate-300 rounded-lg">
-                        0x... (Connect Wallet)
-                    </div>
-                </div>
-
-                <button onclick="copyWalletAddress()" class="btn-pixel w-full py-2.5 rounded-xl bg-teal-600 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm">
-                    <i data-lucide="copy" class="w-4 h-4"></i>
-                    Copy Wallet Address
-                </button>
-            </div>
-
-            <div class="text-[11px] text-slate-500 text-center font-sans">
-                Send USDC or EURC to this address. Always double-check Chain ID (5042002).
-            </div>
-        </div>
-    </div>
-
-    <!-- WALLET SEND MODAL -->
-    <div id="walletSendModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="pixel-card-purple w-full max-w-md p-6 space-y-4 font-mono text-xs">
-            <div class="flex items-center justify-between pb-2 border-b-2 border-slate-950">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="send" class="w-5 h-5 text-purple-700"></i>
-                    <h3 class="font-pixel font-bold text-slate-950 text-base">Send Token (Arc L1)</h3>
-                </div>
-                <button onclick="closeWalletSendModal()" class="text-slate-500 hover:text-slate-950">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-
-            <div class="space-y-3">
-                <div>
-                    <label class="text-[11px] text-slate-500 font-bold uppercase font-silkscreen">Select Token</label>
-                    <select id="sendTokenSelect" class="w-full mt-1 p-2.5 bg-slate-50 border-2 border-slate-950 rounded-xl font-bold outline-none">
-                        <option value="0">USDC (USD Coin)</option>
-                        <option value="1">EURC (Euro Stablecoin)</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="text-[11px] text-slate-500 font-bold uppercase font-silkscreen">Recipient Address</label>
-                    <input type="text" id="sendRecipientAddr" placeholder="0x..." class="w-full mt-1 p-2.5 bg-slate-50 border-2 border-slate-950 rounded-xl outline-none font-mono">
-                </div>
-
-                <div>
-                    <div class="flex justify-between items-center text-[11px] text-slate-500 font-bold mb-1">
-                        <span class="uppercase font-silkscreen">Amount</span>
-                        <button onclick="setSendMaxAmount()" class="text-purple-700 hover:underline">MAX</button>
-                    </div>
-                    <input type="number" id="sendAmountInput" placeholder="0.00" class="w-full p-2.5 bg-slate-50 border-2 border-slate-950 rounded-xl outline-none text-lg font-bold font-mono">
-                </div>
-
-                <button onclick="executeRealSendToken()" class="btn-pixel w-full mt-2 py-3.5 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-600 text-white font-bold text-xs flex items-center justify-center gap-2">
-                    <i data-lucide="send" class="w-4 h-4"></i>
-                    Send Real Web3 Transaction
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- FAUCET MODAL -->
-    <div id="faucetModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="pixel-card-emerald w-full max-w-md p-6 space-y-4 font-mono text-xs">
-            <div class="flex items-center justify-between pb-2 border-b-2 border-slate-950">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="droplet" class="w-5 h-5 text-emerald-600"></i>
-                    <h3 class="font-pixel font-bold text-slate-950 text-base">Arc Testnet Faucet</h3>
-                </div>
-                <button onclick="closeFaucetModal()" class="text-slate-500 hover:text-slate-950">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            <p class="text-slate-600 text-xs font-sans">Claim free testnet USDC & EURC to pay native gas fees and test swaps on Arc Testnet.</p>
-            <div class="p-3 bg-slate-50 rounded-xl border border-slate-300">
-                <div class="text-[10px] text-slate-400">Target Address:</div>
-                <div id="faucetTargetAddrText" class="font-bold text-slate-950 truncate">0x...</div>
-            </div>
-            <button onclick="claimInAppFaucet()" class="btn-pixel w-full py-3 rounded-xl bg-emerald-600 text-white font-bold text-xs">
-                Claim +100 USDC Faucet Tokens
-            </button>
-        </div>
-    </div>
-
-    <!-- TX HISTORY MODAL -->
-    <div id="txHistoryModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="pixel-card-purple w-full max-w-lg p-6 space-y-4">
-            <div class="flex items-center justify-between pb-2 border-b-2 border-slate-950">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="history" class="w-5 h-5 text-purple-700"></i>
-                    <h3 class="font-pixel font-bold text-slate-950 text-base">Transaction History</h3>
-                </div>
-                <button onclick="closeTxHistoryModal()" class="text-slate-500 hover:text-slate-950">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            <div id="txHistoryModalList" class="space-y-3 max-h-80 overflow-y-auto"></div>
-        </div>
-    </div>
-
-    <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
-
-    <footer class="mt-auto border-t-3 border-slate-950 bg-white py-6 text-center text-xs text-slate-600 font-medium">
-        <div class="max-w-7xl mx-auto px-4 flex flex-col items-center justify-center gap-2 text-center">
-            <div class="font-pixel text-sm">
-                <span class="font-bold text-slate-950">ArcPulse</span> © 2026. Powered by Circle Arc Testnet.
-            </div>
-            <div class="text-slate-600">
-                Built by <span class="text-purple-700 font-bold"></span> (<span class="text-teal-700 font-bold"></span>)
-            </div>
-        </div>
+    <!-- FOOTER -->
+    <footer class="max-w-7xl mx-auto px-4 sm:px-6 pb-8 text-center text-xs text-slate-400 font-mono space-y-1">
+        <p>ArcPulse · Arc L1 Web3 Ecosystem · Testnet v1.0</p>
+        <p>Circle Arc L1 Testnet · Chain ID 5042002 · RPC: <span class="text-purple-400">rpc.arcprotocol.xyz</span></p>
     </footer>
 
-    <!-- Native JavaScript Engine with Synced Circle SDK Swap Rates & Real RPC Web3 Balances -->
-    
+    <script>
+        // Initialize Lucide icons
+        if (typeof lucide !== 'undefined') lucide.createIcons();
 
-    
-    
-    <script src="app.js"></script>
-    <!-- GOOGLE TRANSLATE ENGINE FOR FULL PAGE LOCALIZATION -->
-    <div id="google_translate_element" class="hidden"></div>
-    <script type="text/javascript">
-        function googleTranslateElementInit() {
-            new google.translate.TranslateElement({ pageLanguage: 'en', autoDisplay: false }, 'google_translate_element');
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('open');
         }
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
     </script>
-    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 </html>

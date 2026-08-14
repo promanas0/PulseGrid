@@ -559,12 +559,14 @@ Timestamp: ${new Date().toISOString()}`;
                 safeSetText('walletBtnText', formatted);
                 safeSetText('sidebarAccountAddr', formatted);
                 safeSetText('sidebarUsdcBal', `${TOKENS[0].balance.toFixed(2)} USDC`);
+                safeSetText('heroWalletBtnText', formatted);
                 
                 if (infoBox) infoBox.classList.remove('hidden');
                 if (connectBtn) connectBtn.classList.add('hidden');
                 if (disconnectBtn) disconnectBtn.classList.remove('hidden');
             } else {
                 safeSetText('walletBtnText', 'Connect Wallet');
+                safeSetText('heroWalletBtnText', 'Connect Wallet');
                 if (infoBox) infoBox.classList.add('hidden');
                 if (connectBtn) connectBtn.classList.remove('hidden');
                 if (disconnectBtn) disconnectBtn.classList.add('hidden');
@@ -1666,6 +1668,7 @@ Timestamp: ${new Date().toISOString()}`;
                 renderWalletView();
                 renderPortfolioView();
                 initWalletConnectProvider();
+                switchPage('monitor');
                 safeInitIcons();
             } catch(e) {}
         }

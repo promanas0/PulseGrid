@@ -2012,35 +2012,47 @@ Timestamp: ${new Date().toISOString()}`;
                 const userKey = localStorage.getItem('arcpulse_gemini_api_key');
                 const activeKey = userKey && userKey.trim().length > 10 ? userKey.trim() : BUILTIN_GEMINI_KEY;
 
-                // 1. Official Google Gemini REST API Integration (using active key or builtin default key)
+                // 1. Official Google Gemini REST API — Optimized for Speed
                 if (activeKey) {
-                    const modelsToTry = ['gemini-flash-latest', 'gemini-pro-latest', 'gemini-3.5-flash', 'gemini-2.5-flash-lite'];
+                    // Priority order: fastest flash models first
+                    const modelsToTry = ['gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-1.5-flash-8b', 'gemini-1.5-flash'];
                     for (const modelName of modelsToTry) {
                         if (aiReplyText) break;
                         try {
+                            const controller = new AbortController();
+                            const timeoutId = setTimeout(() => controller.abort(), 12000); // 12s max per model
                             const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${activeKey}`;
                             const geminiRes = await fetch(geminiUrl, {
                                 method: 'POST',
+                                signal: controller.signal,
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
                                     contents: [
                                         {
                                             role: 'user',
                                             parts: [
-                                                { text: `You are Gemini Web3 AI, a world-class intelligent assistant like Google Gemini. Provide natural, friendly, and direct answers in the user's language using clean markdown and bullet points. Do NOT include any code blocks or smart contract code unless the user explicitly asks for code or programming examples.\n\nUser Question: ${userMsg}` }
+                                                { text: `You are Pro AI, a concise and intelligent Web3 assistant for the ArcPulse platform built on Circle Arc L1 blockchain. Answer clearly and concisely in the user's language using markdown. Avoid lengthy preamble — get to the answer fast.\n\nUser Question: ${userMsg}` }
                                             ]
                                         }
-                                    ]
+                                    ],
+                                    generationConfig: {
+                                        temperature: 0.7,
+                                        maxOutputTokens: 1024,
+                                        topP: 0.9
+                                    }
                                 })
                             });
+                            clearTimeout(timeoutId);
                             const geminiData = await geminiRes.json();
                             if (geminiRes.ok && geminiData?.candidates?.[0]?.content?.parts?.[0]?.text) {
                                 aiReplyText = geminiData.candidates[0].content.parts[0].text;
                             } else if (geminiData?.error) {
-                                console.warn(`Gemini API Model ${modelName} error:`, geminiData.error);
+                                console.warn(`Gemini ${modelName} error:`, geminiData.error.message || geminiData.error);
                             }
                         } catch(geminiErr) {
-                            console.warn(`Direct Gemini API ${modelName} error:`, geminiErr);
+                            if (geminiErr.name !== 'AbortError') {
+                                console.warn(`Gemini ${modelName} failed:`, geminiErr);
+                            }
                         }
                     }
                 }

@@ -1,4 +1,4 @@
-﻿import { AppKit } from "@circle-fin/app-kit";
+import { AppKit } from "@circle-fin/app-kit";
 
 /**
  * Circle AppKit Unified Balance Supported Chains Inspector

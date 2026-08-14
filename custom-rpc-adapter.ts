@@ -1,4 +1,4 @@
-﻿import { createViemAdapterFromPrivateKey } from "@circle-fin/adapter-viem-v2";
+import { createViemAdapterFromPrivateKey } from "@circle-fin/adapter-viem-v2";
 import { createPublicClient, createWalletClient, http } from "viem";
 import { arcTestnet, sepolia } from "viem/chains";
 import { AppKit } from "@circle-fin/app-kit";

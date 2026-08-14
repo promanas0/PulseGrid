@@ -1,4 +1,4 @@
-﻿import { AppKit } from "@circle-fin/app-kit";
+import { AppKit } from "@circle-fin/app-kit";
 import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
 import type { SendParams } from "@circle-fin/app-kit";
 

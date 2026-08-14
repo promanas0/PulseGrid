@@ -1,4 +1,4 @@
-﻿import fs from 'fs';
+import fs from 'fs';
 import 'dotenv/config';
 import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
 

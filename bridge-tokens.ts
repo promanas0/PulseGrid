@@ -1,4 +1,4 @@
-﻿import { AppKit, type BridgeResult } from "@circle-fin/app-kit";
+import { AppKit, type BridgeResult } from "@circle-fin/app-kit";
 import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
 
 /**

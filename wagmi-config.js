@@ -1,4 +1,4 @@
-﻿import { arcTestnet, mainnet } from "viem/chains";
+import { arcTestnet, mainnet } from "viem/chains";
 import { createConfig, http } from "wagmi";
 import { getDefaultConfig } from "connectkit";
 

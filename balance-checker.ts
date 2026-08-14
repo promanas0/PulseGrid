@@ -1,4 +1,4 @@
-﻿import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
+import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";
 import { formatUnits } from "viem";
 
 /**

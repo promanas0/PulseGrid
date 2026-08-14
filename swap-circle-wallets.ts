@@ -1,4 +1,4 @@
-﻿import 'dotenv/config';
+import 'dotenv/config';
 import { AppKit, type SwapParams } from "@circle-fin/app-kit";
 import { ArcTestnet } from "@circle-fin/app-kit/chains";
 import { createCircleWalletsAdapter } from "@circle-fin/adapter-circle-wallets";

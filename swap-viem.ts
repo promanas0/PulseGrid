@@ -1,4 +1,4 @@
-﻿import 'dotenv/config';
+import 'dotenv/config';
 import { AppKit } from "@circle-fin/app-kit";
 import { ArcTestnet } from "@circle-fin/app-kit/chains";
 import { createViemAdapterFromPrivateKey, createViemAdapterFromProvider } from "@circle-fin/adapter-viem-v2";

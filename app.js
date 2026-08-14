@@ -2008,101 +2008,89 @@ Timestamp: ${new Date().toISOString()}`;
                 chatBox.scrollTop = chatBox.scrollHeight;
 
                 let aiReplyText = "";
-                const BUILTIN_GEMINI_KEY = typeof atob === 'function' ? atob('QVEuQWI4Uk42S0t1SlAtMHZ2RVdOUjlXMS1RT19BUnhqQmdPTi1abGV1RlpxRlhrT3FqOEE=') : '';
-                const userKey = localStorage.getItem('arcpulse_gemini_api_key');
-                const activeKey = userKey && userKey.trim().length > 10 ? userKey.trim() : BUILTIN_GEMINI_KEY;
 
-                // 1. Official Google Gemini REST API — Optimized for Speed
-                if (activeKey) {
-                    // Priority order: fastest flash models first
-                    const modelsToTry = ['gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-1.5-flash-8b', 'gemini-1.5-flash'];
-                    for (const modelName of modelsToTry) {
+                // --- LAYER 1: Google Gemini (only if user has a valid AIza key) ---
+                const userKey = (localStorage.getItem('arcpulse_gemini_api_key') || '').trim();
+                const isValidGeminiKey = userKey.startsWith('AIza') && userKey.length > 20;
+
+                if (isValidGeminiKey) {
+                    const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-flash-8b'];
+                    for (const model of models) {
                         if (aiReplyText) break;
                         try {
-                            const controller = new AbortController();
-                            const timeoutId = setTimeout(() => controller.abort(), 12000); // 12s max per model
-                            const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${activeKey}`;
-                            const geminiRes = await fetch(geminiUrl, {
-                                method: 'POST',
-                                signal: controller.signal,
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    contents: [
-                                        {
-                                            role: 'user',
-                                            parts: [
-                                                { text: `You are Pro AI, a concise and intelligent Web3 assistant for the ArcPulse platform built on Circle Arc L1 blockchain. Answer clearly and concisely in the user's language using markdown. Avoid lengthy preamble — get to the answer fast.\n\nUser Question: ${userMsg}` }
-                                            ]
-                                        }
-                                    ],
-                                    generationConfig: {
-                                        temperature: 0.7,
-                                        maxOutputTokens: 1024,
-                                        topP: 0.9
-                                    }
-                                })
-                            });
-                            clearTimeout(timeoutId);
-                            const geminiData = await geminiRes.json();
-                            if (geminiRes.ok && geminiData?.candidates?.[0]?.content?.parts?.[0]?.text) {
-                                aiReplyText = geminiData.candidates[0].content.parts[0].text;
-                            } else if (geminiData?.error) {
-                                console.warn(`Gemini ${modelName} error:`, geminiData.error.message || geminiData.error);
+                            const ctrl = new AbortController();
+                            const tid = setTimeout(() => ctrl.abort(), 15000);
+                            const res = await fetch(
+                                `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${userKey}`,
+                                {
+                                    method: 'POST',
+                                    signal: ctrl.signal,
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        system_instruction: { parts: [{ text: 'You are Pro AI — a brilliant, helpful assistant. Answer ANY question accurately in the user\'s language (Hindi, English, Hinglish, etc.). Be direct and clear.' }] },
+                                        contents: [{ role: 'user', parts: [{ text: userMsg }] }],
+                                        generationConfig: { temperature: 0.8, maxOutputTokens: 1500 }
+                                    })
+                                }
+                            );
+                            clearTimeout(tid);
+                            const data = await res.json();
+                            if (res.ok && data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+                                aiReplyText = data.candidates[0].content.parts[0].text;
+                            } else if (data?.error) {
+                                console.warn('Gemini error:', data.error.message);
                             }
-                        } catch(geminiErr) {
-                            if (geminiErr.name !== 'AbortError') {
-                                console.warn(`Gemini ${modelName} failed:`, geminiErr);
-                            }
+                        } catch(e) {
+                            if (e.name !== 'AbortError') console.warn('Gemini fetch fail:', e.message);
                         }
                     }
                 }
 
-                // 2. Free Pollinations AI Fallback (no key needed — works for ANY question)
+                // --- LAYER 2: Pollinations AI — GET (free, no key, real GPT, reliable) ---
                 if (!aiReplyText) {
                     try {
-                        const controller = new AbortController();
-                        const timeoutId = setTimeout(() => controller.abort(), 15000);
-                        // Use POST endpoint for full chat with system prompt
-                        const pollRes = await fetch('https://text.pollinations.ai/', {
+                        const ctrl = new AbortController();
+                        const tid = setTimeout(() => ctrl.abort(), 20000);
+                        const sysPrompt = encodeURIComponent('You are Pro AI, a helpful assistant. Answer any question clearly in the user\'s language.');
+                        const msgEncoded = encodeURIComponent(userMsg);
+                        const pollUrl = `https://text.pollinations.ai/${msgEncoded}?model=openai&system=${sysPrompt}&seed=${Date.now() % 9999}`;
+                        const res = await fetch(pollUrl, { signal: ctrl.signal });
+                        clearTimeout(tid);
+                        if (res.ok) {
+                            const txt = await res.text();
+                            if (txt && txt.trim().length > 5) aiReplyText = txt.trim();
+                        }
+                    } catch(e) {
+                        if (e.name !== 'AbortError') console.warn('Pollinations GET fail:', e.message);
+                    }
+                }
+
+                // --- LAYER 3: Pollinations POST fallback ---
+                if (!aiReplyText) {
+                    try {
+                        const ctrl = new AbortController();
+                        const tid = setTimeout(() => ctrl.abort(), 20000);
+                        const res = await fetch('https://text.pollinations.ai/', {
                             method: 'POST',
-                            signal: controller.signal,
+                            signal: ctrl.signal,
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 model: 'openai',
                                 messages: [
-                                    { role: 'system', content: 'You are Pro AI, a smart and concise AI assistant. Answer any question clearly in the user\'s language using markdown.' },
+                                    { role: 'system', content: 'You are Pro AI. Answer any question helpfully in the user\'s language.' },
                                     { role: 'user', content: userMsg }
-                                ],
-                                seed: Math.floor(Math.random() * 9999)
+                                ]
                             })
                         });
-                        clearTimeout(timeoutId);
-                        if (pollRes.ok) {
-                            const txt = await pollRes.text();
-                            if (txt && txt.trim().length > 10 && !txt.includes('"error"')) {
-                                aiReplyText = txt.trim();
-                            }
-                        }
-                    } catch(e) {
-                        if (e.name !== 'AbortError') console.warn('Pollinations fallback error:', e);
-                    }
-                }
-
-                // 3. Secondary free fallback — GET endpoint
-                if (!aiReplyText) {
-                    try {
-                        const controller2 = new AbortController();
-                        const t2 = setTimeout(() => controller2.abort(), 8000);
-                        const getRes = await fetch(`https://text.pollinations.ai/${encodeURIComponent(userMsg)}?model=openai`, { signal: controller2.signal });
-                        clearTimeout(t2);
-                        if (getRes.ok) {
-                            const txt = await getRes.text();
-                            if (txt && txt.trim().length > 10) aiReplyText = txt.trim();
+                        clearTimeout(tid);
+                        if (res.ok) {
+                            const txt = await res.text();
+                            if (txt && txt.trim().length > 5) aiReplyText = txt.trim();
                         }
                     } catch(e) {}
                 }
 
-                // 4. Last Resort: Static Knowledge Engine (only if ALL APIs failed)
+                // --- LAYER 4: Static fallback (only if all APIs fail) ---
                 if (!aiReplyText) {
                     aiReplyText = generateSmartAiResponse(userMsg);
                 }

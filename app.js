@@ -67,7 +67,7 @@ if (typeof tailwind !== 'undefined') {
         }
 
         let currentAccount = null;
-        let activePage = 'monitor';
+        let activePage = 'landing';
         let activeWalletTab = 'tokens';
         let walletConnectProvider = null;
         let activeWeb3Provider = null;
@@ -262,6 +262,16 @@ if (typeof tailwind !== 'undefined') {
                     sidebar.classList.remove('sidebar-mobile-hidden');
                     sidebar.classList.add('sidebar-mobile-visible');
                 }
+            }
+        }
+
+        function exploreDapps(targetPage = 'monitor') {
+            try {
+                switchPage(targetPage);
+                showToast('Welcome to Arc dApps! 🚀', 'Exploring Arc L1 Web3 Ecosystem', 'success');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch(e) {
+                console.warn("exploreDapps warning:", e);
             }
         }
 

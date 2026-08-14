@@ -2057,27 +2057,52 @@ Timestamp: ${new Date().toISOString()}`;
                     }
                 }
 
-                // 2. High-Speed Free LLM GET Fallback (when no Key or Key error)
+                // 2. Free Pollinations AI Fallback (no key needed — works for ANY question)
                 if (!aiReplyText) {
                     try {
                         const controller = new AbortController();
-                        const timeoutId = setTimeout(() => controller.abort(), 7000);
-                        const freeLlmUrl = `https://text.pollinations.ai/${encodeURIComponent(userMsg)}?model=openai`;
-                        const res = await fetch(freeLlmUrl, { signal: controller.signal });
+                        const timeoutId = setTimeout(() => controller.abort(), 15000);
+                        // Use POST endpoint for full chat with system prompt
+                        const pollRes = await fetch('https://text.pollinations.ai/', {
+                            method: 'POST',
+                            signal: controller.signal,
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                model: 'openai',
+                                messages: [
+                                    { role: 'system', content: 'You are Pro AI, a smart and concise AI assistant. Answer any question clearly in the user\'s language using markdown.' },
+                                    { role: 'user', content: userMsg }
+                                ],
+                                seed: Math.floor(Math.random() * 9999)
+                            })
+                        });
                         clearTimeout(timeoutId);
-
-                        if (res.ok) {
-                            const txt = await res.text();
-                            if (txt && txt.trim().length > 10 && !txt.includes('"error":')) {
+                        if (pollRes.ok) {
+                            const txt = await pollRes.text();
+                            if (txt && txt.trim().length > 10 && !txt.includes('"error"')) {
                                 aiReplyText = txt.trim();
                             }
                         }
                     } catch(e) {
-                        console.warn("Free LLM fetch error:", e);
+                        if (e.name !== 'AbortError') console.warn('Pollinations fallback error:', e);
                     }
                 }
 
-                // 3. Dynamic Knowledge Engine Fallback
+                // 3. Secondary free fallback — GET endpoint
+                if (!aiReplyText) {
+                    try {
+                        const controller2 = new AbortController();
+                        const t2 = setTimeout(() => controller2.abort(), 8000);
+                        const getRes = await fetch(`https://text.pollinations.ai/${encodeURIComponent(userMsg)}?model=openai`, { signal: controller2.signal });
+                        clearTimeout(t2);
+                        if (getRes.ok) {
+                            const txt = await getRes.text();
+                            if (txt && txt.trim().length > 10) aiReplyText = txt.trim();
+                        }
+                    } catch(e) {}
+                }
+
+                // 4. Last Resort: Static Knowledge Engine (only if ALL APIs failed)
                 if (!aiReplyText) {
                     aiReplyText = generateSmartAiResponse(userMsg);
                 }

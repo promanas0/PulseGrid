@@ -80,7 +80,7 @@ if (typeof tailwind !== 'undefined') {
         const ARC_RPC_URL = 'https://rpc.testnet.arc.io';
         const ARC_RPC_URL_ALT = 'https://rpc.testnet.arc.network';
         
-        // Official Deployed ArchPulse Spender Router Address & ABIs
+        // Official Deployed PulseGrid Spender Router Address & ABIs
         const SPENDER_ROUTER_ADDRESS = '0x24EC9947C9Bd6c5ab4a3357A50c78D064176af31';
         const ERC20_USDC_ADDRESS = '0x3600000000000000000000000000000000000000';
         const ERC20_EURC_ADDRESS = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a';
@@ -227,10 +227,10 @@ if (typeof tailwind !== 'undefined') {
                             5042002: 'https://rpc.testnet.arc.io'
                         },
                         metadata: {
-                            name: 'ArchPulse DApp',
+                            name: 'PulseGrid DApp',
                             description: 'Circle Arc L1 Ecosystem DApp',
-                            url: window.location.origin || 'https://archpulse.vercel.app',
-                            icons: ['https://raw.githubusercontent.com/promanas0/archpulse/main/logo.png']
+                            url: window.location.origin || 'https://PulseGrid.vercel.app',
+                            icons: ['https://raw.githubusercontent.com/promanas0/PulseGrid/main/logo.png']
                         },
                         showQrModal: true
                     });
@@ -419,7 +419,7 @@ if (typeof tailwind !== 'undefined') {
 
                 showToast('Signature Request', 'Please check your wallet app to sign authentication message...', 'info');
                 
-                const authMessage = `Welcome to ArchPulse DApp!
+                const authMessage = `Welcome to PulseGrid DApp!
 
 Sign this message to authenticate your session on Arc L1 Testnet (Chain 5042002).
 
@@ -993,7 +993,7 @@ Timestamp: ${new Date().toISOString()}`;
 
         function loadQuestState() {
             try {
-                const saved = localStorage.getItem('ArchPulse_quests_state_v2');
+                const saved = localStorage.getItem('PulseGrid_quests_state_v2');
                 if (saved) {
                     const parsed = JSON.parse(saved);
                     questState = Object.assign(questState, parsed);
@@ -1006,7 +1006,7 @@ Timestamp: ${new Date().toISOString()}`;
         function saveQuestState() {
             try {
                 questState.points = userPoints;
-                localStorage.setItem('ArchPulse_quests_state_v2', JSON.stringify(questState));
+                localStorage.setItem('PulseGrid_quests_state_v2', JSON.stringify(questState));
             } catch(e) {}
             updateQuestUI();
         }
@@ -1034,7 +1034,7 @@ Timestamp: ${new Date().toISOString()}`;
                 showToast('Signature Requested ✍️', 'Please sign authentication message in your wallet...', 'info');
                 
                 const timestamp = Date.now();
-                const msgText = `ArchPulse Daily Check-In Verification\nWallet: ${currentAccount}\nDate: ${today}\nTimestamp: ${timestamp}`;
+                const msgText = `PulseGrid Daily Check-In Verification\nWallet: ${currentAccount}\nDate: ${today}\nTimestamp: ${timestamp}`;
                 const hexMsg = '0x' + Array.from(new TextEncoder().encode(msgText)).map(b => b.toString(16).padStart(2, '0')).join('');
 
                 let signature = null;
@@ -1090,7 +1090,7 @@ Timestamp: ${new Date().toISOString()}`;
                     showToast('Task Locked 🔒', `Perform 5 swaps first (Current: ${questState.swapsCompleted}/5)`, 'warning');
                 }
             } else if (taskId === 'taskAi') {
-                const savedKey = localStorage.getItem('ArchPulse_gemini_api_key');
+                const savedKey = localStorage.getItem('PulseGrid_gemini_api_key');
                 if ((savedKey || questState.claimedTasks.taskAi) && !questState.claimedTasks.taskAi) {
                     questState.claimedTasks.taskAi = true;
                     userPoints += 100;
@@ -1208,7 +1208,7 @@ Timestamp: ${new Date().toISOString()}`;
                     taskAiBtn.className = 'btn-pixel-sm px-4 py-2.5 rounded-xl bg-emerald-600 text-white font-bold shrink-0';
                     taskAiBtn.disabled = true;
                 } else {
-                    const savedKey = localStorage.getItem('ArchPulse_gemini_api_key');
+                    const savedKey = localStorage.getItem('PulseGrid_gemini_api_key');
                     if (savedKey) {
                         taskAiBtn.innerText = 'Claim +100 PTS 🤖';
                         taskAiBtn.className = 'btn-pixel-sm px-4 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold shrink-0 animate-pulse';
@@ -1294,7 +1294,7 @@ Timestamp: ${new Date().toISOString()}`;
                 return;
             }
 
-            const existing = JSON.parse(localStorage.getItem(`ArchPulse_txs_${currentAccount.toLowerCase()}`) || '[]');
+            const existing = JSON.parse(localStorage.getItem(`PulseGrid_txs_${currentAccount.toLowerCase()}`) || '[]');
             if (existing.length === 0) {
                 container.innerHTML = `
                     <div class="p-8 text-center text-slate-500 font-sans italic space-y-2">
@@ -1470,7 +1470,7 @@ Timestamp: ${new Date().toISOString()}`;
 
         function saveTxRecord(account, txObj) {
             if (!account) return;
-            const key = `ArchPulse_txs_${account.toLowerCase()}`;
+            const key = `PulseGrid_txs_${account.toLowerCase()}`;
             const existing = JSON.parse(localStorage.getItem(key) || '[]');
             existing.unshift(txObj);
             localStorage.setItem(key, JSON.stringify(existing.slice(0, 30)));
@@ -1484,7 +1484,7 @@ Timestamp: ${new Date().toISOString()}`;
             if (!currentAccount) {
                 list.innerHTML = `<div class="text-slate-500 text-center py-8 font-sans italic">No real transactions recorded yet. Connect wallet to view history.</div>`;
             } else {
-                const existing = JSON.parse(localStorage.getItem(`ArchPulse_txs_${currentAccount.toLowerCase()}`) || '[]');
+                const existing = JSON.parse(localStorage.getItem(`PulseGrid_txs_${currentAccount.toLowerCase()}`) || '[]');
                 if (existing.length === 0) {
                     list.innerHTML = `<div class="text-slate-500 text-center py-8 font-sans italic">No real transactions recorded yet for this account.</div>`;
                 } else {
@@ -1839,12 +1839,12 @@ Timestamp: ${new Date().toISOString()}`;
             const assistantInput = document.getElementById('geminiApiKeyInputAssistant');
             const keyVal = input && input.value.trim() ? input.value.trim() : (assistantInput ? assistantInput.value.trim() : '');
             if (keyVal) {
-                localStorage.setItem('ArchPulse_gemini_api_key', keyVal);
+                localStorage.setItem('PulseGrid_gemini_api_key', keyVal);
                 if (input) input.value = keyVal;
                 if (assistantInput) assistantInput.value = keyVal;
                 showToast('Gemini API Key Saved! 🚀', 'Direct Official Google Gemini 2.0 / 1.5 AI Model is now ACTIVE!', 'success');
             } else {
-                localStorage.removeItem('ArchPulse_gemini_api_key');
+                localStorage.removeItem('PulseGrid_gemini_api_key');
                 if (input) input.value = '';
                 if (assistantInput) assistantInput.value = '';
                 showToast('Gemini Key Cleared', 'Reverted to free AI mode', 'info');
@@ -1856,7 +1856,7 @@ Timestamp: ${new Date().toISOString()}`;
             const input = document.getElementById('geminiApiKeyInput');
             const keyVal = assistantInput && assistantInput.value.trim() ? assistantInput.value.trim() : (input ? input.value.trim() : '');
             if (keyVal) {
-                localStorage.setItem('ArchPulse_gemini_api_key', keyVal);
+                localStorage.setItem('PulseGrid_gemini_api_key', keyVal);
                 if (input) input.value = keyVal;
                 if (assistantInput) assistantInput.value = keyVal;
                 showToast('Gemini API Key Saved! 🚀', 'Direct Official Google Gemini 2.0 / 1.5 AI Model is now ACTIVE!', 'success');
@@ -1935,7 +1935,7 @@ Timestamp: ${new Date().toISOString()}`;
                 return "### Arc L1 Testnet Overview\nArc L1 Testnet ek high-performance enterprise Layer-1 blockchain hai:\n\n- **Block Time**: ~450ms sub-second finality\n- **Native Gas Token**: USDC\n- **Chain ID**: 5042002\n- **RPC Endpoint**: https://rpc.testnet.arc.network\n- **Consortium Validators**: Circle, BlackRock, Visa, DTCC, BNY";
             }
             if (q.includes("swap") || q.includes("dex")) {
-                return "### ArchPulse DEX AMM Swap\nArchPulse DEX par aap USDC ➔ EURC aur EURC ➔ USDC zero-slippage AMM swaps perform kar sakte hain:\n\n1. **Sub-second Finality**: Swaps complete in < 500ms.\n2. **Ultra-Low Gas Fee**: ~0.001 USDC native gas fee.\n3. **Points Reward**: Har confirmed swap par **+50 Builder PTS** milte hain!";
+                return "### PulseGrid DEX AMM Swap\nPulseGrid DEX par aap USDC ➔ EURC aur EURC ➔ USDC zero-slippage AMM swaps perform kar sakte hain:\n\n1. **Sub-second Finality**: Swaps complete in < 500ms.\n2. **Ultra-Low Gas Fee**: ~0.001 USDC native gas fee.\n3. **Points Reward**: Har confirmed swap par **+50 Builder PTS** milte hain!";
             }
             if (q.includes("btc") || q.includes("bitcoin")) {
                 return "### Bitcoin (BTC) Intelligence & Forecast\n- **Current Price**: ~$64,250.00\n- **Market Trend**: Bullish (+4.2% 24h)\n- **Key Support**: $62,000.00\n- **Resistance Target**: $66,900.00\n\n*Analysis*: Institutional inflows and ETF volume remain strong.";
@@ -2010,7 +2010,7 @@ Timestamp: ${new Date().toISOString()}`;
                 let aiReplyText = "";
 
                 // --- LAYER 1: Google Gemini (only if user has a valid AIza key) ---
-                const userKey = (localStorage.getItem('ArchPulse_gemini_api_key') || '').trim();
+                const userKey = (localStorage.getItem('PulseGrid_gemini_api_key') || '').trim();
                 const isValidGeminiKey = userKey.startsWith('AIza') && userKey.length > 20;
 
                 if (isValidGeminiKey) {
@@ -2130,7 +2130,7 @@ Timestamp: ${new Date().toISOString()}`;
         const PREDICTION_COINS = [
             { symbol: 'BTC', name: 'Bitcoin', category: 'Digital Gold #1', price: '$64,200.00', target: '$66,900.00', change: '+4.2%', isBull: true, longRatio: '72% Long', shortRatio: '28% Short', tp: '$66,900', sl: '$62,800', leverage: '5x - 10x', confidence: '88%', reason: 'Strong buying sentiment driven by spot exchange net outflows and institutional ETF accumulation.', logo: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png' },
             { symbol: 'ETH', name: 'Ethereum', category: 'Layer 1 Smart Contracts #2', price: '$3,240.50', target: '$3,428.00', change: '+5.8%', isBull: true, longRatio: '68% Long', shortRatio: '32% Short', tp: '$3,428', sl: '$3,180', leverage: '5x - 8x', confidence: '84%', reason: 'L2 gas settlement volume surge and institutional ETF staking net inflows (+18% weekly average).', logo: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png' },
-            { symbol: 'ARC', name: 'Arc L1 Native (USDC)', category: 'Arc Testnet Ecosystem', price: '$1.0000', target: '$1.0000', change: '+2.4%', isBull: true, longRatio: '95% Long', shortRatio: '5% Short', tp: '$1.00', sl: '$0.999', leverage: '1x - 3x', confidence: '99%', reason: 'Institutional validator onboardings (+12 consortium nodes) and Circle AppKit DEX pool deposit inflows.', logo: 'https://raw.githubusercontent.com/promanas0/archpulse/main/logo.png' },
+            { symbol: 'ARC', name: 'Arc L1 Native (USDC)', category: 'Arc Testnet Ecosystem', price: '$1.0000', target: '$1.0000', change: '+2.4%', isBull: true, longRatio: '95% Long', shortRatio: '5% Short', tp: '$1.00', sl: '$0.999', leverage: '1x - 3x', confidence: '99%', reason: 'Institutional validator onboardings (+12 consortium nodes) and Circle AppKit DEX pool deposit inflows.', logo: 'https://raw.githubusercontent.com/promanas0/PulseGrid/main/logo.png' },
             { symbol: 'SOL', name: 'Solana', category: 'High-Throughput L1 #5', price: '$148.20', target: '$143.60', change: '-3.1%', isBull: false, longRatio: '34% Long', shortRatio: '66% Short', tp: '$143.60', sl: '$153.00', leverage: '3x - 5x', confidence: '76%', reason: 'Short-term network congestion during peak DEX token launches causing temporary retry delays.', logo: 'https://assets.coingecko.com/coins/images/4128/small/solana.png' },
             { symbol: 'BNB', name: 'BNB Chain', category: 'Exchange & L1 #4', price: '$572.40', target: '$598.00', change: '+4.5%', isBull: true, longRatio: '62% Long', shortRatio: '38% Short', tp: '$598.00', sl: '$555.00', leverage: '5x', confidence: '81%', reason: 'Launchpool staking demand and gas burn rate increase.', logo: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png' },
             { symbol: 'XRP', name: 'Ripple XRP', category: 'Cross-Border Payments #6', price: '$0.5640', target: '$0.6120', change: '+8.5%', isBull: true, longRatio: '78% Long', shortRatio: '22% Short', tp: '$0.6120', sl: '$0.5350', leverage: '5x - 10x', confidence: '86%', reason: 'Regulatory clarity milestone and bank settlement pilot announcements.', logo: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png' },
@@ -2245,7 +2245,7 @@ Timestamp: ${new Date().toISOString()}`;
                     startMainnetCountdown();
                 }
                 // Restore saved Gemini API Key into UI inputs on startup
-                const savedGeminiKey = localStorage.getItem('ArchPulse_gemini_api_key');
+                const savedGeminiKey = localStorage.getItem('PulseGrid_gemini_api_key');
                 const apiKeyInput = document.getElementById('geminiApiKeyInput');
                 const apiKeyInputAssistant = document.getElementById('geminiApiKeyInputAssistant');
                 if (savedGeminiKey) {

@@ -1,8 +1,8 @@
 {
-  "name": "archpulse",
+  "name": "pulsegrid",
   "version": "1.0.0",
   "type": "module",
-  "description": "ArchPulse - High-performance Web3 DEX & Circle W3S Engine for Arc Testnet",
+  "description": "pulsegrid - High-performance Web3 DEX & Circle W3S Engine for Arc Testnet",
   "main": "index.html",
   "scripts": {
     "start": "node server.mjs",
@@ -51,7 +51,7 @@
     "usdc",
     "eurc"
   ],
-  "author": "ArchPulse Ecosystem",
+  "author": "pulsegrid Ecosystem",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.11.0",
@@ -78,3 +78,4 @@
     "@solana/codecs-strings": "^2.0.0"
   }
 }
+

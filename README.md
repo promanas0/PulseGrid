@@ -30,7 +30,8 @@
 
 1. **Clone the repository**:
    ```bash
-   git clone [https://github.com/your-username/pulsegrid.git](https://github.com/your-username/pulsegrid.git)
+   git clone [https://github.com/promanas0/PulseGrid.git](https://github.com/promanas0/PulseGrid.git)
    cd pulsegrid# pulsegrid
 High-performance Web3 infrastructure suite built for Circle's Arc Testnet. Featuring real-time network telemetry monitoring, instant stablecoin DEX swaps, daily builder quests, and multi-wallet support. . 
+
 

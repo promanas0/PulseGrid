@@ -22,7 +22,7 @@ async function main() {
     const balanceAction = await sourceAdapter.prepareAction(
       "usdc.balanceOf",
       {},
-      { chain: "Arc_Testnet" },
+      { chain: "Arc_Testnet" as any, address: process.env.SOURCE_WALLET_ADDRESS || "0xe45f8f8b39414578b871ed196edcba9d2822a432" },
     );
 
     const balance: any = await balanceAction.execute();

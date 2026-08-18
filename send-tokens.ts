@@ -34,7 +34,7 @@ async function main() {
 
   // Create the transfer transaction
   const transferResponse = await client.createTransaction({
-    blockchain: SOURCE_WALLET_BLOCKCHAIN,
+    blockchain: SOURCE_WALLET_BLOCKCHAIN as any,
     walletAddress: SOURCE_WALLET_ADDRESS,
     tokenAddress: ARC_TESTNET_USDC, // USDC contract address on Arc Testnet
     destinationAddress: DESTINATION_WALLET_ADDRESS,

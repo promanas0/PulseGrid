@@ -59,7 +59,7 @@ async function main() {
         errorMessage.includes("timeout")
       ) {
         console.log("🔄 Triggering kit.retry() with updated destination adapter...");
-        const retryResult: any = await kit.retry(result, {
+        const retryResult: any = await (kit as any).retry(result, {
           from: sourceAdapter,
           to: destinationAdapter,
         });

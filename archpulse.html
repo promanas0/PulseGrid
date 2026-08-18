@@ -172,9 +172,15 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            color: #334155;
+            color: #0F172A;
             transition: all 0.15s ease;
             cursor: pointer;
+        }
+
+        .sidebar-link i, .sidebar-link svg {
+            color: #0F172A !important;
+            stroke: #0F172A !important;
+            transition: all 0.15s ease;
         }
 
         .sidebar-link:hover {
@@ -185,11 +191,21 @@
             transform: translate(-1px, -1px);
         }
 
+        .sidebar-link:hover i, .sidebar-link:hover svg {
+            color: #7B2CBF !important;
+            stroke: #7B2CBF !important;
+        }
+
         .sidebar-link.active {
             background: linear-gradient(135deg, #7B2CBF 0%, #008080 100%);
             border-color: #0F172A;
             color: #FFFFFF;
             box-shadow: 4px 4px 0px #0F172A;
+        }
+
+        .sidebar-link.active i, .sidebar-link.active svg {
+            color: #FFFFFF !important;
+            stroke: #FFFFFF !important;
         }
 
         .page-view {
@@ -338,67 +354,67 @@
                 <div class="text-[10px] font-silkscreen text-slate-400 uppercase tracking-widest px-2 mb-1">Main Menu</div>
 
                 <button onclick="switchPage('monitor')" id="nav-btn-monitor" class="sidebar-link w-full active">
-                    <i data-lucide="activity" class="w-4 h-4 text-violet-600 shrink-0"></i>
+                    <i data-lucide="activity" class="w-4 h-4 text-slate-950 shrink-0"></i>
                     <span>Network Monitor</span>
                 </button>
 
                 <button onclick="switchPage('swap')" id="nav-btn-swap" class="sidebar-link w-full">
-                    <i data-lucide="repeat" class="w-4 h-4 text-indigo-600 shrink-0"></i>
-                    <span>Swap & AMM</span>
+                    <i data-lucide="repeat" class="w-4 h-4 text-slate-950 shrink-0"></i>
+                    <span>Swap</span>
                 </button>
 
                 <button onclick="switchPage('wallet')" id="nav-btn-wallet" class="sidebar-link w-full">
-                    <i data-lucide="wallet" class="w-4 h-4 text-teal-600 shrink-0"></i>
+                    <i data-lucide="wallet" class="w-4 h-4 text-slate-950 shrink-0"></i>
                     <span>Arc Web3 Wallet</span>
                 </button>
 
                 <button onclick="switchPage('portfolio')" id="nav-btn-portfolio" class="sidebar-link w-full">
-                    <i data-lucide="pie-chart" class="w-4 h-4 text-purple-600 shrink-0"></i>
+                    <i data-lucide="pie-chart" class="w-4 h-4 text-slate-950 shrink-0"></i>
                     <span>Portfolio & Analytics</span>
                 </button>
 
                 <button onclick="switchPage('market')" id="nav-btn-market" class="sidebar-link w-full">
-                    <i data-lucide="store" class="w-4 h-4 text-amber-600 shrink-0"></i>
+                    <i data-lucide="store" class="w-4 h-4 text-slate-950 shrink-0"></i>
                     <span>NFT & Token Market</span>
                 </button>
 
                 <button onclick="switchPage('escrow')" id="nav-btn-escrow" class="sidebar-link w-full">
-                    <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600 shrink-0"></i>
+                    <i data-lucide="shield-check" class="w-4 h-4 text-slate-950 shrink-0"></i>
                     <span>Circle Escrow</span>
                 </button>
 
                 <button onclick="switchPage('assistant')" id="nav-btn-assistant" class="sidebar-link w-full">
-                    <i data-lucide="bot" class="w-4 h-4 text-rose-600 shrink-0"></i>
+                    <i data-lucide="bot" class="w-4 h-4 text-slate-950 shrink-0"></i>
                     <span data-i18n="nav_assistant">Pro AI Assistant</span>
                 </button>
 
                 <button onclick="switchPage('games')" id="nav-btn-games" class="sidebar-link w-full">
-                    <i data-lucide="gamepad-2" class="w-4 h-4 text-fuchsia-600 shrink-0"></i>
+                    <i data-lucide="gamepad-2" class="w-4 h-4 text-slate-950 shrink-0"></i>
                     <span data-i18n="nav_games">Games</span>
                 </button>
 
                 <button onclick="switchPage('prediction')" id="nav-btn-prediction" class="sidebar-link w-full">
-                    <i data-lucide="trending-up" class="w-4 h-4 text-teal-600 shrink-0"></i>
+                    <i data-lucide="trending-up" class="w-4 h-4 text-slate-950 shrink-0"></i>
                     <span data-i18n="nav_prediction">Price Predictions</span>
                 </button>
 
                 <button onclick="switchPage('settings')" id="nav-btn-settings" class="sidebar-link w-full">
-                    <i data-lucide="settings" class="w-4 h-4 text-slate-600 shrink-0"></i>
+                    <i data-lucide="settings" class="w-4 h-4 text-slate-950 shrink-0"></i>
                     <span data-i18n="nav_settings">Settings</span>
                 </button>
 
                 <button onclick="switchPage('daily')" id="nav-btn-daily" class="sidebar-link w-full">
-                    <i data-lucide="trophy" class="w-4 h-4 text-amber-500 shrink-0"></i>
+                    <i data-lucide="trophy" class="w-4 h-4 text-slate-950 shrink-0"></i>
                     <span>Daily Quests</span>
                 </button>
 
                 <button onclick="switchPage('about')" id="nav-btn-about" class="sidebar-link w-full">
-                    <i data-lucide="info" class="w-4 h-4 text-blue-600 shrink-0"></i>
+                    <i data-lucide="info" class="w-4 h-4 text-slate-950 shrink-0"></i>
                     <span>About Arc L1</span>
                 </button>
 
                 <button onclick="switchPage('tools')" id="nav-btn-tools" class="sidebar-link w-full">
-                    <i data-lucide="wrench" class="w-4 h-4 text-purple-700 shrink-0"></i>
+                    <i data-lucide="wrench" class="w-4 h-4 text-slate-950 shrink-0"></i>
                     <span>Web3 Tools Hub</span>
                 </button>
             </nav>
@@ -813,7 +829,7 @@
                         <i data-lucide="arrow-left-right" class="w-4 h-4"></i> Token Swap
                     </button>
                     <button onclick="switchSwapMode('pool')" id="swapModeBtnPool" class="flex-1 py-2.5 rounded-xl font-pixel font-bold text-xs text-slate-700 hover:text-slate-950 flex items-center justify-center gap-2">
-                        <i data-lucide="layers" class="w-4 h-4"></i> AMM Liquidity Pools
+                        <i data-lucide="layers" class="w-4 h-4"></i> Liquidity Pools
                     </button>
                 </div>
 

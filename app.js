@@ -75,7 +75,7 @@ if (typeof tailwind !== 'undefined') {
         let tokenModalTarget = 'pay';
 
         const WALLETCONNECT_PROJECT_ID = '8422409540b61642239f1c7f556488d0';
-        const ARC_CHAIN_ID_HEX = '0x4D0112'; // 5042002
+        const ARC_CHAIN_ID_HEX = '0x4CEF52'; // 5042002
         const ARC_CHAIN_ID_DECIMAL = 5042002;
         const ARC_RPC_URL = 'https://rpc.testnet.arc.io';
         const ARC_RPC_URL_ALT = 'https://rpc.testnet.arc.network';
@@ -253,16 +253,25 @@ if (typeof tailwind !== 'undefined') {
         }
 
         function toggleMobileSidebar() {
-            const sidebar = document.getElementById('mainSidebar');
-            if (sidebar) {
-                if (sidebar.classList.contains('sidebar-mobile-visible')) {
-                    sidebar.classList.remove('sidebar-mobile-visible');
-                    sidebar.classList.add('sidebar-mobile-hidden');
+            toggleMobileMoreMenu();
+        }
+
+        function toggleMobileMoreMenu() {
+            const drawer = document.getElementById('mobileMoreDrawer');
+            if (drawer) {
+                if (drawer.classList.contains('hidden')) {
+                    drawer.classList.remove('hidden');
+                    safeInitIcons();
                 } else {
-                    sidebar.classList.remove('sidebar-mobile-hidden');
-                    sidebar.classList.add('sidebar-mobile-visible');
+                    drawer.classList.add('hidden');
                 }
             }
+        }
+
+        function switchPageAndCloseDrawer(pageId) {
+            switchPage(pageId);
+            const drawer = document.getElementById('mobileMoreDrawer');
+            if (drawer) drawer.classList.add('hidden');
         }
 
         function exploreDapps(targetPage = 'monitor') {
@@ -280,12 +289,32 @@ if (typeof tailwind !== 'undefined') {
                 activePage = pageId;
                 document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden'));
                 document.querySelectorAll('.sidebar-link').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.mobile-nav-btn').forEach(btn => btn.classList.remove('active'));
 
                 const activeView = document.getElementById(`view-${pageId}`);
                 if (activeView) activeView.classList.remove('hidden');
 
+                // Update Desktop sidebar button
                 const activeBtn = document.getElementById(`nav-btn-${pageId}`);
                 if (activeBtn) activeBtn.classList.add('active');
+
+                // Update Mobile bottom nav button if present
+                const activeMobileBtn = document.getElementById(`mobile-nav-btn-${pageId}`);
+                if (activeMobileBtn) {
+                    activeMobileBtn.classList.add('active');
+                } else {
+                    // Highlight the "More" button if the page is inside the More menu
+                    const moreBtn = document.getElementById('mobile-nav-btn-more');
+                    if (moreBtn && ['portfolio', 'market', 'escrow', 'tools', 'games', 'prediction', 'settings', 'about'].includes(pageId)) {
+                        moreBtn.classList.add('active');
+                    }
+                }
+
+                // Close mobile more drawer if open
+                const drawer = document.getElementById('mobileMoreDrawer');
+                if (drawer && !drawer.classList.contains('hidden')) {
+                    drawer.classList.add('hidden');
+                }
 
                 if (pageId === 'wallet') {
                     renderWalletView();
@@ -298,13 +327,8 @@ if (typeof tailwind !== 'undefined') {
                     if (settingsAddr) settingsAddr.value = currentAccount || 'Not Connected';
                 }
 
-                if (window.innerWidth < 1024) {
-                    const sidebar = document.getElementById('mainSidebar');
-                    if (sidebar && sidebar.classList.contains('sidebar-mobile-visible')) {
-                        sidebar.classList.remove('sidebar-mobile-visible');
-                        sidebar.classList.add('sidebar-mobile-hidden');
-                    }
-                }
+                safeInitIcons();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             } catch(err) {
                 console.warn("switchPage warning:", err);
             }
@@ -560,6 +584,8 @@ Timestamp: ${new Date().toISOString()}`;
                 safeSetText('sidebarAccountAddr', formatted);
                 safeSetText('sidebarUsdcBal', `${TOKENS[0].balance.toFixed(2)} USDC`);
                 safeSetText('heroWalletBtnText', formatted);
+                safeSetText('mobileHeaderWalletBtnText', formatted);
+                safeSetText('mobileDrawerWalletBtnText', `Disconnect (${formatted})`);
                 
                 if (infoBox) infoBox.classList.remove('hidden');
                 if (connectBtn) connectBtn.classList.add('hidden');
@@ -567,6 +593,8 @@ Timestamp: ${new Date().toISOString()}`;
             } else {
                 safeSetText('walletBtnText', 'Connect Wallet');
                 safeSetText('heroWalletBtnText', 'Connect Wallet');
+                safeSetText('mobileHeaderWalletBtnText', 'Connect');
+                safeSetText('mobileDrawerWalletBtnText', 'Connect Wallet');
                 if (infoBox) infoBox.classList.add('hidden');
                 if (connectBtn) connectBtn.classList.remove('hidden');
                 if (disconnectBtn) disconnectBtn.classList.add('hidden');
@@ -2238,6 +2266,21 @@ Timestamp: ${new Date().toISOString()}`;
         // INITIALIZATION LOGIC
         document.addEventListener('DOMContentLoaded', () => {
             try {
+                // Parse URL Query Parameters for deep linking (?page=swap, ?page=wallet, etc.)
+                const urlParams = new URLSearchParams(window.location.search);
+                const requestedPage = urlParams.get('page');
+                const requestedAction = urlParams.get('action');
+
+                if (requestedPage) {
+                    switchPage(requestedPage);
+                } else {
+                    switchPage('monitor');
+                }
+
+                if (requestedAction === 'faucet') {
+                    setTimeout(() => { openFaucetModal(); }, 400);
+                }
+
                 if (typeof renderPredictionCoins === 'function' && typeof PREDICTION_COINS !== 'undefined') {
                     renderPredictionCoins(PREDICTION_COINS);
                 }
@@ -2260,6 +2303,7 @@ Timestamp: ${new Date().toISOString()}`;
                 }
                 updateQuestTimerStatus();
                 setInterval(updateQuestTimerStatus, 30000);
+                safeInitIcons();
             } catch(err) {
                 console.warn("DOMContentLoaded initialization warning:", err);
             }

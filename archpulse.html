@@ -223,155 +223,210 @@
             background: #7B2CBF;
         }
 
-        @media (max-width: 1023px) {
-            .sidebar-mobile-hidden {
-                transform: translateX(-100%);
-                transition: transform 0.3s ease-in-out;
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F1F5F9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #94A3B8;
+            border-radius: 4px;
+            border: 1px solid #0F172A;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #7B2CBF;
+        }
+
+        /* Mobile Bottom Nav Styles */
+        .mobile-nav-btn {
+            color: #64748B;
+            transition: all 0.15s ease;
+            position: relative;
+            user-select: none;
+        }
+        .mobile-nav-btn.active {
+            color: #7B2CBF;
+            font-weight: 800;
+        }
+        .mobile-nav-btn.active .mobile-nav-icon-box {
+            background: linear-gradient(135deg, #7B2CBF 0%, #4F46E5 100%);
+            border: 2px solid #0F172A;
+            box-shadow: 2px 2px 0px #0F172A;
+            color: #FFFFFF;
+            transform: translateY(-2px);
+        }
+        .mobile-nav-btn:active {
+            transform: scale(0.92);
+        }
+
+        @keyframes slideUpDrawer {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
             }
-            .sidebar-mobile-visible {
-                transform: translateX(0);
-                transition: transform 0.3s ease-in-out;
+            to {
+                transform: translateY(0);
+                opacity: 1;
             }
+        }
+        .animate-slide-up {
+            animation: slideUpDrawer 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
     </style>
 </head>
 <body class="min-h-screen bg-white text-slate-900 pixel-grid-bg flex flex-col lg:flex-row antialiased selection:bg-purple-600 selection:text-white">
 
     <!-- MOBILE TOP HEADER -->
-    <header class="lg:hidden sticky top-0 z-50 w-full bg-white border-b-4 border-slate-950 px-4 py-3 flex items-center justify-between shadow-md">
-        <a href="index.html" class="flex items-center gap-3 cursor-pointer">
-            <img src="logo.png" alt="PulseGrid Logo" class="w-10 h-10 rounded-xl border-2 border-slate-950 shadow-[2px_2px_0px_#0F172A] object-cover bg-white p-0.5">
+    <header class="lg:hidden sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b-2 border-slate-950 px-4 py-3 flex items-center justify-between shadow-sm">
+        <a href="index.html" class="flex items-center gap-2.5 cursor-pointer">
+            <img src="logo.png" alt="PulseGrid Logo" class="w-9 h-9 rounded-xl border-2 border-slate-950 shadow-[2px_2px_0px_#0F172A] object-cover bg-white p-0.5">
             <div>
-                <span class="font-pixel text-xl font-black tracking-wider text-slate-950">PulseGrid</span>
+                <span class="font-pixel text-lg font-black tracking-wider text-slate-950">PulseGrid</span>
+                <span class="text-[9px] bg-purple-100 text-purple-900 border border-purple-400 font-mono px-1.5 py-0.2 rounded font-bold ml-1">5042002</span>
             </div>
         </a>
         <div class="flex items-center gap-2">
-            <button onclick="toggleMobileSidebar()" class="btn-pixel p-2 rounded-xl bg-white border-2 border-slate-950 text-slate-900">
-                <i data-lucide="menu" class="w-6 h-6"></i>
+            <button onclick="handleWalletClick()" class="btn-pixel-sm px-3 py-1.5 rounded-xl bg-purple-700 text-white text-xs font-bold flex items-center gap-1.5">
+                <i data-lucide="wallet" class="w-3.5 h-3.5"></i>
+                <span id="mobileHeaderWalletBtnText">Connect</span>
+            </button>
+            <button onclick="toggleMobileMoreMenu()" class="btn-pixel-sm p-1.5 rounded-xl bg-slate-100 text-slate-900 border-2 border-slate-950" title="All Features & Tools">
+                <i data-lucide="grid" class="w-5 h-5"></i>
             </button>
         </div>
     </header>
 
-    <!-- PERSISTENT LEFT SIDEBAR NAVIGATION BAR -->
-    <aside id="mainSidebar" class="fixed inset-y-0 left-0 z-50 w-60 bg-white border-r border-slate-200 text-slate-900 flex flex-col justify-between p-4 shadow-md overflow-y-auto sidebar-mobile-hidden lg:transform-none">
+    <!-- PERSISTENT LEFT SIDEBAR (DESKTOP ONLY) -->
+    <aside id="mainSidebar" class="hidden lg:flex fixed inset-y-0 left-0 z-40 w-64 bg-white border-r-2 border-slate-950 text-slate-900 flex-col justify-between p-4 shadow-md overflow-y-auto">
         
-        <div class="space-y-5">
+        <div class="space-y-4">
             <!-- Brand & Logo Header -->
-            <div class="pb-4 border-b-3 border-slate-950 space-y-2">
+            <div class="pb-3 border-b-2 border-slate-950 space-y-2">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3 cursor-pointer" onclick="switchPage('monitor')">
-                        <img src="logo.png" alt="PulseGrid Logo" class="w-11 h-11 rounded-xl border-3 border-slate-950 shadow-[3px_3px_0px_#0F172A] object-cover bg-white p-0.5 group hover:scale-105 transition-transform">
-
+                        <img src="logo.png" alt="PulseGrid Logo" class="w-10 h-10 rounded-xl border-2 border-slate-950 shadow-[2px_2px_0px_#0F172A] object-cover bg-white p-0.5 group hover:scale-105 transition-transform">
                         <div>
                             <div class="flex items-center gap-1.5">
-                                <span class="font-pixel text-2xl font-black tracking-wider text-slate-950">PulseGrid</span>
-                                
+                                <span class="font-pixel text-xl font-black tracking-wider text-slate-950">PulseGrid</span>
                             </div>
+                            <div class="text-[10px] font-mono text-purple-700 font-bold">Arc L1 Testnet (5042002)</div>
                         </div>
                     </div>
-
-                    <button onclick="toggleMobileSidebar()" class="lg:hidden p-1.5 rounded-lg border-2 border-slate-950 text-slate-700 hover:text-slate-950">
-                        </button>
                 </div>
-
-                
             </div>
-
             
-    <!-- Language Selector Dropdown -->
-    <div class="relative inline-block text-left my-2 px-2">
-        <select id="languageSelector" onchange="changeLanguage(this.value)" class="w-full bg-slate-100 text-slate-800 text-xs font-semibold rounded-lg px-3 py-2 border border-slate-300 focus:outline-none focus:border-purple-600 cursor-pointer">
-            <option value="en">English (US)</option>
-            <option value="hi">हिंदी (Hindi)</option>
-            <option value="es">Español (Spanish)</option>
-            <option value="fr">Français (French)</option>
-            <option value="de">Deutsch (German)</option>
-            <option value="zh">中文 (Chinese)</option>
-            <option value="ja">日本語 (Japanese)</option>
-            <option value="ar">العربية (Arabic)</option>
-            <option value="ru">Русский (Russian)</option>
-            <option value="pt">Português (Portuguese)</option>
-        </select>
-    </div>
-    
+            <!-- Language Selector Dropdown -->
+            <div class="relative inline-block text-left w-full my-1">
+                <select id="languageSelector" onchange="changeLanguage(this.value)" class="w-full bg-slate-100 text-slate-800 text-xs font-semibold rounded-lg px-3 py-2 border-2 border-slate-950 focus:outline-none focus:border-purple-600 cursor-pointer">
+                    <option value="en">English (US)</option>
+                    <option value="hi">हिंदी (Hindi)</option>
+                    <option value="es">Español (Spanish)</option>
+                    <option value="fr">Français (French)</option>
+                    <option value="de">Deutsch (German)</option>
+                    <option value="zh">中文 (Chinese)</option>
+                    <option value="ja">日本語 (Japanese)</option>
+                    <option value="ar">العربية (Arabic)</option>
+                    <option value="ru">Русский (Russian)</option>
+                    <option value="pt">Português (Portuguese)</option>
+                </select>
+            </div>
+            
             <!-- Navigation Options -->
-            <nav class="space-y-1.5">
-                <div class="text-[10px] font-silkscreen text-slate-400 uppercase tracking-widest px-2 mb-1.5">Main Menu</div>
+            <nav class="space-y-1">
+                <div class="text-[10px] font-silkscreen text-slate-400 uppercase tracking-widest px-2 mb-1">Main Menu</div>
 
                 <button onclick="switchPage('monitor')" id="nav-btn-monitor" class="sidebar-link w-full active">
+                    <i data-lucide="activity" class="w-4 h-4 text-violet-600 shrink-0"></i>
                     <span>Network Monitor</span>
                 </button>
 
                 <button onclick="switchPage('swap')" id="nav-btn-swap" class="sidebar-link w-full">
+                    <i data-lucide="repeat" class="w-4 h-4 text-indigo-600 shrink-0"></i>
                     <span>Swap & AMM</span>
                 </button>
 
                 <button onclick="switchPage('wallet')" id="nav-btn-wallet" class="sidebar-link w-full">
+                    <i data-lucide="wallet" class="w-4 h-4 text-teal-600 shrink-0"></i>
                     <span>Arc Web3 Wallet</span>
                 </button>
 
                 <button onclick="switchPage('portfolio')" id="nav-btn-portfolio" class="sidebar-link w-full">
+                    <i data-lucide="pie-chart" class="w-4 h-4 text-purple-600 shrink-0"></i>
                     <span>Portfolio & Analytics</span>
                 </button>
 
                 <button onclick="switchPage('market')" id="nav-btn-market" class="sidebar-link w-full">
+                    <i data-lucide="store" class="w-4 h-4 text-amber-600 shrink-0"></i>
                     <span>NFT & Token Market</span>
                 </button>
 
                 <button onclick="switchPage('escrow')" id="nav-btn-escrow" class="sidebar-link w-full">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600 shrink-0"></i>
                     <span>Circle Escrow</span>
                 </button>
 
                 <button onclick="switchPage('assistant')" id="nav-btn-assistant" class="sidebar-link w-full">
-                    <span data-i18n="nav_assistant">Pro AI</span>
+                    <i data-lucide="bot" class="w-4 h-4 text-rose-600 shrink-0"></i>
+                    <span data-i18n="nav_assistant">Pro AI Assistant</span>
                 </button>
 
                 <button onclick="switchPage('games')" id="nav-btn-games" class="sidebar-link w-full">
+                    <i data-lucide="gamepad-2" class="w-4 h-4 text-fuchsia-600 shrink-0"></i>
                     <span data-i18n="nav_games">Games</span>
                 </button>
 
                 <button onclick="switchPage('prediction')" id="nav-btn-prediction" class="sidebar-link w-full">
+                    <i data-lucide="trending-up" class="w-4 h-4 text-teal-600 shrink-0"></i>
                     <span data-i18n="nav_prediction">Price Predictions</span>
                 </button>
 
                 <button onclick="switchPage('settings')" id="nav-btn-settings" class="sidebar-link w-full">
+                    <i data-lucide="settings" class="w-4 h-4 text-slate-600 shrink-0"></i>
                     <span data-i18n="nav_settings">Settings</span>
                 </button>
 
                 <button onclick="switchPage('daily')" id="nav-btn-daily" class="sidebar-link w-full">
+                    <i data-lucide="trophy" class="w-4 h-4 text-amber-500 shrink-0"></i>
                     <span>Daily Quests</span>
                 </button>
 
                 <button onclick="switchPage('about')" id="nav-btn-about" class="sidebar-link w-full">
+                    <i data-lucide="info" class="w-4 h-4 text-blue-600 shrink-0"></i>
                     <span>About Arc L1</span>
                 </button>
+
                 <button onclick="switchPage('tools')" id="nav-btn-tools" class="sidebar-link w-full">
+                    <i data-lucide="wrench" class="w-4 h-4 text-purple-700 shrink-0"></i>
                     <span>Web3 Tools Hub</span>
                 </button>
             </nav>
 
-            <div class="space-y-2 pt-2 border-t-2 border-slate-200">
+            <div class="space-y-1.5 pt-2 border-t-2 border-slate-200">
                 <div class="text-[10px] font-silkscreen text-slate-400 uppercase tracking-widest px-2 mb-1">Ecosystem Tools</div>
 
-                <button onclick="manualSwitchToArcNetwork()" class="btn-pixel-sm w-full py-2.5 px-3 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-bold flex items-center justify-between shadow-[2px_2px_0px_#0F172A] transition-transform active:translate-y-0.5">
-                    <span class="flex items-center gap-2 font-pixel">
-                        Switch Arc Network
+                <button onclick="manualSwitchToArcNetwork()" class="btn-pixel-sm w-full py-2 px-3 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-bold flex items-center justify-between shadow-[2px_2px_0px_#0F172A] transition-transform active:translate-y-0.5">
+                    <span class="flex items-center gap-1.5 font-pixel">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-purple-200"></i>
+                        Switch Network
                     </span>
                     <span class="text-[9px] bg-purple-900 text-purple-200 px-1.5 py-0.5 rounded font-mono">5042002</span>
                 </button>
 
                 <button onclick="openFaucetModal()" class="btn-pixel-sm w-full py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 rounded-xl text-xs font-bold flex items-center justify-start gap-2">
+                    <i data-lucide="droplet" class="w-3.5 h-3.5 text-emerald-600"></i>
                     <span>USDC & EURC Faucet</span>
                 </button>
 
                 <button onclick="openTxHistoryModal()" class="btn-pixel-sm w-full py-2 px-3 bg-purple-50 hover:bg-purple-100 text-purple-900 rounded-xl text-xs font-bold flex items-center justify-start gap-2">
+                    <i data-lucide="history" class="w-3.5 h-3.5 text-purple-700"></i>
                     <span>Tx History</span>
                 </button>
             </div>
         </div>
 
-        <div class="mt-6 pt-4 border-t-3 border-slate-950 space-y-3">
-            
+        <div class="mt-4 pt-3 border-t-2 border-slate-950 space-y-2.5">
             <div id="sidebarWalletInfoBox" class="hidden p-3 rounded-xl bg-purple-50 border-2 border-slate-950 font-mono text-xs space-y-1.5 shadow-[3px_3px_0px_#0F172A]">
                 <div class="flex items-center justify-between text-[11px]">
                     <span class="text-slate-500 font-bold">Connected Account:</span>
@@ -385,11 +440,13 @@
             </div>
 
             <div id="sidebarWalletActionContainer">
-                <button id="sidebarConnectBtn" onclick="handleWalletClick()" class="btn-pixel w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-700 via-indigo-600 to-teal-600 text-white font-pixel font-bold text-sm flex items-center justify-center gap-2 shadow-[4px_4px_0px_#0F172A]">
+                <button id="sidebarConnectBtn" onclick="handleWalletClick()" class="btn-pixel w-full py-3 rounded-xl bg-gradient-to-r from-purple-700 via-indigo-600 to-teal-600 text-white font-pixel font-bold text-xs flex items-center justify-center gap-2 shadow-[3px_3px_0px_#0F172A]">
+                    <i data-lucide="wallet" class="w-4 h-4"></i>
                     <span id="walletBtnText">Connect Wallet</span>
                 </button>
 
-                <button id="sidebarDisconnectBtn" onclick="disconnectWallet()" class="hidden btn-pixel w-full py-3 rounded-xl bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white border-2 border-slate-950 font-pixel font-bold text-xs flex items-center justify-center gap-2 shadow-[3px_3px_0px_#0F172A] transition-colors">
+                <button id="sidebarDisconnectBtn" onclick="disconnectWallet()" class="hidden btn-pixel w-full py-2.5 rounded-xl bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white border-2 border-slate-950 font-pixel font-bold text-xs flex items-center justify-center gap-2 shadow-[2px_2px_0px_#0F172A] transition-colors">
+                    <i data-lucide="power" class="w-3.5 h-3.5"></i>
                     Disconnect Wallet
                 </button>
             </div>
@@ -400,8 +457,156 @@
         </div>
     </aside>
 
+    <!-- ════════════════════════ MOBILE BOTTOM NAVIGATION BAR ════════════════════════ -->
+    <nav id="mobileBottomNav" class="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t-2 border-slate-950 px-1 py-1.5 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] flex items-center justify-around">
+        <button onclick="switchPage('monitor')" id="mobile-nav-btn-monitor" class="mobile-nav-btn active flex-1 flex flex-col items-center justify-center py-1 rounded-xl">
+            <div class="mobile-nav-icon-box p-1 rounded-lg">
+                <i data-lucide="activity" class="w-5 h-5"></i>
+            </div>
+            <span class="text-[10px] font-bold tracking-tight mt-0.5">Monitor</span>
+        </button>
+
+        <button onclick="switchPage('swap')" id="mobile-nav-btn-swap" class="mobile-nav-btn flex-1 flex flex-col items-center justify-center py-1 rounded-xl">
+            <div class="mobile-nav-icon-box p-1 rounded-lg">
+                <i data-lucide="repeat" class="w-5 h-5"></i>
+            </div>
+            <span class="text-[10px] font-bold tracking-tight mt-0.5">Swap</span>
+        </button>
+
+        <button onclick="switchPage('wallet')" id="mobile-nav-btn-wallet" class="mobile-nav-btn flex-1 flex flex-col items-center justify-center py-1 rounded-xl">
+            <div class="mobile-nav-icon-box p-1 rounded-lg">
+                <i data-lucide="wallet" class="w-5 h-5"></i>
+            </div>
+            <span class="text-[10px] font-bold tracking-tight mt-0.5">Wallet</span>
+        </button>
+
+        <button onclick="switchPage('assistant')" id="mobile-nav-btn-assistant" class="mobile-nav-btn flex-1 flex flex-col items-center justify-center py-1 rounded-xl">
+            <div class="mobile-nav-icon-box p-1 rounded-lg">
+                <i data-lucide="bot" class="w-5 h-5"></i>
+            </div>
+            <span class="text-[10px] font-bold tracking-tight mt-0.5">AI Pro</span>
+        </button>
+
+        <button onclick="switchPage('daily')" id="mobile-nav-btn-daily" class="mobile-nav-btn flex-1 flex flex-col items-center justify-center py-1 rounded-xl">
+            <div class="mobile-nav-icon-box p-1 rounded-lg">
+                <i data-lucide="trophy" class="w-5 h-5"></i>
+            </div>
+            <span class="text-[10px] font-bold tracking-tight mt-0.5">Quests</span>
+        </button>
+
+        <button onclick="toggleMobileMoreMenu()" id="mobile-nav-btn-more" class="mobile-nav-btn flex-1 flex flex-col items-center justify-center py-1 rounded-xl">
+            <div class="mobile-nav-icon-box p-1 rounded-lg">
+                <i data-lucide="grid" class="w-5 h-5"></i>
+            </div>
+            <span class="text-[10px] font-bold tracking-tight mt-0.5">More</span>
+        </button>
+    </nav>
+
+    <!-- ════════════════════════ MOBILE MORE BOTTOM SHEET DRAWER ════════════════════════ -->
+    <div id="mobileMoreDrawer" class="lg:hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden transition-opacity">
+        <div class="absolute inset-x-0 bottom-0 max-h-[85vh] bg-white rounded-t-3xl border-t-3 border-slate-950 shadow-2xl p-5 overflow-y-auto flex flex-col justify-between space-y-4 animate-slide-up">
+            
+            <div>
+                <div class="flex items-center justify-between pb-3 border-b-2 border-slate-200">
+                    <div class="flex items-center gap-2.5">
+                        <img src="logo.png" alt="Logo" class="w-8 h-8 rounded-lg border-2 border-slate-950 bg-white p-0.5">
+                        <div>
+                            <div class="font-pixel font-black text-slate-950 text-base">PulseGrid Ecosystem</div>
+                            <div class="text-[10px] font-mono text-purple-700 font-bold">Arc L1 Testnet (5042002)</div>
+                        </div>
+                    </div>
+                    <button onclick="toggleMobileMoreMenu()" class="p-1.5 rounded-xl bg-slate-100 border-2 border-slate-950 text-slate-700 hover:text-slate-950">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <!-- Language Selector in Mobile Drawer -->
+                <div class="my-3">
+                    <label class="text-[10px] font-silkscreen text-slate-400 uppercase tracking-wider block mb-1">Language</label>
+                    <select id="mobileLanguageSelector" onchange="changeLanguage(this.value)" class="w-full bg-slate-100 text-slate-800 text-xs font-semibold rounded-xl px-3 py-2 border-2 border-slate-950 focus:outline-none focus:border-purple-600">
+                        <option value="en">English (US)</option>
+                        <option value="hi">हिंदी (Hindi)</option>
+                        <option value="es">Español (Spanish)</option>
+                        <option value="fr">Français (French)</option>
+                        <option value="de">Deutsch (German)</option>
+                        <option value="zh">中文 (Chinese)</option>
+                        <option value="ja">日本語 (Japanese)</option>
+                        <option value="ar">العربية (Arabic)</option>
+                        <option value="ru">Русский (Russian)</option>
+                        <option value="pt">Português (Portuguese)</option>
+                    </select>
+                </div>
+
+                <!-- Grid of All Features in More Menu -->
+                <div class="grid grid-cols-2 gap-2.5 mt-3 font-mono text-xs">
+                    <button onclick="switchPageAndCloseDrawer('tools')" id="mobile-more-btn-tools" class="p-3 rounded-xl bg-slate-50 hover:bg-purple-50 border-2 border-slate-950 flex items-center gap-2.5 font-bold text-slate-800 text-left transition-colors">
+                        <i data-lucide="wrench" class="w-5 h-5 text-purple-700 shrink-0"></i>
+                        <span>Tools Hub</span>
+                    </button>
+
+                    <button onclick="switchPageAndCloseDrawer('portfolio')" id="mobile-more-btn-portfolio" class="p-3 rounded-xl bg-slate-50 hover:bg-purple-50 border-2 border-slate-950 flex items-center gap-2.5 font-bold text-slate-800 text-left transition-colors">
+                        <i data-lucide="pie-chart" class="w-5 h-5 text-indigo-600 shrink-0"></i>
+                        <span>Portfolio</span>
+                    </button>
+
+                    <button onclick="switchPageAndCloseDrawer('escrow')" id="mobile-more-btn-escrow" class="p-3 rounded-xl bg-slate-50 hover:bg-purple-50 border-2 border-slate-950 flex items-center gap-2.5 font-bold text-slate-800 text-left transition-colors">
+                        <i data-lucide="shield-check" class="w-5 h-5 text-emerald-600 shrink-0"></i>
+                        <span>Circle Escrow</span>
+                    </button>
+
+                    <button onclick="switchPageAndCloseDrawer('market')" id="mobile-more-btn-market" class="p-3 rounded-xl bg-slate-50 hover:bg-purple-50 border-2 border-slate-950 flex items-center gap-2.5 font-bold text-slate-800 text-left transition-colors">
+                        <i data-lucide="store" class="w-5 h-5 text-amber-600 shrink-0"></i>
+                        <span>NFT Market</span>
+                    </button>
+
+                    <button onclick="switchPageAndCloseDrawer('games')" id="mobile-more-btn-games" class="p-3 rounded-xl bg-slate-50 hover:bg-purple-50 border-2 border-slate-950 flex items-center gap-2.5 font-bold text-slate-800 text-left transition-colors">
+                        <i data-lucide="gamepad-2" class="w-5 h-5 text-rose-600 shrink-0"></i>
+                        <span>Games</span>
+                    </button>
+
+                    <button onclick="switchPageAndCloseDrawer('prediction')" id="mobile-more-btn-prediction" class="p-3 rounded-xl bg-slate-50 hover:bg-purple-50 border-2 border-slate-950 flex items-center gap-2.5 font-bold text-slate-800 text-left transition-colors">
+                        <i data-lucide="trending-up" class="w-5 h-5 text-teal-600 shrink-0"></i>
+                        <span>Predictions</span>
+                    </button>
+
+                    <button onclick="switchPageAndCloseDrawer('settings')" id="mobile-more-btn-settings" class="p-3 rounded-xl bg-slate-50 hover:bg-purple-50 border-2 border-slate-950 flex items-center gap-2.5 font-bold text-slate-800 text-left transition-colors">
+                        <i data-lucide="settings" class="w-5 h-5 text-slate-600 shrink-0"></i>
+                        <span>Settings</span>
+                    </button>
+
+                    <button onclick="switchPageAndCloseDrawer('about')" id="mobile-more-btn-about" class="p-3 rounded-xl bg-slate-50 hover:bg-purple-50 border-2 border-slate-950 flex items-center gap-2.5 font-bold text-slate-800 text-left transition-colors">
+                        <i data-lucide="info" class="w-5 h-5 text-blue-600 shrink-0"></i>
+                        <span>About Arc</span>
+                    </button>
+                </div>
+
+                <!-- Ecosystem Quick Actions -->
+                <div class="mt-4 pt-3 border-t-2 border-slate-200 space-y-2">
+                    <div class="text-[10px] font-silkscreen text-slate-400 uppercase tracking-widest px-1">Quick Actions</div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="manualSwitchToArcNetwork()" class="btn-pixel-sm py-2 px-3 bg-purple-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5">
+                            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                            Switch Arc Net
+                        </button>
+                        <button onclick="openFaucetModal(); toggleMobileMoreMenu();" class="btn-pixel-sm py-2 px-3 bg-emerald-100 text-emerald-900 border-2 border-slate-950 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5">
+                            <i data-lucide="droplet" class="w-3.5 h-3.5 text-emerald-700"></i>
+                            Claim Faucet
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-3 border-t-2 border-slate-200 pb-1">
+                <button onclick="handleWalletClick(); toggleMobileMoreMenu();" class="btn-pixel w-full py-3 rounded-xl bg-gradient-to-r from-purple-700 via-indigo-600 to-teal-600 text-white font-pixel font-bold text-xs flex items-center justify-center gap-2">
+                    <i data-lucide="wallet" class="w-4 h-4"></i>
+                    <span id="mobileDrawerWalletBtnText">Connect / Disconnect Wallet</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MAIN CONTENT DISPLAY AREA -->
-    <main class="flex-1 w-full min-w-0 lg:ml-72 sm:lg:ml-80 p-4 sm:p-6 lg:p-10 space-y-8">
+    <main class="flex-1 w-full min-w-0 lg:ml-64 p-4 sm:p-6 lg:p-10 space-y-8 pb-28 lg:pb-10">
 
         <!-- PAGE 1: NETWORK MONITOR VIEW -->
         <section id="view-monitor" class="page-view space-y-8">

@@ -1840,93 +1840,292 @@
 
         <!-- PRICE PREDICTIONS SECTION -->
         
-        <!-- COINMARKETCAP PREDICTION & TRADE INTELLIGENCE SECTION -->
+        <!-- PRICE PREDICTIONS & PREDICTION MARKETS SECTION -->
         <section id="view-prediction" class="page-view hidden space-y-6 max-w-7xl mx-auto">
-            <div class="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-slate-800 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
-                <div>
-                    <h2 class="text-2xl font-bold tracking-tight">CoinMarketCap Predictions & Trade Intelligence</h2>
-                    <p class="text-xs text-slate-300">AI-powered forecast telemetry, interactive price graphs, and Long vs Short leverage analysis for top market cryptocurrencies.</p>
-                </div>
-                <div class="w-full md:w-auto">
-                    <input id="coinSearchInput" type="text" oninput="filterPredictionCoins()" placeholder="Search coins (BTC, ETH, SOL...)" class="bg-slate-800 border border-slate-700 text-xs text-white px-3.5 py-2 rounded-xl focus:outline-none focus:border-purple-500 w-full md:w-56">
+            <!-- Hero Banner -->
+            <div class="pixel-hero-gradient p-6 sm:p-8 text-white relative overflow-hidden">
+                <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+                    <div class="space-y-2">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 border border-white/30 font-mono text-xs font-bold shadow-sm backdrop-blur-md">
+                            <span class="relative flex h-2.5 w-2.5">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-300 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-purple-400"></span>
+                            </span>
+                            <span>ARC NEURAL TRADE INTELLIGENCE</span>
+                            <span class="text-white/40">•</span>
+                            <span class="text-slate-200">89.4% AI Win-Rate</span>
+                        </div>
+                        <h1 class="font-pixel text-2xl sm:text-4xl font-black tracking-wide text-white drop-shadow-md flex items-center gap-3">
+                            <i data-lucide="trending-up" class="w-8 h-8 text-purple-300"></i>
+                            Prediction Markets & Technical AI
+                        </h1>
+                        <p class="text-white/90 text-xs sm:text-sm max-w-2xl leading-relaxed font-medium">
+                            Multi-timeframe dynamic technical charts, on-chain binary prediction pools with USDC shares, and institutional forecast models.
+                        </p>
+                    </div>
+
+                    <!-- View Switcher Tabs -->
+                    <div class="flex items-center bg-black/40 p-1.5 rounded-2xl border-2 border-white/20 font-mono text-xs font-bold shrink-0">
+                        <button onclick="switchPredictionSubTab('forecasts')" id="predTabBtn-forecasts" class="px-4 py-2 rounded-xl bg-purple-600 text-white shadow-md transition-all flex items-center gap-2">
+                            <i data-lucide="line-chart" class="w-4 h-4"></i>
+                            <span>AI Price Forecasts</span>
+                        </button>
+                        <button onclick="switchPredictionSubTab('markets')" id="predTabBtn-markets" class="px-4 py-2 rounded-xl text-slate-300 hover:text-white transition-all flex items-center gap-2">
+                            <i data-lucide="flame" class="w-4 h-4 text-amber-400"></i>
+                            <span>Binary Markets (YES/NO)</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Multi-Coin Forecast Grid -->
-            <div id="predictionCoinsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                <!-- Dynamic Coins Rendered via JS -->
+            <!-- Top Metric KPI Cards -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="pixel-card p-4 sm:p-5">
+                    <div class="text-[11px] font-silkscreen text-slate-500 uppercase tracking-wider mb-1">Total Prediction Vol</div>
+                    <div class="text-xl sm:text-2xl font-black font-mono text-slate-950">$18,420,500 <span class="text-xs font-bold text-purple-700">USDC</span></div>
+                    <div class="text-[11px] text-emerald-600 font-bold mt-1 flex items-center gap-1">
+                        <i data-lucide="trending-up" class="w-3 h-3"></i> +32.4% 7d Growth
+                    </div>
+                </div>
+
+                <div class="pixel-card p-4 sm:p-5">
+                    <div class="text-[11px] font-silkscreen text-slate-500 uppercase tracking-wider mb-1">AI Model Accuracy</div>
+                    <div class="text-xl sm:text-2xl font-black font-mono text-emerald-600">89.4% <span class="text-xs text-slate-500 font-normal">Win-Rate</span></div>
+                    <div class="text-[11px] text-slate-600 font-medium mt-1">Validated across 420+ targets</div>
+                </div>
+
+                <div class="pixel-card p-4 sm:p-5">
+                    <div class="text-[11px] font-silkscreen text-slate-500 uppercase tracking-wider mb-1">Top Gain Target</div>
+                    <div class="text-xl sm:text-2xl font-black font-mono text-purple-700">+17.9% <span class="text-xs text-slate-950 font-bold">PEPE / SUI</span></div>
+                    <div class="text-[11px] text-purple-600 font-bold mt-1">High Conviction Breakout</div>
+                </div>
+
+                <div class="pixel-card p-4 sm:p-5">
+                    <div class="text-[11px] font-silkscreen text-slate-500 uppercase tracking-wider mb-1">Binary Event Pools</div>
+                    <div class="text-xl sm:text-2xl font-black font-mono text-slate-950">6 Active <span class="text-xs font-normal text-slate-500">Pools</span></div>
+                    <div class="text-[11px] text-indigo-600 font-bold mt-1 flex items-center gap-1">
+                        <i data-lucide="zap" class="w-3 h-3"></i> Micro Gas (&lt;0.001 USDC)
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter & Search Toolbar -->
+            <div class="pixel-card p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 font-mono text-xs">
+                <div class="relative flex-1">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                    <input id="coinSearchInput" type="text" oninput="filterPredictionCoins()" placeholder="Search coins (BTC, ETH, ARC, SOL...) or prediction topics..." class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border-2 border-slate-950 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white font-mono placeholder:font-sans placeholder:text-slate-400">
+                </div>
+
+                <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+                    <button onclick="setPredictionCategory('all')" id="predCatBtn-all" class="px-3 py-1.5 rounded-lg bg-purple-700 text-white font-bold shrink-0">All</button>
+                    <button onclick="setPredictionCategory('l1')" id="predCatBtn-l1" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold border border-slate-300 shrink-0">Layer 1s</button>
+                    <button onclick="setPredictionCategory('defi')" id="predCatBtn-defi" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold border border-slate-300 shrink-0">DeFi & Infra</button>
+                    <button onclick="setPredictionCategory('memes')" id="predCatBtn-memes" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold border border-slate-300 shrink-0">Memes</button>
+                </div>
+            </div>
+
+            <!-- SUB-VIEW 1: Multi-Coin AI Forecast Grid -->
+            <div id="subView-forecasts" class="space-y-4">
+                <div id="predictionCoinsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <!-- Dynamic Coins Rendered via JS with live sparklines -->
+                </div>
+            </div>
+
+            <!-- SUB-VIEW 2: Binary Event Prediction Markets Grid -->
+            <div id="subView-markets" class="hidden space-y-4">
+                <div id="predictionMarketsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <!-- Binary Event Prediction Markets rendered via JS -->
+                </div>
             </div>
         </section>
 
-        <!-- INTERACTIVE COIN PRICE CHART MODAL -->
-        <div id="coinChartModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-            <div class="bg-slate-900 border border-slate-800 text-slate-100 rounded-2xl max-w-3xl w-full p-6 space-y-5 shadow-2xl relative">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+        <!-- INTERACTIVE PRO COIN PRICE CHART MODAL -->
+        <div id="coinChartModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+            <div class="pixel-card w-full max-w-4xl p-5 sm:p-7 space-y-5 bg-white text-slate-900 my-auto shadow-2xl relative">
+                <!-- Modal Header -->
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b-2 border-slate-200 pb-4">
                     <div class="flex items-center gap-3">
-                        <div id="modalCoinIcon" class="w-10 h-10 rounded-xl bg-purple-600/30 border border-purple-500/40 flex items-center justify-center font-bold text-purple-300">BTC</div>
+                        <div id="modalCoinIcon" class="w-12 h-12 rounded-2xl bg-purple-100 border-2 border-slate-950 flex items-center justify-center font-bold text-purple-900 text-xl shadow-[2px_2px_0px_#0F172A]">BTC</div>
                         <div>
-                            <h3 id="modalCoinName" class="text-lg font-bold text-white">Bitcoin (BTC)</h3>
-                            <p id="modalCoinCategory" class="text-xs text-slate-400">Digital Gold • CoinMarketCap Rank #1</p>
+                            <div class="flex items-center gap-2">
+                                <h3 id="modalCoinName" class="text-xl font-bold font-pixel text-slate-950">Bitcoin (BTC)</h3>
+                                <span id="modalCoinRankBadge" class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 border border-slate-300">Rank #1</span>
+                            </div>
+                            <p id="modalCoinCategory" class="text-xs text-slate-500 font-medium">Digital Gold • CoinMarketCap Tier 1</p>
                         </div>
                     </div>
-                    <button onclick="closeCoinChartModal()" class="p-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-white">
-                        <i data-lucide="x" class="w-5 h-5"></i>
+
+                    <div class="flex items-center gap-3 self-end sm:self-center">
+                        <div class="text-right font-mono">
+                            <div id="modalCoinPrice" class="text-xl sm:text-2xl font-black text-slate-950">$64,850.00</div>
+                            <div id="modalCoinChange" class="text-xs font-bold text-emerald-600">+4.35% (24h)</div>
+                        </div>
+                        <button onclick="closeCoinChartModal()" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 border-2 border-slate-950 font-bold text-slate-800 text-sm">
+                            ✕
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Controls Strip: Timeframe & Chart Mode -->
+                <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-2.5 rounded-xl border-2 border-slate-950 font-mono text-xs">
+                    <div class="flex items-center gap-1 font-bold" id="modalTimeframeButtons">
+                        <button onclick="setModalChartTimeframe('1H')" id="tfBtn-1H" class="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-950 transition-colors">1H</button>
+                        <button onclick="setModalChartTimeframe('24H')" id="tfBtn-24H" class="px-2.5 py-1 rounded-lg bg-purple-700 text-white shadow-sm transition-colors">24H</button>
+                        <button onclick="setModalChartTimeframe('7D')" id="tfBtn-7D" class="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-950 transition-colors">7D</button>
+                        <button onclick="setModalChartTimeframe('30D')" id="tfBtn-30D" class="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-950 transition-colors">30D</button>
+                        <button onclick="setModalChartTimeframe('1Y')" id="tfBtn-1Y" class="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-950 transition-colors">1Y</button>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <div id="modalChartTooltip" class="text-[11px] font-bold text-purple-700 hidden sm:block">
+                            Hover on graph for tick telemetry
+                        </div>
+                        <div class="flex items-center gap-1 font-bold">
+                            <button onclick="setModalChartType('area')" id="chartTypeBtn-area" class="px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[11px]">Area</button>
+                            <button onclick="setModalChartType('candle')" id="chartTypeBtn-candle" class="px-2.5 py-1 rounded-lg bg-slate-200 text-slate-700 hover:text-slate-950 text-[11px]">Candles</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamic High-Precision SVG Chart Viewport -->
+                <div class="relative bg-slate-950 rounded-2xl p-4 sm:p-5 border-2 border-slate-950 text-white overflow-hidden shadow-inner">
+                    <!-- Hover Price Tooltip Box -->
+                    <div id="chartHoverTooltipBox" class="absolute top-4 left-4 z-20 pointer-events-none bg-slate-900/90 border border-slate-700 rounded-xl px-3 py-1.5 text-xs font-mono hidden backdrop-blur-md shadow-lg">
+                        <div class="text-[10px] text-slate-400" id="hoverPointTime">14:00 UTC</div>
+                        <div class="font-bold text-emerald-400" id="hoverPointPrice">$64,850.00</div>
+                        <div class="text-[10px] text-slate-400" id="hoverPointVol">Vol: $48.2M</div>
+                    </div>
+
+                    <!-- SVG Chart Container -->
+                    <div id="svgChartWrapper" class="w-full h-56 sm:h-64 cursor-crosshair relative">
+                        <!-- Injected dynamically via JS -->
+                    </div>
+                </div>
+
+                <!-- Technical Analytics & Trade Setup -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 space-y-2.5">
+                        <div class="flex items-center justify-between text-slate-900 font-bold border-b border-slate-200 pb-1.5">
+                            <span class="flex items-center gap-1.5 text-purple-700">
+                                <i data-lucide="gauge" class="w-4 h-4"></i> Technical Indicators
+                            </span>
+                            <span id="modalSignalBadge" class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 text-[10px] font-bold">Strong Buy 🚀</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-[11px]">
+                            <div>
+                                <span class="text-slate-500 block">RSI (14-Period)</span>
+                                <span id="modalRsi" class="font-bold text-slate-900">62.8 (Bullish)</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-500 block">MACD Momentum</span>
+                                <span id="modalMacd" class="font-bold text-emerald-600">+145.2 Cross</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-500 block">Key Support</span>
+                                <span id="modalSupport" class="font-bold text-slate-900">$62,800</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-500 block">Key Resistance</span>
+                                <span id="modalResistance" class="font-bold text-slate-900">$67,400</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 space-y-2.5">
+                        <div class="flex items-center justify-between text-slate-900 font-bold border-b border-slate-200 pb-1.5">
+                            <span class="flex items-center gap-1.5 text-emerald-700">
+                                <i data-lucide="target" class="w-4 h-4"></i> AI Trade Setup
+                            </span>
+                            <span id="modalConfidence" class="text-purple-700 font-bold text-[11px]">88% Conviction</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 text-[11px]">
+                            <div>
+                                <span class="text-slate-500 block">Entry Zone</span>
+                                <span id="modalEntry" class="font-bold text-slate-900">$64.2k</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-500 block">Take Profit</span>
+                                <span id="modalTp" class="font-bold text-emerald-600">$68.2k</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-500 block">Stop Loss</span>
+                                <span id="modalSl" class="font-bold text-rose-600">$62.4k</span>
+                            </div>
+                        </div>
+                        <div class="pt-1 flex items-center justify-between text-[11px]">
+                            <span class="text-slate-500">Long vs Short:</span>
+                            <span id="modalLongRatio" class="font-bold text-emerald-600">72% Long</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between gap-3 pt-2">
+                    <button onclick="closeCoinChartModal()" class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border-2 border-slate-950 font-bold text-xs font-mono">
+                        Close Chart
+                    </button>
+                    <button onclick="switchPage('swap'); closeCoinChartModal();" class="btn-pixel px-6 py-2.5 rounded-xl bg-purple-700 text-white font-bold text-xs font-mono flex items-center gap-2">
+                        <i data-lucide="repeat" class="w-4 h-4"></i>
+                        Trade on Swap Engine
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- BINARY PREDICTION BET MODAL -->
+        <div id="predictionBetModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+            <div class="pixel-card w-full max-w-md p-6 space-y-5 bg-white text-slate-900 shadow-2xl">
+                <div class="flex items-start justify-between border-b-2 border-slate-200 pb-3">
+                    <div>
+                        <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-purple-100 text-purple-900 font-bold" id="betModalCategory">Crypto Milestone</span>
+                        <h3 id="betModalTitle" class="font-pixel text-base font-black text-slate-950 mt-1">Will Bitcoin reach $100k?</h3>
+                    </div>
+                    <button onclick="closePredictionBetModal()" class="p-1 rounded-lg bg-slate-100 border-2 border-slate-950 text-slate-600 font-bold">
+                        ✕
                     </button>
                 </div>
 
-                <!-- SVG Interactive Price Graph -->
-                <div class="space-y-2">
-                    <div class="flex items-center justify-between text-xs">
-                        <span class="text-slate-400">24-Hour Price Action & AI Forecast Trend</span>
-                        <span id="modalCoinPrice" class="font-bold text-emerald-400 text-base">$64,200.00 (+4.2%)</span>
+                <div class="grid grid-cols-2 gap-3 font-mono text-xs">
+                    <button onclick="selectBetOutcome('YES')" id="betOutcomeBtn-YES" class="p-3 rounded-xl border-2 border-slate-950 bg-emerald-600 text-white font-bold text-center shadow-[2px_2px_0px_#0F172A] transition-all">
+                        <div class="text-xs">BUY YES</div>
+                        <div class="text-lg font-black" id="betModalYesPrice">$0.68</div>
+                        <div class="text-[10px] opacity-80" id="betModalYesProb">68% Probability</div>
+                    </button>
+                    <button onclick="selectBetOutcome('NO')" id="betOutcomeBtn-NO" class="p-3 rounded-xl border-2 border-slate-950 bg-slate-100 text-slate-800 font-bold text-center hover:bg-slate-200 shadow-[2px_2px_0px_#0F172A] transition-all">
+                        <div class="text-xs">BUY NO</div>
+                        <div class="text-lg font-black" id="betModalNoPrice">$0.32</div>
+                        <div class="text-[10px] opacity-80" id="betModalNoProb">32% Probability</div>
+                    </button>
+                </div>
+
+                <div class="space-y-1.5 font-mono text-xs">
+                    <div class="flex items-center justify-between text-slate-600 font-bold">
+                        <span>Stake Amount (USDC)</span>
+                        <span class="text-purple-700">Balance: 100.00 USDC</span>
                     </div>
-                    <div class="bg-slate-950 rounded-xl p-4 border border-slate-800/80">
-                        <svg class="w-full h-44" viewBox="0 0 500 150">
-                            <!-- Grid lines -->
-                            <line x1="0" y1="30" x2="500" y2="30" stroke="#1e293b" stroke-dasharray="4"/>
-                            <line x1="0" y1="75" x2="500" y2="75" stroke="#1e293b" stroke-dasharray="4"/>
-                            <line x1="0" y1="120" x2="500" y2="120" stroke="#1e293b" stroke-dasharray="4"/>
-                            
-                            <!-- Gradient Area -->
-                            <defs>
-                                <linearGradient id="chartGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                    <stop offset="0%" stop-color="#10b981" stop-opacity="0.35"/>
-                                    <stop offset="100%" stop-color="#10b981" stop-opacity="0.0"/>
-                                </linearGradient>
-                            </defs>
-                            <path d="M0,120 Q80,90 150,105 T300,50 T450,25 L500,20 L500,150 L0,150 Z" fill="url(#chartGrad)"/>
-                            <!-- Trend Line -->
-                            <path d="M0,120 Q80,90 150,105 T300,50 T450,25 L500,20" fill="none" stroke="#10b981" stroke-width="3.5" stroke-linecap="round"/>
-                        </svg>
+                    <div class="relative">
+                        <input id="betAmountInput" type="number" value="10" min="1" max="1000" oninput="calculateBetPayout()" class="w-full p-2.5 rounded-xl border-2 border-slate-950 bg-slate-50 font-bold text-base outline-none font-mono">
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-xs">USDC</span>
                     </div>
                 </div>
 
-                <!-- Long vs Short Advantage Metrics -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                    <div class="bg-slate-800/60 border border-slate-700/80 rounded-xl p-4 space-y-2">
-                        <div class="flex items-center justify-between text-emerald-400 font-bold">
-                            <span class="flex items-center gap-1.5"><i data-lucide="trending-up" class="w-4 h-4"></i> Long Advantage</span>
-                            <span id="modalLongRatio">72% Long Interest</span>
-                        </div>
-                        <p class="text-slate-300 text-[11px]">Strong buying sentiment driven by spot exchange net outflows and institutional ETF accumulation.</p>
-                        <div class="pt-2 text-[11px] text-slate-400 flex justify-between border-t border-slate-700">
-                            <span>Recommended Leverage: <strong>5x - 10x</strong></span>
-                            <span>Take Profit: <strong id="modalTp">$66,900</strong></span>
-                        </div>
+                <div class="p-3 rounded-xl bg-purple-50 border-2 border-slate-950 font-mono text-xs space-y-1.5">
+                    <div class="flex justify-between text-slate-600">
+                        <span>Shares Received:</span>
+                        <span id="betSharesText" class="font-bold text-slate-950">14.70 Shares</span>
                     </div>
-
-                    <div class="bg-slate-800/60 border border-slate-700/80 rounded-xl p-4 space-y-2">
-                        <div class="flex items-center justify-between text-rose-400 font-bold">
-                            <span class="flex items-center gap-1.5"><i data-lucide="trending-down" class="w-4 h-4"></i> Short Risk</span>
-                            <span id="modalShortRatio">28% Short Interest</span>
-                        </div>
-                        <p class="text-slate-300 text-[11px]">Low liquidation risk with strong support levels preventing sharp downside corrections.</p>
-                        <div class="pt-2 text-[11px] text-slate-400 flex justify-between border-t border-slate-700">
-                            <span>Stop Loss Target: <strong id="modalSl">$62,800</strong></span>
-                            <span>Confidence: <strong>88%</strong></span>
-                        </div>
+                    <div class="flex justify-between text-slate-600">
+                        <span>Potential Payout:</span>
+                        <span id="betPayoutText" class="font-bold text-emerald-600 text-sm">$14.70 USDC (+47.0%)</span>
+                    </div>
+                    <div class="flex justify-between text-slate-500 text-[10px] border-t border-purple-200 pt-1">
+                        <span>Arc L1 Gas Fee:</span>
+                        <span>0.0008 USDC</span>
                     </div>
                 </div>
+
+                <button onclick="executePredictionBet()" class="btn-pixel w-full py-3 rounded-xl bg-purple-700 text-white font-bold text-xs font-mono uppercase">
+                    Confirm Prediction Bet
+                </button>
             </div>
         </div>
     

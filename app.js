@@ -324,6 +324,7 @@ if (typeof tailwind !== 'undefined') {
                     renderPortfolioView();
                 } else if (pageId === 'prediction') {
                     if (typeof renderPredictionCoins === 'function' && typeof PREDICTION_COINS !== 'undefined') renderPredictionCoins(PREDICTION_COINS);
+                    if (typeof renderPredictionMarkets === 'function' && typeof PREDICTION_MARKETS !== 'undefined') renderPredictionMarkets(PREDICTION_MARKETS);
                 } else if (pageId === 'settings') {
                     const settingsAddr = document.getElementById('settingsWalletAddress');
                     if (settingsAddr) settingsAddr.value = currentAccount || 'Not Connected';
@@ -2156,24 +2157,575 @@ Timestamp: ${new Date().toISOString()}`;
             }
         }
         
-        // COINMARKETCAP MULTI-COIN PREDICTION DATA
+        // ==========================================
+        // PRO PREDICTION MARKETS & AI TRADE INTELLIGENCE ENGINE
+        // ==========================================
+
+        let activePredSubTab = 'forecasts';
+        let activePredCategory = 'all';
+        let activeChartCoin = null;
+        let activeChartTimeframe = '24H';
+        let activeChartType = 'area';
+        let activeBetMarket = null;
+        let selectedBetOutcome = 'YES';
+
+        // HIGH-CONVICTION MULTI-COIN FORECAST DATASET
         const PREDICTION_COINS = [
-            { symbol: 'BTC', name: 'Bitcoin', category: 'Digital Gold #1', price: '$64,200.00', target: '$66,900.00', change: '+4.2%', isBull: true, longRatio: '72% Long', shortRatio: '28% Short', tp: '$66,900', sl: '$62,800', leverage: '5x - 10x', confidence: '88%', reason: 'Strong buying sentiment driven by spot exchange net outflows and institutional ETF accumulation.', logo: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png' },
-            { symbol: 'ETH', name: 'Ethereum', category: 'Layer 1 Smart Contracts #2', price: '$3,240.50', target: '$3,428.00', change: '+5.8%', isBull: true, longRatio: '68% Long', shortRatio: '32% Short', tp: '$3,428', sl: '$3,180', leverage: '5x - 8x', confidence: '84%', reason: 'L2 gas settlement volume surge and institutional ETF staking net inflows (+18% weekly average).', logo: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png' },
-            { symbol: 'ARC', name: 'Arc L1 Native (USDC)', category: 'Arc Testnet Ecosystem', price: '$1.0000', target: '$1.0000', change: '+2.4%', isBull: true, longRatio: '95% Long', shortRatio: '5% Short', tp: '$1.00', sl: '$0.999', leverage: '1x - 3x', confidence: '99%', reason: 'Institutional validator onboardings (+12 consortium nodes) and Circle AppKit DEX pool deposit inflows.', logo: 'https://raw.githubusercontent.com/promanas0/PulseGrid/main/logo.png' },
-            { symbol: 'SOL', name: 'Solana', category: 'High-Throughput L1 #5', price: '$148.20', target: '$143.60', change: '-3.1%', isBull: false, longRatio: '34% Long', shortRatio: '66% Short', tp: '$143.60', sl: '$153.00', leverage: '3x - 5x', confidence: '76%', reason: 'Short-term network congestion during peak DEX token launches causing temporary retry delays.', logo: 'https://assets.coingecko.com/coins/images/4128/small/solana.png' },
-            { symbol: 'BNB', name: 'BNB Chain', category: 'Exchange & L1 #4', price: '$572.40', target: '$598.00', change: '+4.5%', isBull: true, longRatio: '62% Long', shortRatio: '38% Short', tp: '$598.00', sl: '$555.00', leverage: '5x', confidence: '81%', reason: 'Launchpool staking demand and gas burn rate increase.', logo: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png' },
-            { symbol: 'XRP', name: 'Ripple XRP', category: 'Cross-Border Payments #6', price: '$0.5640', target: '$0.6120', change: '+8.5%', isBull: true, longRatio: '78% Long', shortRatio: '22% Short', tp: '$0.6120', sl: '$0.5350', leverage: '5x - 10x', confidence: '86%', reason: 'Regulatory clarity milestone and bank settlement pilot announcements.', logo: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png' },
-            { symbol: 'ADA', name: 'Cardano', category: 'Layer 1 Blockchain #10', price: '$0.3480', target: '$0.3350', change: '-3.7%', isBull: false, longRatio: '40% Long', shortRatio: '60% Short', tp: '$0.3350', sl: '$0.3620', leverage: '3x', confidence: '72%', reason: 'Consolidation below major EMA resistance levels.', logo: 'https://assets.coingecko.com/coins/images/975/small/cardano.png' },
-            { symbol: 'DOGE', name: 'Dogecoin', category: 'Meme #8', price: '$0.1040', target: '$0.1180', change: '+13.4%', isBull: true, longRatio: '82% Long', shortRatio: '18% Short', tp: '$0.1180', sl: '$0.0960', leverage: '3x - 5x', confidence: '79%', reason: 'Social sentiment momentum surge and whale wallet accumulation.', logo: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png' },
-            { symbol: 'AVAX', name: 'Avalanche', category: 'Subnet L1 #12', price: '$22.80', target: '$24.50', change: '+7.4%', isBull: true, longRatio: '65% Long', shortRatio: '35% Short', tp: '$24.50', sl: '$21.20', leverage: '5x', confidence: '83%', reason: 'Institutional subnet deployment and gaming ecosystem transaction expansion.', logo: 'https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png' },
-            { symbol: 'LINK', name: 'Chainlink', category: 'DeFi Oracle #14', price: '$11.45', target: '$12.80', change: '+11.8%', isBull: true, longRatio: '75% Long', shortRatio: '25% Short', tp: '$12.80', sl: '$0.70', leverage: '5x', confidence: '89%', reason: 'CCIP cross-chain interoperability protocol adoption by major banking consortiums.', logo: 'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png' },
-            { symbol: 'POL', name: 'Polygon', category: 'Polygon 2.0 ZK #19', price: '$0.5800', target: '$0.6235', change: '+7.5%', isBull: true, longRatio: '70% Long', shortRatio: '30% Short', tp: '$0.6235', sl: '$0.5400', leverage: '5x', confidence: '85%', reason: 'POL token migration phase completion and zkEVM bridge volume up +32%.', logo: 'https://assets.coingecko.com/coins/images/4713/small/polygon.png' },
-            { symbol: 'SUI', name: 'Sui Network', category: 'Move L1 #21', price: '$0.9200', target: '$1.0800', change: '+17.4%', isBull: true, longRatio: '85% Long', shortRatio: '15% Short', tp: '$1.0800', sl: '$0.8400', leverage: '5x - 10x', confidence: '91%', reason: 'DeFi TVL hitting new ATH ($600M+) with deep liquidity incentives.', logo: 'https://assets.coingecko.com/coins/images/26375/small/sui_asset.png' },
-            { symbol: 'APT', name: 'Aptos', category: 'Move L1 #24', price: '$6.40', target: '$7.10', change: '+10.9%', isBull: true, longRatio: '67% Long', shortRatio: '33% Short', tp: '$7.10', sl: '$5.90', leverage: '5x', confidence: '80%', reason: 'Key ecosystem integration with institutional custody providers.', logo: 'https://assets.coingecko.com/coins/images/26455/small/aptos_round.png' },
-            { symbol: 'PEPE', name: 'Pepe', category: 'Meme #25', price: '$0.0000078', target: '$0.0000092', change: '+17.9%', isBull: true, longRatio: '88% Long', shortRatio: '12% Short', tp: '$0.0000092', sl: '$0.0000069', leverage: '3x - 5x', confidence: '77%', reason: 'High DEX volume trading and community momentum expansion.', logo: 'https://assets.coingecko.com/coins/images/29850/small/pepe-token.png' }
+            {
+                symbol: 'BTC',
+                name: 'Bitcoin',
+                category: 'Digital Gold #1',
+                type: 'l1',
+                rank: '#1',
+                price: '$64,850.00',
+                priceNum: 64850,
+                target: '$68,200.00',
+                targetNum: 68200,
+                change: '+4.35%',
+                isBull: true,
+                gainPct: '+5.17%',
+                signal: 'Strong Buy 🚀',
+                signalType: 'buy',
+                rsi: '62.8 (Bullish)',
+                macd: '+145.2 (Golden Cross)',
+                support: '$62,800',
+                resistance: '$67,400',
+                entry: '$64,200',
+                tp: '$68,200',
+                sl: '$62,400',
+                leverage: '5x - 10x',
+                confidence: '89%',
+                longRatio: '74% Long',
+                shortRatio: '26% Short',
+                vol24h: '$32.4B',
+                reason: 'Institutional spot ETF accumulation (+14,200 BTC net weekly) and exchange reserves hitting a 4-year low indicate sustained supply shock.',
+                logo: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png',
+                sparkline: [62800, 63100, 63450, 62900, 63800, 64200, 63900, 64500, 64850]
+            },
+            {
+                symbol: 'ETH',
+                name: 'Ethereum',
+                category: 'Smart Contracts L1 #2',
+                type: 'l1',
+                rank: '#2',
+                price: '$3,420.50',
+                priceNum: 3420.5,
+                target: '$3,680.00',
+                targetNum: 3680,
+                change: '+5.82%',
+                isBull: true,
+                gainPct: '+7.58%',
+                signal: 'Breakout Target ⚡',
+                signalType: 'buy',
+                rsi: '65.4 (Bullish)',
+                macd: '+38.6 (Upward Trend)',
+                support: '$3,280',
+                resistance: '$3,550',
+                entry: '$3,380',
+                tp: '$3,680',
+                sl: '$3,260',
+                leverage: '5x - 8x',
+                confidence: '86%',
+                longRatio: '71% Long',
+                shortRatio: '29% Short',
+                vol24h: '$18.6B',
+                reason: 'L2 gas settlement volume surges and staking deposit queues expanding (+220k ETH locked in 14 days) fuel upward momentum.',
+                logo: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png',
+                sparkline: [3220, 3260, 3290, 3250, 3340, 3380, 3350, 3400, 3420.5]
+            },
+            {
+                symbol: 'ARC',
+                name: 'Arc L1 Native (USDC Gas)',
+                category: 'Circle Arc Testnet #0',
+                type: 'arc',
+                rank: '#Arc Native',
+                price: '$1.0000',
+                priceNum: 1.0,
+                target: '$1.0000',
+                targetNum: 1.0,
+                change: '+0.00%',
+                isBull: true,
+                gainPct: 'Stable Peg 🛡️',
+                signal: 'Zero Volatility 🛡️',
+                signalType: 'stable',
+                rsi: '50.0 (Neutral Perfect)',
+                macd: '0.00 (Peg Lock)',
+                support: '$0.9998',
+                resistance: '$1.0002',
+                entry: '$1.0000',
+                tp: '$1.0000',
+                sl: '$0.9990',
+                leverage: '1x - 3x',
+                confidence: '99.9%',
+                longRatio: '96% Long',
+                shortRatio: '4% Short',
+                vol24h: '$4.8M',
+                reason: 'Deterministic deterministic zero-slippage USDC gas architecture backed 1:1 by Circle liquidity vaults with sub-cent transaction settlements.',
+                logo: 'logo.png',
+                sparkline: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+            },
+            {
+                symbol: 'SOL',
+                name: 'Solana',
+                category: 'High-Speed L1 #5',
+                type: 'l1',
+                rank: '#5',
+                price: '$154.20',
+                priceNum: 154.2,
+                target: '$168.00',
+                targetNum: 168,
+                change: '+6.40%',
+                isBull: true,
+                gainPct: '+8.95%',
+                signal: 'High Momentum 🚀',
+                signalType: 'buy',
+                rsi: '68.2 (Strong Overbought)',
+                macd: '+4.85 (Accelerating)',
+                support: '$144.00',
+                resistance: '$160.00',
+                entry: '$150.00',
+                tp: '$168.00',
+                sl: '$143.50',
+                leverage: '4x - 6x',
+                confidence: '82%',
+                longRatio: '69% Long',
+                shortRatio: '31% Short',
+                vol24h: '$8.2B',
+                reason: 'DEX daily trading volume surpassing all competitors with steady Firedancer validator testnet milestones.',
+                logo: 'https://assets.coingecko.com/coins/images/4128/small/solana.png',
+                sparkline: [142, 145, 144, 148, 147, 151, 150, 153, 154.2]
+            },
+            {
+                symbol: 'BNB',
+                name: 'BNB Chain',
+                category: 'Exchange & L1 #4',
+                type: 'l1',
+                rank: '#4',
+                price: '$588.40',
+                priceNum: 588.4,
+                target: '$615.00',
+                targetNum: 615,
+                change: '+3.15%',
+                isBull: true,
+                gainPct: '+4.52%',
+                signal: 'Accumulation ⚖️',
+                signalType: 'buy',
+                rsi: '58.1 (Healthy)',
+                macd: '+6.20 (Steady)',
+                support: '$565.00',
+                resistance: '$600.00',
+                entry: '$580.00',
+                tp: '$615.00',
+                sl: '$560.00',
+                leverage: '3x - 5x',
+                confidence: '81%',
+                longRatio: '63% Long',
+                shortRatio: '37% Short',
+                vol24h: '$1.9B',
+                reason: 'Continuous Launchpool staking lockups and aggressive quarterly auto-burn schedule reducing circulating supply.',
+                logo: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png',
+                sparkline: [568, 572, 570, 578, 575, 582, 580, 585, 588.4]
+            },
+            {
+                symbol: 'SUI',
+                name: 'Sui Network',
+                category: 'Move L1 High TPS #18',
+                type: 'l1',
+                rank: '#18',
+                price: '$1.040',
+                priceNum: 1.04,
+                target: '$1.250',
+                targetNum: 1.25,
+                change: '+17.4%',
+                isBull: true,
+                gainPct: '+20.19%',
+                signal: 'Super Bull 🚀',
+                signalType: 'buy',
+                rsi: '74.5 (High Velocity)',
+                macd: '+0.12 (Parabolic Wave)',
+                support: '$0.880',
+                resistance: '$1.120',
+                entry: '$0.980',
+                tp: '$1.250',
+                sl: '$0.860',
+                leverage: '5x - 10x',
+                confidence: '92%',
+                longRatio: '86% Long',
+                shortRatio: '14% Short',
+                vol24h: '$980M',
+                reason: 'DeFi TVL skyrocketing past $700M with institutional liquidity injections from native USDC bridge integrations.',
+                logo: 'https://assets.coingecko.com/coins/images/26375/small/sui_asset.png',
+                sparkline: [0.86, 0.89, 0.92, 0.90, 0.96, 0.98, 1.01, 1.02, 1.04]
+            },
+            {
+                symbol: 'LINK',
+                name: 'Chainlink',
+                category: 'DeFi Oracle & CCIP #14',
+                type: 'defi',
+                rank: '#14',
+                price: '$12.45',
+                priceNum: 12.45,
+                target: '$14.20',
+                targetNum: 14.2,
+                change: '+11.8%',
+                isBull: true,
+                gainPct: '+14.05%',
+                signal: 'Institutional Buy 💎',
+                signalType: 'buy',
+                rsi: '69.0 (Bullish Momentum)',
+                macd: '+0.64 (Golden Divergence)',
+                support: '$10.80',
+                resistance: '$13.00',
+                entry: '$11.80',
+                tp: '$14.20',
+                sl: '$10.60',
+                leverage: '5x',
+                confidence: '89%',
+                longRatio: '78% Long',
+                shortRatio: '22% Short',
+                vol24h: '$640M',
+                reason: 'Major tier-1 banking consortiums expand live settlement pilots utilizing Chainlink CCIP cross-chain token messaging.',
+                logo: 'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png',
+                sparkline: [10.9, 11.2, 11.1, 11.6, 11.5, 12.0, 11.9, 12.3, 12.45]
+            },
+            {
+                symbol: 'AVAX',
+                name: 'Avalanche',
+                category: 'Subnet L1 #12',
+                type: 'l1',
+                rank: '#12',
+                price: '$24.80',
+                priceNum: 24.8,
+                target: '$28.50',
+                targetNum: 28.5,
+                change: '+7.40%',
+                isBull: true,
+                gainPct: '+14.91%',
+                signal: 'Subnet Surge ⚡',
+                signalType: 'buy',
+                rsi: '63.4 (Bullish)',
+                macd: '+1.15 (Upward Slope)',
+                support: '$22.40',
+                resistance: '$26.00',
+                entry: '$23.80',
+                tp: '$28.50',
+                sl: '$21.90',
+                leverage: '4x - 6x',
+                confidence: '84%',
+                longRatio: '68% Long',
+                shortRatio: '32% Short',
+                vol24h: '$520M',
+                reason: 'Institutional asset tokenization subnets deployed by multi-billion dollar private credit fund managers.',
+                logo: 'https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png',
+                sparkline: [22.8, 23.2, 23.0, 23.8, 23.6, 24.2, 24.0, 24.5, 24.8]
+            },
+            {
+                symbol: 'PEPE',
+                name: 'Pepe',
+                category: 'Meme Liquidity #22',
+                type: 'memes',
+                rank: '#22',
+                price: '$0.0000084',
+                priceNum: 0.0000084,
+                target: '$0.0000105',
+                targetNum: 0.0000105,
+                change: '+17.9%',
+                isBull: true,
+                gainPct: '+25.00%',
+                signal: 'Whale Accumulation 🐋',
+                signalType: 'buy',
+                rsi: '72.1 (Overheated)',
+                macd: '+0.0000008 (Expansion)',
+                support: '$0.0000072',
+                resistance: '$0.0000092',
+                entry: '$0.0000078',
+                tp: '$0.0000105',
+                sl: '$0.0000069',
+                leverage: '3x - 5x',
+                confidence: '78%',
+                longRatio: '85% Long',
+                shortRatio: '15% Short',
+                vol24h: '$1.4B',
+                reason: 'Massive on-chain DEX wallet clustering and top 100 whale holder balances increasing +12% over 7 days.',
+                logo: 'https://assets.coingecko.com/coins/images/29850/small/pepe-token.png',
+                sparkline: [0.0000069, 0.0000072, 0.0000070, 0.0000076, 0.0000075, 0.0000080, 0.0000079, 0.0000082, 0.0000084]
+            },
+            {
+                symbol: 'POL',
+                name: 'Polygon 2.0',
+                category: 'ZK Layer 2 Ecosystem #19',
+                type: 'defi',
+                rank: '#19',
+                price: '$0.4280',
+                priceNum: 0.428,
+                target: '$0.4850',
+                targetNum: 0.485,
+                change: '+5.20%',
+                isBull: true,
+                gainPct: '+13.31%',
+                signal: 'ZK Expansion 🛡️',
+                signalType: 'buy',
+                rsi: '56.8 (Positive)',
+                macd: '+0.015 (Crossover)',
+                support: '$0.3950',
+                resistance: '$0.4500',
+                entry: '$0.4150',
+                tp: '$0.4850',
+                sl: '$0.3880',
+                leverage: '4x',
+                confidence: '82%',
+                longRatio: '67% Long',
+                shortRatio: '33% Short',
+                vol24h: '$290M',
+                reason: 'AggLayer aggregation protocol onboarding 4 new zkEVM gaming rollups, increasing cross-chain fee burn.',
+                logo: 'https://assets.coingecko.com/coins/images/4713/small/polygon.png',
+                sparkline: [0.395, 0.402, 0.400, 0.412, 0.410, 0.420, 0.418, 0.424, 0.428]
+            },
+            {
+                symbol: 'XRP',
+                name: 'Ripple XRP',
+                category: 'Settlements & FX #6',
+                type: 'defi',
+                rank: '#6',
+                price: '$0.5840',
+                priceNum: 0.584,
+                target: '$0.6450',
+                targetNum: 0.645,
+                change: '+8.50%',
+                isBull: true,
+                gainPct: '+10.44%',
+                signal: 'Legal Clarity ⚖️',
+                signalType: 'buy',
+                rsi: '67.3 (Bullish)',
+                macd: '+0.024 (Ascending)',
+                support: '$0.5350',
+                resistance: '$0.6100',
+                entry: '$0.5600',
+                tp: '$0.6450',
+                sl: '$0.5280',
+                leverage: '5x',
+                confidence: '85%',
+                longRatio: '76% Long',
+                shortRatio: '24% Short',
+                vol24h: '$2.1B',
+                reason: 'RLUSD enterprise stablecoin rollout and cross-border bank pilot expansions in APAC markets.',
+                logo: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png',
+                sparkline: [0.53, 0.545, 0.54, 0.56, 0.555, 0.575, 0.57, 0.58, 0.584]
+            },
+            {
+                symbol: 'DOGE',
+                name: 'Dogecoin',
+                category: 'Original Meme Coin #8',
+                type: 'memes',
+                rank: '#8',
+                price: '$0.1140',
+                priceNum: 0.114,
+                target: '$0.1320',
+                targetNum: 0.132,
+                change: '+13.4%',
+                isBull: true,
+                gainPct: '+15.78%',
+                signal: 'Social Surge 🐕',
+                signalType: 'buy',
+                rsi: '71.0 (Overbought)',
+                macd: '+0.008 (High Volume)',
+                support: '$0.0980',
+                resistance: '$0.1220',
+                entry: '$0.1060',
+                tp: '$0.1320',
+                sl: '$0.0950',
+                leverage: '3x - 5x',
+                confidence: '79%',
+                longRatio: '81% Long',
+                shortRatio: '19% Short',
+                vol24h: '$1.8B',
+                reason: 'Social sentiment momentum surge and whale wallet accumulation surpassing 2.4 Billion DOGE.',
+                logo: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png',
+                sparkline: [0.098, 0.102, 0.100, 0.107, 0.105, 0.111, 0.109, 0.112, 0.114]
+            }
         ];
 
+        // ON-CHAIN BINARY EVENT PREDICTION MARKETS (Polymarket / Arc Style)
+        const PREDICTION_MARKETS = [
+            {
+                id: 'btc-100k',
+                title: 'Will Bitcoin surpass $100,000 before December 31, 2026?',
+                category: 'Macro Milestone',
+                yesPrice: 0.68,
+                noPrice: 0.32,
+                yesPct: 68,
+                noPct: 32,
+                volumeUsdc: 4250000,
+                volumeText: '$4.25M USDC',
+                endDate: 'Dec 31, 2026',
+                icon: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png'
+            },
+            {
+                id: 'arc-10k-tps',
+                title: 'Will Circle Arc L1 process >10,000 TPS on Testnet Stress Phase?',
+                category: 'Arc Ecosystem',
+                yesPrice: 0.84,
+                noPrice: 0.16,
+                yesPct: 84,
+                noPct: 16,
+                volumeUsdc: 1980000,
+                volumeText: '$1.98M USDC',
+                endDate: 'Nov 15, 2026',
+                icon: 'logo.png'
+            },
+            {
+                id: 'eth-staking-etf',
+                title: 'Will US SEC approve Staking for Ethereum Spot ETFs in 2026?',
+                category: 'Regulation & ETFs',
+                yesPrice: 0.54,
+                noPrice: 0.46,
+                yesPct: 54,
+                noPct: 46,
+                volumeUsdc: 1420000,
+                volumeText: '$1.42M USDC',
+                endDate: 'Oct 30, 2026',
+                icon: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png'
+            },
+            {
+                id: 'sol-dex-flip',
+                title: 'Will Solana 30-day DEX Volume surpass Ethereum L1 DEX Volume?',
+                category: 'DeFi & Volume',
+                yesPrice: 0.62,
+                noPrice: 0.38,
+                yesPct: 62,
+                noPct: 38,
+                volumeUsdc: 2890000,
+                volumeText: '$2.89M USDC',
+                endDate: 'Nov 30, 2026',
+                icon: 'https://assets.coingecko.com/coins/images/4128/small/solana.png'
+            },
+            {
+                id: 'fed-rate-cut',
+                title: 'Will the US Federal Reserve cut interest rates by 50bps or more?',
+                category: 'Macro Economics',
+                yesPrice: 0.74,
+                noPrice: 0.26,
+                yesPct: 74,
+                noPct: 26,
+                volumeUsdc: 5120000,
+                volumeText: '$5.12M USDC',
+                endDate: 'Sep 18, 2026',
+                icon: 'https://assets.coingecko.com/coins/images/325/small/Tether.png'
+            },
+            {
+                id: 'arc-zero-gas',
+                title: 'Will Arc L1 micro gas fee stay strictly below 0.002 USDC during peak congestion?',
+                category: 'Arc Ecosystem',
+                yesPrice: 0.94,
+                noPrice: 0.06,
+                yesPct: 94,
+                noPct: 6,
+                volumeUsdc: 980000,
+                volumeText: '$980K USDC',
+                endDate: 'Oct 15, 2026',
+                icon: 'logo.png'
+            }
+        ];
+
+        // SUB-TAB SWITCHING
+        function switchPredictionSubTab(tab) {
+            activePredSubTab = tab;
+            const btnForecasts = document.getElementById('predTabBtn-forecasts');
+            const btnMarkets = document.getElementById('predTabBtn-markets');
+            const subForecasts = document.getElementById('subView-forecasts');
+            const subMarkets = document.getElementById('subView-markets');
+
+            if (tab === 'forecasts') {
+                if (btnForecasts) {
+                    btnForecasts.className = 'px-4 py-2 rounded-xl bg-purple-600 text-white shadow-md transition-all flex items-center gap-2 font-bold';
+                }
+                if (btnMarkets) {
+                    btnMarkets.className = 'px-4 py-2 rounded-xl text-slate-300 hover:text-white transition-all flex items-center gap-2 font-bold';
+                }
+                if (subForecasts) subForecasts.classList.remove('hidden');
+                if (subMarkets) subMarkets.classList.add('hidden');
+            } else {
+                if (btnMarkets) {
+                    btnMarkets.className = 'px-4 py-2 rounded-xl bg-purple-600 text-white shadow-md transition-all flex items-center gap-2 font-bold';
+                }
+                if (btnForecasts) {
+                    btnForecasts.className = 'px-4 py-2 rounded-xl text-slate-300 hover:text-white transition-all flex items-center gap-2 font-bold';
+                }
+                if (subMarkets) subMarkets.classList.remove('hidden');
+                if (subForecasts) subForecasts.classList.add('hidden');
+                renderPredictionMarkets(PREDICTION_MARKETS);
+            }
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        // CATEGORY FILTERING
+        function setPredictionCategory(cat) {
+            activePredCategory = cat;
+            ['all', 'l1', 'defi', 'memes'].forEach(c => {
+                const btn = document.getElementById(`predCatBtn-${c}`);
+                if (btn) {
+                    if (c === cat) {
+                        btn.className = 'px-3 py-1.5 rounded-lg bg-purple-700 text-white font-bold shrink-0';
+                    } else {
+                        btn.className = 'px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold border border-slate-300 shrink-0';
+                    }
+                }
+            });
+            filterPredictionCoins();
+        }
+
+        // MINI SPARKLINE SVG GENERATOR
+        function generateSparklineSvg(sparkline, isBull, width = 120, height = 36) {
+            if (!sparkline || sparkline.length < 2) return '';
+            const min = Math.min(...sparkline);
+            const max = Math.max(...sparkline);
+            const range = (max - min) || 1;
+            const padding = 3;
+            const w = width - padding * 2;
+            const h = height - padding * 2;
+
+            const pts = sparkline.map((val, idx) => {
+                const x = padding + (idx / (sparkline.length - 1)) * w;
+                const y = height - padding - ((val - min) / range) * h;
+                return { x, y };
+            });
+
+            // Smooth cubic spline
+            let pathD = `M ${pts[0].x},${pts[0].y}`;
+            for (let i = 0; i < pts.length - 1; i++) {
+                const p0 = pts[i === 0 ? 0 : i - 1];
+                const p1 = pts[i];
+                const p2 = pts[i + 1];
+                const p3 = pts[i + 2 >= pts.length ? pts.length - 1 : i + 2];
+
+                const cp1x = p1.x + (p2.x - p0.x) / 6;
+                const cp1y = p1.y + (p2.y - p0.y) / 6;
+                const cp2x = p2.x - (p3.x - p1.x) / 6;
+                const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+                pathD += ` C ${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
+            }
+
+            const areaD = `${pathD} L ${pts[pts.length - 1].x},${height} L ${pts[0].x},${height} Z`;
+            const color = isBull ? '#10b981' : '#f43f5e';
+            const gradId = `sparkGrad-${Math.random().toString(36).substr(2, 6)}`;
+
+            return `
+                <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" class="overflow-visible">
+                    <defs>
+                        <linearGradient id="${gradId}" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="${color}" stop-opacity="0.35"/>
+                            <stop offset="100%" stop-color="${color}" stop-opacity="0.0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="${areaD}" fill="url(#${gradId})" />
+                    <path d="${pathD}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <circle cx="${pts[pts.length - 1].x}" cy="${pts[pts.length - 1].y}" r="3" fill="${color}" stroke="#0F172A" stroke-width="1.5"/>
+                </svg>
+            `;
+        }
+
+        // RENDER PREDICTION COINS (AI FORECASTS)
         function renderPredictionCoins(coinsToRender) {
             const grid = document.getElementById('predictionCoinsGrid');
             if (!grid) return;
@@ -2182,78 +2734,572 @@ Timestamp: ${new Date().toISOString()}`;
             coinsToRender.forEach(c => {
                 const card = document.createElement('div');
                 card.onclick = () => openCoinChartModal(c.symbol);
-                card.className = 'bg-slate-900 border border-slate-800 hover:border-purple-500/60 rounded-2xl p-5 space-y-4 transition-all shadow-md cursor-pointer group';
+                card.className = 'pixel-card p-5 space-y-4 hover:-translate-y-1 transition-all cursor-pointer group bg-white text-slate-900 shadow-md';
+                
+                const sparklineSvg = generateSparklineSvg(c.sparkline, c.isBull, 110, 34);
+
                 card.innerHTML = `
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
-                            <img src="${c.logo}" alt="${c.name}" class="w-10 h-10 rounded-xl object-contain bg-slate-800/80 p-1 border border-slate-700/80 shrink-0 group-hover:scale-105 transition-transform" onerror="this.src='logo.png'">
+                            <img src="${c.logo}" alt="${c.name}" class="w-10 h-10 rounded-xl object-contain bg-slate-50 p-1 border-2 border-slate-950 shadow-[2px_2px_0px_#0F172A] shrink-0 group-hover:scale-105 transition-transform" onerror="this.src='logo.png'">
                             <div>
-                                <h3 class="font-bold text-slate-100 text-sm group-hover:text-purple-300 transition-colors">${c.name}</h3>
-                                <p class="text-[11px] text-slate-400">${c.category}</p>
+                                <div class="flex items-center gap-1.5">
+                                    <h3 class="font-bold text-slate-950 text-sm font-pixel group-hover:text-purple-700 transition-colors">${c.name}</h3>
+                                    <span class="text-[10px] font-mono font-bold text-slate-500">${c.symbol}</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 font-mono">${c.category}</p>
                             </div>
                         </div>
-                        <span class="px-2.5 py-1 rounded-full text-xs font-bold ${c.isBull ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-rose-500/20 text-rose-400 border border-rose-500/40'}">
-                            ${c.isBull ? 'Bullish' : 'Bearish'} ${c.change}
+                        <span class="px-2.5 py-1 rounded-full text-xs font-mono font-bold ${c.isBull ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-100 text-rose-800 border border-rose-300'}">
+                            ${c.change}
                         </span>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2 text-xs py-2 border-y border-slate-800">
+                    <!-- Mini Live Sparkline & Price Block -->
+                    <div class="flex items-center justify-between gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
                         <div>
-                            <span class="text-slate-400 block text-[11px]">Current Price</span>
-                            <span class="font-bold text-slate-100">${c.price}</span>
+                            <span class="text-slate-500 block text-[10px] font-mono uppercase font-bold">Current Price</span>
+                            <span class="font-black text-slate-950 font-mono text-base">${c.price}</span>
                         </div>
-                        <div>
-                            <span class="text-slate-400 block text-[11px]">Forecast Target</span>
-                            <span class="font-bold ${c.isBull ? 'text-emerald-400' : 'text-rose-400'}">${c.target}</span>
+                        <div class="shrink-0">
+                            ${sparklineSvg}
                         </div>
                     </div>
 
-                    <div class="space-y-1.5">
-                        <div class="flex justify-between items-center text-[11px] font-semibold">
-                            <span class="text-slate-300">Long vs Short ratio</span>
-                            <span class="${c.isBull ? 'text-emerald-400' : 'text-rose-400'}">${c.longRatio}</span>
+                    <!-- AI Target & Signal -->
+                    <div class="grid grid-cols-2 gap-2 text-xs font-mono py-1 border-y border-slate-100">
+                        <div>
+                            <span class="text-slate-500 block text-[10px]">AI Target (7D)</span>
+                            <span class="font-bold text-purple-700 text-sm">${c.target}</span>
                         </div>
-                        <p class="text-xs text-slate-400 leading-relaxed line-clamp-2">${c.reason}</p>
+                        <div>
+                            <span class="text-slate-500 block text-[10px]">Signal Conviction</span>
+                            <span class="font-bold text-slate-900">${c.signal}</span>
+                        </div>
                     </div>
 
-                    <div class="pt-2 flex items-center justify-between text-[11px] text-purple-400 font-semibold group-hover:underline">
-                        <span>Click to view interactive chart & analysis</span>
+                    <!-- Long vs Short Ratio -->
+                    <div class="space-y-1 font-mono text-xs">
+                        <div class="flex justify-between items-center text-[11px]">
+                            <span class="text-slate-600 font-bold">Long / Short</span>
+                            <span class="font-bold text-purple-700">${c.longRatio}</span>
+                        </div>
+                        <div class="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden flex">
+                            <div class="bg-emerald-500 h-full" style="width: ${c.longRatio.split('%')[0]}%"></div>
+                            <div class="bg-rose-500 h-full" style="width: ${100 - parseInt(c.longRatio)}%"></div>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-slate-600 font-sans leading-relaxed line-clamp-2">${c.reason}</p>
+
+                    <div class="pt-1 flex items-center justify-between text-xs font-mono text-purple-700 font-bold group-hover:underline">
+                        <span>Open Pro Interactive Chart</span>
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-purple-700 group-hover:translate-x-1 transition-transform"></i>
                     </div>
                 `;
                 grid.appendChild(card);
             });
+
+            if (window.lucide) window.lucide.createIcons();
         }
-                            function filterPredictionCoins() {
+
+        // RENDER BINARY PREDICTION MARKETS
+        function renderPredictionMarkets(markets) {
+            const grid = document.getElementById('predictionMarketsGrid');
+            if (!grid) return;
+
+            grid.innerHTML = '';
+            markets.forEach(m => {
+                const card = document.createElement('div');
+                card.className = 'pixel-card p-5 space-y-4 bg-white text-slate-900 shadow-md';
+                card.innerHTML = `
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <img src="${m.icon}" alt="" class="w-8 h-8 rounded-lg object-contain bg-slate-50 p-1 border border-slate-300" onerror="this.src='logo.png'">
+                            <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-purple-100 text-purple-900 font-bold">${m.category}</span>
+                        </div>
+                        <span class="text-[11px] font-mono text-slate-500 font-bold">Ends ${m.endDate}</span>
+                    </div>
+
+                    <h3 class="font-pixel text-sm font-bold text-slate-950 leading-snug">${m.title}</h3>
+
+                    <!-- Probability Progress Bar -->
+                    <div class="space-y-1 font-mono text-xs">
+                        <div class="flex justify-between items-center text-[11px] font-bold">
+                            <span class="text-emerald-700">YES ${m.yesPct}% ($${m.yesPrice.toFixed(2)})</span>
+                            <span class="text-rose-700">NO ${m.noPct}% ($${m.noPrice.toFixed(2)})</span>
+                        </div>
+                        <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden flex">
+                            <div class="bg-emerald-500 h-full" style="width: ${m.yesPct}%"></div>
+                            <div class="bg-rose-500 h-full" style="width: ${m.noPct}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Volume Strip -->
+                    <div class="flex items-center justify-between text-xs font-mono text-slate-500 border-t border-slate-100 pt-2">
+                        <span>Total Volume:</span>
+                        <span class="font-bold text-slate-900">${m.volumeText}</span>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="grid grid-cols-2 gap-2 font-mono text-xs pt-1">
+                        <button onclick="openPredictionBetModal('${m.id}', 'YES')" class="py-2.5 rounded-xl border-2 border-slate-950 bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-[2px_2px_0px_#0F172A] transition-all">
+                            BUY YES ($${m.yesPrice.toFixed(2)})
+                        </button>
+                        <button onclick="openPredictionBetModal('${m.id}', 'NO')" class="py-2.5 rounded-xl border-2 border-slate-950 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold shadow-[2px_2px_0px_#0F172A] transition-all">
+                            BUY NO ($${m.noPrice.toFixed(2)})
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        // FILTER PREDICTION COINS / MARKETS
+        function filterPredictionCoins() {
             const query = document.getElementById('coinSearchInput')?.value?.toLowerCase() || '';
-            const filtered = PREDICTION_COINS.filter(c => c.symbol.toLowerCase().includes(query) || c.name.toLowerCase().includes(query) || c.category.toLowerCase().includes(query));
-            renderPredictionCoins(filtered);
+            
+            let filteredCoins = PREDICTION_COINS.filter(c => {
+                const matchesQuery = c.symbol.toLowerCase().includes(query) || c.name.toLowerCase().includes(query) || c.category.toLowerCase().includes(query);
+                const matchesCat = activePredCategory === 'all' || c.type === activePredCategory;
+                return matchesQuery && matchesCat;
+            });
+            renderPredictionCoins(filteredCoins);
+
+            let filteredMarkets = PREDICTION_MARKETS.filter(m => {
+                return m.title.toLowerCase().includes(query) || m.category.toLowerCase().includes(query);
+            });
+            renderPredictionMarkets(filteredMarkets);
+        }
+
+        // ==========================================
+        // PRO DYNAMIC CHART ENGINE
+        // ==========================================
+
+        function generateTimeframeData(basePrice, isBull, timeframe) {
+            let count = 24;
+            let volatility = 0.015;
+            let timeLabels = [];
+            const now = new Date();
+
+            if (timeframe === '1H') {
+                count = 12;
+                volatility = 0.004;
+                for (let i = count - 1; i >= 0; i--) {
+                    const d = new Date(now.getTime() - i * 5 * 60000);
+                    timeLabels.push(`${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`);
+                }
+            } else if (timeframe === '24H') {
+                count = 24;
+                volatility = 0.015;
+                for (let i = count - 1; i >= 0; i--) {
+                    const d = new Date(now.getTime() - i * 3600000);
+                    timeLabels.push(`${d.getHours().toString().padStart(2, '0')}:00`);
+                }
+            } else if (timeframe === '7D') {
+                count = 14;
+                volatility = 0.035;
+                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                for (let i = count - 1; i >= 0; i--) {
+                    const d = new Date(now.getTime() - i * 12 * 3600000);
+                    timeLabels.push(`${days[d.getDay()]} ${d.getHours()}:00`);
+                }
+            } else if (timeframe === '30D') {
+                count = 30;
+                volatility = 0.08;
+                for (let i = count - 1; i >= 0; i--) {
+                    const d = new Date(now.getTime() - i * 24 * 3600000);
+                    timeLabels.push(`${d.getMonth() + 1}/${d.getDate()}`);
+                }
+            } else if (timeframe === '1Y') {
+                count = 24;
+                volatility = 0.22;
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                for (let i = count - 1; i >= 0; i--) {
+                    const d = new Date(now.getTime() - i * 15 * 24 * 3600000);
+                    timeLabels.push(`${months[d.getMonth()]} ${d.getDate()}`);
+                }
+            }
+
+            // Generate deterministic yet natural looking random walk
+            let current = isBull ? basePrice * (1 - volatility * 1.5) : basePrice * (1 + volatility * 1.5);
+            let prices = [];
+            let volumes = [];
+            let ohlc = [];
+
+            // Seed based on coin name length
+            let seed = (basePrice % 100) + 1;
+            function pseudoRandom() {
+                seed = (seed * 9301 + 49297) % 233280;
+                return seed / 233280;
+            }
+
+            for (let i = 0; i < count; i++) {
+                const trend = isBull ? 0.003 : -0.003;
+                const changePct = (pseudoRandom() - 0.48 + trend) * volatility;
+                const open = current;
+                current = current * (1 + changePct);
+                const close = current;
+                const high = Math.max(open, close) * (1 + pseudoRandom() * (volatility * 0.5));
+                const low = Math.min(open, close) * (1 - pseudoRandom() * (volatility * 0.5));
+                const vol = (pseudoRandom() * 50 + 10).toFixed(1);
+
+                prices.push(close);
+                volumes.push(parseFloat(vol));
+                ohlc.push({ open, high, low, close, time: timeLabels[i], vol });
+            }
+
+            // Ensure last price matches exact base price
+            prices[prices.length - 1] = basePrice;
+            ohlc[ohlc.length - 1].close = basePrice;
+
+            return { prices, volumes, ohlc, timeLabels };
+        }
+
+        function renderModalDynamicChart(coin, timeframe, chartType) {
+            const wrapper = document.getElementById('svgChartWrapper');
+            if (!wrapper) return;
+
+            const data = generateTimeframeData(coin.priceNum, coin.isBull, timeframe);
+            const prices = data.prices;
+            const minPrice = Math.min(...prices) * 0.995;
+            const maxPrice = Math.max(...prices) * 1.005;
+            const range = (maxPrice - minPrice) || 1;
+
+            const width = wrapper.clientWidth || 700;
+            const height = 240;
+            const chartPadding = { top: 20, right: 60, bottom: 40, left: 10 };
+            const plotW = width - chartPadding.left - chartPadding.right;
+            const plotH = height - chartPadding.top - chartPadding.bottom;
+
+            const pts = prices.map((p, i) => ({
+                x: chartPadding.left + (i / (prices.length - 1)) * plotW,
+                y: chartPadding.top + plotH - ((p - minPrice) / range) * plotH,
+                price: p,
+                time: data.timeLabels[i],
+                vol: data.volumes[i]
+            }));
+
+            // Grid lines & labels (4 horizontal lines)
+            let gridSvg = '';
+            for (let g = 0; g <= 4; g++) {
+                const gy = chartPadding.top + (plotH / 4) * g;
+                const priceVal = maxPrice - (range / 4) * g;
+                const formattedPrice = priceVal >= 1000 ? `$${priceVal.toLocaleString('en-US', { maximumFractionDigits: 0 })}` : priceVal >= 1 ? `$${priceVal.toFixed(2)}` : `$${priceVal.toFixed(6)}`;
+                gridSvg += `
+                    <line x1="${chartPadding.left}" y1="${gy}" x2="${width - chartPadding.right}" y2="${gy}" stroke="#1e293b" stroke-dasharray="3 3" stroke-width="1"/>
+                    <text x="${width - chartPadding.right + 8}" y="${gy + 4}" fill="#64748b" font-family="monospace" font-size="10">${formattedPrice}</text>
+                `;
+            }
+
+            // Bottom Time Labels (select 5 intervals)
+            let timeSvg = '';
+            const step = Math.floor(pts.length / 5);
+            for (let t = 0; t < pts.length; t += step) {
+                const pt = pts[t];
+                timeSvg += `
+                    <text x="${pt.x}" y="${height - 12}" fill="#64748b" font-family="monospace" font-size="10" text-anchor="middle">${pt.time}</text>
+                `;
+            }
+
+            let chartContent = '';
+            const strokeColor = coin.isBull ? '#10b981' : '#f43f5e';
+            const gradId = `modalChartGrad-${coin.symbol}`;
+
+            if (chartType === 'area') {
+                // Smooth Spline
+                let pathD = `M ${pts[0].x},${pts[0].y}`;
+                for (let i = 0; i < pts.length - 1; i++) {
+                    const p0 = pts[i === 0 ? 0 : i - 1];
+                    const p1 = pts[i];
+                    const p2 = pts[i + 1];
+                    const p3 = pts[i + 2 >= pts.length ? pts.length - 1 : i + 2];
+
+                    const cp1x = p1.x + (p2.x - p0.x) / 6;
+                    const cp1y = p1.y + (p2.y - p0.y) / 6;
+                    const cp2x = p2.x - (p3.x - p1.x) / 6;
+                    const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+                    pathD += ` C ${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
+                }
+
+                const areaD = `${pathD} L ${pts[pts.length - 1].x},${chartPadding.top + plotH} L ${pts[0].x},${chartPadding.top + plotH} Z`;
+
+                // Volume Histogram Bars
+                let volBars = '';
+                const maxVol = Math.max(...data.volumes) || 1;
+                const volHeight = 35;
+                pts.forEach((pt, i) => {
+                    const bh = (pt.vol / maxVol) * volHeight;
+                    const bx = pt.x - 3;
+                    const by = chartPadding.top + plotH - bh;
+                    volBars += `<rect x="${bx}" y="${by}" width="6" height="${bh}" fill="#334155" opacity="0.4" rx="1"/>`;
+                });
+
+                chartContent = `
+                    <defs>
+                        <linearGradient id="${gradId}" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="${strokeColor}" stop-opacity="0.38"/>
+                            <stop offset="100%" stop-color="${strokeColor}" stop-opacity="0.0"/>
+                        </linearGradient>
+                    </defs>
+                    ${volBars}
+                    <path d="${areaD}" fill="url(#${gradId})" />
+                    <path d="${pathD}" fill="none" stroke="${strokeColor}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                `;
+            } else {
+                // Candlestick Chart
+                let candleSvg = '';
+                const candleW = Math.max(4, plotW / data.ohlc.length - 3);
+                data.ohlc.forEach((c, i) => {
+                    const cx = chartPadding.left + (i / (data.ohlc.length - 1)) * plotW;
+                    const openY = chartPadding.top + plotH - ((c.open - minPrice) / range) * plotH;
+                    const closeY = chartPadding.top + plotH - ((c.close - minPrice) / range) * plotH;
+                    const highY = chartPadding.top + plotH - ((c.high - minPrice) / range) * plotH;
+                    const lowY = chartPadding.top + plotH - ((c.low - minPrice) / range) * plotH;
+
+                    const isGreen = c.close >= c.open;
+                    const cColor = isGreen ? '#10b981' : '#f43f5e';
+                    const topY = Math.min(openY, closeY);
+                    const rectH = Math.max(2, Math.abs(closeY - openY));
+
+                    candleSvg += `
+                        <!-- Wick -->
+                        <line x1="${cx}" y1="${highY}" x2="${cx}" y2="${lowY}" stroke="${cColor}" stroke-width="1.5" />
+                        <!-- Body -->
+                        <rect x="${cx - candleW / 2}" y="${topY}" width="${candleW}" height="${rectH}" fill="${cColor}" stroke="${cColor}" rx="1"/>
+                    `;
+                });
+                chartContent = candleSvg;
+            }
+
+            wrapper.innerHTML = `
+                <svg id="mainInteractiveSvg" width="100%" height="${height}" viewBox="0 0 ${width} ${height}" class="w-full h-full select-none">
+                    ${gridSvg}
+                    ${timeSvg}
+                    ${chartContent}
+                    <!-- Dynamic Hover Crosshair Elements -->
+                    <line id="crosshairX" x1="0" y1="0" x2="0" y2="${chartPadding.top + plotH}" stroke="#a855f7" stroke-width="1" stroke-dasharray="2 2" opacity="0"/>
+                    <circle id="hoverPointPulse" cx="0" cy="0" r="5" fill="#a855f7" stroke="#ffffff" stroke-width="2" opacity="0"/>
+                </svg>
+            `;
+
+            // Interactive mouse tracking
+            wrapper.onmousemove = (e) => {
+                const rect = wrapper.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                if (mouseX < chartPadding.left || mouseX > width - chartPadding.right) return;
+
+                // Find closest point
+                let closest = pts[0];
+                let minDiff = Infinity;
+                pts.forEach(pt => {
+                    const diff = Math.abs(pt.x - mouseX);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closest = pt;
+                    }
+                });
+
+                const crossX = document.getElementById('crosshairX');
+                const pulse = document.getElementById('hoverPointPulse');
+                const tooltipBox = document.getElementById('chartHoverTooltipBox');
+
+                if (crossX) {
+                    crossX.setAttribute('x1', closest.x);
+                    crossX.setAttribute('x2', closest.x);
+                    crossX.setAttribute('opacity', '1');
+                }
+                if (pulse) {
+                    pulse.setAttribute('cx', closest.x);
+                    pulse.setAttribute('cy', closest.y);
+                    pulse.setAttribute('opacity', '1');
+                }
+                if (tooltipBox) {
+                    tooltipBox.classList.remove('hidden');
+                    const formatted = closest.price >= 1000 ? `$${closest.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : closest.price >= 1 ? `$${closest.price.toFixed(2)}` : `$${closest.price.toFixed(6)}`;
+                    safeSetText('hoverPointPrice', formatted);
+                    safeSetText('hoverPointTime', closest.time);
+                    safeSetText('hoverPointVol', `Vol: $${closest.vol}M`);
+                }
+            };
+
+            wrapper.onmouseleave = () => {
+                const crossX = document.getElementById('crosshairX');
+                const pulse = document.getElementById('hoverPointPulse');
+                const tooltipBox = document.getElementById('chartHoverTooltipBox');
+                if (crossX) crossX.setAttribute('opacity', '0');
+                if (pulse) pulse.setAttribute('opacity', '0');
+                if (tooltipBox) tooltipBox.classList.add('hidden');
+            };
+        }
+
+        function setModalChartTimeframe(tf) {
+            activeChartTimeframe = tf;
+            ['1H', '24H', '7D', '30D', '1Y'].forEach(t => {
+                const btn = document.getElementById(`tfBtn-${t}`);
+                if (btn) {
+                    if (t === tf) {
+                        btn.className = 'px-2.5 py-1 rounded-lg bg-purple-700 text-white shadow-sm transition-colors';
+                    } else {
+                        btn.className = 'px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-950 transition-colors';
+                    }
+                }
+            });
+            if (activeChartCoin) {
+                renderModalDynamicChart(activeChartCoin, activeChartTimeframe, activeChartType);
+            }
+        }
+
+        function setModalChartType(type) {
+            activeChartType = type;
+            const btnArea = document.getElementById('chartTypeBtn-area');
+            const btnCandle = document.getElementById('chartTypeBtn-candle');
+            if (type === 'area') {
+                if (btnArea) btnArea.className = 'px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[11px]';
+                if (btnCandle) btnCandle.className = 'px-2.5 py-1 rounded-lg bg-slate-200 text-slate-700 hover:text-slate-950 text-[11px]';
+            } else {
+                if (btnCandle) btnCandle.className = 'px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[11px]';
+                if (btnArea) btnArea.className = 'px-2.5 py-1 rounded-lg bg-slate-200 text-slate-700 hover:text-slate-950 text-[11px]';
+            }
+            if (activeChartCoin) {
+                renderModalDynamicChart(activeChartCoin, activeChartTimeframe, activeChartType);
+            }
         }
 
         function openCoinChartModal(symbol) {
             const coin = PREDICTION_COINS.find(c => c.symbol === symbol) || PREDICTION_COINS[0];
-            
+            activeChartCoin = coin;
+
             const modal = document.getElementById('coinChartModal');
             if (!modal) return;
 
             safeSetText('modalCoinName', `${coin.name} (${coin.symbol})`);
             safeSetText('modalCoinCategory', coin.category);
-            safeSetText('modalCoinPrice', `${coin.price} (${coin.change})`);
-            safeSetText('modalLongRatio', coin.longRatio);
-            safeSetText('modalShortRatio', coin.shortRatio);
+            safeSetText('modalCoinRankBadge', `Rank ${coin.rank}`);
+            safeSetText('modalCoinPrice', coin.price);
+            safeSetText('modalCoinChange', `${coin.change} (24h)`);
+            safeSetText('modalRsi', coin.rsi);
+            safeSetText('modalMacd', coin.macd);
+            safeSetText('modalSupport', coin.support);
+            safeSetText('modalResistance', coin.resistance);
+            safeSetText('modalEntry', coin.entry);
             safeSetText('modalTp', coin.tp);
             safeSetText('modalSl', coin.sl);
+            safeSetText('modalLongRatio', `${coin.longRatio} Interest`);
+            safeSetText('modalConfidence', `${coin.confidence} Conviction`);
+            safeSetText('modalSignalBadge', coin.signal);
 
             const iconContainer = document.getElementById('modalCoinIcon');
             if (iconContainer) {
-                iconContainer.innerHTML = `<img src="${coin.logo}" alt="${coin.name}" class="w-full h-full object-contain p-0.5 rounded-lg" onerror="this.src='logo.png'">`;
+                iconContainer.innerHTML = `<img src="${coin.logo}" alt="${coin.name}" class="w-full h-full object-contain p-1 rounded-xl" onerror="this.src='logo.png'">`;
             }
 
             modal.classList.remove('hidden');
+            setTimeout(() => {
+                renderModalDynamicChart(coin, activeChartTimeframe, activeChartType);
+            }, 50);
+
+            if (window.lucide) window.lucide.createIcons();
         }
 
         function closeCoinChartModal() {
             const modal = document.getElementById('coinChartModal');
             if (modal) modal.classList.add('hidden');
+            activeChartCoin = null;
+        }
+
+        // ==========================================
+        // BINARY PREDICTION BETTING ENGINE
+        // ==========================================
+
+        function openPredictionBetModal(marketId, defaultOutcome = 'YES') {
+            const market = PREDICTION_MARKETS.find(m => m.id === marketId) || PREDICTION_MARKETS[0];
+            activeBetMarket = market;
+            selectedBetOutcome = defaultOutcome;
+
+            safeSetText('betModalCategory', market.category);
+            safeSetText('betModalTitle', market.title);
+            safeSetText('betModalYesPrice', `$${market.yesPrice.toFixed(2)}`);
+            safeSetText('betModalNoPrice', `$${market.noPrice.toFixed(2)}`);
+            safeSetText('betModalYesProb', `${market.yesPct}% Probability`);
+            safeSetText('betModalNoProb', `${market.noPct}% Probability`);
+
+            selectBetOutcome(defaultOutcome);
+            calculateBetPayout();
+
+            const modal = document.getElementById('predictionBetModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function selectBetOutcome(outcome) {
+            selectedBetOutcome = outcome;
+            const btnYes = document.getElementById('betOutcomeBtn-YES');
+            const btnNo = document.getElementById('betOutcomeBtn-NO');
+
+            if (outcome === 'YES') {
+                if (btnYes) btnYes.className = 'p-3 rounded-xl border-2 border-slate-950 bg-emerald-600 text-white font-bold text-center shadow-[2px_2px_0px_#0F172A] transition-all scale-[1.02]';
+                if (btnNo) btnNo.className = 'p-3 rounded-xl border-2 border-slate-950 bg-slate-100 text-slate-800 font-bold text-center hover:bg-slate-200 shadow-[2px_2px_0px_#0F172A] transition-all';
+            } else {
+                if (btnNo) btnNo.className = 'p-3 rounded-xl border-2 border-slate-950 bg-rose-600 text-white font-bold text-center shadow-[2px_2px_0px_#0F172A] transition-all scale-[1.02]';
+                if (btnYes) btnYes.className = 'p-3 rounded-xl border-2 border-slate-950 bg-slate-100 text-slate-800 font-bold text-center hover:bg-slate-200 shadow-[2px_2px_0px_#0F172A] transition-all';
+            }
+            calculateBetPayout();
+        }
+
+        function calculateBetPayout() {
+            if (!activeBetMarket) return;
+            const amountInput = document.getElementById('betAmountInput');
+            const amount = parseFloat(amountInput?.value) || 10;
+            const price = selectedBetOutcome === 'YES' ? activeBetMarket.yesPrice : activeBetMarket.noPrice;
+            const shares = (amount / price).toFixed(2);
+            const payout = (shares * 1.0).toFixed(2);
+            const returnPct = (((payout - amount) / amount) * 100).toFixed(1);
+
+            safeSetText('betSharesText', `${shares} Shares`);
+            safeSetText('betPayoutText', `$${payout} USDC (+${returnPct}%)`);
+        }
+
+        function executePredictionBet() {
+            if (!activeBetMarket) return;
+            const amountInput = document.getElementById('betAmountInput');
+            const amount = parseFloat(amountInput?.value) || 10;
+            const price = selectedBetOutcome === 'YES' ? activeBetMarket.yesPrice : activeBetMarket.noPrice;
+            const shares = (amount / price).toFixed(2);
+            const payout = (shares * 1.0).toFixed(2);
+
+            showToast(`🎉 Staked ${amount} USDC on ${selectedBetOutcome}! Potential Win: $${payout} USDC`, 'success');
+            closePredictionBetModal();
+        }
+
+        function closePredictionBetModal() {
+            const modal = document.getElementById('predictionBetModal');
+            if (modal) modal.classList.add('hidden');
+            activeBetMarket = null;
+        }
+
+        // Global exports for Prediction Engine
+        if (typeof window !== 'undefined') {
+            window.PREDICTION_COINS = PREDICTION_COINS;
+            window.PREDICTION_MARKETS = PREDICTION_MARKETS;
+            window.switchPredictionSubTab = switchPredictionSubTab;
+            window.setPredictionCategory = setPredictionCategory;
+            window.renderPredictionCoins = renderPredictionCoins;
+            window.renderPredictionMarkets = renderPredictionMarkets;
+            window.filterPredictionCoins = filterPredictionCoins;
+            window.openCoinChartModal = openCoinChartModal;
+            window.closeCoinChartModal = closeCoinChartModal;
+            window.setModalChartTimeframe = setModalChartTimeframe;
+            window.setModalChartType = setModalChartType;
+            window.openPredictionBetModal = openPredictionBetModal;
+            window.closePredictionBetModal = closePredictionBetModal;
+            window.selectBetOutcome = selectBetOutcome;
+            window.calculateBetPayout = calculateBetPayout;
+            window.executePredictionBet = executePredictionBet;
+            window.generateSparklineSvg = generateSparklineSvg;
+            window.generateTimeframeData = generateTimeframeData;
         }
 
         // ==========================================
@@ -2734,6 +3780,9 @@ Timestamp: ${new Date().toISOString()}`;
 
                 if (typeof renderPredictionCoins === 'function' && typeof PREDICTION_COINS !== 'undefined') {
                     renderPredictionCoins(PREDICTION_COINS);
+                }
+                if (typeof renderPredictionMarkets === 'function' && typeof PREDICTION_MARKETS !== 'undefined') {
+                    renderPredictionMarkets(PREDICTION_MARKETS);
                 }
                 if (typeof startMainnetCountdown === 'function') {
                     startMainnetCountdown();

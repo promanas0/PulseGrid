@@ -990,6 +990,11 @@ if (typeof tailwind !== 'undefined') {
                 return;
             }
 
+            if (window.ethers && !ethers.utils.isAddress(recipient)) {
+                showToast('Invalid Address', 'Recipient is not a valid checksum/EVM address format', 'error');
+                return;
+            }
+
             if (isNaN(amt) || amt <= 0) {
                 showToast('Invalid Amount', 'Enter a valid amount to send', 'error');
                 return;
@@ -997,55 +1002,152 @@ if (typeof tailwind !== 'undefined') {
 
             const provider = activeWeb3Provider || window.ethereum;
             if (!provider) {
-                showToast('No Wallet Found', 'Please connect MetaMask or WalletConnect', 'error');
+                showToast('No Wallet Found', 'Please connect MetaMask, WalletConnect, or Circle Wallet', 'error');
                 return;
             }
 
+            const sendBtn = document.querySelector('#walletSendModal button[onclick="executeRealSendToken()"]');
+            const origBtnHtml = sendBtn ? sendBtn.innerHTML : 'Send Real Web3 Transaction';
+
             try {
+                if (!window.ethers) {
+                    throw new Error("Ethers.js library not loaded in browser.");
+                }
+
+                if (sendBtn) {
+                    sendBtn.disabled = true;
+                    sendBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Connecting to Arc L1...</span>`;
+                }
+
+                const web3Provider = new ethers.providers.Web3Provider(provider);
+                const signer = web3Provider.getSigner();
+                const userAddress = await signer.getAddress();
+
                 showToast('Transaction Pending', `Please confirm sending ${amt} ${token.symbol} in your wallet app...`, 'info');
 
-                let txHash = null;
+                let tx = null;
 
-                if (provider.request) {
-                    txHash = await provider.request({
-                        method: 'eth_sendTransaction',
-                        params: [{
-                            from: currentAccount,
+                if (token.symbol === 'USDC') {
+                    // Check ERC-20 USDC balance vs Native USDC balance on Arc Testnet
+                    const usdcContract = new ethers.Contract(ERC20_USDC_ADDRESS, [
+                        "function transfer(address to, uint256 amount) returns (bool)",
+                        "function balanceOf(address account) view returns (uint256)"
+                    ], signer);
+
+                    const amountUnits6 = ethers.utils.parseUnits(amt.toString(), 6);
+                    let erc20Bal = ethers.BigNumber.from(0);
+                    try {
+                        erc20Bal = await usdcContract.balanceOf(userAddress);
+                    } catch(e) {}
+
+                    const nativeBal = await web3Provider.getBalance(userAddress);
+                    const nativeUnits18 = ethers.utils.parseEther(amt.toString());
+
+                    if (erc20Bal.gte(amountUnits6)) {
+                        // Send ERC-20 USDC Transfer
+                        if (sendBtn) {
+                            sendBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Sending ERC-20 USDC...</span>`;
+                        }
+                        tx = await usdcContract.transfer(recipient, amountUnits6);
+                    } else if (nativeBal.gte(nativeUnits18)) {
+                        // Send Native USDC Transfer
+                        if (sendBtn) {
+                            sendBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Sending Native USDC...</span>`;
+                        }
+                        tx = await signer.sendTransaction({
                             to: recipient,
-                            value: '0x0'
-                        }]
-                    });
-                } else if (window.ethers) {
-                    const web3Provider = new ethers.providers.Web3Provider(provider);
-                    const signer = web3Provider.getSigner();
-                    const tx = await signer.sendTransaction({
-                        to: recipient,
-                        value: 0
-                    });
-                    txHash = tx.hash;
+                            value: nativeUnits18
+                        });
+                    } else {
+                        showToast('Insufficient Balance', `You do not have enough USDC to transfer ${amt} USDC.`, 'error');
+                        if (sendBtn) {
+                            sendBtn.disabled = false;
+                            sendBtn.innerHTML = origBtnHtml;
+                        }
+                        return;
+                    }
+                } else if (token.symbol === 'EURC') {
+                    // Send ERC-20 EURC Transfer (6 decimals)
+                    const eurcContract = new ethers.Contract(ERC20_EURC_ADDRESS, [
+                        "function transfer(address to, uint256 amount) returns (bool)",
+                        "function balanceOf(address account) view returns (uint256)"
+                    ], signer);
+
+                    const amountUnits6 = ethers.utils.parseUnits(amt.toString(), 6);
+                    let eurcBal = ethers.BigNumber.from(0);
+                    try {
+                        eurcBal = await eurcContract.balanceOf(userAddress);
+                    } catch(e) {}
+
+                    if (eurcBal.lt(amountUnits6)) {
+                        showToast('Insufficient EURC', `You have ${ethers.utils.formatUnits(eurcBal, 6)} EURC.`, 'error');
+                        if (sendBtn) {
+                            sendBtn.disabled = false;
+                            sendBtn.innerHTML = origBtnHtml;
+                        }
+                        return;
+                    }
+
+                    if (sendBtn) {
+                        sendBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Sending EURC...</span>`;
+                    }
+                    tx = await eurcContract.transfer(recipient, amountUnits6);
+                } else {
+                    // Generic ERC-20 Transfer
+                    const tokenContract = new ethers.Contract(token.address, [
+                        "function transfer(address to, uint256 amount) returns (bool)",
+                        "function balanceOf(address account) view returns (uint256)"
+                    ], signer);
+                    const decimals = token.decimals || 18;
+                    const amountUnits = ethers.utils.parseUnits(amt.toString(), decimals);
+                    tx = await tokenContract.transfer(recipient, amountUnits);
                 }
 
-                if (!txHash) {
-                    txHash = "0x" + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('');
+                if (tx && tx.hash) {
+                    showToast('Transaction Broadcasted', `Tx: ${tx.hash.substring(0, 10)}... Mining on Arc Testnet`, 'info');
+                    if (sendBtn) {
+                        sendBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Waiting for Block Confirmation...</span>`;
+                    }
+
+                    const receipt = await tx.wait();
+                    const finalTxHash = receipt.transactionHash || tx.hash;
+
+                    showToast('Transfer Complete! 🚀', `Successfully sent ${amt} ${token.symbol}! Tx: ${finalTxHash.substring(0, 8)}...`, 'success');
+
+                    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    if (typeof saveTxRecord === 'function') {
+                        saveTxRecord(currentAccount, {
+                            txHash: finalTxHash,
+                            type: 'Token Transfer',
+                            pair: `Sent ${amt.toFixed(2)} ${token.symbol} ➔ ${recipient.substring(0,8)}...`,
+                            time: timeStr
+                        });
+                    }
+
+                    closeWalletSendModal();
+                    const sendAmtInput = document.getElementById('sendAmountInput');
+                    const sendRecipInput = document.getElementById('sendRecipientAddr');
+                    if (sendAmtInput) sendAmtInput.value = '';
+                    if (sendRecipInput) sendRecipInput.value = '';
+
+                    // Refresh balances in UI
+                    if (typeof fetchRealOnChainBalances === 'function') {
+                        await fetchRealOnChainBalances(currentAccount);
+                    }
+                    if (typeof updateTokenBalancesUI === 'function') {
+                        updateTokenBalancesUI();
+                    }
                 }
-
-                token.balance = Math.max(0, token.balance - amt);
-                updateTokenBalancesUI();
-
-                const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                saveTxRecord(currentAccount, {
-                    txHash: txHash,
-                    type: 'Token Transfer',
-                    pair: `Sent ${amt.toFixed(2)} ${token.symbol} ➔ ${recipient.substring(0,8)}...`,
-                    time: timeStr
-                });
-
-                closeWalletSendModal();
-                showToast('Transaction Broadcasted!', `Sent ${amt} ${token.symbol}! Tx Hash: ${txHash.substring(0, 10)}...`, 'success');
 
             } catch(sendErr) {
                 console.error("Send transaction error:", sendErr);
-                showToast('Transaction Cancelled', sendErr.message || 'Send transaction rejected in wallet app', 'error');
+                const errMsg = sendErr?.data?.message || sendErr?.message || 'Send transaction rejected in wallet';
+                showToast('Transaction Failed', errMsg.substring(0, 85), 'error');
+            } finally {
+                if (sendBtn) {
+                    sendBtn.disabled = false;
+                    sendBtn.innerHTML = origBtnHtml;
+                }
             }
         }
 
@@ -4142,6 +4244,10 @@ if (typeof tailwind !== 'undefined') {
             window.executePredictionBet = executePredictionBet;
             window.claimPredictionWinnings = claimPredictionWinnings;
             window.PREDICTION_MARKET_ADDRESS = PREDICTION_MARKET_ADDRESS;
+            window.openWalletSendModal = openWalletSendModal;
+            window.closeWalletSendModal = closeWalletSendModal;
+            window.setSendMaxAmount = setSendMaxAmount;
+            window.executeRealSendToken = executeRealSendToken;
             window.generateSparklineSvg = generateSparklineSvg;
             window.generateTimeframeData = generateTimeframeData;
         }

@@ -2699,6 +2699,57 @@
         </div>
     </div>
 
+    <!-- AUTHENTIC SIWE VERIFICATION & SIGN-IN MODAL -->
+    <div id="authSignModal" class="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="pixel-card-purple w-full max-w-md p-6 sm:p-7 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-purple-100 border-2 border-slate-950 flex items-center justify-center text-purple-700">
+                        <i data-lucide="shield-check" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-pixel font-bold text-slate-950 text-base">Verify &amp; Sign In</h3>
+                        <div class="text-[10px] font-mono text-purple-700 font-bold">Arc L1 Cryptographic Authentication</div>
+                    </div>
+                </div>
+                <button onclick="closeAuthSignModal()" class="p-1 rounded-lg bg-slate-100 hover:bg-slate-200 border-2 border-slate-950 font-bold text-xs text-slate-700">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Connected Account Card -->
+            <div class="p-4 rounded-2xl bg-slate-50 border-2 border-slate-950 font-mono text-xs space-y-2">
+                <div class="flex items-center justify-between text-[11px]">
+                    <span class="text-slate-500 font-bold">Connected Wallet:</span>
+                    <span class="flex items-center gap-1 text-emerald-700 font-bold">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Ready to Sign
+                    </span>
+                </div>
+                <div id="authSignModalAddress" class="font-bold text-slate-950 text-xs sm:text-sm truncate p-2 bg-white rounded-xl border border-slate-300">
+                    0x0000...0000
+                </div>
+                <div class="flex items-center justify-between text-[10px] text-slate-500 pt-1 border-t border-slate-200">
+                    <span>Network: <strong>Arc L1 (5042002)</strong></span>
+                    <span class="text-emerald-700 font-bold">Gas Fee: 0.00 USDC (Free)</span>
+                </div>
+            </div>
+
+            <p class="text-xs text-slate-600 font-medium leading-relaxed">
+                Sign this cryptographic message to authenticate your wallet ownership and establish a verified session on <strong>Circle Arc L1 Testnet</strong>.
+            </p>
+
+            <div class="space-y-2 pt-1 font-mono text-xs">
+                <button onclick="executeAuthSignFromModal()" id="authSignConfirmBtn" class="btn-pixel w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-700 via-indigo-600 to-teal-600 text-white font-pixel font-bold text-xs flex items-center justify-center gap-2 shadow-[3px_3px_0px_#0F172A]">
+                    <i data-lucide="key" class="w-4 h-4"></i>
+                    <span>Sign In with Wallet (Free)</span>
+                </button>
+                <button onclick="closeAuthSignModal()" class="w-full py-2 text-center text-slate-500 hover:text-slate-950 text-xs font-bold font-mono">
+                    Skip for now &amp; Explore
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- WALLET RECEIVE MODAL -->
     <div id="walletReceiveModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="pixel-card-teal w-full max-w-md p-6 space-y-5 font-mono text-xs">

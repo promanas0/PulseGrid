@@ -431,26 +431,57 @@ if (typeof tailwind !== 'undefined') {
             }
         }
 
-        async function requestSignatureAuth() {
+        function openAuthSignModal() {
             if (!currentAccount) {
                 handleWalletClick();
                 return;
             }
+            const modal = document.getElementById('authSignModal');
+            if (!modal) return;
+            safeSetText('authSignModalAddress', currentAccount);
+            const btn = document.getElementById('authSignConfirmBtn');
+            if (btn) {
+                btn.innerHTML = `<i data-lucide="key" class="w-4 h-4"></i><span>Sign In with Wallet (Free)</span>`;
+                btn.disabled = false;
+            }
+            modal.classList.remove('hidden');
+            safeInitIcons();
+        }
+
+        function closeAuthSignModal() {
+            const modal = document.getElementById('authSignModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        async function executeAuthSignFromModal() {
+            if (!currentAccount) {
+                closeAuthSignModal();
+                handleWalletClick();
+                return;
+            }
+            const btn = document.getElementById('authSignConfirmBtn');
+            if (btn) {
+                btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Waiting for Signature...</span>`;
+                btn.disabled = true;
+            }
+            safeInitIcons();
+
             try {
                 const provider = activeWeb3Provider || window.ethereum;
-                if (!provider) return;
+                if (!provider) {
+                    closeAuthSignModal();
+                    return;
+                }
 
-                showToast('Signature Request', 'Please check your wallet app to sign authentication message...', 'info');
-                
                 const host = window.location.host || 'pulsegrid-hub.vercel.app';
                 const origin = window.location.origin || 'https://pulsegrid-hub.vercel.app';
                 const nonce = Math.random().toString(36).substring(2, 10);
                 const timestamp = new Date().toISOString();
 
-                // EIP-4361 Standard Sign-In with Ethereum Format (recognized by MetaMask Blockaid without warning)
+                // EIP-4361 Standard Sign-In with Ethereum Format
                 const authMessage = `${host} wants you to sign in with your Ethereum account:\n${currentAccount}\n\nSign in to PulseGrid Arc L1 Testnet.\n\nURI: ${origin}\nVersion: 1\nChain ID: 5042002\nNonce: ${nonce}\nIssued At: ${timestamp}`;
                 const hexMsg = '0x' + Array.from(new TextEncoder().encode(authMessage)).map(b => b.toString(16).padStart(2, '0')).join('');
-                
+
                 let signature;
                 if (provider.request) {
                     signature = await provider.request({
@@ -464,12 +495,28 @@ if (typeof tailwind !== 'undefined') {
                 }
 
                 if (signature) {
+                    if (btn) {
+                        btn.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-300"></i><span>Authenticated Successfully!</span>`;
+                    }
+                    safeInitIcons();
                     showToast('Session Authenticated! 🛡️', `Verified cryptographic sign: ${signature.substring(0, 12)}...`, 'success');
+                    setTimeout(() => {
+                        closeAuthSignModal();
+                    }, 800);
                 }
-            } catch(signErr) {
-                console.warn("Signature request failed/rejected:", signErr);
-                showToast('Signature Rejected', 'Signature request rejected or cancelled by user.', 'error');
+            } catch (signErr) {
+                console.warn("Auth sign error/rejected:", signErr);
+                if (btn) {
+                    btn.innerHTML = `<i data-lucide="key" class="w-4 h-4"></i><span>Sign In with Wallet (Free)</span>`;
+                    btn.disabled = false;
+                }
+                safeInitIcons();
+                showToast('Signature Cancelled', 'You can sign in anytime from the Wallet view', 'info');
             }
+        }
+
+        async function requestSignatureAuth() {
+            openAuthSignModal();
         }
 
         async function fetchRealOnChainBalances(account) {
@@ -532,6 +579,11 @@ if (typeof tailwind !== 'undefined') {
                     loadQuestState(account);
                 }
                 showToast('Wallet Connected!', `Connected via ${providerName} on Arc Testnet`, 'success');
+
+                // Open in-app Sign-In / Verification popup
+                setTimeout(() => {
+                    openAuthSignModal();
+                }, 400);
             } catch(e) {}
         }
 

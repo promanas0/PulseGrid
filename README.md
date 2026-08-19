@@ -1,4 +1,4 @@
-# ⚡ PulseGrid (ArchPulse) — High-Performance Circle Arc L1 Web3 Ecosystem Suite
+#  PulseGrid (ArchPulse) — High-Performance Circle Arc L1 Web3 Ecosystem Suite
 
 <div align="center">
 
@@ -19,7 +19,7 @@
 
 ---
 
-## 📌 Table of Contents
+##  Table of Contents
 - [Executive Overview](#-executive-overview)
 - [Circle Arc L1 Network Specifications](#-circle-arc-l1-network-specifications)
 - [Key Architectural Features](#-key-architectural-features)
@@ -39,7 +39,7 @@
 
 ---
 
-## 🚀 Executive Overview
+##  Executive Overview
 
 **PulseGrid (ArchPulse)** is an institutional-grade, single-page Web3 decentralized ecosystem and infrastructure dashboard built for **Circle Arc L1** — the high-throughput, sub-second finality Layer-1 blockchain powered by native USDC gas settlement.
 
@@ -47,7 +47,7 @@ Combining modern neo-brutalist and holographic glassmorphism aesthetics, PulseGr
 
 ---
 
-## 🌐 Circle Arc L1 Network Specifications
+##  Circle Arc L1 Network Specifications
 
 | Parameter | Specification / Value |
 | :--- | :--- |
@@ -63,7 +63,7 @@ Combining modern neo-brutalist and holographic glassmorphism aesthetics, PulseGr
 
 ---
 
-## 💎 Key Architectural Features
+##  Key Architectural Features
 
 ### 1. Live Telemetry & Consensus Matrix (Protocol)
 * **Real RPC Block Polling**: Direct JSON-RPC telemetry stream fetching block height, transaction counts, gas benchmarks, and throughput.
@@ -108,7 +108,7 @@ Combining modern neo-brutalist and holographic glassmorphism aesthetics, PulseGr
 
 ---
 
-## 🔒 Standards & Security Compliance
+##  Standards & Security Compliance
 
 * **EIP-1193**: Standardized Ethereum provider interface supporting MetaMask, WalletConnect v2, Coinbase Wallet, OKX, and Rabby.
 * **EIP-191 & EIP-4361 (SIWE)**: Clean, authenticated Sign-In with Ethereum format matching origin and domain, preventing phishing alerts and MetaMask Blockaid security warnings.
@@ -116,7 +116,7 @@ Combining modern neo-brutalist and holographic glassmorphism aesthetics, PulseGr
 
 ---
 
-## 📂 Project Directory Structure
+##  Project Directory Structure
 
 ```plaintext
 archpulse/
@@ -134,7 +134,7 @@ archpulse/
 
 ---
 
-## 🛠️ Quick Start & Local Setup
+##  Quick Start & Local Setup
 
 ### Prerequisites
 * A modern web browser (Chrome, Brave, Firefox, or Edge)
@@ -167,7 +167,7 @@ archpulse/
 
 ---
 
-## ⏳ Mainnet Launch Countdown
+##  Mainnet Launch Countdown
 
 PulseGrid features a live real-time countdown synchronized for the official **Circle Arc L1 Mainnet & Builder Ecosystem Finale**:
 
@@ -175,7 +175,7 @@ PulseGrid features a live real-time countdown synchronized for the official **Ci
 
 ---
 
-## 📜 License & Acknowledgments
+##  License & Acknowledgments
 
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 

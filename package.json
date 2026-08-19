@@ -57,6 +57,7 @@
     "@types/node": "^20.11.0",
     "@types/react": "^19.2.18",
     "next": "^16.3.0",
+    "solc": "^0.8.20",
     "ts-node": "^10.9.2",
     "tsx": "^4.23.12",
     "typescript": "^5.3.3"
@@ -78,4 +79,3 @@
     "@solana/codecs-strings": "^2.0.0"
   }
 }
-

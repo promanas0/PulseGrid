@@ -80,10 +80,21 @@ if (typeof tailwind !== 'undefined') {
         const ARC_RPC_URL = 'https://rpc.testnet.arc.io';
         const ARC_RPC_URL_ALT = 'https://rpc.testnet.arc.network';
         
-        // Official Deployed PulseGrid Spender Router Address & ABIs
+        // Official Deployed PulseGrid Spender Router & Prediction Market Address & ABIs
         const SPENDER_ROUTER_ADDRESS = '0x24EC9947C9Bd6c5ab4a3357A50c78D064176af31';
+        const PREDICTION_MARKET_ADDRESS = '0x14519dB645becb71867A657b0b461E301954800F';
         const ERC20_USDC_ADDRESS = '0x3600000000000000000000000000000000000000';
         const ERC20_EURC_ADDRESS = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a';
+
+        const PREDICTION_MARKET_ABI = [
+            "function buyShares(uint256 marketId, bool isYes, uint256 usdcAmount) external",
+            "function claimWinnings(uint256 marketId) external returns (uint256 payout)",
+            "function getClaimablePayout(uint256 marketId, address user) view returns (uint256)",
+            "function getMarketProbabilities(uint256 marketId) view returns (uint256 yesPct, uint256 noPct, uint256 yesPriceUsdcBps, uint256 noPriceUsdcBps)",
+            "function userPositions(uint256 marketId, address user) view returns (uint256 yesAmount, uint256 noAmount, bool claimed)",
+            "function markets(uint256 marketId) view returns (uint256 id, string title, string category, string iconUri, uint256 endTime, uint256 totalYesAmount, uint256 totalNoAmount, uint8 outcome, bool resolved, bool exists)",
+            "function marketCount() view returns (uint256)"
+        ];
 
         const SPENDER_ROUTER_ABI = [
             "function swapUSDCtoEURC(uint256 amountUSDC) returns (uint256 eurcOut)",
@@ -3953,16 +3964,156 @@ if (typeof tailwind !== 'undefined') {
             safeSetText('betPayoutText', `$${payout} USDC (+${returnPct}%)`);
         }
 
-        function executePredictionBet() {
+        function recordUserBet(marketId, marketTitle, outcome, amount, txHash) {
+            try {
+                const history = JSON.parse(localStorage.getItem('arc_prediction_bets') || '[]');
+                history.unshift({
+                    marketId,
+                    marketTitle,
+                    outcome,
+                    amount,
+                    txHash,
+                    timestamp: new Date().toISOString()
+                });
+                localStorage.setItem('arc_prediction_bets', JSON.stringify(history.slice(0, 50)));
+            } catch(e) {}
+        }
+
+        async function executePredictionBet() {
             if (!activeBetMarket) return;
             const amountInput = document.getElementById('betAmountInput');
             const amount = parseFloat(amountInput?.value) || 10;
-            const price = selectedBetOutcome === 'YES' ? activeBetMarket.yesPrice : activeBetMarket.noPrice;
-            const shares = (amount / price).toFixed(2);
-            const payout = (shares * 1.0).toFixed(2);
+            if (amount <= 0) {
+                showToast('Invalid Amount', 'Please enter a positive USDC stake amount.', 'error');
+                return;
+            }
 
-            showToast(`🎉 Staked ${amount} USDC on ${selectedBetOutcome}! Potential Win: $${payout} USDC`, 'success');
-            closePredictionBetModal();
+            const provider = activeWeb3Provider || window.ethereum;
+            if (!provider) {
+                showToast('No Wallet Connected', 'Please connect your Web3 wallet (MetaMask or Circle Wallet) first!', 'error');
+                openConnectWalletModal();
+                return;
+            }
+
+            const confirmBtn = document.querySelector('#predictionBetModal button[onclick="executePredictionBet()"]') || document.querySelector('#predictionBetModal .btn-pixel');
+            const originalBtnHtml = confirmBtn ? confirmBtn.innerHTML : 'Confirm Prediction Bet';
+
+            try {
+                if (!window.ethers) {
+                    throw new Error("Ethers.js library not loaded in browser.");
+                }
+
+                if (confirmBtn) {
+                    confirmBtn.disabled = true;
+                    confirmBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Connecting Arc Testnet...</span>`;
+                }
+
+                const web3Provider = new ethers.providers.Web3Provider(provider);
+                const signer = web3Provider.getSigner();
+                const userAddress = await signer.getAddress();
+
+                const usdcUnits = ethers.utils.parseUnits(amount.toString(), 6);
+                const usdcContract = new ethers.Contract(ERC20_USDC_ADDRESS, ERC20_ABI, signer);
+
+                if (confirmBtn) {
+                    confirmBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Verifying USDC Balance...</span>`;
+                }
+
+                let userBal = ethers.BigNumber.from(0);
+                try {
+                    userBal = await usdcContract.balanceOf(userAddress);
+                } catch(e) {}
+
+                if (userBal.lt(usdcUnits)) {
+                    showToast('Insufficient USDC', `You have ${ethers.utils.formatUnits(userBal, 6)} USDC on Arc Testnet. Please fund your wallet.`, 'error');
+                    if (confirmBtn) {
+                        confirmBtn.disabled = false;
+                        confirmBtn.innerHTML = originalBtnHtml;
+                    }
+                    return;
+                }
+
+                // Check Allowance
+                if (confirmBtn) {
+                    confirmBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Checking Allowance...</span>`;
+                }
+
+                let allowance = ethers.BigNumber.from(0);
+                try {
+                    allowance = await usdcContract.allowance(userAddress, PREDICTION_MARKET_ADDRESS);
+                } catch(e) {}
+
+                if (allowance.lt(usdcUnits)) {
+                    showToast('Step 1/2: Approve USDC', 'Please confirm USDC Approval in your wallet...', 'info');
+                    if (confirmBtn) {
+                        confirmBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Confirming Approval...</span>`;
+                    }
+                    const approveTx = await usdcContract.approve(PREDICTION_MARKET_ADDRESS, ethers.constants.MaxUint256);
+                    showToast('Approval Broadcasted', `Tx: ${approveTx.hash.substring(0, 10)}... Waiting for block`, 'info');
+                    await approveTx.wait();
+                    showToast('USDC Approved! 🚀', 'Step 1 complete! Now placing on-chain prediction stake...', 'success');
+                }
+
+                // Step 2: Buy Shares on ArcPulsePredictionMarket
+                const marketIndex = PREDICTION_MARKETS.findIndex(m => m.id === activeBetMarket.id);
+                const targetMarketId = marketIndex >= 0 ? marketIndex : 0;
+                const isYes = selectedBetOutcome === 'YES';
+
+                showToast('Step 2/2: Confirm Bet', `Staking ${amount} USDC on ${selectedBetOutcome} on Arc L1...`, 'info');
+                if (confirmBtn) {
+                    confirmBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Broadcasting to Arc L1...</span>`;
+                }
+
+                const predictionContract = new ethers.Contract(PREDICTION_MARKET_ADDRESS, PREDICTION_MARKET_ABI, signer);
+                const betTx = await predictionContract.buyShares(targetMarketId, isYes, usdcUnits, {
+                    gasLimit: 350000
+                });
+
+                showToast('Transaction Broadcasted', `Tx: ${betTx.hash.substring(0, 10)}... Mining on Arc Testnet`, 'info');
+                const receipt = await betTx.wait();
+                const txHash = receipt.transactionHash || betTx.hash;
+
+                showToast(`🎉 Stake of ${amount} USDC on ${selectedBetOutcome} Confirmed!`, `Tx: ${txHash.substring(0, 8)}... (Arc L1)`, 'success');
+
+                recordUserBet(targetMarketId, activeBetMarket.title, selectedBetOutcome, amount, txHash);
+                closePredictionBetModal();
+
+                if (typeof updateBalances === 'function') updateBalances();
+                if (typeof fetchRealOnChainBalances === 'function') fetchRealOnChainBalances();
+            } catch (err) {
+                console.error('Prediction Bet Error:', err);
+                const errorMsg = err?.data?.message || err?.message || 'Transaction rejected or failed';
+                showToast('Prediction Bet Failed', errorMsg.substring(0, 85), 'error');
+            } finally {
+                if (confirmBtn) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = originalBtnHtml;
+                }
+            }
+        }
+
+        async function claimPredictionWinnings(marketId) {
+            const provider = activeWeb3Provider || window.ethereum;
+            if (!provider) {
+                showToast('No Wallet', 'Please connect your Web3 wallet first.', 'error');
+                return;
+            }
+            try {
+                const web3Provider = new ethers.providers.Web3Provider(provider);
+                const signer = web3Provider.getSigner();
+                const predictionContract = new ethers.Contract(PREDICTION_MARKET_ADDRESS, PREDICTION_MARKET_ABI, signer);
+
+                showToast('Claiming Payout', `Claiming USDC winnings for Market #${marketId}...`, 'info');
+                const tx = await predictionContract.claimWinnings(marketId, { gasLimit: 300000 });
+                showToast('Transaction Broadcasted', `Tx: ${tx.hash.substring(0, 10)}... Waiting for block`, 'info');
+                const receipt = await tx.wait();
+                showToast('Winnings Claimed! 🎉', `USDC payout transferred to your wallet! Tx: ${receipt.transactionHash.substring(0, 8)}...`, 'success');
+                if (typeof updateBalances === 'function') updateBalances();
+            } catch (err) {
+                console.error(err);
+                const msg = err?.data?.message || err?.message || 'Transaction failed';
+                showToast('Claim Failed', msg.substring(0, 85), 'error');
+            }
         }
 
         function closePredictionBetModal() {
@@ -3989,6 +4140,8 @@ if (typeof tailwind !== 'undefined') {
             window.selectBetOutcome = selectBetOutcome;
             window.calculateBetPayout = calculateBetPayout;
             window.executePredictionBet = executePredictionBet;
+            window.claimPredictionWinnings = claimPredictionWinnings;
+            window.PREDICTION_MARKET_ADDRESS = PREDICTION_MARKET_ADDRESS;
             window.generateSparklineSvg = generateSparklineSvg;
             window.generateTimeframeData = generateTimeframeData;
         }

@@ -19,7 +19,7 @@ interface IERC20 {
 
 contract ArcPulseCoinFlip {
     string public constant name = "ArcPulse Provably Fair Coin Flip";
-    string public constant symbol = "ARC-FLIP-V1";
+    string public constant symbol = "ARC-FLIP-V2";
 
     address public owner;
     
@@ -27,18 +27,14 @@ contract ArcPulseCoinFlip {
     address public constant USDC_ADDRESS = 0x3600000000000000000000000000000000000000;
 
     // Minimum & Maximum Bet Limits (in USDC 6 decimals & Native Wei)
-    uint256 public minBetUSDC = 100_000;          // 0.1 USDC
-    uint256 public maxBetUSDC = 100_000_000;      // 100 USDC
+    uint256 public minBetUSDC = 100_000;          // 0.10 USDC
+    uint256 public maxBetUSDC = 100_000_000;      // 100.00 USDC
     uint256 public minBetNative = 0.001 ether;
     uint256 public maxBetNative = 10 ether;
 
     // Multiplier: 2.00x payout (200 / 100)
-    // House fee: 1% (optional house edge, set to 0 for 100% pure 2.00x)
-    uint256 public houseFeeBps = 0; // 0 bps = pure 2.00x payout
-
-    // House Bankroll Reserves
-    uint256 public houseUSDCReserve;
-    uint256 public houseNativeReserve;
+    // House fee: 0 bps = pure 2.00x payout
+    uint256 public houseFeeBps = 0;
 
     // Global Statistics
     uint256 public totalFlips;
@@ -49,6 +45,7 @@ contract ArcPulseCoinFlip {
 
     // Nonce for randomness entropy
     uint256 private nonce;
+    bool private _locked;
 
     // Player statistics
     struct PlayerStats {
@@ -97,27 +94,32 @@ contract ArcPulseCoinFlip {
         _;
     }
 
+    modifier nonReentrant() {
+        require(!_locked, "ArcPulseCoinFlip: Reentrancy guard");
+        _locked = true;
+        _;
+        _locked = false;
+    }
+
     constructor() {
         owner = msg.sender;
     }
 
     receive() external payable {
-        houseNativeReserve += msg.value;
         emit HouseBankrollDeposited(msg.sender, 0, msg.value);
     }
 
     fallback() external payable {
-        houseNativeReserve += msg.value;
         emit HouseBankrollDeposited(msg.sender, 0, msg.value);
     }
 
     /**
      * @notice Execute an on-chain Coin Flip using ERC-20 USDC
      * @param choice 0 for Heads, 1 for Tails
-     * @param betAmount Amount of USDC to bet (6 decimals, e.g. 1_000_000 = 1 USDC)
+     * @param betAmount Amount of USDC to bet (6 decimals, e.g. 100_000 = 0.1 USDC)
      * @param clientSeed Optional entropy string provided by player for provable fairness
      */
-    function flipUSDC(uint8 choice, uint256 betAmount, string calldata clientSeed) external returns (bool won, uint8 outcome, uint256 payout) {
+    function flipUSDC(uint8 choice, uint256 betAmount, string calldata clientSeed) external nonReentrant returns (bool won, uint8 outcome, uint256 payout) {
         require(choice == 0 || choice == 1, "ArcPulseCoinFlip: Choice must be 0 (Heads) or 1 (Tails)");
         require(betAmount >= minBetUSDC, "ArcPulseCoinFlip: Bet amount below minimum");
         require(betAmount <= maxBetUSDC, "ArcPulseCoinFlip: Bet amount exceeds maximum");
@@ -129,7 +131,6 @@ contract ArcPulseCoinFlip {
         bool success = IERC20(USDC_ADDRESS).transferFrom(msg.sender, address(this), betAmount);
         require(success, "ArcPulseCoinFlip: USDC transferFrom failed");
 
-        houseUSDCReserve += betAmount;
         totalUSDCWagered += betAmount;
         totalFlips++;
 
@@ -152,14 +153,13 @@ contract ArcPulseCoinFlip {
         payout = 0;
         if (won) {
             payout = potentialPayout;
-            houseUSDCReserve -= payout;
             totalUSDCPaidOut += payout;
             
-            bool paySuccess = IERC20(USDC_ADDRESS).transfer(msg.sender, payout);
-            require(paySuccess, "ArcPulseCoinFlip: Payout transfer failed");
-
             playerStats[msg.sender].winsCount++;
             playerStats[msg.sender].totalWonUSDC += payout;
+
+            bool paySuccess = IERC20(USDC_ADDRESS).transfer(msg.sender, payout);
+            require(paySuccess, "ArcPulseCoinFlip: Payout transfer failed");
         } else {
             playerStats[msg.sender].lossesCount++;
         }
@@ -167,26 +167,31 @@ contract ArcPulseCoinFlip {
         playerStats[msg.sender].flipsCount++;
         playerStats[msg.sender].totalWageredUSDC += betAmount;
 
-        // Record flip history
-        FlipRecord memory record = FlipRecord({
-            player: msg.sender,
-            choice: choice,
-            outcome: outcome,
-            won: won,
-            betAmount: betAmount,
-            payoutAmount: payout,
-            isNative: false,
-            timestamp: block.timestamp,
-            seedHash: seedHash
-        });
-
-        recentFlips.push(record);
-        if (recentFlips.length > 50) {
-            // Keep recent flips array bounded
-            for (uint256 i = 0; i < recentFlips.length - 1; i++) {
-                recentFlips[i] = recentFlips[i + 1];
-            }
-            recentFlips.pop();
+        // Record flip history (max 30 in memory array)
+        if (recentFlips.length < 30) {
+            recentFlips.push(FlipRecord({
+                player: msg.sender,
+                choice: choice,
+                outcome: outcome,
+                won: won,
+                betAmount: betAmount,
+                payoutAmount: payout,
+                isNative: false,
+                timestamp: block.timestamp,
+                seedHash: seedHash
+            }));
+        } else {
+            recentFlips[totalFlips % 30] = FlipRecord({
+                player: msg.sender,
+                choice: choice,
+                outcome: outcome,
+                won: won,
+                betAmount: betAmount,
+                payoutAmount: payout,
+                isNative: false,
+                timestamp: block.timestamp,
+                seedHash: seedHash
+            });
         }
 
         emit CoinFlipped(msg.sender, choice, outcome, won, betAmount, payout, false, block.timestamp, seedHash);
@@ -198,7 +203,7 @@ contract ArcPulseCoinFlip {
      * @param choice 0 for Heads, 1 for Tails
      * @param clientSeed Optional entropy string provided by player
      */
-    function flipNative(uint8 choice, string calldata clientSeed) external payable returns (bool won, uint8 outcome, uint256 payout) {
+    function flipNative(uint8 choice, string calldata clientSeed) external payable nonReentrant returns (bool won, uint8 outcome, uint256 payout) {
         require(choice == 0 || choice == 1, "ArcPulseCoinFlip: Choice must be 0 (Heads) or 1 (Tails)");
         require(msg.value >= minBetNative, "ArcPulseCoinFlip: Bet amount below minimum");
         require(msg.value <= maxBetNative, "ArcPulseCoinFlip: Bet amount exceeds maximum");
@@ -207,7 +212,6 @@ contract ArcPulseCoinFlip {
         uint256 potentialPayout = (betAmount * 2) - ((betAmount * 2 * houseFeeBps) / 10000);
         require(address(this).balance >= potentialPayout, "ArcPulseCoinFlip: House reserve insufficient for payout");
 
-        houseNativeReserve += betAmount;
         totalNativeWagered += betAmount;
         totalFlips++;
 
@@ -229,37 +233,42 @@ contract ArcPulseCoinFlip {
         payout = 0;
         if (won) {
             payout = potentialPayout;
-            houseNativeReserve -= payout;
             totalNativePaidOut += payout;
+
+            playerStats[msg.sender].winsCount++;
 
             (bool sent, ) = payable(msg.sender).call{value: payout}("");
             require(sent, "ArcPulseCoinFlip: Native payout transfer failed");
-
-            playerStats[msg.sender].winsCount++;
         } else {
             playerStats[msg.sender].lossesCount++;
         }
 
         playerStats[msg.sender].flipsCount++;
 
-        FlipRecord memory record = FlipRecord({
-            player: msg.sender,
-            choice: choice,
-            outcome: outcome,
-            won: won,
-            betAmount: betAmount,
-            payoutAmount: payout,
-            isNative: true,
-            timestamp: block.timestamp,
-            seedHash: seedHash
-        });
-
-        recentFlips.push(record);
-        if (recentFlips.length > 50) {
-            for (uint256 i = 0; i < recentFlips.length - 1; i++) {
-                recentFlips[i] = recentFlips[i + 1];
-            }
-            recentFlips.pop();
+        if (recentFlips.length < 30) {
+            recentFlips.push(FlipRecord({
+                player: msg.sender,
+                choice: choice,
+                outcome: outcome,
+                won: won,
+                betAmount: betAmount,
+                payoutAmount: payout,
+                isNative: true,
+                timestamp: block.timestamp,
+                seedHash: seedHash
+            }));
+        } else {
+            recentFlips[totalFlips % 30] = FlipRecord({
+                player: msg.sender,
+                choice: choice,
+                outcome: outcome,
+                won: won,
+                betAmount: betAmount,
+                payoutAmount: payout,
+                isNative: true,
+                timestamp: block.timestamp,
+                seedHash: seedHash
+            });
         }
 
         emit CoinFlipped(msg.sender, choice, outcome, won, betAmount, payout, true, block.timestamp, seedHash);
@@ -267,64 +276,45 @@ contract ArcPulseCoinFlip {
     }
 
     /**
-     * @notice Deposit liquidity into the house bankroll (USDC)
+     * @notice Deposit ERC-20 USDC into the House Bankroll
+     * @param amount Amount of USDC (6 decimals)
      */
     function depositHouseUSDC(uint256 amount) external {
         require(amount > 0, "ArcPulseCoinFlip: Amount must be > 0");
         bool success = IERC20(USDC_ADDRESS).transferFrom(msg.sender, address(this), amount);
-        require(success, "ArcPulseCoinFlip: Transfer failed");
-
-        houseUSDCReserve += amount;
+        require(success, "ArcPulseCoinFlip: USDC transfer failed");
         emit HouseBankrollDeposited(msg.sender, amount, 0);
     }
 
     /**
-     * @notice Deposit native USDC into the house bankroll
+     * @notice Deposit Native USDC into the House Bankroll
      */
     function depositHouseNative() external payable {
-        require(msg.value > 0, "ArcPulseCoinFlip: Value must be > 0");
-        houseNativeReserve += msg.value;
+        require(msg.value > 0, "ArcPulseCoinFlip: Amount must be > 0");
         emit HouseBankrollDeposited(msg.sender, 0, msg.value);
     }
 
     /**
-     * @notice Withdraw house bankroll reserves (Owner only)
+     * @notice Withdraw House Bankroll (Owner only)
+     * @param usdcAmount Amount of ERC-20 USDC to withdraw
+     * @param nativeAmount Amount of Native USDC to withdraw
      */
-    function withdrawHouseBankroll(uint256 usdcAmount, uint256 nativeAmount) external onlyOwner {
+    function withdrawHouseBankroll(uint256 usdcAmount, uint256 nativeAmount) external onlyOwner nonReentrant {
         if (usdcAmount > 0) {
             require(IERC20(USDC_ADDRESS).balanceOf(address(this)) >= usdcAmount, "ArcPulseCoinFlip: Insufficient USDC");
-            if (houseUSDCReserve >= usdcAmount) houseUSDCReserve -= usdcAmount;
-            IERC20(USDC_ADDRESS).transfer(owner, usdcAmount);
+            bool success = IERC20(USDC_ADDRESS).transfer(owner, usdcAmount);
+            require(success, "ArcPulseCoinFlip: USDC withdraw failed");
         }
         if (nativeAmount > 0) {
             require(address(this).balance >= nativeAmount, "ArcPulseCoinFlip: Insufficient Native");
-            if (houseNativeReserve >= nativeAmount) houseNativeReserve -= nativeAmount;
-            payable(owner).transfer(nativeAmount);
+            (bool sent, ) = payable(owner).call{value: nativeAmount}("");
+            require(sent, "ArcPulseCoinFlip: Native withdraw failed");
         }
         emit HouseBankrollWithdrawn(owner, usdcAmount, nativeAmount);
     }
 
     /**
-     * @notice Update bet limits and house parameters
-     */
-    function updateBetLimits(uint256 _minUSDC, uint256 _maxUSDC, uint256 _minNative, uint256 _maxNative) external onlyOwner {
-        minBetUSDC = _minUSDC;
-        maxBetUSDC = _maxUSDC;
-        minBetNative = _minNative;
-        maxBetNative = _maxNative;
-        emit LimitsUpdated(_minUSDC, _maxUSDC, _minNative, _maxNative);
-    }
-
-    /**
-     * @notice Set house fee in basis points (100 = 1%, 0 = 0%)
-     */
-    function setHouseFeeBps(uint256 _feeBps) external onlyOwner {
-        require(_feeBps <= 500, "ArcPulseCoinFlip: Fee cannot exceed 5%");
-        houseFeeBps = _feeBps;
-    }
-
-    /**
-     * @notice Get global house telemetry and reserve statistics
+     * @notice Get Live House Bankroll and Global Statistics
      */
     function getHouseStats() external view returns (
         uint256 _totalFlips,
@@ -347,23 +337,29 @@ contract ArcPulseCoinFlip {
     }
 
     /**
-     * @notice Get total recent flips count
+     * @notice Get Recent Flips array
      */
-    function getRecentFlipsCount() external view returns (uint256) {
-        return recentFlips.length;
+    function getRecentFlips() external view returns (FlipRecord[] memory) {
+        return recentFlips;
     }
 
     /**
-     * @notice Get a slice of recent flips for the public activity feed
+     * @notice Update Bet Limits (Owner only)
      */
-    function getRecentFlips(uint256 limit) external view returns (FlipRecord[] memory) {
-        uint256 len = recentFlips.length;
-        if (limit > len || limit == 0) limit = len;
-        
-        FlipRecord[] memory records = new FlipRecord[](limit);
-        for (uint256 i = 0; i < limit; i++) {
-            records[i] = recentFlips[len - 1 - i];
-        }
-        return records;
+    function setBetLimits(uint256 _minUSDC, uint256 _maxUSDC, uint256 _minNative, uint256 _maxNative) external onlyOwner {
+        require(_minUSDC < _maxUSDC, "ArcPulseCoinFlip: Min must be < Max");
+        minBetUSDC = _minUSDC;
+        maxBetUSDC = _maxUSDC;
+        minBetNative = _minNative;
+        maxBetNative = _maxNative;
+        emit LimitsUpdated(_minUSDC, _maxUSDC, _minNative, _maxNative);
+    }
+
+    /**
+     * @notice Transfer contract ownership
+     */
+    function transferOwnership(address newOwner) external onlyOwner {
+        require(newOwner != address(0), "ArcPulseCoinFlip: Invalid address");
+        owner = newOwner;
     }
 }

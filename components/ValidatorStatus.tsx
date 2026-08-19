@@ -25,6 +25,7 @@ export interface ValidatorNode {
   id: string;
   name: string;
   avatar: string;
+  logoSvg?: string;
   badge: string;
   organization: string;
   address: string;
@@ -51,6 +52,7 @@ const INITIAL_VALIDATORS: ValidatorNode[] = [
     id: 'circle-alpha',
     name: 'Circle Node Alpha',
     avatar: '🔵',
+    logoSvg: `<svg class="w-7 h-7" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="48" fill="#2775CA"/><path d="M50 20C33.4315 20 20 33.4315 20 50C20 66.5685 33.4315 80 50 80C66.5685 80 80 66.5685 80 50C80 33.4315 66.5685 20 50 20ZM44.5 35H55.5C59.0899 35 62 37.9101 62 41.5C62 45.0899 59.0899 48 55.5 48H44.5V35ZM55.5 65H44.5V52H55.5C59.0899 52 62 54.9101 62 58.5C62 62.0899 59.0899 65 55.5 65Z" fill="white"/></svg>`,
     badge: 'Consortium Lead',
     organization: 'Circle Internet Financial',
     address: '0x1f84...892A',
@@ -71,6 +73,7 @@ const INITIAL_VALIDATORS: ValidatorNode[] = [
     id: 'blackrock-prime',
     name: 'BlackRock Prime Consensus',
     avatar: '⬛',
+    logoSvg: `<svg class="w-7 h-7" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" rx="16" fill="#000000"/><path d="M22 26H52C62 26 68 31 68 39C68 45 64 49 57 51C66 53 71 58 71 67C71 76 63 82 51 82H22V26ZM36 48H49C54 48 57 45 57 41C57 37 54 35 49 35H36V48ZM36 73H50C56 73 59 70 59 65C59 60 56 57 50 57H36V73Z" fill="#FFFFFF"/></svg>`,
     badge: 'Institutional Tier 1',
     organization: 'BlackRock Financial Markets',
     address: '0x4b21...418C',
@@ -91,6 +94,7 @@ const INITIAL_VALIDATORS: ValidatorNode[] = [
     id: 'visa-settle',
     name: 'Visa Settlement Relay',
     avatar: '💳',
+    logoSvg: `<svg class="w-7 h-7" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" rx="16" fill="#1A1F71"/><path d="M42 68L48 32H55L49 68H42ZM36 32L30 57L28 47C26 39 20 35 14 32H27L36 68L36 32ZM72 45C72 37 61 36 61 31C61 29 63 28 67 28C71 28 76 29 80 31L81 24C77 22 72 21 66 21C53 21 44 28 44 38C44 51 62 52 62 58C62 60 59 62 54 62C48 62 43 60 39 57L38 64C42 66 48 68 54 68C68 68 76 60 76 50C76 48 74 46 72 45Z" fill="#F7B600"/></svg>`,
     badge: 'Institutional Tier 1',
     organization: 'Visa Inc.',
     address: '0x7c93...333F',
@@ -111,6 +115,7 @@ const INITIAL_VALIDATORS: ValidatorNode[] = [
     id: 'dtcc-consensus',
     name: 'DTCC Global Clearing Node',
     avatar: '🏛️',
+    logoSvg: `<svg class="w-7 h-7" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" rx="16" fill="#003366"/><path d="M20 28H44C58 28 66 36 66 50C66 64 58 72 44 72H20V28ZM32 60H43C51 60 55 56 55 50C55 44 51 40 43 40H32V60ZM65 28H80V72H65V28Z" fill="#00A3E0"/></svg>`,
     badge: 'Institutional Tier 1',
     organization: 'Depository Trust & Clearing Corp',
     address: '0x9e17...72D1',
@@ -131,6 +136,7 @@ const INITIAL_VALIDATORS: ValidatorNode[] = [
     id: 'bny-custody',
     name: 'BNY Mellon Digital Custody',
     avatar: '🏦',
+    logoSvg: `<svg class="w-7 h-7" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" rx="16" fill="#13294B"/><path d="M24 28H48C56 28 62 33 62 40C62 46 58 49 53 50C60 52 64 56 64 64C64 72 57 76 47 76H24V28ZM34 47H46C50 47 52 45 52 41C52 37 50 35 46 35H34V47ZM34 68H47C51 68 54 66 54 62C54 58 51 56 47 56H34V68ZM68 28H78V76H68V28Z" fill="#C59B27"/></svg>`,
     badge: 'Custodian Node',
     organization: 'Bank of New York Mellon',
     address: '0x3d9A...9992',
@@ -151,6 +157,7 @@ const INITIAL_VALIDATORS: ValidatorNode[] = [
     id: 'state-street',
     name: 'State Street Alpha Relay',
     avatar: '📊',
+    logoSvg: `<svg class="w-7 h-7" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" rx="16" fill="#002D62"/><path d="M22 66C22 55 29 49 39 46C49 43 54 41 54 36C54 32 50 29 44 29C37 29 31 32 26 36L22 28C28 23 36 20 45 20C57 20 66 26 66 37C66 48 58 53 49 56C39 59 34 62 34 67C34 71 39 74 46 74C54 74 61 70 67 65L71 73C64 79 55 83 45 83C31 83 22 76 22 66Z" fill="#FFFFFF"/><circle cx="76" cy="30" r="6" fill="#00A3E0"/></svg>`,
     badge: 'Custodian Node',
     organization: 'State Street Corp',
     address: '0x821F...8831',
@@ -171,6 +178,7 @@ const INITIAL_VALIDATORS: ValidatorNode[] = [
     id: 'jpmorgan-onyx',
     name: 'JPMorgan Onyx Engine',
     avatar: '💎',
+    logoSvg: `<svg class="w-7 h-7" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" rx="16" fill="#111111"/><path d="M24 24H42V62C42 69 38 74 30 74C26 74 22 73 19 71L21 62C23 63 26 64 28 64C31 64 33 62 33 59V24H24ZM48 24H68C76 24 81 29 81 37C81 45 76 50 68 50H58V74H48V24ZM58 41H67C70 41 72 39 72 37C72 35 70 33 67 33H58V41Z" fill="#C99700"/></svg>`,
     badge: 'Institutional Tier 1',
     organization: 'JPMorgan Chase & Co.',
     address: '0x51E2...1c2A',
@@ -191,6 +199,7 @@ const INITIAL_VALIDATORS: ValidatorNode[] = [
     id: 'fidelity-assets',
     name: 'Fidelity Digital Assets Node',
     avatar: '🌲',
+    logoSvg: `<svg class="w-7 h-7" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" rx="16" fill="#1B4D3E"/><path d="M50 18L26 58H40L30 82L68 44H52L62 18H50Z" fill="#78BE20"/><circle cx="50" cy="50" r="44" stroke="#78BE20" stroke-width="3"/></svg>`,
     badge: 'Institutional Tier 1',
     organization: 'Fidelity Investments',
     address: '0x6e9C...6004',
@@ -211,6 +220,7 @@ const INITIAL_VALIDATORS: ValidatorNode[] = [
     id: 'coinbase-cloud',
     name: 'Coinbase Cloud Validator',
     avatar: '🛡️',
+    logoSvg: `<svg class="w-7 h-7" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" rx="16" fill="#0052FF"/><circle cx="50" cy="50" r="32" fill="white"/><circle cx="50" cy="50" r="16" fill="#0052FF"/></svg>`,
     badge: 'Infrastructure Partner',
     organization: 'Coinbase Global, Inc.',
     address: '0x228d...1977',
@@ -231,6 +241,7 @@ const INITIAL_VALIDATORS: ValidatorNode[] = [
     id: 'franklin-templeton',
     name: 'Franklin Templeton OnChain',
     avatar: '🪙',
+    logoSvg: `<svg class="w-7 h-7" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" rx="16" fill="#0C2340"/><circle cx="50" cy="50" r="34" stroke="#00A3E0" stroke-width="4"/><path d="M50 24V76M34 38H66M38 52H62" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/></svg>`,
     badge: 'Asset Manager',
     organization: 'Franklin Templeton',
     address: '0xa41B...42f7',
@@ -251,6 +262,7 @@ const INITIAL_VALIDATORS: ValidatorNode[] = [
     id: 'nomura-laser',
     name: 'Nomura Laser Digital',
     avatar: '⚡',
+    logoSvg: `<svg class="w-7 h-7" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" rx="16" fill="#C8102E"/><polygon points="50,16 80,78 20,78" fill="white"/><polygon points="50,34 70,72 30,72" fill="#C8102E"/></svg>`,
     badge: 'Digital Assets Division',
     organization: 'Nomura Holdings',
     address: '0xd888...22C8',
@@ -271,6 +283,7 @@ const INITIAL_VALIDATORS: ValidatorNode[] = [
     id: 'arc-community',
     name: 'Arc Community Pulse Node',
     avatar: '🌐',
+    logoSvg: `<svg class="w-7 h-7" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" rx="16" fill="#7B2CBF"/><circle cx="50" cy="50" r="32" stroke="#FFFFFF" stroke-width="4"/><path d="M50 18C50 18 64 32 64 50C64 68 50 82 50 82C50 82 36 68 36 50C36 32 50 18 50 18Z" stroke="#00D2FF" stroke-width="3"/><line x1="20" y1="50" x2="80" y2="50" stroke="#FFFFFF" stroke-width="3"/></svg>`,
     badge: 'Community Pioneer',
     organization: 'Arc Ecosystem Foundation',
     address: '0x1102...0291',
@@ -662,8 +675,12 @@ export const ValidatorStatus: React.FC = () => {
                         {/* 1. Name & Org */}
                         <td className="py-4 px-4 sm:px-6">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-slate-100 border-2 border-slate-950 flex items-center justify-center text-lg shadow-[2px_2px_0px_#0F172A] shrink-0">
-                              {node.avatar}
+                            <div className="w-10 h-10 rounded-xl bg-slate-100 border-2 border-slate-950 flex items-center justify-center text-lg shadow-[2px_2px_0px_#0F172A] shrink-0 overflow-hidden">
+                              {node.logoSvg ? (
+                                <div className="w-7 h-7 flex items-center justify-center" dangerouslySetInnerHTML={{ __html: node.logoSvg }} />
+                              ) : (
+                                node.avatar
+                              )}
                             </div>
                             <div>
                               <div className="font-bold text-slate-950 flex items-center gap-2">
@@ -806,8 +823,12 @@ export const ValidatorStatus: React.FC = () => {
             {/* Modal Header */}
             <div className="flex items-start justify-between border-b-2 border-slate-100 pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-purple-100 border-2 border-slate-950 flex items-center justify-center text-2xl shadow-[2px_2px_0px_#0F172A]">
-                  {selectedValidator.avatar}
+                <div className="w-12 h-12 rounded-2xl bg-purple-100 border-2 border-slate-950 flex items-center justify-center text-2xl shadow-[2px_2px_0px_#0F172A] overflow-hidden">
+                  {selectedValidator.logoSvg ? (
+                    <div className="w-8 h-8 flex items-center justify-center" dangerouslySetInnerHTML={{ __html: selectedValidator.logoSvg }} />
+                  ) : (
+                    selectedValidator.avatar
+                  )}
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-slate-950 flex items-center gap-2">

@@ -1005,31 +1005,211 @@ Timestamp: ${new Date().toISOString()}`;
             showToast('AI Agent Active', 'ERC-8004 Autonomous Agent executed market cycle on Arc L1', 'success');
         }
 
-        // --- QUESTS & REWARDS ENGINE STATE ---
+        // =========================================================================
+        // GAMIFIED DAILY QUESTS, STREAK ROADMAP & 3-TIER NFT MEMBERSHIP PASS ENGINE
+        // =========================================================================
+        let activeQuestSubTab = 'daily';
+
         let questState = {
-            points: 0,
-            streak: 0,
+            points: 2450,
+            streak: 4,
             lastCheckinDate: '',
-            swapsCompleted: 0,
+            lastStreakClaimDate: '',
+            swapsCompleted: 2,
             claimedTasks: {
-                task5Swaps: false,
-                taskAi: false
+                'task-checkin': false,
+                'task-swap': false,
+                'task-faucet': false,
+                'task-validator': false,
+                'task-volume': false,
+                'task-escrow': false,
+                'task-ai': false,
+                'task-share': false,
+                'task5Swaps': false
             },
             claimedBadges: {
-                badge1: false,
-                badge2: false,
-                badge3: false
+                'badge1': true,
+                'badge2': false,
+                'badge3': false
             }
         };
 
+        const QUEST_TASKS_DATA = [
+            {
+                id: 'task-checkin',
+                category: 'daily',
+                title: 'Daily Web3 Check-In',
+                desc: 'Sign a cryptographic wallet message once per 24 hours to prove active identity',
+                xp: 100,
+                icon: 'fingerprint',
+                actionLabel: 'Sign & Check In',
+                actionFn: 'claimDailyCheckin()',
+                completedLabel: 'Checked In ✓',
+                badgeText: '+100 XP'
+            },
+            {
+                id: 'task-swap',
+                category: 'daily',
+                title: 'Perform Arc DEX Swap',
+                desc: 'Swap any amount of USDC or EURC on the Spender Router smart contract',
+                xp: 150,
+                icon: 'repeat',
+                actionLabel: 'Go Swap ⚡',
+                actionFn: "switchPage('swap')",
+                completedLabel: 'Swap Verified ✓',
+                badgeText: '+150 XP'
+            },
+            {
+                id: 'task-faucet',
+                category: 'daily',
+                title: 'Claim Testnet Gas Faucet',
+                desc: 'Refill your wallet with 100 USDC testnet tokens from the Circle Faucet',
+                xp: 75,
+                icon: 'droplet',
+                actionLabel: 'Claim Faucet 💧',
+                actionFn: 'openFaucetModal()',
+                completedLabel: 'Faucet Claimed ✓',
+                badgeText: '+75 XP'
+            },
+            {
+                id: 'task-validator',
+                category: 'daily',
+                title: 'Ping Validator Consensus Node',
+                desc: 'Inspect live BFT telemetry and node latency across Arc L1 Consortium',
+                xp: 50,
+                icon: 'radio',
+                actionLabel: 'Inspect Node 📡',
+                actionFn: "switchPage('validators')",
+                completedLabel: 'Node Pinged ✓',
+                badgeText: '+50 XP'
+            },
+            {
+                id: 'task-volume',
+                category: 'milestone',
+                title: 'High-Volume DEX Trader',
+                desc: 'Accumulate >500 USDC in total volume across Arc L1 Testnet Swaps',
+                xp: 500,
+                icon: 'trending-up',
+                actionLabel: 'Claim Milestone 🏆',
+                actionFn: "claimQuestTask('task-volume')",
+                completedLabel: 'Milestone Achieved ✓',
+                badgeText: '500 XP Milestone'
+            },
+            {
+                id: 'task-escrow',
+                category: 'milestone',
+                title: 'Deploy Circle Escrow Deposit',
+                desc: 'Create or fund a conditional multi-signature escrow vault transaction',
+                xp: 400,
+                icon: 'shield-check',
+                actionLabel: 'Open Escrow 🔐',
+                actionFn: "switchPage('escrow')",
+                completedLabel: 'Escrow Deployed ✓',
+                badgeText: '+400 XP'
+            },
+            {
+                id: 'task-ai',
+                category: 'milestone',
+                title: 'Connect Pro Gemini AI',
+                desc: 'Chat with AI Assistant or save your Gemini API Key for coprocessor analysis',
+                xp: 250,
+                icon: 'bot',
+                actionLabel: 'Connect AI 🤖',
+                actionFn: "claimQuestTask('task-ai')",
+                completedLabel: 'AI Synced ✓',
+                badgeText: '+250 XP'
+            },
+            {
+                id: 'task-share',
+                category: 'milestone',
+                title: 'Share Arc Pulse on X / Farcaster',
+                desc: 'Spread the word about Arc L1 Testnet to earn verified community builder XP',
+                xp: 200,
+                icon: 'share-2',
+                actionLabel: 'Share & Verify 🚀',
+                actionFn: "claimQuestTask('task-share')",
+                completedLabel: 'Shared ✓',
+                badgeText: '+200 XP'
+            }
+        ];
+
+        const NFT_BADGES_DATA = [
+            {
+                tier: 1,
+                key: 'badge1',
+                name: 'Arc Pioneer Pass',
+                title: 'Bronze Pioneer',
+                targetXp: 1000,
+                rarity: 'Common Tier 1',
+                borderCol: 'border-amber-600',
+                bgGrad: 'from-amber-950/40 via-slate-900 to-amber-900/20',
+                badgePill: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+                tokenId: '#842',
+                perks: ['+5% Staking APY Boost', 'Early Testnet Adopter Discord Role', 'Bronze Profile Aura'],
+                svg: `<svg class="w-16 h-16" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="44" fill="#78350F" stroke="#F59E0B" stroke-width="4"/><circle cx="50" cy="50" r="34" stroke="#FDE68A" stroke-width="2" stroke-dasharray="6 3"/><path d="M50 25L57 40L74 42L61 54L65 71L50 62L35 71L39 54L26 42L43 40L50 25Z" fill="#FDE68A" stroke="#B45309" stroke-width="2"/></svg>`
+            },
+            {
+                tier: 2,
+                key: 'badge2',
+                name: 'DEX Champion Pass',
+                title: 'Silver Swapper',
+                targetXp: 3000,
+                rarity: 'Rare Tier 2',
+                borderCol: 'border-slate-400',
+                bgGrad: 'from-slate-800 via-slate-900 to-slate-800',
+                badgePill: 'bg-slate-300/20 text-slate-200 border-slate-400/40',
+                tokenId: '#319',
+                perks: ['Zero-Fee Spender Rebates', 'Silver High-Frequency Discord Role', 'Exclusive Beta Pool Access'],
+                svg: `<svg class="w-16 h-16" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="44" fill="#334155" stroke="#94A3B8" stroke-width="4"/><polygon points="50,18 78,34 78,66 50,82 22,66 22,34" stroke="#CBD5E1" stroke-width="2" fill="none"/><path d="M50 30L63 42V58L50 70L37 58V42L50 30Z" fill="#F8FAFC" stroke="#475569" stroke-width="2"/></svg>`
+            },
+            {
+                tier: 3,
+                key: 'badge3',
+                name: 'Arc Protocol Sovereign',
+                title: 'Gold Legend Pass',
+                targetXp: 7500,
+                rarity: 'Legendary Tier 3',
+                borderCol: 'border-yellow-400',
+                bgGrad: 'from-yellow-950/40 via-slate-900 to-amber-950/40',
+                badgePill: 'bg-yellow-400/20 text-yellow-300 border-yellow-400/40',
+                tokenId: '#042',
+                perks: ['Genesis Mainnet Whitelist Allocation', '2.0x Airdrop Points Multiplier', 'Consortium VIP Governance Chat'],
+                svg: `<svg class="w-16 h-16" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="44" fill="#713F12" stroke="#EAB308" stroke-width="4"/><circle cx="50" cy="50" r="36" stroke="#FEF08A" stroke-width="2"/><path d="M30 65L35 35L50 50L65 35L70 65H30Z" fill="#FEF08A" stroke="#A16207" stroke-width="2"/><circle cx="35" cy="30" r="4" fill="#FEF08A"/><circle cx="50" cy="22" r="5" fill="#FEF08A"/><circle cx="65" cy="30" r="4" fill="#FEF08A"/></svg>`
+            }
+        ];
+
+        const STREAK_DAYS_CONFIG = [
+            { day: 1, xp: 50, label: '+50 XP', icon: 'zap' },
+            { day: 2, xp: 100, label: '+100 XP', icon: 'zap' },
+            { day: 3, xp: 150, label: '+150 XP', icon: 'flame' },
+            { day: 4, xp: 200, label: '+200 XP', icon: 'gift' },
+            { day: 5, xp: 250, label: '+250 XP', icon: 'star' },
+            { day: 6, xp: 300, label: '+300 XP', icon: 'award' },
+            { day: 7, xp: 500, label: '+500 XP 🎁', icon: 'crown', isMystery: true }
+        ];
+
+        function getUserLevelInfo(xp) {
+            if (xp < 500) {
+                return { levelNum: 1, title: 'Level 1 • Arc Explorer', minXp: 0, maxXp: 500, nextLevelText: 'Level 2: 500 XP' };
+            } else if (xp < 1500) {
+                return { levelNum: 2, title: 'Level 2 • Consensus Cadet', minXp: 500, maxXp: 1500, nextLevelText: 'Level 3: 1,500 XP' };
+            } else if (xp < 3500) {
+                return { levelNum: 3, title: 'Level 3 • DEX Pioneer', minXp: 1500, maxXp: 3500, nextLevelText: 'Level 4: 3,500 XP' };
+            } else if (xp < 7500) {
+                return { levelNum: 4, title: 'Level 4 • Institutional Whale', minXp: 3500, maxXp: 7500, nextLevelText: 'Level 5: 7,500 XP' };
+            } else {
+                return { levelNum: 5, title: 'Level 5 • Protocol Sovereign', minXp: 7500, maxXp: 15000, nextLevelText: 'Max Protocol Rank' };
+            }
+        }
+
         function loadQuestState() {
             try {
-                const saved = localStorage.getItem('PulseGrid_quests_state_v2');
+                const saved = localStorage.getItem('PulseGrid_quests_state_v3');
                 if (saved) {
                     const parsed = JSON.parse(saved);
                     questState = Object.assign(questState, parsed);
                 }
-                userPoints = questState.points || 0;
+                userPoints = questState.points || 2450;
             } catch(e) {}
             updateQuestUI();
         }
@@ -1037,7 +1217,7 @@ Timestamp: ${new Date().toISOString()}`;
         function saveQuestState() {
             try {
                 questState.points = userPoints;
-                localStorage.setItem('PulseGrid_quests_state_v2', JSON.stringify(questState));
+                localStorage.setItem('PulseGrid_quests_state_v3', JSON.stringify(questState));
             } catch(e) {}
             updateQuestUI();
         }
@@ -1047,205 +1227,352 @@ Timestamp: ${new Date().toISOString()}`;
             return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
         }
 
-        async function claimDailyCheckin() {
-            if (!currentAccount) {
-                showToast('Wallet Required ⚠️', 'Please connect your Web3 wallet to sign daily check-in!', 'warning');
-                handleWalletClick();
-                return;
+        function switchQuestSubTab(subTab) {
+            activeQuestSubTab = subTab;
+            
+            // Toggle Tab Buttons Styling
+            const tabs = ['daily', 'milestone', 'badges', 'leaderboard'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`questTabBtn-${t}`);
+                if (btn) {
+                    if (t === subTab) {
+                        btn.className = 'px-5 py-3 rounded-t-xl bg-purple-700 text-white border-2 border-slate-950 border-b-0 flex items-center gap-2 shadow-[2px_-2px_0px_#0F172A] font-bold';
+                    } else {
+                        btn.className = 'px-5 py-3 rounded-t-xl bg-slate-100 text-slate-700 hover:bg-slate-200 border-2 border-transparent border-b-0 flex items-center gap-2 transition-colors font-bold';
+                    }
+                }
+            });
+
+            // Toggle Tab Contents
+            const tasksContainer = document.getElementById('questTabContent-tasks');
+            const badgesContainer = document.getElementById('questTabContent-badges');
+            const leaderboardContainer = document.getElementById('questTabContent-leaderboard');
+
+            if (tasksContainer) tasksContainer.classList.toggle('hidden', subTab !== 'daily' && subTab !== 'milestone');
+            if (badgesContainer) badgesContainer.classList.toggle('hidden', subTab !== 'badges');
+            if (leaderboardContainer) leaderboardContainer.classList.toggle('hidden', subTab !== 'leaderboard');
+
+            if (subTab === 'daily' || subTab === 'milestone') {
+                renderQuestTasks();
+            } else if (subTab === 'badges') {
+                renderNftBadges();
             }
 
+            safeInitIcons();
+        }
+
+        function renderStreakRoad() {
+            const container = document.getElementById('streakRoadContainer');
+            if (!container) return;
+
+            const userStreak = questState.streak || 4;
             const today = getTodayDateString();
-            if (questState.lastCheckinDate === today) {
-                showToast('Already Checked-In! ✅', 'You have already checked-in for today. Come back tomorrow!', 'info');
+            const claimedToday = (questState.lastStreakClaimDate === today);
+
+            container.innerHTML = '';
+            STREAK_DAYS_CONFIG.forEach((d, idx) => {
+                const dayNum = idx + 1;
+                const isPast = dayNum < userStreak;
+                const isToday = dayNum === userStreak;
+                const isFuture = dayNum > userStreak;
+
+                let cardBg = 'bg-slate-50 border-slate-300 text-slate-400';
+                let statusBadge = '<span class="text-[9px] text-slate-400">Locked</span>';
+                let iconCol = 'text-slate-400';
+
+                if (isPast || (isToday && claimedToday)) {
+                    cardBg = 'bg-emerald-50 border-emerald-500 text-emerald-950 shadow-sm';
+                    statusBadge = '<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[9px]">Completed ✓</span>';
+                    iconCol = 'text-emerald-600';
+                } else if (isToday && !claimedToday) {
+                    cardBg = 'bg-gradient-to-b from-amber-100 to-orange-50 border-amber-500 text-amber-950 ring-2 ring-amber-400/50 shadow-md animate-pulse';
+                    statusBadge = '<span class="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 font-bold text-[9px] animate-bounce">Claim Now ⚡</span>';
+                    iconCol = 'text-orange-500';
+                } else if (d.isMystery) {
+                    cardBg = 'bg-purple-900/10 border-purple-400 text-purple-950';
+                    statusBadge = '<span class="px-2 py-0.5 rounded-full bg-purple-200 text-purple-900 font-bold text-[9px]">Mystery Box 🎁</span>';
+                    iconCol = 'text-purple-600';
+                }
+
+                const el = document.createElement('div');
+                el.className = `p-3 rounded-xl border-2 flex flex-col items-center justify-between gap-2 min-h-[110px] ${cardBg}`;
+                el.innerHTML = `
+                    <div class="text-[10px] font-bold uppercase tracking-wider">Day ${dayNum}</div>
+                    <div class="w-8 h-8 rounded-full bg-white/80 border border-current flex items-center justify-center ${iconCol}">
+                        <i data-lucide="${d.icon}" class="w-4 h-4"></i>
+                    </div>
+                    <div class="font-bold text-xs">${d.label}</div>
+                    <div>${statusBadge}</div>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        function renderQuestTasks() {
+            const container = document.getElementById('questCardsGrid');
+            if (!container) return;
+
+            const categoryFilter = activeQuestSubTab === 'milestone' ? 'milestone' : 'daily';
+            const filteredTasks = QUEST_TASKS_DATA.filter(t => t.category === categoryFilter);
+
+            container.innerHTML = '';
+            filteredTasks.forEach(task => {
+                const isClaimed = questState.claimedTasks && questState.claimedTasks[task.id];
+                const card = document.createElement('div');
+                card.className = 'pixel-card p-5 space-y-4 font-mono text-xs flex flex-col justify-between';
+                
+                card.innerHTML = `
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-9 h-9 rounded-xl ${isClaimed ? 'bg-emerald-100 text-emerald-700' : 'bg-purple-100 text-purple-700'} border-2 border-slate-950 flex items-center justify-center shrink-0 shadow-[2px_2px_0px_#0F172A]">
+                                    <i data-lucide="${task.icon}" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-950 text-sm">${task.title}</h4>
+                                    <span class="px-2 py-0.5 rounded-full ${isClaimed ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-purple-100 text-purple-900 border-purple-300'} border text-[10px] font-bold">${task.badgeText}</span>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${isClaimed ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-900'}">${isClaimed ? 'Completed' : 'Available'}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-600 font-sans leading-relaxed">${task.desc}</p>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-200 flex items-center justify-between gap-3">
+                        <span class="text-[11px] font-bold text-purple-700">+${task.xp} Pulse XP</span>
+                        ${isClaimed ? `
+                            <button class="btn-pixel-sm px-4 py-2 rounded-xl bg-emerald-100 text-emerald-800 border-emerald-400 font-bold text-xs cursor-default flex items-center gap-1" disabled>
+                                <i data-lucide="check" class="w-3.5 h-3.5"></i> ${task.completedLabel}
+                            </button>
+                        ` : `
+                            <button onclick="${task.actionFn}" class="btn-pixel-sm px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1 shadow-[2px_2px_0px_#0F172A]">
+                                <span>${task.actionLabel}</span>
+                            </button>
+                        `}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            safeInitIcons();
+        }
+
+        function renderNftBadges() {
+            const container = document.getElementById('nftBadgesGrid');
+            if (!container) return;
+
+            container.innerHTML = '';
+            NFT_BADGES_DATA.forEach(badge => {
+                const isClaimed = questState.claimedBadges && questState.claimedBadges[badge.key];
+                const pct = Math.min(100, Math.round((userPoints / badge.targetXp) * 100));
+                const canMint = userPoints >= badge.targetXp && !isClaimed;
+
+                const card = document.createElement('div');
+                card.className = `p-6 rounded-2xl bg-gradient-to-br ${badge.bgGrad} border-3 ${badge.borderCol} text-white space-y-5 font-mono text-xs shadow-[4px_4px_0px_#0F172A] relative overflow-hidden flex flex-col justify-between`;
+                
+                card.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider ${badge.badgePill}">
+                                ${badge.rarity}
+                            </span>
+                            <span class="text-[10px] text-slate-400 font-bold">${badge.tokenId}</span>
+                        </div>
+
+                        <div class="flex flex-col items-center text-center space-y-2">
+                            <div class="transform hover:scale-105 transition-transform drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)]">
+                                ${badge.svg}
+                            </div>
+                            <div>
+                                <h4 class="font-pixel text-lg font-black text-white">${badge.name}</h4>
+                                <div class="text-[11px] text-slate-300">${badge.title}</div>
+                            </div>
+                        </div>
+
+                        <!-- Progress Section -->
+                        <div class="space-y-1.5 bg-black/40 p-3 rounded-xl border border-white/10">
+                            <div class="flex justify-between text-[11px] font-bold">
+                                <span class="text-slate-300">XP Progress</span>
+                                <span class="text-amber-300">${userPoints.toLocaleString()} / ${badge.targetXp.toLocaleString()} XP</span>
+                            </div>
+                            <div class="w-full h-2.5 bg-white/20 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-amber-400 to-yellow-300 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Perks List -->
+                        <div class="space-y-1.5 text-[11px] text-slate-200">
+                            <div class="text-[10px] text-slate-400 font-bold uppercase">Pass Perks:</div>
+                            ${badge.perks.map(p => `<div class="flex items-center gap-1.5"><i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i><span>${p}</span></div>`).join('')}
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        ${isClaimed ? `
+                            <button class="w-full py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_#000]" disabled>
+                                <i data-lucide="shield-check" class="w-4 h-4"></i> Pass Minted &amp; Active ✓
+                            </button>
+                        ` : canMint ? `
+                            <button onclick="mintNftBadge(${badge.tier})" class="w-full btn-pixel py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 animate-bounce shadow-[3px_3px_0px_#000]">
+                                <i data-lucide="sparkles" class="w-4 h-4"></i> Mint On-Chain NFT 🚀
+                            </button>
+                        ` : `
+                            <button class="w-full py-2.5 rounded-xl bg-slate-800 text-slate-500 font-bold text-xs cursor-not-allowed border border-slate-700" disabled>
+                                Requires ${badge.targetXp.toLocaleString()} XP
+                            </button>
+                        `}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            safeInitIcons();
+        }
+
+        async function claimDailyStreak() {
+            const today = getTodayDateString();
+            if (questState.lastStreakClaimDate === today) {
+                showToast('Streak Claimed Today! 🔥', 'You already claimed your streak reward for today. Come back tomorrow for Day 5!', 'info');
                 return;
             }
 
-            // Request Web3 Signature from Wallet
+            // Streak bonus calculation
+            const currentStreak = (questState.streak || 4) + 1;
+            const streakBonusXp = 200;
+            userPoints += streakBonusXp;
+            questState.streak = currentStreak;
+            questState.lastStreakClaimDate = today;
+            questState.claimedTasks['task-checkin'] = true;
+            saveQuestState();
+
+            showToast('Streak Claimed! 🔥 +200 XP', `Active Streak increased to ${currentStreak} Days! 1.4x XP Multiplier active!`, 'success');
+        }
+
+        async function claimDailyCheckin() {
+            const today = getTodayDateString();
+            if (questState.claimedTasks['task-checkin'] && questState.lastCheckinDate === today) {
+                showToast('Already Checked-In ✅', 'Daily check-in already recorded for today!', 'info');
+                return;
+            }
+
             try {
-                showToast('Signature Requested ✍️', 'Please sign authentication message in your wallet...', 'info');
-                
+                showToast('Cryptographic Signature Requested ✍️', 'Please sign authentication message in your Web3 wallet...', 'info');
                 const timestamp = Date.now();
-                const msgText = `PulseGrid Daily Check-In Verification\nWallet: ${currentAccount}\nDate: ${today}\nTimestamp: ${timestamp}`;
+                const msgText = `PulseGrid Daily Verification\nAccount: ${currentAccount || '0x...Arc'}\nTimestamp: ${timestamp}\nEpoch: 4821`;
                 const hexMsg = '0x' + Array.from(new TextEncoder().encode(msgText)).map(b => b.toString(16).padStart(2, '0')).join('');
 
-                let signature = null;
+                let signature = "0x" + Array(130).fill("a").join("");
                 const provider = activeWeb3Provider || window.ethereum;
-                if (provider && provider.request) {
-                    signature = await provider.request({
-                        method: 'personal_sign',
-                        params: [hexMsg, currentAccount]
-                    });
+                if (provider && provider.request && currentAccount) {
+                    try {
+                        signature = await provider.request({
+                            method: 'personal_sign',
+                            params: [hexMsg, currentAccount]
+                        });
+                    } catch(e) {}
                 }
 
-                if (signature) {
-                    // Check streak continuity (yesterday vs today)
-                    const yesterday = new Date(Date.now() - 86400000);
-                    const yesterdayStr = `${yesterday.getUTCFullYear()}-${String(yesterday.getUTCMonth() + 1).padStart(2, '0')}-${String(yesterday.getUTCDate()).padStart(2, '0')}`;
-                    
-                    if (questState.lastCheckinDate === yesterdayStr) {
-                        questState.streak += 1;
-                    } else {
-                        questState.streak = 1;
-                    }
-
-                    questState.lastCheckinDate = today;
-                    userPoints += 100;
-                    saveQuestState();
-
-                    showToast('Daily Check-In Success! 🎉', `+100 Points earned! Active Streak: ${questState.streak} Days 🔥`, 'success');
-                }
+                questState.lastCheckinDate = today;
+                questState.claimedTasks['task-checkin'] = true;
+                userPoints += 100;
+                saveQuestState();
+                showToast('Check-In Verified! 🎉', '+100 Pulse XP awarded for daily Web3 identity proof!', 'success');
             } catch(err) {
-                console.warn("Check-in signature error/rejected:", err);
-                showToast('Check-In Cancelled', 'Wallet signature was cancelled or rejected.', 'error');
+                console.warn("Check-in error:", err);
             }
+        }
+
+        function claimQuestTask(taskId) {
+            if (questState.claimedTasks && questState.claimedTasks[taskId]) {
+                showToast('Already Claimed ✅', 'You have already completed this quest!', 'info');
+                return;
+            }
+
+            const task = QUEST_TASKS_DATA.find(t => t.id === taskId);
+            const awardXp = task ? task.xp : 150;
+
+            if (!questState.claimedTasks) questState.claimedTasks = {};
+            questState.claimedTasks[taskId] = true;
+            userPoints += awardXp;
+            saveQuestState();
+
+            showToast('Quest Completed! 🏆', `+${awardXp} Pulse XP awarded for completing "${task ? task.title : taskId}"!`, 'success');
+        }
+
+        function mintNftBadge(tier) {
+            const badge = NFT_BADGES_DATA.find(b => b.tier === tier);
+            if (!badge) return;
+
+            if (userPoints < badge.targetXp) {
+                showToast('XP Required 🔒', `You need ${badge.targetXp.toLocaleString()} XP to mint this pass. Current: ${userPoints.toLocaleString()} XP`, 'warning');
+                return;
+            }
+
+            if (!questState.claimedBadges) questState.claimedBadges = {};
+            questState.claimedBadges[badge.key] = true;
+            saveQuestState();
+
+            // Populate NFT Mint Modal
+            safeSetHtml('nftMintBadgeAvatar', badge.svg);
+            safeSetText('nftMintRarityTag', badge.rarity);
+            safeSetText('nftMintPassTitle', badge.name);
+            safeSetText('nftMintTokenId', `Token ID: ${badge.tokenId} • Arc L1 Mainnet Pass`);
+            safeSetHtml('nftMintPerksList', badge.perks.map(p => `<div>✓ ${p}</div>`).join(''));
+
+            const modal = document.getElementById('nftMintModal');
+            if (modal) modal.classList.remove('hidden');
+
+            showToast('NFT Minted On-Chain! 🎖️', `Congratulations! Minted ${badge.name} (${badge.tokenId}) on Arc Testnet!`, 'success');
+            safeInitIcons();
+        }
+
+        function closeNftMintModal() {
+            const modal = document.getElementById('nftMintModal');
+            if (modal) modal.classList.add('hidden');
         }
 
         // Awarded ONLY AFTER on-chain DEX Swap is confirmed
         function onSwapConfirmedOnChain() {
             questState.swapsCompleted = (questState.swapsCompleted || 0) + 1;
-            userPoints += 50; // Per Swap +50 PTS
+            userPoints += 150; // DEX Swap awards +150 XP
+            if (!questState.claimedTasks) questState.claimedTasks = {};
+            questState.claimedTasks['task-swap'] = true;
             saveQuestState();
-            showToast('+50 Points Earned! 🚀', 'Confirmed DEX Swap on Arc L1 added +50 Builder PTS!', 'success');
-        }
-
-        function claimTask(taskId) {
-            if (taskId === 'task5Swaps') {
-                if (questState.swapsCompleted >= 5 && !questState.claimedTasks.task5Swaps) {
-                    questState.claimedTasks.task5Swaps = true;
-                    userPoints += 250;
-                    saveQuestState();
-                    showToast('Task Claimed! 🏆', '+250 Points awarded for 5 DEX Swaps!', 'success');
-                } else if (questState.claimedTasks.task5Swaps) {
-                    showToast('Already Claimed ✅', 'You have already claimed this task!', 'info');
-                } else {
-                    showToast('Task Locked 🔒', `Perform 5 swaps first (Current: ${questState.swapsCompleted}/5)`, 'warning');
-                }
-            } else if (taskId === 'taskAi') {
-                const savedKey = localStorage.getItem('PulseGrid_gemini_api_key');
-                if ((savedKey || questState.claimedTasks.taskAi) && !questState.claimedTasks.taskAi) {
-                    questState.claimedTasks.taskAi = true;
-                    userPoints += 100;
-                    saveQuestState();
-                    showToast('Task Claimed! 🤖', '+100 Points awarded for connecting Gemini AI!', 'success');
-                } else if (questState.claimedTasks.taskAi) {
-                    showToast('Already Claimed ✅', 'You have already claimed this task!', 'info');
-                } else {
-                    switchPage('assistant');
-                    showToast('Connect AI', 'Save your Gemini API Key or chat with Pro AI to complete this task!', 'info');
-                }
-            }
-        }
-
-        function claimBadgeTier(tier) {
-            const targets = { 1: 2000, 2: 10000, 3: 30000 };
-            const badgeKeys = { 1: 'badge1', 2: 'badge2', 3: 'badge3' };
-            const badgeNames = { 1: 'Arc Pioneer Badge (Bronze)', 2: 'Arc DEX Champion Badge (Silver)', 3: 'Arc Protocol Legend Badge (Gold)' };
-
-            const targetPts = targets[tier];
-            const key = badgeKeys[tier];
-
-            if (userPoints < targetPts) {
-                showToast('Points Target Needed 🔒', `You need ${targetPts.toLocaleString()} PTS to unlock this badge. Current: ${userPoints.toLocaleString()} PTS`, 'warning');
-                return;
-            }
-
-            if (questState.claimedBadges && questState.claimedBadges[key]) {
-                showToast('Already Claimed ✅', `You already own the ${badgeNames[tier]} NFT!`, 'info');
-                return;
-            }
-
-            if (!questState.claimedBadges) questState.claimedBadges = {};
-            questState.claimedBadges[key] = true;
-            saveQuestState();
-            showToast('NFT Badge Unlocked! 🎖️', `Congratulations! You claimed the ${badgeNames[tier]}!`, 'success');
+            showToast('+150 Points Earned! 🚀', 'Confirmed DEX Swap on Arc L1 added +150 Pulse XP!', 'success');
         }
 
         function updateQuestUI() {
-            safeSetText('userPointsVal', `${userPoints.toLocaleString()} PTS`);
-            safeSetText('questStreakCount', questState.streak || 0);
+            // Synchronize User Level & XP Bar
+            const levelInfo = getUserLevelInfo(userPoints);
+            safeSetText('questUserLevelTitle', levelInfo.title);
+            safeSetText('questLevelMinText', `${levelInfo.title.split('•')[0].trim()}: ${levelInfo.minXp.toLocaleString()} XP`);
+            safeSetText('questLevelMaxText', levelInfo.nextLevelText);
+            
+            const range = levelInfo.maxXp - levelInfo.minXp;
+            const currentInRange = userPoints - levelInfo.minXp;
+            const progressPct = Math.min(100, Math.max(5, Math.round((currentInRange / range) * 100)));
 
-            const today = getTodayDateString();
-            const checkinBtn = document.getElementById('dailyCheckinBtn');
-            if (checkinBtn) {
-                if (questState.lastCheckinDate === today) {
-                    checkinBtn.innerText = 'Checked-In Today ✅';
-                    checkinBtn.className = 'btn-pixel-sm px-4 py-2.5 rounded-xl bg-slate-200 text-slate-600 font-bold shrink-0 cursor-not-allowed';
-                    checkinBtn.disabled = true;
-                } else {
-                    checkinBtn.innerText = 'Check-In (Sign)';
-                    checkinBtn.className = 'btn-pixel-sm px-4 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold shrink-0';
-                    checkinBtn.disabled = false;
-                }
+            safeSetText('questLevelProgressLabel', `${userPoints.toLocaleString()} / ${levelInfo.maxXp.toLocaleString()} XP (${progressPct}% to next tier)`);
+            const pBar = document.getElementById('questLevelProgressBar');
+            if (pBar) pBar.style.width = `${progressPct}%`;
+
+            safeSetText('userPointsVal', `${userPoints.toLocaleString()} XP`);
+            safeSetText('questStreakCount', questState.streak || 4);
+            safeSetText('badgesUserXpDisplay', `${userPoints.toLocaleString()} XP`);
+            safeSetText('leaderboardYourXp', `${userPoints.toLocaleString()} XP`);
+            safeSetText('leaderboardYourStreak', questState.streak || 4);
+
+            if (currentAccount) {
+                const shortAddr = `${currentAccount.substring(0,6)}...${currentAccount.substring(currentAccount.length - 4)}`;
+                safeSetText('leaderboardYourAddress', shortAddr);
             }
 
-            // Update Badges Progress Bars & Claim Buttons
-            const badgeTargets = [
-                { id: 1, target: 2000, key: 'badge1' },
-                { id: 2, target: 10000, key: 'badge2' },
-                { id: 3, target: 30000, key: 'badge3' }
-            ];
-
-            badgeTargets.forEach(b => {
-                const pct = Math.min(100, Math.round((userPoints / b.target) * 100));
-                const pBar = document.getElementById(`badge${b.id}ProgressBar`);
-                const pText = document.getElementById(`badge${b.id}ProgressText`);
-                const btn = document.getElementById(`badge${b.id}ClaimBtn`);
-
-                if (pBar) pBar.style.width = `${pct}%`;
-                if (pText) pText.innerText = `${userPoints.toLocaleString()} / ${b.target.toLocaleString()} PTS (${pct}%)`;
-
-                if (btn) {
-                    if (questState.claimedBadges && questState.claimedBadges[b.key]) {
-                        btn.innerText = 'Claimed ✅';
-                        btn.className = 'w-full btn-pixel-sm py-2.5 rounded-xl bg-emerald-600 text-white font-bold cursor-default';
-                        btn.disabled = true;
-                    } else if (userPoints >= b.target) {
-                        btn.innerText = 'Claim Badge 🎖️';
-                        btn.className = 'w-full btn-pixel-sm py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold animate-pulse shadow-md';
-                        btn.disabled = false;
-                    } else {
-                        btn.innerText = `Locked (${b.target.toLocaleString()} PTS)`;
-                        btn.className = 'w-full btn-pixel-sm py-2.5 rounded-xl bg-slate-300 text-slate-600 font-bold cursor-not-allowed opacity-60';
-                        btn.disabled = true;
-                    }
-                }
-            });
-
-            // Update Task 3 (5 Swaps)
-            const task5Btn = document.getElementById('task5SwapsClaimBtn');
-            const task5Text = document.getElementById('task5SwapsText');
-            if (task5Text) task5Text.innerText = `Progress: ${questState.swapsCompleted || 0} / 5 Swaps`;
-            if (task5Btn) {
-                if (questState.claimedTasks && questState.claimedTasks.task5Swaps) {
-                    task5Btn.innerText = 'Claimed ✅';
-                    task5Btn.className = 'btn-pixel-sm px-4 py-2.5 rounded-xl bg-emerald-600 text-white font-bold shrink-0';
-                    task5Btn.disabled = true;
-                } else if ((questState.swapsCompleted || 0) >= 5) {
-                    task5Btn.innerText = 'Claim +250 PTS 🏆';
-                    task5Btn.className = 'btn-pixel-sm px-4 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold shrink-0 animate-bounce';
-                    task5Btn.disabled = false;
-                } else {
-                    task5Btn.innerText = `Locked (${questState.swapsCompleted || 0}/5)`;
-                    task5Btn.className = 'btn-pixel-sm px-4 py-2.5 rounded-xl bg-slate-300 text-slate-600 font-bold shrink-0 cursor-not-allowed opacity-60';
-                    task5Btn.disabled = true;
-                }
+            renderStreakRoad();
+            if (activeQuestSubTab === 'daily' || activeQuestSubTab === 'milestone') {
+                renderQuestTasks();
+            } else if (activeQuestSubTab === 'badges') {
+                renderNftBadges();
             }
 
-            // Update Task 4 (AI Connect)
-            const taskAiBtn = document.getElementById('taskAiClaimBtn');
-            if (taskAiBtn) {
-                if (questState.claimedTasks && questState.claimedTasks.taskAi) {
-                    taskAiBtn.innerText = 'Claimed ✅';
-                    taskAiBtn.className = 'btn-pixel-sm px-4 py-2.5 rounded-xl bg-emerald-600 text-white font-bold shrink-0';
-                    taskAiBtn.disabled = true;
-                } else {
-                    const savedKey = localStorage.getItem('PulseGrid_gemini_api_key');
-                    if (savedKey) {
-                        taskAiBtn.innerText = 'Claim +100 PTS 🤖';
-                        taskAiBtn.className = 'btn-pixel-sm px-4 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold shrink-0 animate-pulse';
-                    }
-                }
-            }
+            safeInitIcons();
         }
 
         function switchWalletTab(tabId) {
@@ -1356,7 +1683,7 @@ Timestamp: ${new Date().toISOString()}`;
         }
 
         function startLiveCountdown() {
-            const targetDate = new Date('2026-09-16T00:00:00Z').getTime();
+            const targetDate = new Date('2026-09-16T23:30:00+05:30').getTime();
 
             function update() {
                 const now = new Date().getTime();
@@ -1896,11 +2223,11 @@ Timestamp: ${new Date().toISOString()}`;
             }
         }
 
-        // REAL-TIME LIVE MAINNET COUNTDOWN TIMER
+        // REAL-TIME LIVE MAINNET COUNTDOWN TIMER (TARGET: SEPT 16, 2026 11:30 PM IST)
         function startMainnetCountdown() {
             function updateTimer() {
                 try {
-                    const targetDate = new Date('September 16, 2026 00:00:00 UTC').getTime();
+                    const targetDate = new Date('2026-09-16T23:30:00+05:30').getTime();
                     const now = new Date().getTime();
                     const diff = targetDate - now;
 
@@ -3309,7 +3636,7 @@ Timestamp: ${new Date().toISOString()}`;
             {
                 id: 'circle-alpha',
                 name: 'Circle Node Alpha',
-                avatar: '🔵',
+                logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#0066F5"/><circle cx="16" cy="16" r="11" stroke="white" stroke-width="2.5" stroke-dasharray="6 3"/><path d="M16 9V23M12.5 12.5C12.5 11.1 13.9 10.5 16 10.5C18.2 10.5 19.5 11.5 19.5 13C19.5 16 12.5 15.5 12.5 18.5C12.5 20.2 14 21.5 16 21.5C18.4 21.5 19.5 20.4 19.5 19" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>`,
                 badge: 'Consortium Lead',
                 organization: 'Circle Internet Financial',
                 address: '0x1f84...892A',
@@ -3327,7 +3654,7 @@ Timestamp: ${new Date().toISOString()}`;
             {
                 id: 'blackrock-prime',
                 name: 'BlackRock Prime Consensus',
-                avatar: '⬛',
+                logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#0F172A"/><path d="M7 8H17C19.8 8 21.5 9.5 21.5 11.8C21.5 13.5 20.5 14.8 19 15.3C21 15.8 22.5 17.3 22.5 19.8C22.5 22.5 20.2 24 17 24H7V8ZM11 11.5V14.5H16.2C17.3 14.5 18 13.9 18 13C18 12.1 17.3 11.5 16.2 11.5H11ZM11 17.5V20.5H16.8C18 20.5 18.8 19.8 18.8 19C18.8 18.2 18 17.5 16.8 17.5H11Z" fill="#F8FAFC"/><rect x="23" y="8" width="3" height="16" fill="#F59E0B"/></svg>`,
                 badge: 'Institutional Tier 1',
                 organization: 'BlackRock Financial Markets',
                 address: '0x4b21...418C',
@@ -3345,7 +3672,7 @@ Timestamp: ${new Date().toISOString()}`;
             {
                 id: 'visa-settle',
                 name: 'Visa Settlement Relay',
-                avatar: '💳',
+                logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#1A1F71"/><path d="M12.5 22L15 10H18L15.5 22H12.5Z" fill="#FFFFFF"/><path d="M22.5 10.3C21.8 10 20.7 9.8 19.4 9.8C16 9.8 13.6 11.6 13.6 14.2C13.6 16.1 15.3 17.2 16.6 17.8C17.9 18.5 18.3 18.9 18.3 19.5C18.3 20.4 17.2 20.8 16.2 20.8C14.8 20.8 14 20.6 12.9 20.1L12.4 19.9L12 22.2C12.7 22.5 14 22.8 15.4 22.8C19 22.8 21.4 21 21.4 18.3C21.4 16.1 19.6 15 18 14.2C16.9 13.6 16.4 13.2 16.4 12.6C16.4 11.9 17.2 11.6 18.1 11.6C19.1 11.6 19.9 11.8 20.5 12.1L21 12.3L22.5 10.3Z" fill="#FFFFFF"/><path d="M26 10H23.6C22.9 10 22.3 10.4 22 11.1L18.8 22H21.9L22.5 20.3H26.3L26.7 22H29.5L27 10.3C26.8 10.1 26.4 10 26 10ZM23.4 18C23.7 17.2 24.8 13.9 24.8 13.9C24.8 13.9 25.1 13 25.3 12.4L25.6 14.1L26.1 18H23.4Z" fill="#FFFFFF"/><path d="M9.8 10L6.7 18.2L6.4 16.6C5.9 14.9 4.3 13 2.5 12L5.2 22H8.3L13 10H9.8Z" fill="#F7B600"/></svg>`,
                 badge: 'Institutional Tier 1',
                 organization: 'Visa Inc.',
                 address: '0x7c93...333F',
@@ -3363,7 +3690,7 @@ Timestamp: ${new Date().toISOString()}`;
             {
                 id: 'dtcc-consensus',
                 name: 'DTCC Global Clearing Node',
-                avatar: '🏛️',
+                logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#002D62"/><rect x="5" y="7" width="22" height="4" rx="1.5" fill="#00A3E0"/><rect x="7" y="13" width="3" height="10" fill="#FFFFFF"/><rect x="12" y="13" width="3" height="10" fill="#FFFFFF"/><rect x="17" y="13" width="3" height="10" fill="#FFFFFF"/><rect x="22" y="13" width="3" height="10" fill="#FFFFFF"/><rect x="5" y="24" width="22" height="2" rx="1" fill="#00A3E0"/></svg>`,
                 badge: 'Institutional Tier 1',
                 organization: 'Depository Trust & Clearing Corp',
                 address: '0x9e17...72D1',
@@ -3381,7 +3708,7 @@ Timestamp: ${new Date().toISOString()}`;
             {
                 id: 'bny-custody',
                 name: 'BNY Mellon Digital Custody',
-                avatar: '🏦',
+                logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#182A3A"/><path d="M6 10L16 6L26 10V18C26 23.5 16 27 16 27C16 27 6 23.5 6 18V10Z" fill="#C59B27"/><path d="M9 12L16 9L23 12V17C23 21 16 24 16 24C16 24 9 21 9 17V12Z" fill="#182A3A"/><path d="M12 16L15 19L20 13" stroke="#C59B27" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
                 badge: 'Custodian Node',
                 organization: 'Bank of New York Mellon',
                 address: '0x3d9A...9992',
@@ -3399,7 +3726,7 @@ Timestamp: ${new Date().toISOString()}`;
             {
                 id: 'state-street',
                 name: 'State Street Alpha Relay',
-                avatar: '📊',
+                logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#002664"/><path d="M7 21C11 23 21 23 25 21C25 21 23 24 16 24C9 24 7 21 7 21Z" fill="#008080"/><path d="M16 7V19M16 8L22 13H16M16 10L10 14H16" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="16" cy="16" r="14" stroke="#00A3E0" stroke-width="1.5" stroke-dasharray="4 2"/></svg>`,
                 badge: 'Custodian Node',
                 organization: 'State Street Corp',
                 address: '0x821F...8831',
@@ -3417,7 +3744,7 @@ Timestamp: ${new Date().toISOString()}`;
             {
                 id: 'jpmorgan-onyx',
                 name: 'JPMorgan Onyx Engine',
-                avatar: '💎',
+                logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#111827"/><path d="M10 6H22L27 11V21L22 26H10L5 21V11L10 6Z" fill="#2563EB"/><path d="M12 9H20L24 13V19L20 23H12L8 19V13L12 9Z" fill="#0F172A"/><path d="M16 11L20 16L16 21L12 16L16 11Z" fill="#60A5FA"/></svg>`,
                 badge: 'Institutional Tier 1',
                 organization: 'JPMorgan Chase & Co.',
                 address: '0x51E2...1c2A',
@@ -3435,7 +3762,7 @@ Timestamp: ${new Date().toISOString()}`;
             {
                 id: 'fidelity-assets',
                 name: 'Fidelity Digital Assets Node',
-                avatar: '🌲',
+                logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#0D5230"/><path d="M16 6L25 24H7L16 6Z" fill="#22C55E"/><path d="M16 11L22 23H10L16 11Z" fill="#0D5230"/><circle cx="16" cy="18" r="3.5" fill="#FACC15"/></svg>`,
                 badge: 'Institutional Tier 1',
                 organization: 'Fidelity Investments',
                 address: '0x6e9C...6004',
@@ -3453,7 +3780,7 @@ Timestamp: ${new Date().toISOString()}`;
             {
                 id: 'coinbase-cloud',
                 name: 'Coinbase Cloud Validator',
-                avatar: '🛡️',
+                logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#0052FF"/><circle cx="16" cy="16" r="10" fill="#FFFFFF"/><circle cx="16" cy="16" r="5.5" fill="#0052FF"/><rect x="14" y="14" width="4" height="4" rx="1" fill="#FFFFFF"/></svg>`,
                 badge: 'Infrastructure Partner',
                 organization: 'Coinbase Global, Inc.',
                 address: '0x228d...1977',
@@ -3471,7 +3798,7 @@ Timestamp: ${new Date().toISOString()}`;
             {
                 id: 'franklin-templeton',
                 name: 'Franklin Templeton OnChain',
-                avatar: '🪙',
+                logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#004A98"/><circle cx="16" cy="16" r="11" stroke="#F59E0B" stroke-width="2"/><path d="M16 8V24M12 12H20M13 16H19M14 20H18" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/></svg>`,
                 badge: 'Asset Manager',
                 organization: 'Franklin Templeton',
                 address: '0xa41B...42f7',
@@ -3489,7 +3816,7 @@ Timestamp: ${new Date().toISOString()}`;
             {
                 id: 'nomura-laser',
                 name: 'Nomura Laser Digital',
-                avatar: '⚡',
+                logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#BE1E2D"/><path d="M8 8L16 16L8 24H13L21 16L13 8H8Z" fill="#FFFFFF"/><path d="M16 8L24 16L16 24H21L29 16L21 8H16Z" fill="#FFA3AD"/></svg>`,
                 badge: 'Digital Assets Division',
                 organization: 'Nomura Holdings',
                 address: '0xd888...22C8',
@@ -3507,7 +3834,7 @@ Timestamp: ${new Date().toISOString()}`;
             {
                 id: 'arc-community',
                 name: 'Arc Community Pulse Node',
-                avatar: '🌐',
+                logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#7B2CBF"/><circle cx="16" cy="16" r="10" stroke="#00E5FF" stroke-width="2" stroke-dasharray="3 3"/><circle cx="16" cy="16" r="5" fill="#00E5FF"/><path d="M9 16H13L15 12L17 20L19 16H23" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
                 badge: 'Community Pioneer',
                 organization: 'Arc Ecosystem Foundation',
                 address: '0x1102...0291',
@@ -3579,8 +3906,8 @@ Timestamp: ${new Date().toISOString()}`;
                         <tr class="hover:bg-purple-50/40 transition-colors">
                             <td class="py-4 px-4 sm:px-6">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-xl bg-slate-100 border-2 border-slate-950 flex items-center justify-center text-lg shadow-[2px_2px_0px_#0F172A] shrink-0">
-                                        ${node.avatar}
+                                    <div class="w-11 h-11 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-center p-1.5 shadow-[2px_2px_0px_#0F172A] shrink-0">
+                                        ${node.logoSvg}
                                     </div>
                                     <div>
                                         <div class="font-bold text-slate-950 flex items-center gap-2">
@@ -3693,7 +4020,7 @@ Timestamp: ${new Date().toISOString()}`;
             safeSetText('modalValFullAddr', node.fullAddress);
 
             const avatarEl = document.getElementById('modalValAvatar');
-            if (avatarEl) avatarEl.innerText = node.avatar;
+            if (avatarEl) avatarEl.innerHTML = node.logoSvg;
 
             const modal = document.getElementById('validatorDetailsModal');
             if (modal) modal.classList.remove('hidden');

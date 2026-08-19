@@ -1099,149 +1099,400 @@
             </div>
         </section>
 
-        <!-- AUTHENTIC WALLETCONNECT V2 WEB3 WALLET DASHBOARD VIEW -->
-        <section id="view-wallet" class="page-view hidden space-y-6">
-            <div class="pixel-card-purple p-6 sm:p-8 space-y-6">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b-2 border-slate-950">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-600 via-purple-700 to-indigo-600 border-2 border-slate-950 flex items-center justify-center text-white font-bold shadow-[3px_3px_0px_#0F172A]">
-                            <i data-lucide="wallet" class="w-6 h-6"></i>
+        <!-- AUTHENTIC PRO WEB3 WALLET DASHBOARD VIEW -->
+        <section id="view-wallet" class="page-view hidden space-y-8">
+            
+            <!-- MASTER OBSIDIAN & HOLOGRAPHIC HERO CARD -->
+            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-purple-950 border-3 border-slate-950 p-6 sm:p-10 text-white shadow-[6px_6px_0px_#0F172A]">
+                <!-- Subtle ambient background glow elements -->
+                <div class="absolute -top-24 -right-24 w-80 h-80 bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-teal-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="relative z-10 space-y-8">
+                    <!-- Top Bar: Account Identity, Network Pill & Connection Controls -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/15">
+                        <div class="flex items-center gap-3.5">
+                            <!-- Avatar / Identicon with glowing ring -->
+                            <div class="relative">
+                                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-500 to-teal-400 p-0.5 shadow-lg flex items-center justify-center">
+                                    <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
+                                        <i data-lucide="wallet" class="w-6 h-6 text-purple-300"></i>
+                                    </div>
+                                </div>
+                                <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-slate-950 shadow-sm animate-pulse"></span>
+                            </div>
+
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2">
+                                    <span id="walletHeaderAddress" class="font-mono text-sm sm:text-base font-black tracking-wide text-white">0x... (Connect Wallet)</span>
+                                    <button onclick="copyWalletAddress()" class="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors" title="Copy Address">
+                                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                    <a id="walletExplorerLink" href="https://testnet.arcscan.app" target="_blank" rel="noopener noreferrer" class="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors" title="View on ArcScan Explorer">
+                                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                                    </a>
+                                </div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-500/20 border border-purple-400/40 text-[10px] font-mono font-bold text-purple-300">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                        Arc L1 Testnet (5042002)
+                                    </span>
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/10 text-[10px] font-mono text-slate-300">
+                                        <i data-lucide="shield-check" class="w-3 h-3 text-teal-400"></i>
+                                        EIP-191 Verified
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span id="walletHeaderAddress" class="font-mono text-sm font-bold text-slate-950">0x... (Connect Wallet)</span>
-                                <button onclick="copyWalletAddress()" class="p-1 text-slate-500 hover:text-purple-700" title="Copy Address">
-                                    <i data-lucide="copy" class="w-4 h-4"></i>
-                                </button>
-                                <a id="walletExplorerLink" href="https://testnet.arcscan.app" target="_blank" rel="noopener noreferrer" class="p-1 text-slate-500 hover:text-purple-700" title="View on Arc Explorer">
-                                    <i data-lucide="external-link" class="w-4 h-4"></i>
-                                </a>
-                            </div>
-                            <div class="flex items-center gap-2 mt-1">
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-900 border border-sky-500 text-[10px] font-silkscreen font-bold">
-                                    <span class="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
-                                    WalletConnect v2 (Arc 5042002)
-                                </span>
-                            </div>
+
+                        <!-- Right Action Buttons -->
+                        <div class="flex items-center gap-2.5 shrink-0">
+                            <button onclick="requestSignatureAuth()" class="btn-pixel-sm px-3.5 py-2.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 border-2 border-purple-400/50 text-xs font-mono font-bold flex items-center gap-1.5 transition-all">
+                                <i data-lucide="key" class="w-3.5 h-3.5 text-purple-300"></i>
+                                Sign Auth
+                            </button>
+                            <button onclick="handleWalletClick()" class="btn-pixel px-4 py-2.5 rounded-xl bg-white text-slate-950 text-xs font-bold font-pixel flex items-center gap-2 hover:bg-slate-100 transition-colors">
+                                <i data-lucide="power" class="w-4 h-4 text-rose-600"></i>
+                                <span id="walletConnectStatusText">Connect Wallet</span>
+                            </button>
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-2 shrink-0">
-                        <button onclick="requestSignatureAuth()" class="btn-pixel-sm px-3.5 py-2.5 rounded-xl bg-purple-100 text-purple-900 border-2 border-purple-600 text-xs font-bold flex items-center gap-1.5">
-                            <i data-lucide="shield-check" class="w-4 h-4 text-purple-700"></i>
-                            Sign Signature Request
-                        </button>
+                    <!-- Centerpiece Net Worth Display -->
+                    <div class="text-center py-3 space-y-2">
+                        <div class="text-[11px] font-silkscreen font-bold text-purple-300/80 uppercase tracking-widest">
+                            Total Portfolio Net Worth
+                        </div>
+                        <div id="walletTotalUsdBalance" class="font-pixel text-4xl sm:text-6xl font-black text-white tracking-tight drop-shadow-md">
+                            $0.00 USD
+                        </div>
+                        
+                        <div class="flex flex-wrap items-center justify-center gap-3 pt-1">
+                            <span id="walletPnlBadge" class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-mono font-bold">
+                                <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> +$18.40 (+4.6%) 24h
+                            </span>
+                            <span class="text-xs text-slate-300 font-mono flex items-center gap-1.5">
+                                <i data-lucide="fuel" class="w-3.5 h-3.5 text-purple-400"></i>
+                                Gas Reserve: <strong id="walletGasReserve" class="text-white font-bold">0.00 USDC</strong>
+                            </span>
+                        </div>
+                    </div>
 
-                        <button onclick="handleWalletClick()" class="btn-pixel px-4 py-2.5 rounded-xl bg-white text-slate-950 text-xs font-bold flex items-center gap-2">
-                            <i data-lucide="power" class="w-4 h-4 text-rose-600"></i>
-                            <span id="walletConnectStatusText">Connect Wallet</span>
+                    <!-- 4 High-Impact Quick Action Glow Buttons -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5 max-w-2xl mx-auto pt-2">
+                        <button onclick="openWalletSendModal()" class="btn-pixel py-3.5 px-4 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-pixel font-bold text-xs flex items-center justify-center gap-2 shadow-[3px_3px_0px_#0F172A] hover:-translate-y-0.5 transition-all">
+                            <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                            <span>Send</span>
+                        </button>
+                        <button onclick="openWalletReceiveModal()" class="btn-pixel py-3.5 px-4 rounded-2xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-pixel font-bold text-xs flex items-center justify-center gap-2 shadow-[3px_3px_0px_#0F172A] hover:-translate-y-0.5 transition-all">
+                            <i data-lucide="arrow-down-left" class="w-4 h-4"></i>
+                            <span>Receive</span>
+                        </button>
+                        <button onclick="switchPage('swap')" class="btn-pixel py-3.5 px-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-pixel font-bold text-xs flex items-center justify-center gap-2 shadow-[3px_3px_0px_#0F172A] hover:-translate-y-0.5 transition-all">
+                            <i data-lucide="repeat" class="w-4 h-4"></i>
+                            <span>Swap</span>
+                        </button>
+                        <button onclick="openFaucetModal()" class="btn-pixel py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-pixel font-bold text-xs flex items-center justify-center gap-2 shadow-[3px_3px_0px_#0F172A] hover:-translate-y-0.5 transition-all">
+                            <i data-lucide="droplet" class="w-4 h-4"></i>
+                            <span>Gas Faucet</span>
                         </button>
                     </div>
-                </div>
-
-                <div class="text-center py-2 space-y-1">
-                    <div class="text-xs font-silkscreen text-slate-500 uppercase tracking-wider">Total Wallet Portfolio Balance</div>
-                    <div id="walletTotalUsdBalance" class="font-pixel text-4xl sm:text-5xl font-black text-slate-950 tracking-tight">$0.00 USD</div>
-                    <div class="text-xs font-mono text-slate-600 font-bold">Real Live On-Chain Web3 Balances</div>
-                </div>
-
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-xl mx-auto">
-                    <button onclick="openWalletSendModal()" class="btn-pixel py-3 rounded-xl bg-purple-700 text-white text-xs font-bold flex items-center justify-center gap-2">
-                        <i data-lucide="send" class="w-4 h-4"></i>
-                        Send
-                    </button>
-                    <button onclick="openWalletReceiveModal()" class="btn-pixel py-3 rounded-xl bg-teal-600 text-white text-xs font-bold flex items-center justify-center gap-2">
-                        <i data-lucide="qr-code" class="w-4 h-4"></i>
-                        Receive
-                    </button>
-                    <button onclick="switchPage('swap')" class="btn-pixel py-3 rounded-xl bg-indigo-600 text-white text-xs font-bold flex items-center justify-center gap-2">
-                        <i data-lucide="arrow-left-right" class="w-4 h-4"></i>
-                        Swap
-                    </button>
-                    <button onclick="openFaucetModal()" class="btn-pixel py-3 rounded-xl bg-emerald-600 text-white text-xs font-bold flex items-center justify-center gap-2">
-                        <i data-lucide="droplet" class="w-4 h-4"></i>
-                        Faucet
-                    </button>
                 </div>
             </div>
 
-            <!-- Wallet Sub-Tabs -->
-            <div class="pixel-card p-6 space-y-6">
-                <div class="flex border-b-2 border-slate-950 pb-2 gap-3 overflow-x-auto">
-                    <button onclick="switchWalletTab('tokens')" id="walletTabBtn-tokens" class="font-pixel font-bold text-sm px-4 py-2 rounded-xl bg-purple-700 text-white border-2 border-slate-950 flex items-center gap-2 shrink-0">
-                        <i data-lucide="coins" class="w-4 h-4"></i> Tokens & Balances
+            <!-- INSTITUTIONAL NETWORK & SECURITY METRIC BAR -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="pixel-card p-4 flex items-center gap-3 bg-white">
+                    <div class="p-2.5 rounded-xl bg-purple-100 text-purple-700 border-2 border-slate-950 shrink-0">
+                        <i data-lucide="zap" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <div class="text-[10px] font-silkscreen uppercase tracking-wider text-slate-500 font-bold">Network Speed</div>
+                        <div class="text-sm font-pixel font-bold text-slate-950">~450ms Finality</div>
+                    </div>
+                </div>
+
+                <div class="pixel-card p-4 flex items-center gap-3 bg-white">
+                    <div class="p-2.5 rounded-xl bg-teal-100 text-teal-700 border-2 border-slate-950 shrink-0">
+                        <i data-lucide="fuel" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <div class="text-[10px] font-silkscreen uppercase tracking-wider text-slate-500 font-bold">Gas Currency</div>
+                        <div class="text-sm font-pixel font-bold text-slate-950">USDC Native Gas</div>
+                    </div>
+                </div>
+
+                <div class="pixel-card p-4 flex items-center gap-3 bg-white">
+                    <div class="p-2.5 rounded-xl bg-indigo-100 text-indigo-700 border-2 border-slate-950 shrink-0">
+                        <i data-lucide="shield-check" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <div class="text-[10px] font-silkscreen uppercase tracking-wider text-slate-500 font-bold">Consortium Security</div>
+                        <div class="text-sm font-pixel font-bold text-slate-950">12 Active Nodes</div>
+                    </div>
+                </div>
+
+                <div class="pixel-card p-4 flex items-center gap-3 bg-white">
+                    <div class="p-2.5 rounded-xl bg-emerald-100 text-emerald-700 border-2 border-slate-950 shrink-0">
+                        <i data-lucide="lock" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <div class="text-[10px] font-silkscreen uppercase tracking-wider text-slate-500 font-bold">Key Protection</div>
+                        <div class="text-sm font-pixel font-bold text-slate-950">EIP-712 Sign Guard</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PRO ASSET & ACTIVITY STUDIO -->
+            <div class="pixel-card p-6 sm:p-8 space-y-6 bg-white">
+                
+                <!-- Modern Sub-Tabs Header -->
+                <div class="flex border-b-2 border-slate-950 pb-2.5 gap-2 overflow-x-auto">
+                    <button onclick="switchWalletTab('tokens')" id="walletTabBtn-tokens" class="font-pixel font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl bg-purple-700 text-white border-2 border-slate-950 flex items-center gap-2 shrink-0 transition-all shadow-[2px_2px_0px_#0F172A]">
+                        <i data-lucide="coins" class="w-4 h-4"></i> Tokens &amp; Balances
                     </button>
-                    <button onclick="switchWalletTab('activity')" id="walletTabBtn-activity" class="font-pixel font-bold text-sm px-4 py-2 rounded-xl text-slate-700 hover:text-slate-950 flex items-center gap-2 shrink-0">
-                        <i data-lucide="activity" class="w-4 h-4"></i> Real Activity Log
+                    <button onclick="switchWalletTab('nfts')" id="walletTabBtn-nfts" class="font-pixel font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl text-slate-700 hover:text-slate-950 flex items-center gap-2 shrink-0 transition-all">
+                        <i data-lucide="award" class="w-4 h-4"></i> NFTs &amp; Passes
                     </button>
-                    <button onclick="switchWalletTab('nfts')" id="walletTabBtn-nfts" class="font-pixel font-bold text-sm px-4 py-2 rounded-xl text-slate-700 hover:text-slate-950 flex items-center gap-2 shrink-0">
-                        <i data-lucide="shield-check" class="w-4 h-4"></i> Badges & Pass
+                    <button onclick="switchWalletTab('activity')" id="walletTabBtn-activity" class="font-pixel font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl text-slate-700 hover:text-slate-950 flex items-center gap-2 shrink-0 transition-all">
+                        <i data-lucide="activity" class="w-4 h-4"></i> On-Chain Activity
+                    </button>
+                    <button onclick="switchWalletTab('security')" id="walletTabBtn-security" class="font-pixel font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl text-slate-700 hover:text-slate-950 flex items-center gap-2 shrink-0 transition-all">
+                        <i data-lucide="shield" class="w-4 h-4"></i> Security &amp; Keys
                     </button>
                 </div>
 
-                <div id="walletTabContent-tokens" class="space-y-3 font-mono text-xs">
-                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white text-sm">$</div>
-                            <div>
-                                <div class="font-bold text-slate-950 text-sm">USDC</div>
-                                <div class="text-[11px] text-slate-500">Native Arc L1 Gas Token</div>
+                <!-- TAB 1: TOKENS & BALANCES -->
+                <div id="walletTabContent-tokens" class="space-y-3.5 font-mono">
+                    
+                    <!-- Token 1: USDC -->
+                    <div class="p-4 sm:p-5 rounded-2xl bg-slate-50 hover:bg-purple-50/50 border-2 border-slate-950 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all shadow-[2px_2px_0px_#0F172A]">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-12 h-12 rounded-2xl bg-blue-600 border-2 border-slate-950 flex items-center justify-center font-bold text-white text-lg shadow-[2px_2px_0px_#0F172A] shrink-0">
+                                $
                             </div>
-                        </div>
-                        <div class="text-right">
-                            <div id="walletTabUsdcBal" class="font-bold text-slate-950 text-sm">0.00 USDC</div>
-                            <div id="walletTabUsdcUsd" class="text-[11px] text-emerald-700 font-bold">$0.00 USD</div>
-                        </div>
-                    </div>
-
-                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center font-bold text-slate-950 text-sm">€</div>
                             <div>
-                                <div class="font-bold text-slate-950 text-sm">EURC</div>
-                                <div class="text-[11px] text-slate-500">Euro Stablecoin</div>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div id="walletTabEurcBal" class="font-bold text-slate-950 text-sm">0.00 EURC</div>
-                            <div id="walletTabEurcUsd" class="text-[11px] text-amber-700 font-bold">€0.00 EUR</div>
-                        </div>
-                    </div>
-
-                    <!-- eBTC COMING SOON TOKEN ROW -->
-                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between opacity-75">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center font-bold text-white text-sm"></div>
-                            <div>
-                                <div class="font-bold text-slate-950 text-sm flex items-center gap-2">
-                                    <span>eBTC</span>
-                                    <span class="px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 border border-amber-500 text-[9px] font-bold">COMING SOON</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-slate-950 text-base">USDC</span>
+                                    <span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-300 text-[10px] font-bold">Circle L1 Gas</span>
                                 </div>
-                                <div class="text-[11px] text-slate-500">Arc Wrapped Bitcoin</div>
+                                <div class="text-xs text-slate-500 font-medium">Native Gas &amp; Settlement Stablecoin</div>
                             </div>
                         </div>
-                        <div class="text-right">
-                            <div class="font-bold text-slate-950 text-sm">0.00 eBTC</div>
-                            <div class="text-[10px] text-amber-700 font-bold">Coming Soon</div>
+
+                        <div class="flex items-center justify-between sm:justify-end gap-6">
+                            <div class="text-left sm:text-right">
+                                <div id="walletTabUsdcBal" class="font-bold text-slate-950 text-base sm:text-lg font-mono">0.00 USDC</div>
+                                <div class="flex items-center sm:justify-end gap-2 text-xs">
+                                    <span id="walletTabUsdcUsd" class="text-emerald-700 font-bold">$0.00 USD</span>
+                                    <span class="text-slate-400">($1.00)</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <button onclick="openWalletSendModal()" class="btn-pixel-sm px-3 py-1.5 rounded-lg bg-white border-2 border-slate-950 text-slate-950 text-xs font-bold hover:bg-slate-100">
+                                    Send
+                                </button>
+                                <button onclick="switchPage('swap')" class="btn-pixel-sm px-3 py-1.5 rounded-lg bg-purple-700 text-white text-xs font-bold hover:bg-purple-600">
+                                    Swap
+                                </button>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Token 2: EURC -->
+                    <div class="p-4 sm:p-5 rounded-2xl bg-slate-50 hover:bg-purple-50/50 border-2 border-slate-950 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all shadow-[2px_2px_0px_#0F172A]">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-12 h-12 rounded-2xl bg-amber-500 border-2 border-slate-950 flex items-center justify-center font-bold text-slate-950 text-lg shadow-[2px_2px_0px_#0F172A] shrink-0">
+                                €
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-slate-950 text-base">EURC</span>
+                                    <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold">Circle Euro</span>
+                                </div>
+                                <div class="text-xs text-slate-500 font-medium">Euro Stablecoin on Arc Network</div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between sm:justify-end gap-6">
+                            <div class="text-left sm:text-right">
+                                <div id="walletTabEurcBal" class="font-bold text-slate-950 text-base sm:text-lg font-mono">0.00 EURC</div>
+                                <div class="flex items-center sm:justify-end gap-2 text-xs">
+                                    <span id="walletTabEurcUsd" class="text-amber-700 font-bold">€0.00 EUR</span>
+                                    <span class="text-slate-400">(€1.00)</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <button onclick="switchPage('swap')" class="btn-pixel-sm px-3 py-1.5 rounded-lg bg-purple-700 text-white text-xs font-bold hover:bg-purple-600">
+                                    Swap
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Token 3: eBTC -->
+                    <div class="p-4 sm:p-5 rounded-2xl bg-slate-50 hover:bg-purple-50/50 border-2 border-slate-950 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all shadow-[2px_2px_0px_#0F172A]">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-600 border-2 border-slate-950 flex items-center justify-center font-bold text-white text-lg shadow-[2px_2px_0px_#0F172A] shrink-0">
+                                ₿
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-slate-950 text-base">eBTC</span>
+                                    <span class="px-2 py-0.5 rounded-full bg-orange-100 text-orange-900 border border-orange-300 text-[10px] font-bold">Wrapped BTC</span>
+                                </div>
+                                <div class="text-xs text-slate-500 font-medium">Arc L1 Bridged Bitcoin Asset</div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between sm:justify-end gap-6">
+                            <div class="text-left sm:text-right">
+                                <div id="walletTabEbtcBal" class="font-bold text-slate-950 text-base sm:text-lg font-mono">0.0000 eBTC</div>
+                                <div class="text-xs text-slate-500 font-bold">$64,250.00 / BTC</div>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <button onclick="mintTestEbtc()" class="btn-pixel-sm px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 text-xs font-bold hover:bg-amber-400">
+                                    Mint +0.05
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Token 4: ARC Governance -->
+                    <div class="p-4 sm:p-5 rounded-2xl bg-slate-50 hover:bg-purple-50/50 border-2 border-slate-950 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all shadow-[2px_2px_0px_#0F172A]">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-700 via-indigo-600 to-teal-500 border-2 border-slate-950 flex items-center justify-center font-bold text-white text-lg shadow-[2px_2px_0px_#0F172A] shrink-0">
+                                ⬡
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-slate-950 text-base">ARC</span>
+                                    <span class="px-2 py-0.5 rounded-full bg-purple-100 text-purple-900 border border-purple-300 text-[10px] font-bold">Consortium Staking</span>
+                                </div>
+                                <div class="text-xs text-slate-500 font-medium">Validator Staking &amp; Governance Asset</div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between sm:justify-end gap-6">
+                            <div class="text-left sm:text-right">
+                                <div id="walletTabArcBal" class="font-bold text-slate-950 text-base sm:text-lg font-mono">100.00 ARC</div>
+                                <div class="text-xs text-purple-700 font-bold">Governance Tier 1</div>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <button onclick="switchPage('validators')" class="btn-pixel-sm px-3 py-1.5 rounded-lg bg-indigo-700 text-white text-xs font-bold hover:bg-indigo-600">
+                                    Stake
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
-                <div id="walletTabContent-activity" class="hidden space-y-3 font-mono text-xs">
+                <!-- TAB 2: NFTS & PASSES -->
+                <div id="walletTabContent-nfts" class="hidden grid grid-cols-1 md:grid-cols-2 gap-5 font-mono">
+                    
+                    <!-- NFT 1: Genesis Pass -->
+                    <div class="p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-purple-950 to-slate-950 border-3 border-amber-400 text-white space-y-4 shadow-[4px_4px_0px_#0F172A] relative overflow-hidden">
+                        <div class="flex items-start justify-between">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-400 to-purple-600 border-2 border-slate-950 flex items-center justify-center text-2xl shadow-md">
+                                👑
+                            </div>
+                            <span class="px-3 py-1 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/50 text-[10px] font-bold uppercase">
+                                Legendary Tier 3
+                            </span>
+                        </div>
+
+                        <div>
+                            <h4 class="font-pixel text-xl font-bold text-white">Arc Genesis Builder Pass</h4>
+                            <p class="text-xs text-slate-300 mt-0.5">Token ID: #0042 • Smart Contract Verified</p>
+                        </div>
+
+                        <div class="p-3.5 bg-white/10 rounded-xl text-xs space-y-1.5 text-slate-200 border border-white/10 font-sans">
+                            <div class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> +50% XP Multiplier on Daily Quests</div>
+                            <div class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Mainnet Whitelist Allocation Access</div>
+                            <div class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Consortium VIP Governance Voting</div>
+                        </div>
+                    </div>
+
+                    <!-- NFT 2: Validator Delegate Pass -->
+                    <div class="p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-teal-950 to-slate-950 border-3 border-teal-400 text-white space-y-4 shadow-[4px_4px_0px_#0F172A] relative overflow-hidden">
+                        <div class="flex items-start justify-between">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-teal-400 to-indigo-600 border-2 border-slate-950 flex items-center justify-center text-2xl shadow-md">
+                                🛡️
+                            </div>
+                            <span class="px-3 py-1 rounded-full bg-teal-400/20 text-teal-300 border border-teal-400/50 text-[10px] font-bold uppercase">
+                                Institutional
+                            </span>
+                        </div>
+
+                        <div>
+                            <h4 class="font-pixel text-xl font-bold text-white">Consortium Delegate Pass</h4>
+                            <p class="text-xs text-slate-300 mt-0.5">Token ID: #0108 • Circle Arc L1 Pass</p>
+                        </div>
+
+                        <div class="p-3.5 bg-white/10 rounded-xl text-xs space-y-1.5 text-slate-200 border border-white/10 font-sans">
+                            <div class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-teal-300"></i> Direct Validator Telemetry Access</div>
+                            <div class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-teal-300"></i> Zero Gas Surcharge on DEX Swaps</div>
+                            <div class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-teal-300"></i> Institutional Consortium Verified</div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- TAB 3: ON-CHAIN ACTIVITY LOG -->
+                <div id="walletTabContent-activity" class="hidden space-y-3.5 font-mono">
+                    <div class="flex items-center justify-between pb-2">
+                        <div class="text-xs font-bold text-slate-500 uppercase font-silkscreen">Live On-Chain Transaction Feed</div>
+                        <button onclick="renderWalletRealTxLog()" class="text-xs text-purple-700 font-bold hover:underline flex items-center gap-1">
+                            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
+                        </button>
+                    </div>
                     <div id="walletRealTxListContainer"></div>
                 </div>
 
-                <div id="walletTabContent-nfts" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4 font-mono text-xs">
-                    <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-purple-600 to-teal-500 border-2 border-slate-950 flex items-center justify-center text-white shrink-0">
-                            <i data-lucide="shield-check" class="w-6 h-6"></i>
+                <!-- TAB 4: SECURITY & KEYS -->
+                <div id="walletTabContent-security" class="hidden space-y-4 font-mono text-xs">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-5 rounded-2xl bg-slate-50 border-2 border-slate-950 space-y-3">
+                            <div class="flex items-center gap-2 text-slate-950 font-bold font-pixel text-sm">
+                                <i data-lucide="key" class="w-4 h-4 text-purple-700"></i>
+                                Cryptographic Signature Auth
+                            </div>
+                            <p class="text-slate-600 text-xs font-sans">
+                                Verify and sign authentication payloads with your private key via standard Web3 <code>personal_sign</code>.
+                            </p>
+                            <button onclick="requestSignatureAuth()" class="btn-pixel w-full py-2.5 rounded-xl bg-purple-700 text-white font-bold text-xs flex items-center justify-center gap-2">
+                                <i data-lucide="shield-check" class="w-4 h-4"></i>
+                                Trigger Signature Test
+                            </button>
+                        </div>
+
+                        <div class="p-5 rounded-2xl bg-slate-50 border-2 border-slate-950 space-y-3">
+                            <div class="flex items-center gap-2 text-slate-950 font-bold font-pixel text-sm">
+                                <i data-lucide="refresh-cw" class="w-4 h-4 text-teal-700"></i>
+                                Arc RPC Network Switcher
+                            </div>
+                            <p class="text-slate-600 text-xs font-sans">
+                                Prompt your connected wallet to switch or add Circle Arc L1 Testnet (Chain ID <code>5042002</code>).
+                            </p>
+                            <button onclick="manualSwitchToArcNetwork()" class="btn-pixel w-full py-2.5 rounded-xl bg-teal-600 text-white font-bold text-xs flex items-center justify-center gap-2">
+                                <i data-lucide="arrow-right-left" class="w-4 h-4"></i>
+                                Switch to Arc L1
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-purple-50 border-2 border-purple-300 text-purple-950 space-y-1 font-sans text-xs">
+                        <div class="font-bold flex items-center gap-1.5">
+                            <i data-lucide="info" class="w-4 h-4 text-purple-700"></i>
+                            Circle Arc Security Guarantee
                         </div>
                         <div>
-                            <div class="font-bold text-slate-950 text-sm">Arc Genesis Builder Pass</div>
-                            <div class="text-[11px] text-purple-700 font-bold">Verified Testnet Builder Pass</div>
+                            All testnet keys and transactions interact with the official Circle Arc L1 node cluster. Private keys never leave your Web3 wallet provider.
                         </div>
                     </div>
                 </div>
+
             </div>
         </section>
 

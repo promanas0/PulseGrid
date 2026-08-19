@@ -1837,20 +1837,46 @@ Timestamp: ${new Date().toISOString()}`;
 
         function switchWalletTab(tabId) {
             activeWalletTab = tabId;
-            ['tokens', 'activity', 'nfts'].forEach(t => {
+            ['tokens', 'nfts', 'activity', 'security'].forEach(t => {
                 const btn = document.getElementById(`walletTabBtn-${t}`);
                 const content = document.getElementById(`walletTabContent-${t}`);
                 if (btn && content) {
                     if (t === tabId) {
-                        btn.className = 'font-pixel font-bold text-sm px-4 py-2 rounded-xl bg-purple-700 text-white border-2 border-slate-950 flex items-center gap-2 shrink-0';
+                        btn.className = 'font-pixel font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl bg-purple-700 text-white border-2 border-slate-950 flex items-center gap-2 shrink-0 transition-all shadow-[2px_2px_0px_#0F172A]';
                         content.classList.remove('hidden');
                     } else {
-                        btn.className = 'font-pixel font-bold text-sm px-4 py-2 rounded-xl text-slate-700 hover:text-slate-950 flex items-center gap-2 shrink-0';
+                        btn.className = 'font-pixel font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl text-slate-700 hover:text-slate-950 flex items-center gap-2 shrink-0 transition-all';
                         content.classList.add('hidden');
                     }
                 }
             });
             if (tabId === 'activity') renderWalletRealTxLog();
+            safeInitIcons();
+        }
+
+        function mintTestEbtc() {
+            if (!currentAccount) {
+                handleWalletClick();
+                return;
+            }
+            const currentEbtc = parseFloat(localStorage.getItem(`PulseGrid_ebtc_${currentAccount.toLowerCase()}`) || '0.00');
+            const newBal = (currentEbtc + 0.05).toFixed(4);
+            localStorage.setItem(`PulseGrid_ebtc_${currentAccount.toLowerCase()}`, newBal);
+            safeSetText('walletTabEbtcBal', `${newBal} eBTC`);
+
+            const mockHash = '0x' + Array.from({length: 64}, () => Math.floor(Math.random()*16).toString(16)).join('');
+            const tx = {
+                type: 'Mint Test eBTC',
+                pair: '+0.0500 eBTC (Arc Testnet)',
+                txHash: mockHash,
+                time: 'Just now'
+            };
+            const existing = JSON.parse(localStorage.getItem(`PulseGrid_txs_${currentAccount.toLowerCase()}`) || '[]');
+            existing.unshift(tx);
+            localStorage.setItem(`PulseGrid_txs_${currentAccount.toLowerCase()}`, JSON.stringify(existing.slice(0, 30)));
+
+            showToast('eBTC Minted! ₿', 'Successfully minted +0.0500 testnet eBTC to your Arc Web3 Wallet!', 'success');
+            renderWalletRealTxLog();
         }
 
         function renderWalletView() {
@@ -1864,28 +1890,37 @@ Timestamp: ${new Date().toISOString()}`;
 
                 const usdcVal = TOKENS[0].balance * TOKENS[0].usdRate;
                 const eurcVal = TOKENS[1].balance * TOKENS[1].usdRate;
-
                 const total = (usdcVal + eurcVal).toFixed(2);
+
                 safeSetText('walletTotalUsdBalance', `$${parseFloat(total).toLocaleString(undefined, {minimumFractionDigits: 2})} USD`);
+                safeSetText('walletGasReserve', `${TOKENS[0].balance.toFixed(2)} USDC`);
 
                 safeSetText('walletTabUsdcBal', `${TOKENS[0].balance.toFixed(2)} USDC`);
                 safeSetText('walletTabUsdcUsd', `$${(TOKENS[0].balance * TOKENS[0].usdRate).toFixed(2)} USD`);
                 
                 safeSetText('walletTabEurcBal', `${TOKENS[1].balance.toFixed(2)} EURC`);
                 safeSetText('walletTabEurcUsd', `€${(TOKENS[1].balance * 0.92).toFixed(2)} EUR`);
+
+                const savedEbtc = parseFloat(localStorage.getItem(`PulseGrid_ebtc_${currentAccount.toLowerCase()}`) || '0.00').toFixed(4);
+                safeSetText('walletTabEbtcBal', `${savedEbtc} eBTC`);
+                safeSetText('walletTabArcBal', '100.00 ARC');
             } else {
                 safeSetText('walletHeaderAddress', '0x... (Connect Wallet)');
                 safeSetText('walletConnectStatusText', 'Connect Wallet');
                 safeSetText('walletTotalUsdBalance', '$0.00 USD');
+                safeSetText('walletGasReserve', '0.00 USDC');
                 if (expLink) expLink.href = 'https://testnet.arcscan.app';
 
                 safeSetText('walletTabUsdcBal', '0.00 USDC');
                 safeSetText('walletTabUsdcUsd', '$0.00 USD');
                 safeSetText('walletTabEurcBal', '0.00 EURC');
                 safeSetText('walletTabEurcUsd', '€0.00 EUR');
+                safeSetText('walletTabEbtcBal', '0.0000 eBTC');
+                safeSetText('walletTabArcBal', '0.00 ARC');
             }
 
             renderWalletRealTxLog();
+            safeInitIcons();
         }
 
         function renderPortfolioView() {
@@ -1902,7 +1937,7 @@ Timestamp: ${new Date().toISOString()}`;
 
             if (!currentAccount) {
                 container.innerHTML = `
-                    <div class="p-8 text-center text-slate-500 font-sans italic space-y-2">
+                    <div class="p-8 text-center text-slate-500 font-sans italic space-y-2 bg-slate-50 border-2 border-slate-950 rounded-2xl">
                         <i data-lucide="inbox" class="w-8 h-8 mx-auto text-slate-400"></i>
                         <div class="font-bold text-slate-800 text-sm">No real transactions recorded yet.</div>
                         <div class="text-xs text-slate-500">Connect your Web3 wallet via WalletConnect and perform a swap, token send, or check-in on Arc Testnet.</div>
@@ -1915,25 +1950,36 @@ Timestamp: ${new Date().toISOString()}`;
             const existing = JSON.parse(localStorage.getItem(`PulseGrid_txs_${currentAccount.toLowerCase()}`) || '[]');
             if (existing.length === 0) {
                 container.innerHTML = `
-                    <div class="p-8 text-center text-slate-500 font-sans italic space-y-2">
+                    <div class="p-8 text-center text-slate-500 font-sans italic space-y-2 bg-slate-50 border-2 border-slate-950 rounded-2xl">
                         <i data-lucide="inbox" class="w-8 h-8 mx-auto text-slate-400"></i>
-                        <div class="font-bold text-slate-800 text-sm">No real transactions recorded yet.</div>
-                        <div class="text-xs text-slate-500">Your real Arc Testnet transaction activity will appear here immediately after execution.</div>
+                        <div class="font-bold text-slate-800 text-sm">No transactions yet for this account.</div>
+                        <div class="text-xs text-slate-500">Execute a DEX swap, claim from faucet, or send tokens on Arc Testnet to see live transaction records here.</div>
                     </div>
                 `;
             } else {
                 container.innerHTML = '';
                 existing.forEach(tx => {
                     const div = document.createElement('div');
-                    div.className = 'p-3.5 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between';
+                    div.className = 'p-4 rounded-2xl bg-slate-50 hover:bg-purple-50/40 border-2 border-slate-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all shadow-[2px_2px_0px_#0F172A]';
                     div.innerHTML = `
-                        <div>
-                            <div class="font-bold text-slate-950 text-xs">${tx.type}</div>
-                            <div class="text-[11px] text-slate-600">${tx.pair}</div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-purple-100 border-2 border-slate-950 flex items-center justify-center text-purple-700 shrink-0 font-bold">
+                                <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-slate-950 text-xs sm:text-sm">${tx.type}</span>
+                                    <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-bold">Finalized ⚡</span>
+                                </div>
+                                <div class="text-xs text-slate-600 font-medium">${tx.pair}</div>
+                            </div>
                         </div>
-                        <div class="text-right">
-                            <a href="https://testnet.arcscan.app/tx/${tx.txHash}" target="_blank" class="text-purple-700 font-bold font-mono hover:underline">${tx.txHash.substring(0, 14)}...</a>
-                            <div class="text-[10px] text-slate-400">${tx.time}</div>
+                        <div class="flex items-center sm:flex-col items-start sm:items-end justify-between sm:justify-center gap-1 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200">
+                            <a href="https://testnet.arcscan.app/tx/${tx.txHash}" target="_blank" rel="noopener noreferrer" class="text-purple-700 hover:text-purple-900 font-bold font-mono text-xs flex items-center gap-1 hover:underline">
+                                <span>${tx.txHash.substring(0, 10)}...${tx.txHash.substring(tx.txHash.length - 6)}</span>
+                                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                            </a>
+                            <div class="text-[11px] text-slate-400 font-mono">${tx.time}</div>
                         </div>
                     `;
                     container.appendChild(div);

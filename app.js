@@ -318,6 +318,8 @@ if (typeof tailwind !== 'undefined') {
 
                 if (pageId === 'wallet') {
                     renderWalletView();
+                } else if (pageId === 'validators') {
+                    if (typeof renderValidatorsTable === 'function') renderValidatorsTable();
                 } else if (pageId === 'portfolio') {
                     renderPortfolioView();
                 } else if (pageId === 'prediction') {
@@ -2254,6 +2256,455 @@ Timestamp: ${new Date().toISOString()}`;
             if (modal) modal.classList.add('hidden');
         }
 
+        // ==========================================
+        // VALIDATOR STATUS & TELEMETRY ENGINE
+        // ==========================================
+        const VALIDATORS_LIST = [
+            {
+                id: 'circle-alpha',
+                name: 'Circle Node Alpha',
+                avatar: '🔵',
+                badge: 'Consortium Lead',
+                organization: 'Circle Internet Financial',
+                address: '0x1f84...892A',
+                fullAddress: '0x1f84C371B2dE51A07b5C558D8eF3c4bC2E60892A',
+                status: 'online',
+                uptime: 99.99,
+                latency: 1.2,
+                lastBlockSigned: 56258045,
+                stakeUsdc: 1250000,
+                votingPower: 15.2,
+                location: 'Ashburn, VA',
+                region: 'US East (N. Virginia)',
+                hardware: { cpu: '64 vCPU AMD EPYC', ram: '256 GB ECC', bandwidth: '10 Gbps' }
+            },
+            {
+                id: 'blackrock-prime',
+                name: 'BlackRock Prime Consensus',
+                avatar: '⬛',
+                badge: 'Institutional Tier 1',
+                organization: 'BlackRock Financial Markets',
+                address: '0x4b21...418C',
+                fullAddress: '0x4b218C8E19d7eF9A0837d9472e391F09903b418C',
+                status: 'online',
+                uptime: 99.98,
+                latency: 2.1,
+                lastBlockSigned: 56258045,
+                stakeUsdc: 950000,
+                votingPower: 11.5,
+                location: 'New York, NY',
+                region: 'US East (New York)',
+                hardware: { cpu: '64 vCPU Xeon Gold', ram: '256 GB ECC', bandwidth: '10 Gbps' }
+            },
+            {
+                id: 'visa-settle',
+                name: 'Visa Settlement Relay',
+                avatar: '💳',
+                badge: 'Institutional Tier 1',
+                organization: 'Visa Inc.',
+                address: '0x7c93...333F',
+                fullAddress: '0x7c933F85E2d937A01648bcDaE099f648D80F333F',
+                status: 'online',
+                uptime: 99.99,
+                latency: 1.8,
+                lastBlockSigned: 56258044,
+                stakeUsdc: 850000,
+                votingPower: 10.3,
+                location: 'Boardman, OR',
+                region: 'US West (Oregon)',
+                hardware: { cpu: '64 vCPU AMD EPYC', ram: '256 GB ECC', bandwidth: '10 Gbps' }
+            },
+            {
+                id: 'dtcc-consensus',
+                name: 'DTCC Global Clearing Node',
+                avatar: '🏛️',
+                badge: 'Institutional Tier 1',
+                organization: 'Depository Trust & Clearing Corp',
+                address: '0x9e17...72D1',
+                fullAddress: '0x9e172D437F8E8024976c66289bDE9eA7584A72D1',
+                status: 'online',
+                uptime: 99.95,
+                latency: 3.0,
+                lastBlockSigned: 56258045,
+                stakeUsdc: 780000,
+                votingPower: 9.5,
+                location: 'Frankfurt',
+                region: 'EU Central (Germany)',
+                hardware: { cpu: '32 vCPU AMD EPYC', ram: '128 GB ECC', bandwidth: '5 Gbps' }
+            },
+            {
+                id: 'bny-custody',
+                name: 'BNY Mellon Digital Custody',
+                avatar: '🏦',
+                badge: 'Custodian Node',
+                organization: 'Bank of New York Mellon',
+                address: '0x3d9A...9992',
+                fullAddress: '0x3d9A6720f358BE28357492cda1952a12B4169992',
+                status: 'online',
+                uptime: 99.97,
+                latency: 2.4,
+                lastBlockSigned: 56258044,
+                stakeUsdc: 720000,
+                votingPower: 8.7,
+                location: 'New York, NY',
+                region: 'US East (New York)',
+                hardware: { cpu: '64 vCPU Xeon Gold', ram: '256 GB ECC', bandwidth: '10 Gbps' }
+            },
+            {
+                id: 'state-street',
+                name: 'State Street Alpha Relay',
+                avatar: '📊',
+                badge: 'Custodian Node',
+                organization: 'State Street Corp',
+                address: '0x821F...8831',
+                fullAddress: '0x821F069273c88B270c53A8De1bEc43194B4E8831',
+                status: 'online',
+                uptime: 99.94,
+                latency: 3.2,
+                lastBlockSigned: 56258045,
+                stakeUsdc: 650000,
+                votingPower: 7.9,
+                location: 'Boston, MA',
+                region: 'US East (Massachusetts)',
+                hardware: { cpu: '32 vCPU Xeon Gold', ram: '128 GB ECC', bandwidth: '5 Gbps' }
+            },
+            {
+                id: 'jpmorgan-onyx',
+                name: 'JPMorgan Onyx Engine',
+                avatar: '💎',
+                badge: 'Institutional Tier 1',
+                organization: 'JPMorgan Chase & Co.',
+                address: '0x51E2...1c2A',
+                fullAddress: '0x51E28a55427Fe0937b2d56E99cE8E423b4971c2A',
+                status: 'online',
+                uptime: 99.96,
+                latency: 4.1,
+                lastBlockSigned: 56258045,
+                stakeUsdc: 600000,
+                votingPower: 7.3,
+                location: 'London',
+                region: 'EU West (London)',
+                hardware: { cpu: '64 vCPU AMD EPYC', ram: '256 GB ECC', bandwidth: '10 Gbps' }
+            },
+            {
+                id: 'fidelity-assets',
+                name: 'Fidelity Digital Assets Node',
+                avatar: '🌲',
+                badge: 'Institutional Tier 1',
+                organization: 'Fidelity Investments',
+                address: '0x6e9C...6004',
+                fullAddress: '0x6e9C1496632B5c4CFe0D853a8113426e273f6004',
+                status: 'online',
+                uptime: 99.98,
+                latency: 2.7,
+                lastBlockSigned: 56258044,
+                stakeUsdc: 580000,
+                votingPower: 7.0,
+                location: 'Secaucus, NJ',
+                region: 'US East (New Jersey)',
+                hardware: { cpu: '32 vCPU AMD EPYC', ram: '128 GB ECC', bandwidth: '10 Gbps' }
+            },
+            {
+                id: 'coinbase-cloud',
+                name: 'Coinbase Cloud Validator',
+                avatar: '🛡️',
+                badge: 'Infrastructure Partner',
+                organization: 'Coinbase Global, Inc.',
+                address: '0x228d...1977',
+                fullAddress: '0x228dA56d81741508216b34fAcF4Fe4eAE4901977',
+                status: 'online',
+                uptime: 99.92,
+                latency: 3.8,
+                lastBlockSigned: 56258045,
+                stakeUsdc: 520000,
+                votingPower: 6.3,
+                location: 'San Jose, CA',
+                region: 'US West (California)',
+                hardware: { cpu: '32 vCPU AMD EPYC', ram: '128 GB ECC', bandwidth: '5 Gbps' }
+            },
+            {
+                id: 'franklin-templeton',
+                name: 'Franklin Templeton OnChain',
+                avatar: '🪙',
+                badge: 'Asset Manager',
+                organization: 'Franklin Templeton',
+                address: '0xa41B...42f7',
+                fullAddress: '0xa41B9e19c35398B1a13bB4E7dEbD08a98C1542f7',
+                status: 'online',
+                uptime: 99.91,
+                latency: 14.5,
+                lastBlockSigned: 56258043,
+                stakeUsdc: 490000,
+                votingPower: 5.9,
+                location: 'Singapore',
+                region: 'AP Southeast (Singapore)',
+                hardware: { cpu: '32 vCPU AMD EPYC', ram: '128 GB ECC', bandwidth: '5 Gbps' }
+            },
+            {
+                id: 'nomura-laser',
+                name: 'Nomura Laser Digital',
+                avatar: '⚡',
+                badge: 'Digital Assets Division',
+                organization: 'Nomura Holdings',
+                address: '0xd888...22C8',
+                fullAddress: '0xd888F93297a760cE455Db8E88E4B97eC481A22C8',
+                status: 'syncing',
+                uptime: 99.12,
+                latency: 18.2,
+                lastBlockSigned: 56258039,
+                stakeUsdc: 410000,
+                votingPower: 5.0,
+                location: 'Tokyo',
+                region: 'AP Northeast (Tokyo)',
+                hardware: { cpu: '32 vCPU Xeon Gold', ram: '128 GB ECC', bandwidth: '5 Gbps' }
+            },
+            {
+                id: 'arc-community',
+                name: 'Arc Community Pulse Node',
+                avatar: '🌐',
+                badge: 'Community Pioneer',
+                organization: 'Arc Ecosystem Foundation',
+                address: '0x1102...0291',
+                fullAddress: '0x11029cEbAF7619280e227e7d69C0099436dF0291',
+                status: 'online',
+                uptime: 99.85,
+                latency: 5.3,
+                lastBlockSigned: 56258045,
+                stakeUsdc: 350000,
+                votingPower: 4.2,
+                location: 'Amsterdam',
+                region: 'EU West (Netherlands)',
+                hardware: { cpu: '32 vCPU AMD EPYC', ram: '128 GB ECC', bandwidth: '5 Gbps' }
+            }
+        ];
+
+        let currentValidatorSearchQuery = '';
+        let currentValidatorStatusFilter = 'all';
+        let currentSelectedModalValidator = null;
+        let validatorBlockHeight = 56258045;
+        let validatorEpochNum = 4821;
+
+        function renderValidatorsTable() {
+            try {
+                const tbody = document.getElementById('validatorTableBody');
+                if (!tbody) return;
+
+                const filtered = VALIDATORS_LIST.filter(node => {
+                    const q = currentValidatorSearchQuery.toLowerCase();
+                    const matchesSearch = !q ||
+                        node.name.toLowerCase().includes(q) ||
+                        node.organization.toLowerCase().includes(q) ||
+                        node.fullAddress.toLowerCase().includes(q) ||
+                        node.location.toLowerCase().includes(q);
+
+                    const matchesStatus = currentValidatorStatusFilter === 'all' || node.status === currentValidatorStatusFilter;
+                    return matchesSearch && matchesStatus;
+                });
+
+                if (filtered.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="8" class="py-10 text-center text-slate-400 font-mono">
+                                No validators found matching "${currentValidatorSearchQuery}".
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = filtered.map(node => {
+                    const isOnline = node.status === 'online';
+                    const statusBadge = isOnline
+                        ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-400 font-bold font-mono text-xs"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> ONLINE</span>`
+                        : `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-400 font-bold font-mono text-xs"><span class="w-2 h-2 rounded-full bg-amber-500 animate-spin"></span> SYNCING</span>`;
+
+                    const latencyColor = node.latency < 3.0
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        : node.latency < 10.0
+                        ? 'bg-blue-50 text-blue-700 border-blue-200'
+                        : 'bg-amber-50 text-amber-700 border-amber-200';
+
+                    const uptimeBarColor = node.uptime > 99.9 ? 'bg-emerald-500' : 'bg-teal-500';
+
+                    const blocksAgo = validatorBlockHeight - node.lastBlockSigned;
+                    const blockSignedText = blocksAgo <= 0 ? 'Just now (leader)' : `${blocksAgo} blocks ago`;
+
+                    return `
+                        <tr class="hover:bg-purple-50/40 transition-colors">
+                            <td class="py-4 px-4 sm:px-6">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-slate-100 border-2 border-slate-950 flex items-center justify-center text-lg shadow-[2px_2px_0px_#0F172A] shrink-0">
+                                        ${node.avatar}
+                                    </div>
+                                    <div>
+                                        <div class="font-bold text-slate-950 flex items-center gap-2">
+                                            <span>${node.name}</span>
+                                            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300 font-semibold">${node.badge}</span>
+                                        </div>
+                                        <div class="text-xs text-slate-500 font-medium flex items-center gap-1 mt-0.5">
+                                            <i data-lucide="globe" class="w-3 h-3 text-slate-400"></i>
+                                            ${node.organization} • ${node.location}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td class="py-4 px-4 font-mono text-xs">
+                                <div class="inline-flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-300 text-slate-800">
+                                    <span>${node.address}</span>
+                                    <button onclick="copyValidatorAddress('${node.fullAddress}', '${node.name}')" class="text-slate-400 hover:text-purple-700 transition-colors p-0.5" title="Copy Address">
+                                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                </div>
+                            </td>
+
+                            <td class="py-4 px-4">
+                                ${statusBadge}
+                            </td>
+
+                            <td class="py-4 px-4 font-mono text-xs">
+                                <div class="space-y-1">
+                                    <div class="font-bold text-slate-900">${node.uptime}%</div>
+                                    <div class="w-20 bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                                        <div class="h-full ${uptimeBarColor} rounded-full" style="width: ${node.uptime}%"></div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td class="py-4 px-4 font-mono text-xs">
+                                <span class="font-bold inline-flex items-center gap-1 px-2 py-0.5 rounded border ${latencyColor}">
+                                    <i data-lucide="radio" class="w-3 h-3"></i>
+                                    ${node.latency} ms
+                                </span>
+                            </td>
+
+                            <td class="py-4 px-4 font-mono text-xs">
+                                <div class="text-slate-900 font-bold">#${node.lastBlockSigned.toLocaleString()}</div>
+                                <div class="text-[10px] text-slate-400">${blockSignedText}</div>
+                            </td>
+
+                            <td class="py-4 px-4 font-mono text-xs">
+                                <div class="font-bold text-slate-900">${node.votingPower}%</div>
+                                <div class="text-[10px] text-slate-500">${(node.stakeUsdc / 1000).toFixed(0)}k USDC</div>
+                            </td>
+
+                            <td class="py-4 px-4 text-right">
+                                <button onclick="openValidatorDetails('${node.id}')" class="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-900 hover:text-white border-2 border-slate-950 text-slate-900 font-mono text-xs font-bold shadow-[2px_2px_0px_#0F172A] transition-all active:translate-x-0.5 active:translate-y-0.5">
+                                    Inspect
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                safeInitIcons();
+            } catch(e) {
+                console.warn("renderValidatorsTable error:", e);
+            }
+        }
+
+        function onValidatorSearchChange(val) {
+            currentValidatorSearchQuery = val || '';
+            renderValidatorsTable();
+        }
+
+        function setValidatorStatusFilter(status) {
+            currentValidatorStatusFilter = status;
+            ['all', 'online', 'syncing'].forEach(s => {
+                const btn = document.getElementById(`valFilterBtn-${s}`);
+                if (btn) {
+                    if (s === status) {
+                        btn.className = 'px-3 py-1.5 rounded-lg bg-purple-700 text-white shadow-sm transition-all font-bold';
+                    } else {
+                        btn.className = 'px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-950 transition-all font-bold';
+                    }
+                }
+            });
+            renderValidatorsTable();
+        }
+
+        function copyValidatorAddress(addr, name) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(addr);
+                showToast('Address Copied! 📋', `${name} consensus address copied to clipboard`, 'success');
+            }
+        }
+
+        function openValidatorDetails(id) {
+            const node = VALIDATORS_LIST.find(v => v.id === id);
+            if (!node) return;
+            currentSelectedModalValidator = node;
+
+            safeSetText('modalValName', node.name);
+            safeSetText('modalValOrg', `${node.organization} • ${node.region}`);
+            safeSetText('modalValStatus', node.status.toUpperCase());
+            safeSetText('modalValLatency', `${node.latency} ms`);
+            safeSetText('modalValPower', `${node.votingPower}% (${(node.stakeUsdc).toLocaleString()} USDC)`);
+            safeSetText('modalValUptime', `${node.uptime}% (0 Slashed)`);
+            safeSetText('modalValCpu', node.hardware.cpu);
+            safeSetText('modalValRam', node.hardware.ram);
+            safeSetText('modalValBandwidth', node.hardware.bandwidth);
+            safeSetText('modalValFullAddr', node.fullAddress);
+
+            const avatarEl = document.getElementById('modalValAvatar');
+            if (avatarEl) avatarEl.innerText = node.avatar;
+
+            const modal = document.getElementById('validatorDetailsModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeValidatorDetails() {
+            const modal = document.getElementById('validatorDetailsModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function copyModalValidatorAddr() {
+            if (currentSelectedModalValidator) {
+                copyValidatorAddress(currentSelectedModalValidator.fullAddress, currentSelectedModalValidator.name);
+            }
+        }
+
+        function refreshValidatorTelemetry() {
+            const icon = document.getElementById('validatorRefreshIcon');
+            if (icon) icon.classList.add('animate-spin');
+            setTimeout(() => {
+                if (icon) icon.classList.remove('animate-spin');
+                showToast('Telemetry Synced ⚡', 'Live Arc L1 consensus metrics updated', 'success');
+                renderValidatorsTable();
+            }, 600);
+        }
+
+        function startLiveValidatorTelemetry() {
+            setInterval(() => {
+                validatorBlockHeight += 1;
+                if (validatorBlockHeight % 100 === 0) {
+                    validatorEpochNum += 1;
+                }
+
+                // Update metric cards
+                safeSetText('valStatBlock', `#${validatorBlockHeight.toLocaleString()}`);
+                safeSetText('valStatEpoch', `Epoch #${validatorEpochNum}`);
+
+                // Jitter latencies
+                VALIDATORS_LIST.forEach(v => {
+                    if (v.status === 'online') {
+                        const jitter = (Math.random() - 0.5) * 0.3;
+                        v.latency = Math.max(0.9, Number((v.latency + jitter).toFixed(1)));
+                        if (Math.random() > 0.15) {
+                            v.lastBlockSigned = validatorBlockHeight;
+                        }
+                    }
+                });
+
+                const avgLat = (VALIDATORS_LIST.reduce((a, b) => a + b.latency, 0) / VALIDATORS_LIST.length).toFixed(1);
+                safeSetText('valStatLatency', `${avgLat} ms`);
+
+                if (activePage === 'validators') {
+                    renderValidatorsTable();
+                }
+            }, 1800);
+        }
+
         function updateQuestTimerStatus() {
             try {
                 const timerEl = document.getElementById('dailyQuestTimerText');
@@ -2300,6 +2751,12 @@ Timestamp: ${new Date().toISOString()}`;
 
                 if (typeof startLiveTelemetryTimer === 'function') {
                     startLiveTelemetryTimer();
+                }
+                if (typeof renderValidatorsTable === 'function') {
+                    renderValidatorsTable();
+                }
+                if (typeof startLiveValidatorTelemetry === 'function') {
+                    startLiveValidatorTelemetry();
                 }
                 updateQuestTimerStatus();
                 setInterval(updateQuestTimerStatus, 30000);

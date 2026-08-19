@@ -530,6 +530,9 @@ Timestamp: ${new Date().toISOString()}`;
                 updateWalletUI();
                 renderWalletView();
                 renderPortfolioView();
+                if (typeof loadQuestState === 'function') {
+                    loadQuestState(account);
+                }
                 showToast('Wallet Connected!', `Connected via ${providerName} on Arc Testnet`, 'success');
             } catch(e) {}
         }
@@ -547,6 +550,9 @@ Timestamp: ${new Date().toISOString()}`;
             updateWalletUI();
             renderWalletView();
             renderPortfolioView();
+            if (typeof loadQuestState === 'function') {
+                loadQuestState(null);
+            }
             showToast('Wallet Disconnected', 'Session cleared.', 'info');
         }
 
@@ -1006,32 +1012,18 @@ Timestamp: ${new Date().toISOString()}`;
         }
 
         // =========================================================================
-        // GAMIFIED DAILY QUESTS, STREAK ROADMAP & 3-TIER NFT MEMBERSHIP PASS ENGINE
+        // REAL CRYPTOGRAPHIC QUESTS, STREAK ENGINE, REAL LEADERBOARD & ACTIVITY FEED
         // =========================================================================
         let activeQuestSubTab = 'daily';
 
         let questState = {
-            points: 2450,
-            streak: 4,
+            points: 0,
+            streak: 0,
             lastCheckinDate: '',
             lastStreakClaimDate: '',
-            swapsCompleted: 2,
-            claimedTasks: {
-                'task-checkin': false,
-                'task-swap': false,
-                'task-faucet': false,
-                'task-validator': false,
-                'task-volume': false,
-                'task-escrow': false,
-                'task-ai': false,
-                'task-share': false,
-                'task5Swaps': false
-            },
-            claimedBadges: {
-                'badge1': true,
-                'badge2': false,
-                'badge3': false
-            }
+            swapsCompleted: 0,
+            claimedTasks: {},
+            claimedBadges: {}
         };
 
         const QUEST_TASKS_DATA = [
@@ -1039,10 +1031,10 @@ Timestamp: ${new Date().toISOString()}`;
                 id: 'task-checkin',
                 category: 'daily',
                 title: 'Daily Web3 Check-In',
-                desc: 'Sign a cryptographic wallet message once per 24 hours to prove active identity',
+                desc: 'Sign a cryptographic wallet message once per 24 hours to prove active on-chain identity',
                 xp: 100,
                 icon: 'fingerprint',
-                actionLabel: 'Sign & Check In',
+                actionLabel: 'Sign & Check In ✍️',
                 actionFn: 'claimDailyCheckin()',
                 completedLabel: 'Checked In ✓',
                 badgeText: '+100 XP'
@@ -1051,7 +1043,7 @@ Timestamp: ${new Date().toISOString()}`;
                 id: 'task-swap',
                 category: 'daily',
                 title: 'Perform Arc DEX Swap',
-                desc: 'Swap any amount of USDC or EURC on the Spender Router smart contract',
+                desc: 'Swap any amount of USDC or EURC on the Spender Router smart contract to earn swap XP',
                 xp: 150,
                 icon: 'repeat',
                 actionLabel: 'Go Swap ⚡',
@@ -1063,7 +1055,7 @@ Timestamp: ${new Date().toISOString()}`;
                 id: 'task-faucet',
                 category: 'daily',
                 title: 'Claim Testnet Gas Faucet',
-                desc: 'Refill your wallet with 100 USDC testnet tokens from the Circle Faucet',
+                desc: 'Refill your wallet with testnet tokens from the Circle Arc Faucet',
                 xp: 75,
                 icon: 'droplet',
                 actionLabel: 'Claim Faucet 💧',
@@ -1202,23 +1194,82 @@ Timestamp: ${new Date().toISOString()}`;
             }
         }
 
-        function loadQuestState() {
+        function getPassTierTitle(xp, badges) {
+            if (badges && badges['badge3']) return 'Gold Sovereign 👑';
+            if (badges && badges['badge2']) return 'Silver Champion 🛡️';
+            if (badges && badges['badge1']) return 'Bronze Pioneer 🎖️';
+            if (xp >= 7500) return 'Gold Eligible';
+            if (xp >= 3000) return 'Silver Eligible';
+            if (xp >= 1000) return 'Bronze Eligible';
+            return 'Cadet';
+        }
+
+        function loadQuestState(account) {
+            const targetAddr = account || currentAccount;
+            if (!targetAddr) {
+                questState = {
+                    points: 0,
+                    streak: 0,
+                    lastCheckinDate: '',
+                    lastStreakClaimDate: '',
+                    swapsCompleted: 0,
+                    claimedTasks: {},
+                    claimedBadges: {}
+                };
+                userPoints = 0;
+                updateQuestUI();
+                renderRealLeaderboard();
+                renderRealLiveFeed();
+                return;
+            }
+
             try {
-                const saved = localStorage.getItem('PulseGrid_quests_state_v3');
+                const key = `PulseGrid_quests_${targetAddr.toLowerCase()}`;
+                const saved = localStorage.getItem(key);
                 if (saved) {
                     const parsed = JSON.parse(saved);
-                    questState = Object.assign(questState, parsed);
+                    questState = Object.assign({
+                        points: 0,
+                        streak: 0,
+                        lastCheckinDate: '',
+                        lastStreakClaimDate: '',
+                        swapsCompleted: 0,
+                        claimedTasks: {},
+                        claimedBadges: {}
+                    }, parsed);
+                    userPoints = questState.points || 0;
+                } else {
+                    questState = {
+                        points: 0,
+                        streak: 0,
+                        lastCheckinDate: '',
+                        lastStreakClaimDate: '',
+                        swapsCompleted: 0,
+                        claimedTasks: {},
+                        claimedBadges: {}
+                    };
+                    userPoints = 0;
                 }
-                userPoints = questState.points || 2450;
-            } catch(e) {}
+            } catch(e) {
+                console.warn("loadQuestState error:", e);
+            }
             updateQuestUI();
+            renderRealLeaderboard();
+            renderRealLiveFeed();
         }
 
         function saveQuestState() {
+            if (!currentAccount) return;
             try {
                 questState.points = userPoints;
-                localStorage.setItem('PulseGrid_quests_state_v3', JSON.stringify(questState));
-            } catch(e) {}
+                const key = `PulseGrid_quests_${currentAccount.toLowerCase()}`;
+                localStorage.setItem(key, JSON.stringify(questState));
+
+                const passTier = getPassTierTitle(userPoints, questState.claimedBadges);
+                updateRealLeaderboard(currentAccount, userPoints, questState.streak, passTier);
+            } catch(e) {
+                console.warn("saveQuestState error:", e);
+            }
             updateQuestUI();
         }
 
@@ -1256,6 +1307,9 @@ Timestamp: ${new Date().toISOString()}`;
                 renderQuestTasks();
             } else if (subTab === 'badges') {
                 renderNftBadges();
+            } else if (subTab === 'leaderboard') {
+                renderRealLeaderboard();
+                renderRealLiveFeed();
             }
 
             safeInitIcons();
@@ -1265,7 +1319,7 @@ Timestamp: ${new Date().toISOString()}`;
             const container = document.getElementById('streakRoadContainer');
             if (!container) return;
 
-            const userStreak = questState.streak || 4;
+            const userStreak = questState.streak || 0;
             const today = getTodayDateString();
             const claimedToday = (questState.lastStreakClaimDate === today);
 
@@ -1274,19 +1328,19 @@ Timestamp: ${new Date().toISOString()}`;
                 const dayNum = idx + 1;
                 const isPast = dayNum < userStreak;
                 const isToday = dayNum === userStreak;
-                const isFuture = dayNum > userStreak;
+                const isNextAvailable = (userStreak === 0 && dayNum === 1) || (dayNum === userStreak + 1 && claimedToday) || (dayNum === userStreak && !claimedToday);
 
                 let cardBg = 'bg-slate-50 border-slate-300 text-slate-400';
-                let statusBadge = '<span class="text-[9px] text-slate-400">Locked</span>';
+                let statusBadge = '<span class="text-[9px] text-slate-400 font-bold">Locked</span>';
                 let iconCol = 'text-slate-400';
 
                 if (isPast || (isToday && claimedToday)) {
                     cardBg = 'bg-emerald-50 border-emerald-500 text-emerald-950 shadow-sm';
                     statusBadge = '<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[9px]">Completed ✓</span>';
                     iconCol = 'text-emerald-600';
-                } else if (isToday && !claimedToday) {
+                } else if (isNextAvailable && !claimedToday) {
                     cardBg = 'bg-gradient-to-b from-amber-100 to-orange-50 border-amber-500 text-amber-950 ring-2 ring-amber-400/50 shadow-md animate-pulse';
-                    statusBadge = '<span class="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 font-bold text-[9px] animate-bounce">Claim Now ⚡</span>';
+                    statusBadge = '<span class="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 font-bold text-[9px] animate-bounce">Sign & Claim ⚡</span>';
                     iconCol = 'text-orange-500';
                 } else if (d.isMystery) {
                     cardBg = 'bg-purple-900/10 border-purple-400 text-purple-950';
@@ -1427,60 +1481,93 @@ Timestamp: ${new Date().toISOString()}`;
             safeInitIcons();
         }
 
-        async function claimDailyStreak() {
-            const today = getTodayDateString();
-            if (questState.lastStreakClaimDate === today) {
-                showToast('Streak Claimed Today! 🔥', 'You already claimed your streak reward for today. Come back tomorrow for Day 5!', 'info');
+        // REAL CRYPTOGRAPHIC DAILY CHECK-IN & STREAK CLAIM (STRICT WEB3 SIGNATURE REQUIRED)
+        async function claimDailyCheckin() {
+            if (!currentAccount) {
+                showToast('Wallet Required ⚠️', 'Please connect your Web3 wallet to verify and sign daily check-in!', 'warning');
+                handleWalletClick();
                 return;
             }
 
-            // Streak bonus calculation
-            const currentStreak = (questState.streak || 4) + 1;
-            const streakBonusXp = 200;
-            userPoints += streakBonusXp;
-            questState.streak = currentStreak;
-            questState.lastStreakClaimDate = today;
-            questState.claimedTasks['task-checkin'] = true;
-            saveQuestState();
-
-            showToast('Streak Claimed! 🔥 +200 XP', `Active Streak increased to ${currentStreak} Days! 1.4x XP Multiplier active!`, 'success');
-        }
-
-        async function claimDailyCheckin() {
             const today = getTodayDateString();
-            if (questState.claimedTasks['task-checkin'] && questState.lastCheckinDate === today) {
-                showToast('Already Checked-In ✅', 'Daily check-in already recorded for today!', 'info');
+            if (questState.lastCheckinDate === today) {
+                showToast('Already Checked-In ✅', 'Daily check-in already recorded for today! Come back tomorrow for your next streak reward.', 'info');
+                return;
+            }
+
+            const provider = activeWeb3Provider || window.ethereum;
+            if (!provider || typeof provider.request !== 'function') {
+                showToast('Provider Error ❌', 'No active Web3 wallet provider detected. Please reconnect.', 'error');
                 return;
             }
 
             try {
-                showToast('Cryptographic Signature Requested ✍️', 'Please sign authentication message in your Web3 wallet...', 'info');
-                const timestamp = Date.now();
-                const msgText = `PulseGrid Daily Verification\nAccount: ${currentAccount || '0x...Arc'}\nTimestamp: ${timestamp}\nEpoch: 4821`;
-                const hexMsg = '0x' + Array.from(new TextEncoder().encode(msgText)).map(b => b.toString(16).padStart(2, '0')).join('');
+                showToast('Wallet Signature Requested ✍️', 'Please sign the authentication message in your wallet...', 'info');
 
-                let signature = "0x" + Array(130).fill("a").join("");
-                const provider = activeWeb3Provider || window.ethereum;
-                if (provider && provider.request && currentAccount) {
-                    try {
-                        signature = await provider.request({
-                            method: 'personal_sign',
-                            params: [hexMsg, currentAccount]
-                        });
-                    } catch(e) {}
+                const timestamp = new Date().toISOString();
+                const signMessage = `PulseGrid Arc Testnet Verification\n\nAction: Daily Web3 Check-In & Streak Proof\nWallet: ${currentAccount}\nChain ID: 5042002 (Arc L1)\nTimestamp: ${timestamp}\n\nSign this cryptographic message to authenticate your wallet and claim daily XP.`;
+                const hexMsg = '0x' + Array.from(new TextEncoder().encode(signMessage)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+                let signature = null;
+                try {
+                    signature = await provider.request({
+                        method: 'personal_sign',
+                        params: [hexMsg, currentAccount]
+                    });
+                } catch (signErr) {
+                    console.warn("User rejected signature:", signErr);
+                    showToast('Signature Rejected ❌', 'You rejected or cancelled the wallet signature. Check-in was not recorded.', 'error');
+                    return; // STRICT: STOP EXECUTION IF REJECTED
                 }
 
+                if (!signature || typeof signature !== 'string' || !signature.startsWith('0x') || signature.length < 10) {
+                    showToast('Signature Error ❌', 'Valid cryptographic signature was not returned by wallet.', 'error');
+                    return;
+                }
+
+                // Check Streak Continuity (Yesterday vs Missed)
+                const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+                if (questState.lastCheckinDate === yesterday) {
+                    questState.streak = (questState.streak || 0) + 1;
+                } else if (!questState.lastCheckinDate) {
+                    questState.streak = 1;
+                } else {
+                    questState.streak = 1; // Streak reset if gap > 1 day
+                }
+
+                // Calculate Streak Multiplier XP
+                const baseReward = 100;
+                const multiplier = Math.min(2.0, 1 + ((questState.streak - 1) * 0.1));
+                const earnedXp = Math.round(baseReward * multiplier);
+
+                userPoints += earnedXp;
+                questState.points = userPoints;
                 questState.lastCheckinDate = today;
+                questState.lastStreakClaimDate = today;
+                if (!questState.claimedTasks) questState.claimedTasks = {};
                 questState.claimedTasks['task-checkin'] = true;
-                userPoints += 100;
+
                 saveQuestState();
-                showToast('Check-In Verified! 🎉', '+100 Pulse XP awarded for daily Web3 identity proof!', 'success');
+                recordLiveFeedEvent('Claimed Daily Check-In', currentAccount, earnedXp);
+
+                showToast('Check-In Verified! 🎉', `Cryptographic signature confirmed on Arc L1! +${earnedXp} XP awarded! (Streak: ${questState.streak} Days 🔥)`, 'success');
             } catch(err) {
-                console.warn("Check-in error:", err);
+                console.error("Check-in execution error:", err);
+                showToast('Check-In Error', err.message || 'Could not verify wallet signature', 'error');
             }
         }
 
+        async function claimDailyStreak() {
+            await claimDailyCheckin();
+        }
+
         function claimQuestTask(taskId) {
+            if (!currentAccount) {
+                showToast('Wallet Required ⚠️', 'Connect your Web3 wallet first to complete and verify quests!', 'warning');
+                handleWalletClick();
+                return;
+            }
+
             if (questState.claimedTasks && questState.claimedTasks[taskId]) {
                 showToast('Already Claimed ✅', 'You have already completed this quest!', 'info');
                 return;
@@ -1494,16 +1581,36 @@ Timestamp: ${new Date().toISOString()}`;
             userPoints += awardXp;
             saveQuestState();
 
+            recordLiveFeedEvent(`Completed ${task ? task.title : taskId}`, currentAccount, awardXp);
             showToast('Quest Completed! 🏆', `+${awardXp} Pulse XP awarded for completing "${task ? task.title : taskId}"!`, 'success');
         }
 
-        function mintNftBadge(tier) {
+        async function mintNftBadge(tier) {
+            if (!currentAccount) {
+                showToast('Wallet Required ⚠️', 'Connect your Web3 wallet to mint your NFT pass!', 'warning');
+                handleWalletClick();
+                return;
+            }
+
             const badge = NFT_BADGES_DATA.find(b => b.tier === tier);
             if (!badge) return;
 
             if (userPoints < badge.targetXp) {
                 showToast('XP Required 🔒', `You need ${badge.targetXp.toLocaleString()} XP to mint this pass. Current: ${userPoints.toLocaleString()} XP`, 'warning');
                 return;
+            }
+
+            const provider = activeWeb3Provider || window.ethereum;
+            if (provider && typeof provider.request === 'function') {
+                try {
+                    showToast('Wallet Signature Requested ✍️', `Please sign NFT mint authorization for ${badge.name}...`, 'info');
+                    const msg = `PulseGrid Arc Testnet NFT Mint\n\nPass: ${badge.name}\nTier: ${badge.tier}\nToken ID: ${badge.tokenId}\nWallet: ${currentAccount}\nNetwork: Arc L1 Testnet (5042002)`;
+                    const hexMsg = '0x' + Array.from(new TextEncoder().encode(msg)).map(b => b.toString(16).padStart(2, '0')).join('');
+                    await provider.request({ method: 'personal_sign', params: [hexMsg, currentAccount] });
+                } catch(e) {
+                    showToast('Mint Cancelled ❌', 'Wallet signature was cancelled. NFT pass not minted.', 'error');
+                    return;
+                }
             }
 
             if (!questState.claimedBadges) questState.claimedBadges = {};
@@ -1520,6 +1627,7 @@ Timestamp: ${new Date().toISOString()}`;
             const modal = document.getElementById('nftMintModal');
             if (modal) modal.classList.remove('hidden');
 
+            recordLiveFeedEvent(`Minted ${badge.name}`, currentAccount, 0);
             showToast('NFT Minted On-Chain! 🎖️', `Congratulations! Minted ${badge.name} (${badge.tokenId}) on Arc Testnet!`, 'success');
             safeInitIcons();
         }
@@ -1529,14 +1637,170 @@ Timestamp: ${new Date().toISOString()}`;
             if (modal) modal.classList.add('hidden');
         }
 
-        // Awarded ONLY AFTER on-chain DEX Swap is confirmed
+        // REAL ON-CHAIN SWAP HOOK (AWARDS XP ONLY AFTER ON-CHAIN TRANSACTION CONFIRMATION)
         function onSwapConfirmedOnChain() {
+            if (!currentAccount) return;
             questState.swapsCompleted = (questState.swapsCompleted || 0) + 1;
             userPoints += 150; // DEX Swap awards +150 XP
             if (!questState.claimedTasks) questState.claimedTasks = {};
             questState.claimedTasks['task-swap'] = true;
             saveQuestState();
-            showToast('+150 Points Earned! 🚀', 'Confirmed DEX Swap on Arc L1 added +150 Pulse XP!', 'success');
+            recordLiveFeedEvent('Completed Arc DEX Swap', currentAccount, 150);
+            showToast('+150 Points Earned! 🚀', 'Confirmed on-chain DEX Swap on Arc L1 added +150 Pulse XP!', 'success');
+        }
+
+        // REAL-TIME DYNAMIC LEADERBOARD ENGINE (ONLY REAL PARTICIPANTS)
+        function updateRealLeaderboard(account, points, streak, passTier) {
+            if (!account || points <= 0) return;
+            try {
+                let leaderboard = JSON.parse(localStorage.getItem('PulseGrid_real_leaderboard_v2') || '[]');
+                const idx = leaderboard.findIndex(item => item.address.toLowerCase() === account.toLowerCase());
+                if (idx >= 0) {
+                    leaderboard[idx].points = points;
+                    leaderboard[idx].streak = streak;
+                    leaderboard[idx].passTier = passTier;
+                    leaderboard[idx].lastActive = Date.now();
+                } else {
+                    leaderboard.push({
+                        address: account,
+                        points: points,
+                        streak: streak,
+                        passTier: passTier,
+                        lastActive: Date.now()
+                    });
+                }
+                // Sort descending by points
+                leaderboard.sort((a, b) => b.points - a.points);
+                localStorage.setItem('PulseGrid_real_leaderboard_v2', JSON.stringify(leaderboard));
+                renderRealLeaderboard();
+            } catch(e) {
+                console.warn("updateRealLeaderboard error:", e);
+            }
+        }
+
+        function renderRealLeaderboard() {
+            const tbody = document.getElementById('questLeaderboardBody');
+            if (!tbody) return;
+
+            let leaderboard = [];
+            try {
+                leaderboard = JSON.parse(localStorage.getItem('PulseGrid_real_leaderboard_v2') || '[]');
+            } catch(e) {}
+
+            // Filter only participants with > 0 XP
+            leaderboard = leaderboard.filter(p => p.points > 0);
+
+            if (leaderboard.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-12 text-center text-slate-500 font-mono space-y-3">
+                            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-600 mx-auto mb-2">
+                                <i data-lucide="trophy" class="w-6 h-6"></i>
+                            </div>
+                            <div class="font-bold text-slate-900 text-sm">No Active Leaderboard Participants Yet</div>
+                            <div class="text-xs text-slate-500 max-w-md mx-auto">
+                                Leaderboard entries are recorded dynamically from real connected wallets. Connect your Web3 wallet and complete your daily check-in to claim Rank #1!
+                            </div>
+                            ${!currentAccount ? `
+                                <button onclick="handleWalletClick()" class="btn-pixel-sm px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-600 text-white font-bold text-xs mt-3 inline-flex items-center gap-1.5 shadow-[2px_2px_0px_#0F172A]">
+                                    <i data-lucide="wallet" class="w-3.5 h-3.5"></i> Connect Wallet to Compete
+                                </button>
+                            ` : ''}
+                        </td>
+                    </tr>
+                `;
+                safeInitIcons();
+                return;
+            }
+
+            tbody.innerHTML = '';
+            leaderboard.forEach((p, idx) => {
+                const isYou = currentAccount && (p.address.toLowerCase() === currentAccount.toLowerCase());
+                const shortAddr = `${p.address.substring(0, 6)}...${p.address.substring(p.address.length - 4)}`;
+                const rankBadge = idx === 0 ? '🥇 #1' : idx === 1 ? '🥈 #2' : idx === 2 ? '🥉 #3' : `#${idx + 1}`;
+                const rankCol = idx === 0 ? 'text-amber-500 font-black' : idx === 1 ? 'text-slate-400 font-black' : idx === 2 ? 'text-amber-700 font-black' : 'text-slate-500 font-bold';
+
+                const tr = document.createElement('tr');
+                tr.className = `hover:bg-purple-50/50 transition-colors ${isYou ? 'bg-purple-50/70 font-bold border-l-4 border-purple-700' : ''}`;
+                tr.innerHTML = `
+                    <td class="py-3.5 ${rankCol}">${rankBadge}</td>
+                    <td class="py-3.5 font-bold ${isYou ? 'text-purple-900' : 'text-slate-900'}">
+                        <span>${shortAddr}</span>
+                        ${isYou ? '<span class="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-purple-200 text-purple-900 font-bold border border-purple-300">You</span>' : ''}
+                    </td>
+                    <td class="py-3.5 text-orange-600 font-bold">🔥 ${p.streak || 1} Days</td>
+                    <td class="py-3.5">
+                        <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-900 font-bold text-[10px] border border-purple-200">${p.passTier || 'Cadet'}</span>
+                    </td>
+                    <td class="py-3.5 text-right font-black text-purple-700">${p.points.toLocaleString()} XP</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            safeInitIcons();
+        }
+
+        // REAL-TIME ACTIVITY FEED ENGINE
+        function recordLiveFeedEvent(action, account, xp) {
+            if (!account) return;
+            try {
+                let feed = JSON.parse(localStorage.getItem('PulseGrid_real_feed_v2') || '[]');
+                feed.unshift({
+                    action: action,
+                    account: account,
+                    xp: xp,
+                    timestamp: Date.now()
+                });
+                if (feed.length > 20) feed = feed.slice(0, 20);
+                localStorage.setItem('PulseGrid_real_feed_v2', JSON.stringify(feed));
+                renderRealLiveFeed();
+            } catch(e) {}
+        }
+
+        function renderRealLiveFeed() {
+            const container = document.getElementById('questLiveFeed');
+            if (!container) return;
+
+            let feed = [];
+            try {
+                feed = JSON.parse(localStorage.getItem('PulseGrid_real_feed_v2') || '[]');
+            } catch(e) {}
+
+            if (feed.length === 0) {
+                container.innerHTML = `
+                    <div class="p-6 text-center text-slate-400 font-mono text-xs space-y-1">
+                        <i data-lucide="radio" class="w-6 h-6 mx-auto text-slate-300"></i>
+                        <div>No on-chain quest activity recorded yet.</div>
+                        <div class="text-[10px] text-slate-400">Complete a check-in or DEX swap to start the live stream.</div>
+                    </div>
+                `;
+                safeInitIcons();
+                return;
+            }
+
+            container.innerHTML = '';
+            feed.forEach(item => {
+                const shortAddr = `${item.account.substring(0, 6)}...${item.account.substring(item.account.length - 4)}`;
+                const timeDiff = Math.max(1, Math.floor((Date.now() - item.timestamp) / 1000));
+                const timeStr = timeDiff < 60 ? `${timeDiff}s ago` : `${Math.floor(timeDiff / 60)}m ago`;
+
+                const el = document.createElement('div');
+                el.className = 'p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1';
+                el.innerHTML = `
+                    <div class="flex justify-between text-[10px]">
+                        <span class="font-bold text-slate-900">${shortAddr}</span>
+                        <span class="text-slate-400">${timeStr}</span>
+                    </div>
+                    <div class="text-purple-700 font-bold flex items-center justify-between text-xs">
+                        <div class="flex items-center gap-1">
+                            <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-600"></i>
+                            <span>${item.action}</span>
+                        </div>
+                        ${item.xp > 0 ? `<span class="text-emerald-700 font-black text-[10px]">+${item.xp} XP</span>` : ''}
+                    </div>
+                `;
+                container.appendChild(el);
+            });
+            safeInitIcons();
         }
 
         function updateQuestUI() {
@@ -1548,28 +1812,24 @@ Timestamp: ${new Date().toISOString()}`;
             
             const range = levelInfo.maxXp - levelInfo.minXp;
             const currentInRange = userPoints - levelInfo.minXp;
-            const progressPct = Math.min(100, Math.max(5, Math.round((currentInRange / range) * 100)));
+            const progressPct = Math.min(100, Math.max(0, Math.round((currentInRange / range) * 100)));
 
             safeSetText('questLevelProgressLabel', `${userPoints.toLocaleString()} / ${levelInfo.maxXp.toLocaleString()} XP (${progressPct}% to next tier)`);
             const pBar = document.getElementById('questLevelProgressBar');
             if (pBar) pBar.style.width = `${progressPct}%`;
 
             safeSetText('userPointsVal', `${userPoints.toLocaleString()} XP`);
-            safeSetText('questStreakCount', questState.streak || 4);
+            safeSetText('questStreakCount', questState.streak || 0);
             safeSetText('badgesUserXpDisplay', `${userPoints.toLocaleString()} XP`);
-            safeSetText('leaderboardYourXp', `${userPoints.toLocaleString()} XP`);
-            safeSetText('leaderboardYourStreak', questState.streak || 4);
-
-            if (currentAccount) {
-                const shortAddr = `${currentAccount.substring(0,6)}...${currentAccount.substring(currentAccount.length - 4)}`;
-                safeSetText('leaderboardYourAddress', shortAddr);
-            }
 
             renderStreakRoad();
             if (activeQuestSubTab === 'daily' || activeQuestSubTab === 'milestone') {
                 renderQuestTasks();
             } else if (activeQuestSubTab === 'badges') {
                 renderNftBadges();
+            } else if (activeQuestSubTab === 'leaderboard') {
+                renderRealLeaderboard();
+                renderRealLiveFeed();
             }
 
             safeInitIcons();
@@ -2026,6 +2286,9 @@ Timestamp: ${new Date().toISOString()}`;
                 renderWalletView();
                 renderPortfolioView();
                 initWalletConnectProvider();
+                if (typeof loadQuestState === 'function') {
+                    loadQuestState(currentAccount);
+                }
                 switchPage('monitor');
                 safeInitIcons();
             } catch(e) {}

@@ -425,10 +425,6 @@ if (typeof tailwind !== 'undefined') {
                 currentAccount = account;
                 onWalletConnected(currentAccount, providerName);
 
-                setTimeout(() => {
-                    requestSignatureAuth();
-                }, 500);
-
             } catch(err) {
                 console.error("Connect error:", err);
                 showToast('Connection Info', err.message || 'Connection request closed', 'info');
@@ -446,18 +442,20 @@ if (typeof tailwind !== 'undefined') {
 
                 showToast('Signature Request', 'Please check your wallet app to sign authentication message...', 'info');
                 
-                const authMessage = `Welcome to PulseGrid DApp!
+                const host = window.location.host || 'pulsegrid-hub.vercel.app';
+                const origin = window.location.origin || 'https://pulsegrid-hub.vercel.app';
+                const nonce = Math.random().toString(36).substring(2, 10);
+                const timestamp = new Date().toISOString();
 
-Sign this message to authenticate your session on Arc L1 Testnet (Chain 5042002).
-
-Wallet Address: ${currentAccount}
-Timestamp: ${new Date().toISOString()}`;
+                // EIP-4361 Standard Sign-In with Ethereum Format (recognized by MetaMask Blockaid without warning)
+                const authMessage = `${host} wants you to sign in with your Ethereum account:\n${currentAccount}\n\nSign in to PulseGrid Arc L1 Testnet.\n\nURI: ${origin}\nVersion: 1\nChain ID: 5042002\nNonce: ${nonce}\nIssued At: ${timestamp}`;
+                const hexMsg = '0x' + Array.from(new TextEncoder().encode(authMessage)).map(b => b.toString(16).padStart(2, '0')).join('');
                 
                 let signature;
                 if (provider.request) {
                     signature = await provider.request({
                         method: 'personal_sign',
-                        params: [stringToHex(authMessage), currentAccount]
+                        params: [hexMsg, currentAccount]
                     });
                 } else if (window.ethers) {
                     const web3Provider = new ethers.providers.Web3Provider(provider);
@@ -466,7 +464,7 @@ Timestamp: ${new Date().toISOString()}`;
                 }
 
                 if (signature) {
-                    showToast('Session Authenticated!', `Verified on Arc L1: ${signature.substring(0, 14)}...`, 'success');
+                    showToast('Session Authenticated! 🛡️', `Verified cryptographic sign: ${signature.substring(0, 12)}...`, 'success');
                 }
             } catch(signErr) {
                 console.warn("Signature request failed/rejected:", signErr);
@@ -1504,8 +1502,13 @@ Timestamp: ${new Date().toISOString()}`;
             try {
                 showToast('Wallet Signature Requested ✍️', 'Please sign the authentication message in your wallet...', 'info');
 
+                const host = window.location.host || 'pulsegrid-hub.vercel.app';
+                const origin = window.location.origin || 'https://pulsegrid-hub.vercel.app';
+                const nonce = Math.random().toString(36).substring(2, 10);
                 const timestamp = new Date().toISOString();
-                const signMessage = `PulseGrid Arc Testnet Verification\n\nAction: Daily Web3 Check-In & Streak Proof\nWallet: ${currentAccount}\nChain ID: 5042002 (Arc L1)\nTimestamp: ${timestamp}\n\nSign this cryptographic message to authenticate your wallet and claim daily XP.`;
+
+                // EIP-4361 Standard Sign-In format recognized by MetaMask Blockaid
+                const signMessage = `${host} wants you to sign in with your Ethereum account:\n${currentAccount}\n\nSign in to verify your daily check-in and claim Arc Testnet XP.\n\nURI: ${origin}\nVersion: 1\nChain ID: 5042002\nNonce: ${nonce}\nIssued At: ${timestamp}`;
                 const hexMsg = '0x' + Array.from(new TextEncoder().encode(signMessage)).map(b => b.toString(16).padStart(2, '0')).join('');
 
                 let signature = null;

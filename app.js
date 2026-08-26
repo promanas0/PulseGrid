@@ -4806,8 +4806,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (apiKeyInputAssistant) apiKeyInputAssistant.value = savedGeminiKey;
         }
 
-        // Restore saved theme setting on startup
-        const savedTheme = localStorage.getItem('arcpulse_theme') || 'dark';
+        // Restore saved theme setting on startup (Default: Light Mode)
+        const savedTheme = localStorage.getItem('arcpulse_theme') || 'light';
         setTheme(savedTheme);
 
         loadQuestState();

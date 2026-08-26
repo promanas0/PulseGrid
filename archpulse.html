@@ -1096,6 +1096,62 @@
                         <span id="swapBtnLabel">Execute Arc Web3 Swap</span>
                     </button>
                 </div>
+
+                <!-- AMM LIQUIDITY POOL CONTAINER CARD -->
+                <div id="liquidityPoolContainer" class="pixel-card-purple p-6 sm:p-10 relative hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h2 class="font-pixel text-2xl sm:text-3xl font-black text-slate-950 flex flex-wrap items-center gap-3">
+                                <i data-lucide="layers" class="w-7 h-7 text-purple-700"></i>
+                                <span>Arc AMM Liquidity Pools</span>
+                            </h2>
+                            <p class="text-xs text-slate-600 mt-1.5 font-medium">Provide liquidity to USDC/EURC AMM pools on Arc Testnet & earn trading fees</p>
+                        </div>
+                        <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-400 font-bold text-xs">
+                            18.4% Est. APR
+                        </span>
+                    </div>
+
+                    <!-- Pool Stats -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                        <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950">
+                            <div class="text-[11px] font-bold text-slate-500 uppercase">Total Value Locked</div>
+                            <div class="text-lg font-black text-slate-950 font-mono mt-1">$1,250,000.00</div>
+                        </div>
+                        <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950">
+                            <div class="text-[11px] font-bold text-slate-500 uppercase">24h Pool Volume</div>
+                            <div class="text-lg font-black text-slate-950 font-mono mt-1">$480,250.00</div>
+                        </div>
+                        <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950">
+                            <div class="text-[11px] font-bold text-slate-500 uppercase">Pool Fee Tier</div>
+                            <div class="text-lg font-black text-purple-700 font-mono mt-1">0.05% Fee</div>
+                        </div>
+                    </div>
+
+                    <!-- Add Liquidity Form -->
+                    <div class="space-y-4">
+                        <div class="p-4 rounded-2xl bg-slate-50 border-2 border-slate-950">
+                            <div class="flex justify-between items-center text-xs text-slate-500 mb-1 font-mono">
+                                <span class="font-bold">DEPOSIT USDC</span>
+                                <span>Balance: <strong id="poolUsdcBalance" class="text-slate-950">0.00</strong></span>
+                            </div>
+                            <input type="number" id="poolUsdcInput" placeholder="0.00" oninput="calculatePoolDeposit('usdc')" class="w-full bg-transparent text-2xl font-black font-mono text-slate-950 outline-none">
+                        </div>
+
+                        <div class="p-4 rounded-2xl bg-slate-50 border-2 border-slate-950">
+                            <div class="flex justify-between items-center text-xs text-slate-500 mb-1 font-mono">
+                                <span class="font-bold">DEPOSIT EURC</span>
+                                <span>Balance: <strong id="poolEurcBalance" class="text-slate-950">0.00</strong></span>
+                            </div>
+                            <input type="number" id="poolEurcInput" placeholder="0.00" oninput="calculatePoolDeposit('eurc')" class="w-full bg-transparent text-2xl font-black font-mono text-slate-950 outline-none">
+                        </div>
+
+                        <button onclick="addLiquidityToPool()" class="btn-pixel w-full mt-4 py-4 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-pixel font-bold text-base shadow-lg flex items-center justify-center gap-2">
+                            <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                            <span>Supply Liquidity to Pool</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </section>
 

@@ -35,129 +35,129 @@ if (typeof tailwind !== 'undefined') {
         }
     };
 }
-    
+
 
 // --- EXTRACTED APPLICATION SCRIPT ---
 
 
-        function safeSetText(id, text) {
-            const el = document.getElementById(id);
-            if (el) el.innerText = text;
+function safeSetText(id, text) {
+    const el = document.getElementById(id);
+    if (el) el.innerText = text;
+}
+
+function safeSetHtml(id, html) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function safeInitIcons() {
+    if (typeof lucide !== 'undefined' && lucide && typeof lucide.createIcons === 'function') {
+        try { lucide.createIcons(); } catch (e) { }
+    }
+}
+
+let currentAccount = null;
+let activePage = 'landing';
+let activeWalletTab = 'tokens';
+let walletConnectProvider = null;
+let activeWeb3Provider = null;
+let userPoints = 0;
+let tokenModalTarget = 'pay';
+
+const WALLETCONNECT_PROJECT_ID = '8422409540b61642239f1c7f556488d0';
+const ARC_CHAIN_ID_HEX = '0x4CEF52'; // 5042002
+const ARC_CHAIN_ID_DECIMAL = 5042002;
+const ARC_RPC_URL = 'https://rpc.testnet.arc.io';
+const ARC_RPC_URL_ALT = 'https://rpc.testnet.arc.network';
+
+// Official Deployed PulseGrid Spender Router & Prediction Market Address & ABIs
+const SPENDER_ROUTER_ADDRESS = '0x24EC9947C9Bd6c5ab4a3357A50c78D064176af31';
+const PREDICTION_MARKET_ADDRESS = '0x14519dB645becb71867A657b0b461E301954800F';
+const ERC20_USDC_ADDRESS = '0x3600000000000000000000000000000000000000';
+const ERC20_EURC_ADDRESS = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a';
+
+const PREDICTION_MARKET_ABI = [
+    "function buyShares(uint256 marketId, bool isYes, uint256 usdcAmount) external",
+    "function claimWinnings(uint256 marketId) external returns (uint256 payout)",
+    "function getClaimablePayout(uint256 marketId, address user) view returns (uint256)",
+    "function getMarketProbabilities(uint256 marketId) view returns (uint256 yesPct, uint256 noPct, uint256 yesPriceUsdcBps, uint256 noPriceUsdcBps)",
+    "function userPositions(uint256 marketId, address user) view returns (uint256 yesAmount, uint256 noAmount, bool claimed)",
+    "function markets(uint256 marketId) view returns (uint256 id, string title, string category, string iconUri, uint256 endTime, uint256 totalYesAmount, uint256 totalNoAmount, uint8 outcome, bool resolved, bool exists)",
+    "function marketCount() view returns (uint256)"
+];
+
+const SPENDER_ROUTER_ABI = [
+    "function swapUSDCtoEURC(uint256 amountUSDC) returns (uint256 eurcOut)",
+    "function swapNativeUSDCtoEURC() payable returns (uint256 eurcOut)",
+    "function swapEURCtoUSDC(uint256 amountEURC) returns (uint256 usdcOut)",
+    "function checkAllowance(address token, address user) view returns (uint256)",
+    "function getReserves() view returns (uint256 usdcErc20Units, uint256 nativeWei, uint256 eurcUnits)"
+];
+
+const ERC20_ABI = [
+    "function allowance(address owner, address spender) view returns (uint256)",
+    "function approve(address spender, uint256 amount) returns (bool)",
+    "function balanceOf(address account) view returns (uint256)"
+];
+
+function stringToHex(str) {
+    return '0x' + Array.from(str).map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join('');
+}
+
+// Pure Web3 SDK Protocol Execution (No Remix Smart Contract)
+
+// EXACT CIRCLE SDK DEX RATE: 1 USDC = 0.882639 EURC (usdRate: USDC 1.00, EURC 1.13296)
+// INITIAL BALANCES ARE ZERO (0.00) BY DEFAULT - NO FAKE BALANCES
+const TOKENS = [
+    { id: 0, symbol: 'USDC', name: 'USD Coin (ERC-20)', balance: 0.00, usdRate: 1.000000, icon: '$', bg: 'bg-blue-600', address: '0x3600000000000000000000000000000000000000', decimals: 6, isComingSoon: false },
+    { id: 1, symbol: 'EURC', name: 'Euro Stablecoin', balance: 0.00, usdRate: 1.132960, icon: '€', bg: 'bg-amber-500', address: '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a', decimals: 6, isComingSoon: false },
+    { id: 2, symbol: 'eBTC', name: 'Arc Wrapped Bitcoin', balance: 0.00, usdRate: 62500.00, icon: '', bg: 'bg-orange-500', address: '0x054f15d7f21226065582f7c00e12d46e2730bf18', decimals: 18, isComingSoon: true }
+];
+
+let payToken = TOKENS[0];
+let receiveToken = TOKENS[1];
+
+startLiveCountdown();
+startLiveTelemetryTicker();
+
+// TOKEN SELECTION MODAL
+function openTokenModal(target) {
+    tokenModalTarget = target;
+    renderTokenList(TOKENS);
+    const modal = document.getElementById('tokenModal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+function closeTokenModal() {
+    const modal = document.getElementById('tokenModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function renderTokenList(tokensToRender) {
+    const container = document.getElementById('tokenListContainer');
+    if (!container) return;
+
+    container.innerHTML = '';
+    tokensToRender.forEach(t => {
+        const btn = document.createElement('button');
+        if (t.isComingSoon) {
+            btn.onclick = () => showToast('Coming Soon', `${t.symbol} support is coming soon to Arc Testnet DEX!`, 'info');
+        } else {
+            btn.onclick = () => selectToken(t);
         }
 
-        function safeSetHtml(id, html) {
-            const el = document.getElementById(id);
-            if (el) el.innerHTML = html;
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
-
-        function safeInitIcons() {
-            if (typeof lucide !== 'undefined' && lucide && typeof lucide.createIcons === 'function') {
-                try { lucide.createIcons(); } catch(e) {}
-            }
-        }
-
-        let currentAccount = null;
-        let activePage = 'landing';
-        let activeWalletTab = 'tokens';
-        let walletConnectProvider = null;
-        let activeWeb3Provider = null;
-        let userPoints = 0;
-        let tokenModalTarget = 'pay';
-
-        const WALLETCONNECT_PROJECT_ID = '8422409540b61642239f1c7f556488d0';
-        const ARC_CHAIN_ID_HEX = '0x4CEF52'; // 5042002
-        const ARC_CHAIN_ID_DECIMAL = 5042002;
-        const ARC_RPC_URL = 'https://rpc.testnet.arc.io';
-        const ARC_RPC_URL_ALT = 'https://rpc.testnet.arc.network';
-        
-        // Official Deployed PulseGrid Spender Router & Prediction Market Address & ABIs
-        const SPENDER_ROUTER_ADDRESS = '0x24EC9947C9Bd6c5ab4a3357A50c78D064176af31';
-        const PREDICTION_MARKET_ADDRESS = '0x14519dB645becb71867A657b0b461E301954800F';
-        const ERC20_USDC_ADDRESS = '0x3600000000000000000000000000000000000000';
-        const ERC20_EURC_ADDRESS = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a';
-
-        const PREDICTION_MARKET_ABI = [
-            "function buyShares(uint256 marketId, bool isYes, uint256 usdcAmount) external",
-            "function claimWinnings(uint256 marketId) external returns (uint256 payout)",
-            "function getClaimablePayout(uint256 marketId, address user) view returns (uint256)",
-            "function getMarketProbabilities(uint256 marketId) view returns (uint256 yesPct, uint256 noPct, uint256 yesPriceUsdcBps, uint256 noPriceUsdcBps)",
-            "function userPositions(uint256 marketId, address user) view returns (uint256 yesAmount, uint256 noAmount, bool claimed)",
-            "function markets(uint256 marketId) view returns (uint256 id, string title, string category, string iconUri, uint256 endTime, uint256 totalYesAmount, uint256 totalNoAmount, uint8 outcome, bool resolved, bool exists)",
-            "function marketCount() view returns (uint256)"
-        ];
-
-        const SPENDER_ROUTER_ABI = [
-            "function swapUSDCtoEURC(uint256 amountUSDC) returns (uint256 eurcOut)",
-            "function swapNativeUSDCtoEURC() payable returns (uint256 eurcOut)",
-            "function swapEURCtoUSDC(uint256 amountEURC) returns (uint256 usdcOut)",
-            "function checkAllowance(address token, address user) view returns (uint256)",
-            "function getReserves() view returns (uint256 usdcErc20Units, uint256 nativeWei, uint256 eurcUnits)"
-        ];
-
-        const ERC20_ABI = [
-            "function allowance(address owner, address spender) view returns (uint256)",
-            "function approve(address spender, uint256 amount) returns (bool)",
-            "function balanceOf(address account) view returns (uint256)"
-        ];
-
-        function stringToHex(str) {
-            return '0x' + Array.from(str).map(c => c.charCodeAt(0).toString(16).padStart(2, '0')).join('');
-        }
-
-        // Pure Web3 SDK Protocol Execution (No Remix Smart Contract)
-
-        // EXACT CIRCLE SDK DEX RATE: 1 USDC = 0.882639 EURC (usdRate: USDC 1.00, EURC 1.13296)
-        // INITIAL BALANCES ARE ZERO (0.00) BY DEFAULT - NO FAKE BALANCES
-        const TOKENS = [
-            { id: 0, symbol: 'USDC', name: 'USD Coin (ERC-20)', balance: 0.00, usdRate: 1.000000, icon: '$', bg: 'bg-blue-600', address: '0x3600000000000000000000000000000000000000', decimals: 6, isComingSoon: false },
-            { id: 1, symbol: 'EURC', name: 'Euro Stablecoin', balance: 0.00, usdRate: 1.132960, icon: '€', bg: 'bg-amber-500', address: '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a', decimals: 6, isComingSoon: false },
-            { id: 2, symbol: 'eBTC', name: 'Arc Wrapped Bitcoin', balance: 0.00, usdRate: 62500.00, icon: '', bg: 'bg-orange-500', address: '0x054f15d7f21226065582f7c00e12d46e2730bf18', decimals: 18, isComingSoon: true }
-        ];
-
-        let payToken = TOKENS[0];
-        let receiveToken = TOKENS[1];
-
-        startLiveCountdown();
-        startLiveTelemetryTicker();
-
-        // TOKEN SELECTION MODAL
-        function openTokenModal(target) {
-            tokenModalTarget = target;
-            renderTokenList(TOKENS);
-            const modal = document.getElementById('tokenModal');
-            if (modal) modal.classList.remove('hidden');
-        }
-
-        function closeTokenModal() {
-            const modal = document.getElementById('tokenModal');
-            if (modal) modal.classList.add('hidden');
-        }
-
-        function renderTokenList(tokensToRender) {
-            const container = document.getElementById('tokenListContainer');
-            if (!container) return;
-
-            container.innerHTML = '';
-            tokensToRender.forEach(t => {
-                const btn = document.createElement('button');
-                if (t.isComingSoon) {
-                    btn.onclick = () => showToast('Coming Soon', `${t.symbol} support is coming soon to Arc Testnet DEX!`, 'info');
-                } else {
-                    btn.onclick = () => selectToken(t);
-                }
-                
-                btn.className = `w-full p-3 rounded-xl border-2 border-slate-950 flex items-center justify-between transition-colors font-mono ${t.isComingSoon ? 'bg-slate-100 opacity-70 cursor-not-allowed' : 'bg-slate-50 hover:bg-purple-50'}`;
-                btn.innerHTML = `
+        btn.className = `w-full p-3 rounded-xl border-2 border-slate-950 flex items-center justify-between transition-colors font-mono ${t.isComingSoon ? 'bg-slate-100 opacity-70 cursor-not-allowed' : 'bg-slate-50 hover:bg-purple-50'}`;
+        btn.innerHTML = `
                     <div class="flex items-center gap-3">
                         <div class="w-9 h-9 rounded-full ${t.bg} flex items-center justify-center font-black text-white text-xs shrink-0">
                             ${t.icon}
@@ -175,1011 +175,1246 @@ if (typeof tailwind !== 'undefined') {
                         <div class="text-[10px] text-slate-400">${t.isComingSoon ? 'Soon' : '$' + t.usdRate.toLocaleString()}</div>
                     </div>
                 `;
-                container.appendChild(btn);
-            });
-            safeInitIcons();
+        container.appendChild(btn);
+    });
+    safeInitIcons();
+}
+
+function filterTokens() {
+    const searchVal = document.getElementById('tokenSearchInput')?.value?.toLowerCase() || '';
+    const filtered = TOKENS.filter(t => t.symbol.toLowerCase().includes(searchVal) || t.name.toLowerCase().includes(searchVal));
+    renderTokenList(filtered);
+}
+
+function selectToken(token) {
+    if (token.isComingSoon) {
+        showToast('Coming Soon', `${token.symbol} is coming soon!`, 'info');
+        return;
+    }
+    closeTokenModal();
+
+    if (tokenModalTarget === 'pay') {
+        if (token.id === receiveToken.id) {
+            receiveToken = payToken;
         }
-
-        function filterTokens() {
-            const searchVal = document.getElementById('tokenSearchInput')?.value?.toLowerCase() || '';
-            const filtered = TOKENS.filter(t => t.symbol.toLowerCase().includes(searchVal) || t.name.toLowerCase().includes(searchVal));
-            renderTokenList(filtered);
-        }
-
-        function selectToken(token) {
-            if (token.isComingSoon) {
-                showToast('Coming Soon', `${token.symbol} is coming soon!`, 'info');
-                return;
-            }
-            closeTokenModal();
-
-            if (tokenModalTarget === 'pay') {
-                if (token.id === receiveToken.id) {
-                    receiveToken = payToken;
-                }
-                payToken = token;
-            } else {
-                if (token.id === payToken.id) {
-                    payToken = receiveToken;
-                }
-                receiveToken = token;
-            }
-
-            safeSetText('payTokenSymbol', payToken.symbol);
-            safeSetText('receiveTokenSymbol', receiveToken.symbol);
-            
-            const ratio = payToken.usdRate / receiveToken.usdRate;
-            safeSetText('exchangeRateText', `1 ${payToken.symbol} ≈ ${ratio.toFixed(6)} ${receiveToken.symbol}`);
-
-            const payIconContainer = document.getElementById('payTokenIconContainer');
-            const recIconContainer = document.getElementById('receiveTokenIconContainer');
-            if (payIconContainer) {
-                payIconContainer.className = `w-7 h-7 rounded-full ${payToken.bg} flex items-center justify-center font-black text-white text-xs`;
-                payIconContainer.innerText = payToken.icon;
-            }
-            if (recIconContainer) {
-                recIconContainer.className = `w-7 h-7 rounded-full ${receiveToken.bg} flex items-center justify-center font-black text-white text-xs`;
-                recIconContainer.innerText = receiveToken.icon;
-            }
-
-            calculateSwap();
-            updateTokenBalancesUI();
-        }
-
-        // WALLETCONNECT V2 INITIALIZATION
-        async function initWalletConnectProvider() {
-            try {
-                if (window.WalletConnectProvider && window.WalletConnectProvider.EthereumProvider) {
-                    walletConnectProvider = await window.WalletConnectProvider.EthereumProvider.init({
-                        projectId: WALLETCONNECT_PROJECT_ID,
-                        chains: [5042002],
-                        optionalChains: [5042002, 1],
-                        rpcMap: {
-                            5042002: 'https://rpc.testnet.arc.io'
-                        },
-                        metadata: {
-                            name: 'PulseGrid DApp',
-                            description: 'Circle Arc L1 Ecosystem DApp',
-                            url: window.location.origin || 'https://PulseGrid.vercel.app',
-                            icons: ['https://raw.githubusercontent.com/promanas0/PulseGrid/main/logo.png']
-                        },
-                        showQrModal: true
-                    });
-
-                    walletConnectProvider.on('accountsChanged', (accounts) => {
-                        if (accounts && accounts.length > 0) {
-                            currentAccount = accounts[0];
-                            activeWeb3Provider = walletConnectProvider;
-                            onWalletConnected(currentAccount, 'WalletConnect');
-                        } else {
-                            disconnectWallet();
-                        }
-                    });
-
-                    walletConnectProvider.on('disconnect', () => {
-                        disconnectWallet();
-                    });
-                }
-            } catch(e) {}
-        }
-
-        function toggleMobileSidebar() {
-            toggleMobileMoreMenu();
-        }
-
-        function toggleMobileMoreMenu() {
-            const drawer = document.getElementById('mobileMoreDrawer');
-            if (drawer) {
-                if (drawer.classList.contains('hidden')) {
-                    drawer.classList.remove('hidden');
-                    safeInitIcons();
-                } else {
-                    drawer.classList.add('hidden');
-                }
-            }
-        }
-
-        function switchPageAndCloseDrawer(pageId) {
-            switchPage(pageId);
-            const drawer = document.getElementById('mobileMoreDrawer');
-            if (drawer) drawer.classList.add('hidden');
-        }
-
-        function exploreDapps(targetPage = 'monitor') {
-            try {
-                switchPage(targetPage);
-                showToast('Welcome to Arc dApps! 🚀', 'Exploring Arc L1 Web3 Ecosystem', 'success');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            } catch(e) {
-                console.warn("exploreDapps warning:", e);
-            }
-        }
-
-        function switchPage(pageId) {
-            try {
-                activePage = pageId;
-                document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden'));
-                document.querySelectorAll('.sidebar-link').forEach(btn => btn.classList.remove('active'));
-                document.querySelectorAll('.mobile-nav-btn').forEach(btn => btn.classList.remove('active'));
-
-                const activeView = document.getElementById(`view-${pageId}`);
-                if (activeView) activeView.classList.remove('hidden');
-
-                // Update Desktop sidebar button
-                const activeBtn = document.getElementById(`nav-btn-${pageId}`);
-                if (activeBtn) activeBtn.classList.add('active');
-
-                // Update Mobile bottom nav button if present
-                const activeMobileBtn = document.getElementById(`mobile-nav-btn-${pageId}`);
-                if (activeMobileBtn) {
-                    activeMobileBtn.classList.add('active');
-                } else {
-                    // Highlight the "More" button if the page is inside the More menu
-                    const moreBtn = document.getElementById('mobile-nav-btn-more');
-                    if (moreBtn && ['portfolio', 'market', 'escrow', 'tools', 'games', 'prediction', 'settings', 'about'].includes(pageId)) {
-                        moreBtn.classList.add('active');
-                    }
-                }
-
-                // Close mobile more drawer if open
-                const drawer = document.getElementById('mobileMoreDrawer');
-                if (drawer && !drawer.classList.contains('hidden')) {
-                    drawer.classList.add('hidden');
-                }
-
-                if (pageId === 'wallet') {
-                    renderWalletView();
-                } else if (pageId === 'validators') {
-                    if (typeof renderValidatorsTable === 'function') renderValidatorsTable();
-                } else if (pageId === 'portfolio') {
-                    renderPortfolioView();
-                } else if (pageId === 'prediction') {
-                    if (typeof renderPredictionCoins === 'function' && typeof PREDICTION_COINS !== 'undefined') renderPredictionCoins(PREDICTION_COINS);
-                    if (typeof renderPredictionMarkets === 'function' && typeof PREDICTION_MARKETS !== 'undefined') renderPredictionMarkets(PREDICTION_MARKETS);
-                } else if (pageId === 'settings') {
-                    const settingsAddr = document.getElementById('settingsWalletAddress');
-                    if (settingsAddr) settingsAddr.value = currentAccount || 'Not Connected';
-                }
-
-                safeInitIcons();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            } catch(err) {
-                console.warn("switchPage warning:", err);
-            }
-        }
-
-        function handleWalletClick() {
-            if (currentAccount) {
-                disconnectWallet();
-            } else {
-                const modal = document.getElementById('walletConnectModal');
-                if (modal) modal.classList.remove('hidden');
-            }
-        }
-
-        function closeWalletConnectModal() {
-            const modal = document.getElementById('walletConnectModal');
-            if (modal) modal.classList.add('hidden');
-        }
-
-        async function manualSwitchToArcNetwork() {
-            const provider = activeWeb3Provider || window.ethereum;
-            if (!provider || !provider.request) {
-                showToast('No Wallet Found', 'Please connect MetaMask or WalletConnect first', 'error');
-                return;
-            }
-            const targetChainIdHex = '0x4cef52'; // 5042002 in hex
-            try {
-                await provider.request({
-                    method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: targetChainIdHex }]
-                });
-                showToast('Network Switched!', 'Switched to Arc Testnet (Chain ID 5042002)', 'success');
-            } catch (err) {
-                if (err.code === 4902 || (err.message && err.message.includes('Unrecognized chain ID'))) {
-                    try {
-                        await provider.request({
-                            method: 'wallet_addEthereumChain',
-                            params: [{
-                                chainId: targetChainIdHex,
-                                chainName: 'Arc Testnet',
-                                nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
-                                rpcUrls: ['https://rpc.testnet.arc.io', 'https://rpc.testnet.arc.network'],
-                                blockExplorerUrls: ['https://testnet.arcscan.app']
-                            }]
-                        });
-                        showToast('Network Added!', 'Arc Testnet added to wallet', 'success');
-                    } catch (addErr) {
-                        showToast('Switch Error', addErr.message || 'Could not switch network in wallet', 'error');
-                    }
-                } else {
-                    showToast('Network Notice', err.message || 'Network switch requested in wallet', 'info');
-                }
-            }
-        }
-
-        async function connectProvider(providerType) {
-            closeWalletConnectModal();
-            try {
-                let account = null;
-                let providerName = providerType.toUpperCase();
-
-                if (providerType === 'walletconnect') {
-                    if (!walletConnectProvider) {
-                        await initWalletConnectProvider();
-                    }
-                    if (walletConnectProvider) {
-                        await walletConnectProvider.connect();
-                        const accounts = walletConnectProvider.accounts;
-                        if (accounts && accounts.length > 0) {
-                            account = accounts[0];
-                            activeWeb3Provider = walletConnectProvider;
-                            providerName = 'WalletConnect v2';
-                        }
-                    } else {
-                        showToast('WalletConnect Info', 'Loading WalletConnect provider...', 'info');
-                        return;
-                    }
-                } else if (window.ethereum) {
-                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    if (accounts && accounts.length > 0) {
-                        account = accounts[0];
-                        activeWeb3Provider = window.ethereum;
-                                            }
-                } else {
-                    showToast('Provider Missing', `${providerType} wallet not detected. Use WalletConnect!`, 'error');
-                    return;
-                }
-
-                if (!account) return;
-
-                currentAccount = account;
-                onWalletConnected(currentAccount, providerName);
-
-            } catch(err) {
-                console.error("Connect error:", err);
-                showToast('Connection Info', err.message || 'Connection request closed', 'info');
-            }
-        }
-
-        function openAuthSignModal() {
-            if (!currentAccount) {
-                handleWalletClick();
-                return;
-            }
-            const modal = document.getElementById('authSignModal');
-            if (!modal) return;
-            safeSetText('authSignModalAddress', currentAccount);
-            const btn = document.getElementById('authSignConfirmBtn');
-            if (btn) {
-                btn.innerHTML = `<i data-lucide="key" class="w-4 h-4"></i><span>Sign In with Wallet (Free)</span>`;
-                btn.disabled = false;
-            }
-            modal.classList.remove('hidden');
-            safeInitIcons();
-        }
-
-        function closeAuthSignModal() {
-            const modal = document.getElementById('authSignModal');
-            if (modal) modal.classList.add('hidden');
-        }
-
-        async function executeAuthSignFromModal() {
-            if (!currentAccount) {
-                closeAuthSignModal();
-                handleWalletClick();
-                return;
-            }
-            const btn = document.getElementById('authSignConfirmBtn');
-            if (btn) {
-                btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Waiting for Signature...</span>`;
-                btn.disabled = true;
-            }
-            safeInitIcons();
-
-            try {
-                const provider = activeWeb3Provider || window.ethereum;
-                if (!provider) {
-                    closeAuthSignModal();
-                    return;
-                }
-
-                const host = window.location.host || 'pulsegrid-hub.vercel.app';
-                const origin = window.location.origin || 'https://pulsegrid-hub.vercel.app';
-                const nonce = Math.random().toString(36).substring(2, 10);
-                const timestamp = new Date().toISOString();
-
-                // EIP-4361 Standard Sign-In with Ethereum Format
-                const authMessage = `${host} wants you to sign in with your Ethereum account:\n${currentAccount}\n\nSign in to PulseGrid Arc L1 Testnet.\n\nURI: ${origin}\nVersion: 1\nChain ID: 5042002\nNonce: ${nonce}\nIssued At: ${timestamp}`;
-                const hexMsg = '0x' + Array.from(new TextEncoder().encode(authMessage)).map(b => b.toString(16).padStart(2, '0')).join('');
-
-                let signature;
-                if (provider.request) {
-                    signature = await provider.request({
-                        method: 'personal_sign',
-                        params: [hexMsg, currentAccount]
-                    });
-                } else if (window.ethers) {
-                    const web3Provider = new ethers.providers.Web3Provider(provider);
-                    const signer = web3Provider.getSigner();
-                    signature = await signer.signMessage(authMessage);
-                }
-
-                if (signature) {
-                    if (btn) {
-                        btn.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-300"></i><span>Authenticated Successfully!</span>`;
-                    }
-                    safeInitIcons();
-                    showToast('Session Authenticated! 🛡️', `Verified cryptographic sign: ${signature.substring(0, 12)}...`, 'success');
-                    setTimeout(() => {
-                        closeAuthSignModal();
-                    }, 800);
-                }
-            } catch (signErr) {
-                console.warn("Auth sign error/rejected:", signErr);
-                if (btn) {
-                    btn.innerHTML = `<i data-lucide="key" class="w-4 h-4"></i><span>Sign In with Wallet (Free)</span>`;
-                    btn.disabled = false;
-                }
-                safeInitIcons();
-                showToast('Signature Cancelled', 'You can sign in anytime from the Wallet view', 'info');
-            }
-        }
-
-        async function requestSignatureAuth() {
-            openAuthSignModal();
-        }
-
-        async function fetchRealOnChainBalances(account) {
-            if (!account) return;
-            try {
-                // 1. FETCH REAL NATIVE USDC BALANCE via eth_getBalance
-                const usdcResponse = await fetch(ARC_RPC_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        jsonrpc: '2.0',
-                        method: 'eth_getBalance',
-                        params: [account, 'latest'],
-                        id: 1
-                    })
-                });
-                const usdcData = await usdcResponse.json();
-                if (usdcData && usdcData.result) {
-                    const weiBal = BigInt(usdcData.result);
-                    TOKENS[0].balance = Number(weiBal) / 1e18;
-                }
-
-                // 2. FETCH REAL ERC20 EURC BALANCE via eth_call balanceOf(address)
-                const eurcContract = TOKENS[1].address; // 0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a
-                const balanceOfData = '0x70a08231' + account.substring(2).padStart(64, '0');
-
-                const eurcResponse = await fetch(ARC_RPC_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        jsonrpc: '2.0',
-                        method: 'eth_call',
-                        params: [{ to: eurcContract, data: balanceOfData }, 'latest'],
-                        id: 2
-                    })
-                });
-                const eurcData = await eurcResponse.json();
-                if (eurcData && eurcData.result && eurcData.result !== '0x') {
-                    const eurcRaw = BigInt(eurcData.result);
-                    TOKENS[1].balance = Number(eurcRaw) / 1e6; // 6 decimals for EURC
-                }
-            } catch(e) {
-                console.warn("RPC real balance fetch notice:", e);
-            }
-
-            // Update UI & Views
-            updateTokenBalancesUI();
-            renderWalletView();
-            renderPortfolioView();
-        }
-
-        function onWalletConnected(account, providerName) {
-            try {
-                fetchRealOnChainBalances(account);
-                updateTokenBalancesUI();
-                updateWalletUI();
-                renderWalletView();
-                renderPortfolioView();
-                if (typeof loadQuestState === 'function') {
-                    loadQuestState(account);
-                }
-                showToast('Wallet Connected!', `Connected via ${providerName} on Arc Testnet`, 'success');
-
-                // Open in-app Sign-In / Verification popup
-                setTimeout(() => {
-                    openAuthSignModal();
-                }, 400);
-            } catch(e) {}
-        }
-
-        async function disconnectWallet() {
-            try {
-                if (activeWeb3Provider && typeof activeWeb3Provider.disconnect === 'function') {
-                    await activeWeb3Provider.disconnect();
-                }
-            } catch(e) {}
-            currentAccount = null;
-            activeWeb3Provider = null;
-            TOKENS.forEach(t => t.balance = 0.00);
-            updateTokenBalancesUI();
-            updateWalletUI();
-            renderWalletView();
-            renderPortfolioView();
-            if (typeof loadQuestState === 'function') {
-                loadQuestState(null);
-            }
-            showToast('Wallet Disconnected', 'Session cleared.', 'info');
-        }
-
-        async function switchOrAddArcNetwork() {
-            const provider = activeWeb3Provider || window.ethereum;
-            if (!provider || typeof provider.request !== 'function') return;
-            try {
-                await provider.request({
-                    method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: ARC_CHAIN_ID_HEX }]
-                });
-            } catch (switchError) {
-                if (switchError.code === 4902) {
-                    try {
-                        await provider.request({
-                            method: 'wallet_addEthereumChain',
-                            params: [{
-                                chainId: ARC_CHAIN_ID_HEX,
-                                chainName: 'Arc Testnet',
-                                nativeCurrency: { name: 'USD Coin', symbol: 'USDC', decimals: 18 },
-                                rpcUrls: [ARC_RPC_URL, ARC_RPC_URL_ALT],
-                                blockExplorerUrls: ['https://testnet.arcscan.app']
-                            }]
-                        });
-                    } catch (addError) {}
-                }
-            }
-        }
-
-        function updateWalletUI() {
-            const infoBox = document.getElementById('sidebarWalletInfoBox');
-            const connectBtn = document.getElementById('sidebarConnectBtn');
-            const disconnectBtn = document.getElementById('sidebarDisconnectBtn');
-
-            if (currentAccount) {
-                const formatted = `${currentAccount.substring(0, 6)}...${currentAccount.substring(currentAccount.length - 4)}`;
-                safeSetText('walletBtnText', formatted);
-                safeSetText('sidebarAccountAddr', formatted);
-                safeSetText('sidebarUsdcBal', `${TOKENS[0].balance.toFixed(2)} USDC`);
-                safeSetText('heroWalletBtnText', formatted);
-                safeSetText('mobileHeaderWalletBtnText', formatted);
-                safeSetText('mobileDrawerWalletBtnText', `Disconnect (${formatted})`);
-                
-                if (infoBox) infoBox.classList.remove('hidden');
-                if (connectBtn) connectBtn.classList.add('hidden');
-                if (disconnectBtn) disconnectBtn.classList.remove('hidden');
-            } else {
-                safeSetText('walletBtnText', 'Connect Wallet');
-                safeSetText('heroWalletBtnText', 'Connect Wallet');
-                safeSetText('mobileHeaderWalletBtnText', 'Connect');
-                safeSetText('mobileDrawerWalletBtnText', 'Connect Wallet');
-                if (infoBox) infoBox.classList.add('hidden');
-                if (connectBtn) connectBtn.classList.remove('hidden');
-                if (disconnectBtn) disconnectBtn.classList.add('hidden');
-            }
-        }
-
-        async function fetchBalances(accountAddress = currentAccount) {
-            if (!accountAddress) return;
-            try {
-                // 1. Native Gas USDC (18 decimals)
-                const usdcNativeRes = await fetch(ARC_RPC_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_getBalance', params: [accountAddress, 'latest'], id: 1 })
-                }).then(r => r.json());
-
-                // 2. ERC-20 USDC (0x3600..., 6 decimals)
-                const usdcContract = '0x3600000000000000000000000000000000000000';
-                const balanceOfDataUSDC = '0x70a08231' + accountAddress.substring(2).padStart(64, '0');
-                const usdcErc20Res = await fetch(ARC_RPC_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_call', params: [{ to: usdcContract, data: balanceOfDataUSDC }, 'latest'], id: 2 })
-                }).then(r => r.json());
-
-                // 3. ERC-20 EURC (0x89B5..., 6 decimals)
-                const eurcContract = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a';
-                const balanceOfDataEURC = '0x70a08231' + accountAddress.substring(2).padStart(64, '0');
-                const eurcRes = await fetch(ARC_RPC_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_call', params: [{ to: eurcContract, data: balanceOfDataEURC }, 'latest'], id: 3 })
-                }).then(r => r.json());
-
-                let nativeUsdc = 0;
-                let erc20Usdc = 0;
-                let erc20Eurc = 0;
-
-                if (usdcNativeRes?.result) {
-                    nativeUsdc = Number(BigInt(usdcNativeRes.result)) / 1e18;
-                }
-                if (usdcErc20Res?.result && usdcErc20Res.result !== '0x') {
-                    erc20Usdc = Number(BigInt(usdcErc20Res.result)) / 1e6;
-                }
-                if (eurcRes?.result && eurcRes.result !== '0x') {
-                    erc20Eurc = Number(BigInt(eurcRes.result)) / 1e6;
-                }
-
-                TOKENS[0].balance = nativeUsdc;
-                TOKENS[1].balance = erc20Eurc;
-
-                updateTokenBalancesUI();
-                renderWalletView();
-                renderPortfolioView();
-            } catch(err) {
-                console.error("fetchBalances error:", err);
-            }
-        }
-
-        function updateTokenBalancesUI() {
-            safeSetText('payTokenBalance', payToken.balance.toFixed(2));
-            safeSetText('receiveTokenBalance', receiveToken.balance.toFixed(2));
-            updateWalletUI();
-        }
-
-        function switchSwapMode(mode) {
-            const btnSwap = document.getElementById('swapModeBtnSwap');
-            const btnPool = document.getElementById('swapModeBtnPool');
-            if (mode === 'swap') {
-                btnSwap.className = 'btn-pixel flex-1 py-2.5 rounded-xl font-bold text-xs text-white bg-purple-700 border-2 border-slate-950 flex items-center justify-center gap-2';
-                btnPool.className = 'flex-1 py-2.5 rounded-xl font-pixel font-bold text-xs text-slate-700 hover:text-slate-950 flex items-center justify-center gap-2';
-            } else {
-                btnPool.className = 'btn-pixel flex-1 py-2.5 rounded-xl font-bold text-xs text-white bg-purple-700 border-2 border-slate-950 flex items-center justify-center gap-2';
-                btnSwap.className = 'flex-1 py-2.5 rounded-xl font-pixel font-bold text-xs text-slate-700 hover:text-slate-950 flex items-center justify-center gap-2';
-            }
-        }
-
-        // ACCURATE SWAP CONVERSION MATCHING TERMINAL SDK (1 USDC = 0.882639 EURC)
-        function calculateSwap() {
-            const input = document.getElementById('payAmountInput');
-            const output = document.getElementById('receiveAmountInput');
-            if (!input || !output) return;
-
-            const val = parseFloat(input.value);
-            if (isNaN(val) || val <= 0) {
-                output.value = '';
-                return;
-            }
-
-            const ratio = payToken.usdRate / receiveToken.usdRate;
-            const est = val * ratio;
-            output.value = est.toFixed(6);
-        }
-
-        function setMaxPayAmount() {
-            const input = document.getElementById('payAmountInput');
-            if (input) {
-                input.value = payToken.balance;
-                calculateSwap();
-            }
-        }
-
-        function switchSwapTokens() {
-            const temp = payToken;
+        payToken = token;
+    } else {
+        if (token.id === payToken.id) {
             payToken = receiveToken;
-            receiveToken = temp;
+        }
+        receiveToken = token;
+    }
 
-            safeSetText('payTokenSymbol', payToken.symbol);
-            safeSetText('receiveTokenSymbol', receiveToken.symbol);
-            
-            const ratio = payToken.usdRate / receiveToken.usdRate;
-            safeSetText('exchangeRateText', `1 ${payToken.symbol} ≈ ${ratio.toFixed(6)} ${receiveToken.symbol}`);
+    safeSetText('payTokenSymbol', payToken.symbol);
+    safeSetText('receiveTokenSymbol', receiveToken.symbol);
 
-            const payIconContainer = document.getElementById('payTokenIconContainer');
-            const recIconContainer = document.getElementById('receiveTokenIconContainer');
-            if (payIconContainer) {
-                payIconContainer.className = `w-7 h-7 rounded-full ${payToken.bg} flex items-center justify-center font-black text-white text-xs`;
-                payIconContainer.innerText = payToken.icon;
+    const ratio = payToken.usdRate / receiveToken.usdRate;
+    safeSetText('exchangeRateText', `1 ${payToken.symbol} ≈ ${ratio.toFixed(6)} ${receiveToken.symbol}`);
+
+    const payIconContainer = document.getElementById('payTokenIconContainer');
+    const recIconContainer = document.getElementById('receiveTokenIconContainer');
+    if (payIconContainer) {
+        payIconContainer.className = `w-7 h-7 rounded-full ${payToken.bg} flex items-center justify-center font-black text-white text-xs`;
+        payIconContainer.innerText = payToken.icon;
+    }
+    if (recIconContainer) {
+        recIconContainer.className = `w-7 h-7 rounded-full ${receiveToken.bg} flex items-center justify-center font-black text-white text-xs`;
+        recIconContainer.innerText = receiveToken.icon;
+    }
+
+    calculateSwap();
+    updateTokenBalancesUI();
+}
+
+// WALLETCONNECT V2 INITIALIZATION
+async function initWalletConnectProvider() {
+    try {
+        if (window.WalletConnectProvider && window.WalletConnectProvider.EthereumProvider) {
+            walletConnectProvider = await window.WalletConnectProvider.EthereumProvider.init({
+                projectId: WALLETCONNECT_PROJECT_ID,
+                chains: [5042002],
+                optionalChains: [5042002, 1],
+                rpcMap: {
+                    5042002: 'https://rpc.testnet.arc.io'
+                },
+                metadata: {
+                    name: 'PulseGrid DApp',
+                    description: 'Circle Arc L1 Ecosystem DApp',
+                    url: window.location.origin || 'https://PulseGrid.vercel.app',
+                    icons: ['https://raw.githubusercontent.com/promanas0/PulseGrid/main/logo.png']
+                },
+                showQrModal: true
+            });
+
+            walletConnectProvider.on('accountsChanged', (accounts) => {
+                if (accounts && accounts.length > 0) {
+                    currentAccount = accounts[0];
+                    activeWeb3Provider = walletConnectProvider;
+                    onWalletConnected(currentAccount, 'WalletConnect');
+                } else {
+                    disconnectWallet();
+                }
+            });
+
+            walletConnectProvider.on('disconnect', () => {
+                disconnectWallet();
+            });
+        }
+    } catch (e) { }
+}
+
+function toggleMobileSidebar() {
+    toggleMobileMoreMenu();
+}
+
+function toggleMobileMoreMenu() {
+    const drawer = document.getElementById('mobileMoreDrawer');
+    if (drawer) {
+        if (drawer.classList.contains('hidden')) {
+            drawer.classList.remove('hidden');
+            safeInitIcons();
+        } else {
+            drawer.classList.add('hidden');
+        }
+    }
+}
+
+function switchPageAndCloseDrawer(pageId) {
+    switchPage(pageId);
+    const drawer = document.getElementById('mobileMoreDrawer');
+    if (drawer) drawer.classList.add('hidden');
+}
+
+function exploreDapps(targetPage = 'monitor') {
+    try {
+        switchPage(targetPage);
+        showToast('Welcome to Arc dApps! 🚀', 'Exploring Arc L1 Web3 Ecosystem', 'success');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (e) {
+        console.warn("exploreDapps warning:", e);
+    }
+}
+
+function switchPage(pageId) {
+    try {
+        activePage = pageId;
+        document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.sidebar-link').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.mobile-nav-btn').forEach(btn => btn.classList.remove('active'));
+
+        const activeView = document.getElementById(`view-${pageId}`);
+        if (activeView) activeView.classList.remove('hidden');
+
+        // Update Desktop sidebar button
+        const activeBtn = document.getElementById(`nav-btn-${pageId}`);
+        if (activeBtn) activeBtn.classList.add('active');
+
+        // Update Mobile bottom nav button if present
+        const activeMobileBtn = document.getElementById(`mobile-nav-btn-${pageId}`);
+        if (activeMobileBtn) {
+            activeMobileBtn.classList.add('active');
+        } else {
+            // Highlight the "More" button if the page is inside the More menu
+            const moreBtn = document.getElementById('mobile-nav-btn-more');
+            if (moreBtn && ['portfolio', 'market', 'escrow', 'tools', 'games', 'prediction', 'settings', 'about'].includes(pageId)) {
+                moreBtn.classList.add('active');
             }
-            if (recIconContainer) {
-                recIconContainer.className = `w-7 h-7 rounded-full ${receiveToken.bg} flex items-center justify-center font-black text-white text-xs`;
-                recIconContainer.innerText = receiveToken.icon;
-            }
-
-            calculateSwap();
-            updateTokenBalancesUI();
         }
 
-        // REAL WEB3 SPENDER ROUTER SWAP EXECUTION (SUPPORTING NATIVE USDC & ERC-20 TOKENS)
-        async function executeRealSwap() {
-            if (!currentAccount) {
-                handleWalletClick();
-                return;
-            }
+        // Close mobile more drawer if open
+        const drawer = document.getElementById('mobileMoreDrawer');
+        if (drawer && !drawer.classList.contains('hidden')) {
+            drawer.classList.add('hidden');
+        }
 
-            const input = document.getElementById('payAmountInput');
-            const amt = parseFloat(input ? input.value : 0);
+        if (pageId === 'wallet') {
+            renderWalletView();
+        } else if (pageId === 'validators') {
+            if (typeof renderValidatorsTable === 'function') renderValidatorsTable();
+        } else if (pageId === 'portfolio') {
+            renderPortfolioView();
+        } else if (pageId === 'prediction') {
+            if (typeof renderPredictionCoins === 'function' && typeof PREDICTION_COINS !== 'undefined') renderPredictionCoins(PREDICTION_COINS);
+            if (typeof renderPredictionMarkets === 'function' && typeof PREDICTION_MARKETS !== 'undefined') renderPredictionMarkets(PREDICTION_MARKETS);
+        } else if (pageId === 'settings') {
+            const settingsAddr = document.getElementById('settingsWalletAddress');
+            if (settingsAddr) settingsAddr.value = currentAccount || 'Not Connected';
+        }
 
-            if (isNaN(amt) || amt <= 0) {
-                showToast('Invalid Amount', 'Enter a valid amount to swap', 'error');
-                return;
-            }
+        safeInitIcons();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+        console.warn("switchPage warning:", err);
+    }
+}
 
-            if (payToken.balance > 0 && payToken.balance < amt) {
-                showToast('Insufficient Balance', `You need ${amt} ${payToken.symbol} to swap`, 'error');
-                return;
-            }
+function handleWalletClick() {
+    if (currentAccount) {
+        disconnectWallet();
+    } else {
+        const modal = document.getElementById('walletConnectModal');
+        if (modal) modal.classList.remove('hidden');
+    }
+}
 
-            const provider = activeWeb3Provider || window.ethereum;
-            if (!provider) {
-                showToast('No Wallet Found', 'Please connect MetaMask or WalletConnect', 'error');
-                return;
-            }
+function closeWalletConnectModal() {
+    const modal = document.getElementById('walletConnectModal');
+    if (modal) modal.classList.add('hidden');
+}
 
+async function manualSwitchToArcNetwork() {
+    const provider = activeWeb3Provider || window.ethereum;
+    if (!provider || !provider.request) {
+        showToast('No Wallet Found', 'Please connect MetaMask or WalletConnect first', 'error');
+        return;
+    }
+    const targetChainIdHex = '0x4cef52'; // 5042002 in hex
+    try {
+        await provider.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: targetChainIdHex }]
+        });
+        showToast('Network Switched!', 'Switched to Arc Testnet (Chain ID 5042002)', 'success');
+    } catch (err) {
+        if (err.code === 4902 || (err.message && err.message.includes('Unrecognized chain ID'))) {
             try {
-                if (!window.ethers) {
-                    throw new Error("Ethers.js library not loaded in browser.");
-                }
-
-                const web3Provider = new ethers.providers.Web3Provider(provider);
-                const signer = web3Provider.getSigner();
-                const routerContract = new ethers.Contract(SPENDER_ROUTER_ADDRESS, SPENDER_ROUTER_ABI, signer);
-
-                let swapTx;
-
-                if (payToken.symbol === 'USDC') {
-                    const erc20Contract = new ethers.Contract(ERC20_USDC_ADDRESS, ERC20_ABI, signer);
-                    let erc20Bal = ethers.BigNumber.from(0);
-                    try {
-                        erc20Bal = await erc20Contract.balanceOf(currentAccount);
-                    } catch(e) {}
-
-                    const amountInUnits6 = ethers.utils.parseUnits(amt.toString(), 6);
-
-                    if (erc20Bal.gte(amountInUnits6)) {
-                        // User has ERC-20 USDC -> 2-Step Spender Flow (Approve + Swap)
-                        let allowance = ethers.BigNumber.from(0);
-                        try {
-                            allowance = await erc20Contract.allowance(currentAccount, SPENDER_ROUTER_ADDRESS);
-                        } catch(e) {}
-
-                        if (allowance.lt(amountInUnits6)) {
-                            showToast('Step 1/2: Approve Spender', `Please approve Spender Router (${SPENDER_ROUTER_ADDRESS.substring(0, 6)}...) in MetaMask...`, 'info');
-                            const approveTx = await erc20Contract.approve(SPENDER_ROUTER_ADDRESS, amountInUnits6);
-                            showToast('Approval Broadcasted', `Tx: ${approveTx.hash.substring(0, 10)}... Waiting for block confirmation`, 'info');
-                            await approveTx.wait();
-                            showToast('Spender Approved! 🚀', 'Step 1 complete! Now confirm Swap (Step 2/2)...', 'success');
-                        }
-
-                        showToast('Step 2/2: Confirm Swap', `Confirming Swap of ${amt} ERC-20 USDC on Spender Router...`, 'info');
-                        swapTx = await routerContract.swapUSDCtoEURC(amountInUnits6);
-                    } else {
-                        // User has Native USDC -> Payable Direct Swap (No Approve Needed)
-                        const amountInWei18 = ethers.utils.parseUnits(amt.toString(), 18);
-                        showToast('Confirming Native Swap', `Confirming Swap of ${amt} Native USDC on Spender Router in MetaMask...`, 'info');
-                        swapTx = await routerContract.swapNativeUSDCtoEURC({ value: amountInWei18 });
-                    }
-
-                } else if (payToken.symbol === 'EURC') {
-                    // ERC-20 EURC Swap -> 2-Step Spender Flow (Approve + Swap)
-                    const erc20Contract = new ethers.Contract(ERC20_EURC_ADDRESS, ERC20_ABI, signer);
-                    const amountInUnits6 = ethers.utils.parseUnits(amt.toString(), 6);
-
-                    let allowance = ethers.BigNumber.from(0);
-                    try {
-                        allowance = await erc20Contract.allowance(currentAccount, SPENDER_ROUTER_ADDRESS);
-                    } catch(e) {}
-
-                    if (allowance.lt(amountInUnits6)) {
-                        showToast('Step 1/2: Approve Spender', `Please approve Spender Router (${SPENDER_ROUTER_ADDRESS.substring(0, 6)}...) in MetaMask...`, 'info');
-                        const approveTx = await erc20Contract.approve(SPENDER_ROUTER_ADDRESS, amountInUnits6);
-                        showToast('Approval Broadcasted', `Tx: ${approveTx.hash.substring(0, 10)}... Waiting for block confirmation`, 'info');
-                        await approveTx.wait();
-                        showToast('Spender Approved! 🚀', 'Step 1 complete! Now confirm Swap (Step 2/2)...', 'success');
-                    }
-
-                    showToast('Step 2/2: Confirm Swap', `Confirming Swap of ${amt} EURC on Spender Router...`, 'info');
-                    swapTx = await routerContract.swapEURCtoUSDC(amountInUnits6);
-                } else {
-                    throw new Error(`Unsupported token symbol: ${payToken.symbol}`);
-                }
-
-                showToast('Swap Broadcasted!', `Tx: ${swapTx.hash.substring(0, 10)}... Confirming block on Arc Testnet`, 'info');
-                await swapTx.wait();
-                const txHash = swapTx.hash;
-
-                // Update UI Balances cleanly from RPC
-                await fetchBalances();
-
-                const ratio = payToken.usdRate / receiveToken.usdRate;
-                const receiveAmt = amt * ratio;
-
-                const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                saveTxRecord(currentAccount, {
-                    txHash: txHash,
-                    type: 'Spender DEX Swap',
-                    pair: `Swapped ${amt.toFixed(2)} ${payToken.symbol} ➔ ${receiveAmt.toFixed(4)} ${receiveToken.symbol}`,
-                    time: timeStr
+                await provider.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [{
+                        chainId: targetChainIdHex,
+                        chainName: 'Arc Testnet',
+                        nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
+                        rpcUrls: ['https://rpc.testnet.arc.io', 'https://rpc.testnet.arc.network'],
+                        blockExplorerUrls: ['https://testnet.arcscan.app']
+                    }]
                 });
+                showToast('Network Added!', 'Arc Testnet added to wallet', 'success');
+            } catch (addErr) {
+                showToast('Switch Error', addErr.message || 'Could not switch network in wallet', 'error');
+            }
+        } else {
+            showToast('Network Notice', err.message || 'Network switch requested in wallet', 'info');
+        }
+    }
+}
 
-                if (input) input.value = '';
-                const output = document.getElementById('receiveAmountInput');
-                if (output) output.value = '';
+async function connectProvider(providerType) {
+    closeWalletConnectModal();
+    try {
+        let account = null;
+        let providerName = providerType.toUpperCase();
 
-                showToast('Swap Confirmed! 🎉', `Tx Hash: ${txHash.substring(0, 10)}... Verified on Arc Explorer`, 'success');
-
-                // Award +50 Points for confirmed on-chain DEX Swap
-                if (typeof onSwapConfirmedOnChain === 'function') {
-                    onSwapConfirmedOnChain();
+        if (providerType === 'walletconnect') {
+            if (!walletConnectProvider) {
+                await initWalletConnectProvider();
+            }
+            if (walletConnectProvider) {
+                await walletConnectProvider.connect();
+                const accounts = walletConnectProvider.accounts;
+                if (accounts && accounts.length > 0) {
+                    account = accounts[0];
+                    activeWeb3Provider = walletConnectProvider;
+                    providerName = 'WalletConnect v2';
                 }
-
-            } catch(txErr) {
-                console.error("Swap transaction failed:", txErr);
-                if (txErr.code === 4001 || txErr?.cause?.code === 4001 || txErr?.message?.includes("User denied") || txErr?.message?.includes("rejected")) {
-                    showToast('Transaction Cancelled', 'You cancelled the transaction in your wallet app.', 'error');
-                } else {
-                    showToast('Transaction Error', txErr.reason || txErr.message || 'Transaction rejected in wallet app', 'error');
-                }
+            } else {
+                showToast('WalletConnect Info', 'Loading WalletConnect provider...', 'info');
+                return;
             }
+        } else if (window.ethereum) {
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            if (accounts && accounts.length > 0) {
+                account = accounts[0];
+                activeWeb3Provider = window.ethereum;
+            }
+        } else {
+            showToast('Provider Missing', `${providerType} wallet not detected. Use WalletConnect!`, 'error');
+            return;
         }
 
-        function openWalletReceiveModal() {
-            if (!currentAccount) {
-                handleWalletClick();
-                return;
-            }
-            safeSetText('receiveAddressText', currentAccount);
-            const qrImg = document.getElementById('receiveQrCodeImg');
-            if (qrImg) {
-                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${currentAccount}`;
-            }
-            const modal = document.getElementById('walletReceiveModal');
-            if (modal) modal.classList.remove('hidden');
+        if (!account) return;
+
+        currentAccount = account;
+        onWalletConnected(currentAccount, providerName);
+
+    } catch (err) {
+        console.error("Connect error:", err);
+        showToast('Connection Info', err.message || 'Connection request closed', 'info');
+    }
+}
+
+function openAuthSignModal() {
+    if (!currentAccount) {
+        handleWalletClick();
+        return;
+    }
+    const modal = document.getElementById('authSignModal');
+    if (!modal) return;
+    safeSetText('authSignModalAddress', currentAccount);
+    const btn = document.getElementById('authSignConfirmBtn');
+    if (btn) {
+        btn.innerHTML = `<i data-lucide="key" class="w-4 h-4"></i><span>Sign In with Wallet (Free)</span>`;
+        btn.disabled = false;
+    }
+    modal.classList.remove('hidden');
+    safeInitIcons();
+}
+
+function closeAuthSignModal() {
+    const modal = document.getElementById('authSignModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+async function executeAuthSignFromModal() {
+    if (!currentAccount) {
+        closeAuthSignModal();
+        handleWalletClick();
+        return;
+    }
+    const btn = document.getElementById('authSignConfirmBtn');
+    if (btn) {
+        btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Waiting for Signature...</span>`;
+        btn.disabled = true;
+    }
+    safeInitIcons();
+
+    try {
+        const provider = activeWeb3Provider || window.ethereum;
+        if (!provider) {
+            closeAuthSignModal();
+            return;
         }
 
-        function closeWalletReceiveModal() {
-            const modal = document.getElementById('walletReceiveModal');
-            if (modal) modal.classList.add('hidden');
+        const host = window.location.host || 'pulsegrid-hub.vercel.app';
+        const origin = window.location.origin || 'https://pulsegrid-hub.vercel.app';
+        const nonce = Math.random().toString(36).substring(2, 10);
+        const timestamp = new Date().toISOString();
+
+        // EIP-4361 Standard Sign-In with Ethereum Format
+        const authMessage = `${host} wants you to sign in with your Ethereum account:\n${currentAccount}\n\nSign in to PulseGrid Arc L1 Testnet.\n\nURI: ${origin}\nVersion: 1\nChain ID: 5042002\nNonce: ${nonce}\nIssued At: ${timestamp}`;
+        const hexMsg = '0x' + Array.from(new TextEncoder().encode(authMessage)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+        let signature;
+        if (provider.request) {
+            signature = await provider.request({
+                method: 'personal_sign',
+                params: [hexMsg, currentAccount]
+            });
+        } else if (window.ethers) {
+            const web3Provider = new ethers.providers.Web3Provider(provider);
+            const signer = web3Provider.getSigner();
+            signature = await signer.signMessage(authMessage);
         }
 
-        function copyWalletAddress() {
-            if (!currentAccount) {
-                showToast('No Wallet Connected', 'Please connect a wallet first', 'error');
-                return;
+        if (signature) {
+            if (btn) {
+                btn.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-300"></i><span>Authenticated Successfully!</span>`;
             }
-            navigator.clipboard.writeText(currentAccount);
-            showToast('Address Copied!', 'Copied wallet address to clipboard', 'success');
+            safeInitIcons();
+            showToast('Session Authenticated! 🛡️', `Verified cryptographic sign: ${signature.substring(0, 12)}...`, 'success');
+            setTimeout(() => {
+                closeAuthSignModal();
+            }, 800);
+        }
+    } catch (signErr) {
+        console.warn("Auth sign error/rejected:", signErr);
+        if (btn) {
+            btn.innerHTML = `<i data-lucide="key" class="w-4 h-4"></i><span>Sign In with Wallet (Free)</span>`;
+            btn.disabled = false;
+        }
+        safeInitIcons();
+        showToast('Signature Cancelled', 'You can sign in anytime from the Wallet view', 'info');
+    }
+}
+
+async function requestSignatureAuth() {
+    openAuthSignModal();
+}
+
+async function fetchRealOnChainBalances(account) {
+    if (!account) return;
+    try {
+        // 1. FETCH REAL NATIVE USDC BALANCE via eth_getBalance
+        const usdcResponse = await fetch(ARC_RPC_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                method: 'eth_getBalance',
+                params: [account, 'latest'],
+                id: 1
+            })
+        });
+        const usdcData = await usdcResponse.json();
+        if (usdcData && usdcData.result) {
+            const weiBal = BigInt(usdcData.result);
+            TOKENS[0].balance = Number(weiBal) / 1e18;
         }
 
-        function openWalletSendModal() {
-            if (!currentAccount) {
-                handleWalletClick();
-                return;
-            }
-            const modal = document.getElementById('walletSendModal');
-            if (modal) modal.classList.remove('hidden');
+        // 2. FETCH REAL ERC20 EURC BALANCE via eth_call balanceOf(address)
+        const eurcContract = TOKENS[1].address; // 0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a
+        const balanceOfData = '0x70a08231' + account.substring(2).padStart(64, '0');
+
+        const eurcResponse = await fetch(ARC_RPC_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                jsonrpc: '2.0',
+                method: 'eth_call',
+                params: [{ to: eurcContract, data: balanceOfData }, 'latest'],
+                id: 2
+            })
+        });
+        const eurcData = await eurcResponse.json();
+        if (eurcData && eurcData.result && eurcData.result !== '0x') {
+            const eurcRaw = BigInt(eurcData.result);
+            TOKENS[1].balance = Number(eurcRaw) / 1e6; // 6 decimals for EURC
         }
+    } catch (e) {
+        console.warn("RPC real balance fetch notice:", e);
+    }
 
-        function closeWalletSendModal() {
-            const modal = document.getElementById('walletSendModal');
-            if (modal) modal.classList.add('hidden');
+    // Update UI & Views
+    updateTokenBalancesUI();
+    renderWalletView();
+    renderPortfolioView();
+}
+
+function onWalletConnected(account, providerName) {
+    try {
+        fetchRealOnChainBalances(account);
+        updateTokenBalancesUI();
+        updateWalletUI();
+        renderWalletView();
+        renderPortfolioView();
+        if (typeof loadQuestState === 'function') {
+            loadQuestState(account);
         }
+        showToast('Wallet Connected!', `Connected via ${providerName} on Arc Testnet`, 'success');
 
-        function setSendMaxAmount() {
-            const selVal = document.getElementById('sendTokenSelect')?.value || 0;
-            const token = TOKENS[selVal] || TOKENS[0];
-            const input = document.getElementById('sendAmountInput');
-            if (input) input.value = token.balance;
+        // Open in-app Sign-In / Verification popup
+        setTimeout(() => {
+            openAuthSignModal();
+        }, 400);
+    } catch (e) { }
+}
+
+async function disconnectWallet() {
+    try {
+        if (activeWeb3Provider && typeof activeWeb3Provider.disconnect === 'function') {
+            await activeWeb3Provider.disconnect();
         }
+    } catch (e) { }
+    currentAccount = null;
+    activeWeb3Provider = null;
+    TOKENS.forEach(t => t.balance = 0.00);
+    updateTokenBalancesUI();
+    updateWalletUI();
+    renderWalletView();
+    renderPortfolioView();
+    if (typeof loadQuestState === 'function') {
+        loadQuestState(null);
+    }
+    showToast('Wallet Disconnected', 'Session cleared.', 'info');
+}
 
-        async function executeRealSendToken() {
-            if (!currentAccount) {
-                handleWalletClick();
-                return;
-            }
-            const selVal = document.getElementById('sendTokenSelect')?.value || 0;
-            const token = TOKENS[selVal] || TOKENS[0];
-            const recipient = document.getElementById('sendRecipientAddr')?.value?.trim();
-            const amt = parseFloat(document.getElementById('sendAmountInput')?.value || 0);
-
-            if (!recipient || !recipient.startsWith('0x') || recipient.length < 10) {
-                showToast('Invalid Address', 'Enter a valid recipient EVM address starting with 0x', 'error');
-                return;
-            }
-
-            if (window.ethers && !ethers.utils.isAddress(recipient)) {
-                showToast('Invalid Address', 'Recipient is not a valid checksum/EVM address format', 'error');
-                return;
-            }
-
-            if (isNaN(amt) || amt <= 0) {
-                showToast('Invalid Amount', 'Enter a valid amount to send', 'error');
-                return;
-            }
-
-            const provider = activeWeb3Provider || window.ethereum;
-            if (!provider) {
-                showToast('No Wallet Found', 'Please connect MetaMask, WalletConnect, or Circle Wallet', 'error');
-                return;
-            }
-
-            const sendBtn = document.querySelector('#walletSendModal button[onclick="executeRealSendToken()"]');
-            const origBtnHtml = sendBtn ? sendBtn.innerHTML : 'Send Real Web3 Transaction';
-
+async function switchOrAddArcNetwork() {
+    const provider = activeWeb3Provider || window.ethereum;
+    if (!provider || typeof provider.request !== 'function') return;
+    try {
+        await provider.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: ARC_CHAIN_ID_HEX }]
+        });
+    } catch (switchError) {
+        if (switchError.code === 4902) {
             try {
-                if (!window.ethers) {
-                    throw new Error("Ethers.js library not loaded in browser.");
+                await provider.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [{
+                        chainId: ARC_CHAIN_ID_HEX,
+                        chainName: 'Arc Testnet',
+                        nativeCurrency: { name: 'USD Coin', symbol: 'USDC', decimals: 18 },
+                        rpcUrls: [ARC_RPC_URL, ARC_RPC_URL_ALT],
+                        blockExplorerUrls: ['https://testnet.arcscan.app']
+                    }]
+                });
+            } catch (addError) { }
+        }
+    }
+}
+
+function updateWalletUI() {
+    const infoBox = document.getElementById('sidebarWalletInfoBox');
+    const connectBtn = document.getElementById('sidebarConnectBtn');
+    const disconnectBtn = document.getElementById('sidebarDisconnectBtn');
+
+    if (currentAccount) {
+        const formatted = `${currentAccount.substring(0, 6)}...${currentAccount.substring(currentAccount.length - 4)}`;
+        safeSetText('walletBtnText', formatted);
+        safeSetText('sidebarAccountAddr', formatted);
+        safeSetText('sidebarUsdcBal', `${TOKENS[0].balance.toFixed(2)} USDC`);
+        safeSetText('heroWalletBtnText', formatted);
+        safeSetText('mobileHeaderWalletBtnText', formatted);
+        safeSetText('mobileDrawerWalletBtnText', `Disconnect (${formatted})`);
+
+        if (infoBox) infoBox.classList.remove('hidden');
+        if (connectBtn) connectBtn.classList.add('hidden');
+        if (disconnectBtn) disconnectBtn.classList.remove('hidden');
+    } else {
+        safeSetText('walletBtnText', 'Connect Wallet');
+        safeSetText('heroWalletBtnText', 'Connect Wallet');
+        safeSetText('mobileHeaderWalletBtnText', 'Connect');
+        safeSetText('mobileDrawerWalletBtnText', 'Connect Wallet');
+        if (infoBox) infoBox.classList.add('hidden');
+        if (connectBtn) connectBtn.classList.remove('hidden');
+        if (disconnectBtn) disconnectBtn.classList.add('hidden');
+    }
+}
+
+async function fetchBalances(accountAddress = currentAccount) {
+    if (!accountAddress) return;
+    try {
+        // 1. Native Gas USDC (18 decimals)
+        const usdcNativeRes = await fetch(ARC_RPC_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_getBalance', params: [accountAddress, 'latest'], id: 1 })
+        }).then(r => r.json());
+
+        // 2. ERC-20 USDC (0x3600..., 6 decimals)
+        const usdcContract = '0x3600000000000000000000000000000000000000';
+        const balanceOfDataUSDC = '0x70a08231' + accountAddress.substring(2).padStart(64, '0');
+        const usdcErc20Res = await fetch(ARC_RPC_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_call', params: [{ to: usdcContract, data: balanceOfDataUSDC }, 'latest'], id: 2 })
+        }).then(r => r.json());
+
+        // 3. ERC-20 EURC (0x89B5..., 6 decimals)
+        const eurcContract = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a';
+        const balanceOfDataEURC = '0x70a08231' + accountAddress.substring(2).padStart(64, '0');
+        const eurcRes = await fetch(ARC_RPC_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_call', params: [{ to: eurcContract, data: balanceOfDataEURC }, 'latest'], id: 3 })
+        }).then(r => r.json());
+
+        let nativeUsdc = 0;
+        let erc20Usdc = 0;
+        let erc20Eurc = 0;
+
+        if (usdcNativeRes?.result) {
+            nativeUsdc = Number(BigInt(usdcNativeRes.result)) / 1e18;
+        }
+        if (usdcErc20Res?.result && usdcErc20Res.result !== '0x') {
+            erc20Usdc = Number(BigInt(usdcErc20Res.result)) / 1e6;
+        }
+        if (eurcRes?.result && eurcRes.result !== '0x') {
+            erc20Eurc = Number(BigInt(eurcRes.result)) / 1e6;
+        }
+
+        TOKENS[0].balance = nativeUsdc;
+        TOKENS[1].balance = erc20Eurc;
+
+        updateTokenBalancesUI();
+        renderWalletView();
+        renderPortfolioView();
+    } catch (err) {
+        console.error("fetchBalances error:", err);
+    }
+}
+
+function updateTokenBalancesUI() {
+    safeSetText('payTokenBalance', payToken.balance.toFixed(2));
+    safeSetText('receiveTokenBalance', receiveToken.balance.toFixed(2));
+    updateWalletUI();
+}
+
+function switchSwapMode(mode) {
+    const btnSwap = document.getElementById('swapModeBtnSwap');
+    const btnPool = document.getElementById('swapModeBtnPool');
+    const swapContainer = document.getElementById('swapCardContainer');
+    const poolContainer = document.getElementById('liquidityPoolContainer');
+
+    if (mode === 'swap') {
+        if (btnSwap) btnSwap.className = 'btn-pixel flex-1 py-2.5 rounded-xl font-bold text-xs text-white bg-purple-700 border-2 border-slate-950 flex items-center justify-center gap-2';
+        if (btnPool) btnPool.className = 'flex-1 py-2.5 rounded-xl font-pixel font-bold text-xs text-slate-700 hover:text-slate-950 flex items-center justify-center gap-2';
+        if (swapContainer) swapContainer.classList.remove('hidden');
+        if (poolContainer) poolContainer.classList.add('hidden');
+    } else {
+        if (btnPool) btnPool.className = 'btn-pixel flex-1 py-2.5 rounded-xl font-bold text-xs text-white bg-purple-700 border-2 border-slate-950 flex items-center justify-center gap-2';
+        if (btnSwap) btnSwap.className = 'flex-1 py-2.5 rounded-xl font-pixel font-bold text-xs text-slate-700 hover:text-slate-950 flex items-center justify-center gap-2';
+        if (swapContainer) swapContainer.classList.add('hidden');
+        if (poolContainer) poolContainer.classList.remove('hidden');
+    }
+}
+
+function calculatePoolDeposit(source) {
+    const usdcInput = document.getElementById('poolUsdcInput');
+    const eurcInput = document.getElementById('poolEurcInput');
+    if (!usdcInput || !eurcInput) return;
+
+    if (source === 'usdc') {
+        const val = parseFloat(usdcInput.value);
+        if (!isNaN(val) && val > 0) {
+            eurcInput.value = (val * 0.882639).toFixed(6);
+        } else {
+            eurcInput.value = '';
+        }
+    } else {
+        const val = parseFloat(eurcInput.value);
+        if (!isNaN(val) && val > 0) {
+            usdcInput.value = (val / 0.882639).toFixed(6);
+        } else {
+            usdcInput.value = '';
+        }
+    }
+}
+
+function addLiquidityToPool() {
+    const usdcInput = document.getElementById('poolUsdcInput');
+    const eurcInput = document.getElementById('poolEurcInput');
+    const val = usdcInput ? parseFloat(usdcInput.value) : 0;
+
+    if (isNaN(val) || val <= 0) {
+        showToast('Invalid Amount', 'Please enter a valid deposit amount for Liquidity Pool', 'warning');
+        return;
+    }
+
+    showToast('Liquidity Supplied! 🚀', `Successfully added ${val} USDC / ${eurcInput?.value || 0} EURC to AMM Pool! Earn 18.4% APR.`, 'success');
+    if (usdcInput) usdcInput.value = '';
+    if (eurcInput) eurcInput.value = '';
+}
+
+// ACCURATE SWAP CONVERSION MATCHING TERMINAL SDK (1 USDC = 0.882639 EURC)
+function calculateSwap() {
+    const input = document.getElementById('payAmountInput');
+    const output = document.getElementById('receiveAmountInput');
+    if (!input || !output) return;
+
+    const val = parseFloat(input.value);
+    if (isNaN(val) || val <= 0) {
+        output.value = '';
+        return;
+    }
+
+    const ratio = payToken.usdRate / receiveToken.usdRate;
+    const est = val * ratio;
+    output.value = est.toFixed(6);
+}
+
+function setMaxPayAmount() {
+    const input = document.getElementById('payAmountInput');
+    if (input) {
+        input.value = payToken.balance;
+        calculateSwap();
+    }
+}
+
+function switchSwapTokens() {
+    const temp = payToken;
+    payToken = receiveToken;
+    receiveToken = temp;
+
+    safeSetText('payTokenSymbol', payToken.symbol);
+    safeSetText('receiveTokenSymbol', receiveToken.symbol);
+
+    const ratio = payToken.usdRate / receiveToken.usdRate;
+    safeSetText('exchangeRateText', `1 ${payToken.symbol} ≈ ${ratio.toFixed(6)} ${receiveToken.symbol}`);
+
+    const payIconContainer = document.getElementById('payTokenIconContainer');
+    const recIconContainer = document.getElementById('receiveTokenIconContainer');
+    if (payIconContainer) {
+        payIconContainer.className = `w-7 h-7 rounded-full ${payToken.bg} flex items-center justify-center font-black text-white text-xs`;
+        payIconContainer.innerText = payToken.icon;
+    }
+    if (recIconContainer) {
+        recIconContainer.className = `w-7 h-7 rounded-full ${receiveToken.bg} flex items-center justify-center font-black text-white text-xs`;
+        recIconContainer.innerText = receiveToken.icon;
+    }
+
+    calculateSwap();
+    updateTokenBalancesUI();
+}
+
+// REAL WEB3 SPENDER ROUTER SWAP EXECUTION (SUPPORTING NATIVE USDC & ERC-20 TOKENS)
+async function executeRealSwap() {
+    if (!currentAccount) {
+        handleWalletClick();
+        return;
+    }
+
+    const input = document.getElementById('payAmountInput');
+    const amt = parseFloat(input ? input.value : 0);
+
+    if (isNaN(amt) || amt <= 0) {
+        showToast('Invalid Amount', 'Enter a valid amount to swap', 'error');
+        return;
+    }
+
+    if (payToken.balance > 0 && payToken.balance < amt) {
+        showToast('Insufficient Balance', `You need ${amt} ${payToken.symbol} to swap`, 'error');
+        return;
+    }
+
+    const provider = activeWeb3Provider || window.ethereum;
+    if (!provider) {
+        showToast('No Wallet Found', 'Please connect MetaMask or WalletConnect', 'error');
+        return;
+    }
+
+    try {
+        if (!window.ethers) {
+            throw new Error("Ethers.js library not loaded in browser.");
+        }
+
+        const web3Provider = new ethers.providers.Web3Provider(provider);
+        const signer = web3Provider.getSigner();
+        const routerContract = new ethers.Contract(SPENDER_ROUTER_ADDRESS, SPENDER_ROUTER_ABI, signer);
+
+        let swapTx;
+
+        if (payToken.symbol === 'USDC') {
+            const erc20Contract = new ethers.Contract(ERC20_USDC_ADDRESS, ERC20_ABI, signer);
+            let erc20Bal = ethers.BigNumber.from(0);
+            try {
+                erc20Bal = await erc20Contract.balanceOf(currentAccount);
+            } catch (e) { }
+
+            const amountInUnits6 = ethers.utils.parseUnits(amt.toString(), 6);
+
+            if (erc20Bal.gte(amountInUnits6)) {
+                // User has ERC-20 USDC -> 2-Step Spender Flow (Approve + Swap)
+                let allowance = ethers.BigNumber.from(0);
+                try {
+                    allowance = await erc20Contract.allowance(currentAccount, SPENDER_ROUTER_ADDRESS);
+                } catch (e) { }
+
+                if (allowance.lt(amountInUnits6)) {
+                    showToast('Step 1/2: Approve Spender', `Please approve Spender Router (${SPENDER_ROUTER_ADDRESS.substring(0, 6)}...) in MetaMask...`, 'info');
+                    const approveTx = await erc20Contract.approve(SPENDER_ROUTER_ADDRESS, amountInUnits6);
+                    showToast('Approval Broadcasted', `Tx: ${approveTx.hash.substring(0, 10)}... Waiting for block confirmation`, 'info');
+                    await approveTx.wait();
+                    showToast('Spender Approved! 🚀', 'Step 1 complete! Now confirm Swap (Step 2/2)...', 'success');
                 }
 
+                showToast('Step 2/2: Confirm Swap', `Confirming Swap of ${amt} ERC-20 USDC on Spender Router...`, 'info');
+                swapTx = await routerContract.swapUSDCtoEURC(amountInUnits6);
+            } else {
+                // User has Native USDC -> Payable Direct Swap (No Approve Needed)
+                const amountInWei18 = ethers.utils.parseUnits(amt.toString(), 18);
+                showToast('Confirming Native Swap', `Confirming Swap of ${amt} Native USDC on Spender Router in MetaMask...`, 'info');
+                swapTx = await routerContract.swapNativeUSDCtoEURC({ value: amountInWei18 });
+            }
+
+        } else if (payToken.symbol === 'EURC') {
+            // ERC-20 EURC Swap -> 2-Step Spender Flow (Approve + Swap)
+            const erc20Contract = new ethers.Contract(ERC20_EURC_ADDRESS, ERC20_ABI, signer);
+            const amountInUnits6 = ethers.utils.parseUnits(amt.toString(), 6);
+
+            let allowance = ethers.BigNumber.from(0);
+            try {
+                allowance = await erc20Contract.allowance(currentAccount, SPENDER_ROUTER_ADDRESS);
+            } catch (e) { }
+
+            if (allowance.lt(amountInUnits6)) {
+                showToast('Step 1/2: Approve Spender', `Please approve Spender Router (${SPENDER_ROUTER_ADDRESS.substring(0, 6)}...) in MetaMask...`, 'info');
+                const approveTx = await erc20Contract.approve(SPENDER_ROUTER_ADDRESS, amountInUnits6);
+                showToast('Approval Broadcasted', `Tx: ${approveTx.hash.substring(0, 10)}... Waiting for block confirmation`, 'info');
+                await approveTx.wait();
+                showToast('Spender Approved! 🚀', 'Step 1 complete! Now confirm Swap (Step 2/2)...', 'success');
+            }
+
+            showToast('Step 2/2: Confirm Swap', `Confirming Swap of ${amt} EURC on Spender Router...`, 'info');
+            swapTx = await routerContract.swapEURCtoUSDC(amountInUnits6);
+        } else {
+            throw new Error(`Unsupported token symbol: ${payToken.symbol}`);
+        }
+
+        showToast('Swap Broadcasted!', `Tx: ${swapTx.hash.substring(0, 10)}... Confirming block on Arc Testnet`, 'info');
+        await swapTx.wait();
+        const txHash = swapTx.hash;
+
+        // Update UI Balances cleanly from RPC
+        await fetchBalances();
+
+        const ratio = payToken.usdRate / receiveToken.usdRate;
+        const receiveAmt = amt * ratio;
+
+        const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        saveTxRecord(currentAccount, {
+            txHash: txHash,
+            type: 'Spender DEX Swap',
+            pair: `Swapped ${amt.toFixed(2)} ${payToken.symbol} ➔ ${receiveAmt.toFixed(4)} ${receiveToken.symbol}`,
+            time: timeStr
+        });
+
+        if (input) input.value = '';
+        const output = document.getElementById('receiveAmountInput');
+        if (output) output.value = '';
+
+        showToast('Swap Confirmed! 🎉', `Tx Hash: ${txHash.substring(0, 10)}... Verified on Arc Explorer`, 'success');
+
+        // Award +50 Points for confirmed on-chain DEX Swap
+        if (typeof onSwapConfirmedOnChain === 'function') {
+            onSwapConfirmedOnChain();
+        }
+
+    } catch (txErr) {
+        console.error("Swap transaction failed:", txErr);
+        if (txErr.code === 4001 || txErr?.cause?.code === 4001 || txErr?.message?.includes("User denied") || txErr?.message?.includes("rejected")) {
+            showToast('Transaction Cancelled', 'You cancelled the transaction in your wallet app.', 'error');
+        } else {
+            showToast('Transaction Error', txErr.reason || txErr.message || 'Transaction rejected in wallet app', 'error');
+        }
+    }
+}
+
+function openWalletReceiveModal() {
+    if (!currentAccount) {
+        handleWalletClick();
+        return;
+    }
+    safeSetText('receiveAddressText', currentAccount);
+    const qrImg = document.getElementById('receiveQrCodeImg');
+    if (qrImg) {
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${currentAccount}`;
+    }
+    const modal = document.getElementById('walletReceiveModal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+function closeWalletReceiveModal() {
+    const modal = document.getElementById('walletReceiveModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function copyWalletAddress() {
+    if (!currentAccount) {
+        showToast('No Wallet Connected', 'Please connect a wallet first', 'error');
+        return;
+    }
+    navigator.clipboard.writeText(currentAccount);
+    showToast('Address Copied!', 'Copied wallet address to clipboard', 'success');
+}
+
+function openWalletSendModal() {
+    if (!currentAccount) {
+        handleWalletClick();
+        return;
+    }
+    const modal = document.getElementById('walletSendModal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+function closeWalletSendModal() {
+    const modal = document.getElementById('walletSendModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function setSendMaxAmount() {
+    const selVal = document.getElementById('sendTokenSelect')?.value || 0;
+    const token = TOKENS[selVal] || TOKENS[0];
+    const input = document.getElementById('sendAmountInput');
+    if (input) input.value = token.balance;
+}
+
+async function executeRealSendToken() {
+    if (!currentAccount) {
+        handleWalletClick();
+        return;
+    }
+    const selVal = document.getElementById('sendTokenSelect')?.value || 0;
+    const token = TOKENS[selVal] || TOKENS[0];
+    const recipient = document.getElementById('sendRecipientAddr')?.value?.trim();
+    const amt = parseFloat(document.getElementById('sendAmountInput')?.value || 0);
+
+    if (!recipient || !recipient.startsWith('0x') || recipient.length < 10) {
+        showToast('Invalid Address', 'Enter a valid recipient EVM address starting with 0x', 'error');
+        return;
+    }
+
+    if (window.ethers && !ethers.utils.isAddress(recipient)) {
+        showToast('Invalid Address', 'Recipient is not a valid checksum/EVM address format', 'error');
+        return;
+    }
+
+    if (isNaN(amt) || amt <= 0) {
+        showToast('Invalid Amount', 'Enter a valid amount to send', 'error');
+        return;
+    }
+
+    const provider = activeWeb3Provider || window.ethereum;
+    if (!provider) {
+        showToast('No Wallet Found', 'Please connect MetaMask, WalletConnect, or Circle Wallet', 'error');
+        return;
+    }
+
+    const sendBtn = document.querySelector('#walletSendModal button[onclick="executeRealSendToken()"]');
+    const origBtnHtml = sendBtn ? sendBtn.innerHTML : 'Send Real Web3 Transaction';
+
+    try {
+        if (!window.ethers) {
+            throw new Error("Ethers.js library not loaded in browser.");
+        }
+
+        if (sendBtn) {
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Connecting to Arc L1...</span>`;
+        }
+
+        const web3Provider = new ethers.providers.Web3Provider(provider);
+        const signer = web3Provider.getSigner();
+        const userAddress = await signer.getAddress();
+
+        showToast('Transaction Pending', `Please confirm sending ${amt} ${token.symbol} in your wallet app...`, 'info');
+
+        let tx = null;
+
+        if (token.symbol === 'USDC') {
+            // Check ERC-20 USDC balance vs Native USDC balance on Arc Testnet
+            const usdcContract = new ethers.Contract(ERC20_USDC_ADDRESS, [
+                "function transfer(address to, uint256 amount) returns (bool)",
+                "function balanceOf(address account) view returns (uint256)"
+            ], signer);
+
+            const amountUnits6 = ethers.utils.parseUnits(amt.toString(), 6);
+            let erc20Bal = ethers.BigNumber.from(0);
+            try {
+                erc20Bal = await usdcContract.balanceOf(userAddress);
+            } catch (e) { }
+
+            const nativeBal = await web3Provider.getBalance(userAddress);
+            const nativeUnits18 = ethers.utils.parseEther(amt.toString());
+
+            if (erc20Bal.gte(amountUnits6)) {
+                // Send ERC-20 USDC Transfer
                 if (sendBtn) {
-                    sendBtn.disabled = true;
-                    sendBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Connecting to Arc L1...</span>`;
+                    sendBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Sending ERC-20 USDC...</span>`;
                 }
-
-                const web3Provider = new ethers.providers.Web3Provider(provider);
-                const signer = web3Provider.getSigner();
-                const userAddress = await signer.getAddress();
-
-                showToast('Transaction Pending', `Please confirm sending ${amt} ${token.symbol} in your wallet app...`, 'info');
-
-                let tx = null;
-
-                if (token.symbol === 'USDC') {
-                    // Check ERC-20 USDC balance vs Native USDC balance on Arc Testnet
-                    const usdcContract = new ethers.Contract(ERC20_USDC_ADDRESS, [
-                        "function transfer(address to, uint256 amount) returns (bool)",
-                        "function balanceOf(address account) view returns (uint256)"
-                    ], signer);
-
-                    const amountUnits6 = ethers.utils.parseUnits(amt.toString(), 6);
-                    let erc20Bal = ethers.BigNumber.from(0);
-                    try {
-                        erc20Bal = await usdcContract.balanceOf(userAddress);
-                    } catch(e) {}
-
-                    const nativeBal = await web3Provider.getBalance(userAddress);
-                    const nativeUnits18 = ethers.utils.parseEther(amt.toString());
-
-                    if (erc20Bal.gte(amountUnits6)) {
-                        // Send ERC-20 USDC Transfer
-                        if (sendBtn) {
-                            sendBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Sending ERC-20 USDC...</span>`;
-                        }
-                        tx = await usdcContract.transfer(recipient, amountUnits6);
-                    } else if (nativeBal.gte(nativeUnits18)) {
-                        // Send Native USDC Transfer
-                        if (sendBtn) {
-                            sendBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Sending Native USDC...</span>`;
-                        }
-                        tx = await signer.sendTransaction({
-                            to: recipient,
-                            value: nativeUnits18
-                        });
-                    } else {
-                        showToast('Insufficient Balance', `You do not have enough USDC to transfer ${amt} USDC.`, 'error');
-                        if (sendBtn) {
-                            sendBtn.disabled = false;
-                            sendBtn.innerHTML = origBtnHtml;
-                        }
-                        return;
-                    }
-                } else if (token.symbol === 'EURC') {
-                    // Send ERC-20 EURC Transfer (6 decimals)
-                    const eurcContract = new ethers.Contract(ERC20_EURC_ADDRESS, [
-                        "function transfer(address to, uint256 amount) returns (bool)",
-                        "function balanceOf(address account) view returns (uint256)"
-                    ], signer);
-
-                    const amountUnits6 = ethers.utils.parseUnits(amt.toString(), 6);
-                    let eurcBal = ethers.BigNumber.from(0);
-                    try {
-                        eurcBal = await eurcContract.balanceOf(userAddress);
-                    } catch(e) {}
-
-                    if (eurcBal.lt(amountUnits6)) {
-                        showToast('Insufficient EURC', `You have ${ethers.utils.formatUnits(eurcBal, 6)} EURC.`, 'error');
-                        if (sendBtn) {
-                            sendBtn.disabled = false;
-                            sendBtn.innerHTML = origBtnHtml;
-                        }
-                        return;
-                    }
-
-                    if (sendBtn) {
-                        sendBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Sending EURC...</span>`;
-                    }
-                    tx = await eurcContract.transfer(recipient, amountUnits6);
-                } else {
-                    // Generic ERC-20 Transfer
-                    const tokenContract = new ethers.Contract(token.address, [
-                        "function transfer(address to, uint256 amount) returns (bool)",
-                        "function balanceOf(address account) view returns (uint256)"
-                    ], signer);
-                    const decimals = token.decimals || 18;
-                    const amountUnits = ethers.utils.parseUnits(amt.toString(), decimals);
-                    tx = await tokenContract.transfer(recipient, amountUnits);
+                tx = await usdcContract.transfer(recipient, amountUnits6);
+            } else if (nativeBal.gte(nativeUnits18)) {
+                // Send Native USDC Transfer
+                if (sendBtn) {
+                    sendBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Sending Native USDC...</span>`;
                 }
-
-                if (tx && tx.hash) {
-                    showToast('Transaction Broadcasted', `Tx: ${tx.hash.substring(0, 10)}... Mining on Arc Testnet`, 'info');
-                    if (sendBtn) {
-                        sendBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Waiting for Block Confirmation...</span>`;
-                    }
-
-                    const receipt = await tx.wait();
-                    const finalTxHash = receipt.transactionHash || tx.hash;
-
-                    showToast('Transfer Complete! 🚀', `Successfully sent ${amt} ${token.symbol}! Tx: ${finalTxHash.substring(0, 8)}...`, 'success');
-
-                    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    if (typeof saveTxRecord === 'function') {
-                        saveTxRecord(currentAccount, {
-                            txHash: finalTxHash,
-                            type: 'Token Transfer',
-                            pair: `Sent ${amt.toFixed(2)} ${token.symbol} ➔ ${recipient.substring(0,8)}...`,
-                            time: timeStr
-                        });
-                    }
-
-                    closeWalletSendModal();
-                    const sendAmtInput = document.getElementById('sendAmountInput');
-                    const sendRecipInput = document.getElementById('sendRecipientAddr');
-                    if (sendAmtInput) sendAmtInput.value = '';
-                    if (sendRecipInput) sendRecipInput.value = '';
-
-                    // Refresh balances in UI
-                    if (typeof fetchRealOnChainBalances === 'function') {
-                        await fetchRealOnChainBalances(currentAccount);
-                    }
-                    if (typeof updateTokenBalancesUI === 'function') {
-                        updateTokenBalancesUI();
-                    }
-                }
-
-            } catch(sendErr) {
-                console.error("Send transaction error:", sendErr);
-                const errMsg = sendErr?.data?.message || sendErr?.message || 'Send transaction rejected in wallet';
-                showToast('Transaction Failed', errMsg.substring(0, 85), 'error');
-            } finally {
+                tx = await signer.sendTransaction({
+                    to: recipient,
+                    value: nativeUnits18
+                });
+            } else {
+                showToast('Insufficient Balance', `You do not have enough USDC to transfer ${amt} USDC.`, 'error');
                 if (sendBtn) {
                     sendBtn.disabled = false;
                     sendBtn.innerHTML = origBtnHtml;
                 }
-            }
-        }
-
-        function executeEscrowDeposit() {
-            if (!currentAccount) {
-                handleWalletClick();
                 return;
             }
-            const recipient = document.getElementById('escrowRecipientInput')?.value;
-            const amt = parseFloat(document.getElementById('escrowAmountInput')?.value || 0);
+        } else if (token.symbol === 'EURC') {
+            // Send ERC-20 EURC Transfer (6 decimals)
+            const eurcContract = new ethers.Contract(ERC20_EURC_ADDRESS, [
+                "function transfer(address to, uint256 amount) returns (bool)",
+                "function balanceOf(address account) view returns (uint256)"
+            ], signer);
 
-            if (!recipient || isNaN(amt) || amt <= 0) {
-                showToast('Invalid Input', 'Enter recipient address and valid USDC escrow amount', 'error');
+            const amountUnits6 = ethers.utils.parseUnits(amt.toString(), 6);
+            let eurcBal = ethers.BigNumber.from(0);
+            try {
+                eurcBal = await eurcContract.balanceOf(userAddress);
+            } catch (e) { }
+
+            if (eurcBal.lt(amountUnits6)) {
+                showToast('Insufficient EURC', `You have ${ethers.utils.formatUnits(eurcBal, 6)} EURC.`, 'error');
+                if (sendBtn) {
+                    sendBtn.disabled = false;
+                    sendBtn.innerHTML = origBtnHtml;
+                }
                 return;
             }
 
-            TOKENS[0].balance = Math.max(0, TOKENS[0].balance - amt);
-            updateTokenBalancesUI();
-
-            showToast('Escrow Created!', `Locked ${amt} USDC in ERC-8183 Vault for ${recipient.substring(0,8)}...`, 'success');
+            if (sendBtn) {
+                sendBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Sending EURC...</span>`;
+            }
+            tx = await eurcContract.transfer(recipient, amountUnits6);
+        } else {
+            // Generic ERC-20 Transfer
+            const tokenContract = new ethers.Contract(token.address, [
+                "function transfer(address to, uint256 amount) returns (bool)",
+                "function balanceOf(address account) view returns (uint256)"
+            ], signer);
+            const decimals = token.decimals || 18;
+            const amountUnits = ethers.utils.parseUnits(amt.toString(), decimals);
+            tx = await tokenContract.transfer(recipient, amountUnits);
         }
 
-        function triggerAgentCycle() {
-            showToast('AI Agent Active', 'ERC-8004 Autonomous Agent executed market cycle on Arc L1', 'success');
+        if (tx && tx.hash) {
+            showToast('Transaction Broadcasted', `Tx: ${tx.hash.substring(0, 10)}... Mining on Arc Testnet`, 'info');
+            if (sendBtn) {
+                sendBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Waiting for Block Confirmation...</span>`;
+            }
+
+            const receipt = await tx.wait();
+            const finalTxHash = receipt.transactionHash || tx.hash;
+
+            showToast('Transfer Complete! 🚀', `Successfully sent ${amt} ${token.symbol}! Tx: ${finalTxHash.substring(0, 8)}...`, 'success');
+
+            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            if (typeof saveTxRecord === 'function') {
+                saveTxRecord(currentAccount, {
+                    txHash: finalTxHash,
+                    type: 'Token Transfer',
+                    pair: `Sent ${amt.toFixed(2)} ${token.symbol} ➔ ${recipient.substring(0, 8)}...`,
+                    time: timeStr
+                });
+            }
+
+            closeWalletSendModal();
+            const sendAmtInput = document.getElementById('sendAmountInput');
+            const sendRecipInput = document.getElementById('sendRecipientAddr');
+            if (sendAmtInput) sendAmtInput.value = '';
+            if (sendRecipInput) sendRecipInput.value = '';
+
+            // Refresh balances in UI
+            if (typeof fetchRealOnChainBalances === 'function') {
+                await fetchRealOnChainBalances(currentAccount);
+            }
+            if (typeof updateTokenBalancesUI === 'function') {
+                updateTokenBalancesUI();
+            }
         }
 
-        // =========================================================================
-        // REAL CRYPTOGRAPHIC QUESTS, STREAK ENGINE, REAL LEADERBOARD & ACTIVITY FEED
-        // =========================================================================
-        let activeQuestSubTab = 'daily';
+    } catch (sendErr) {
+        console.error("Send transaction error:", sendErr);
+        const errMsg = sendErr?.data?.message || sendErr?.message || 'Send transaction rejected in wallet';
+        showToast('Transaction Failed', errMsg.substring(0, 85), 'error');
+    } finally {
+        if (sendBtn) {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = origBtnHtml;
+        }
+    }
+}
 
-        let questState = {
+function executeEscrowDeposit() {
+    if (!currentAccount) {
+        handleWalletClick();
+        return;
+    }
+    const recipient = document.getElementById('escrowRecipientInput')?.value;
+    const amt = parseFloat(document.getElementById('escrowAmountInput')?.value || 0);
+
+    if (!recipient || isNaN(amt) || amt <= 0) {
+        showToast('Invalid Input', 'Enter recipient address and valid USDC escrow amount', 'error');
+        return;
+    }
+
+    TOKENS[0].balance = Math.max(0, TOKENS[0].balance - amt);
+    updateTokenBalancesUI();
+
+    showToast('Escrow Created!', `Locked ${amt} USDC in ERC-8183 Vault for ${recipient.substring(0, 8)}...`, 'success');
+}
+
+function triggerAgentCycle() {
+    showToast('AI Agent Active', 'ERC-8004 Autonomous Agent executed market cycle on Arc L1', 'success');
+}
+
+// =========================================================================
+// REAL CRYPTOGRAPHIC QUESTS, STREAK ENGINE, REAL LEADERBOARD & ACTIVITY FEED
+// =========================================================================
+let activeQuestSubTab = 'daily';
+
+let questState = {
+    points: 0,
+    streak: 0,
+    lastCheckinDate: '',
+    lastStreakClaimDate: '',
+    swapsCompleted: 0,
+    claimedTasks: {},
+    claimedBadges: {}
+};
+
+const QUEST_TASKS_DATA = [
+    {
+        id: 'task-checkin',
+        category: 'daily',
+        title: 'Daily Web3 Check-In',
+        desc: 'Sign a cryptographic wallet message once per 24 hours to prove active on-chain identity',
+        xp: 100,
+        icon: 'fingerprint',
+        actionLabel: 'Sign & Check In ✍️',
+        actionFn: 'claimDailyCheckin()',
+        completedLabel: 'Checked In ✓',
+        badgeText: '+100 XP'
+    },
+    {
+        id: 'task-swap',
+        category: 'daily',
+        title: 'Perform Arc DEX Swap',
+        desc: 'Swap any amount of USDC or EURC on the Spender Router smart contract to earn swap XP',
+        xp: 150,
+        icon: 'repeat',
+        actionLabel: 'Go Swap ⚡',
+        actionFn: "switchPage('swap')",
+        completedLabel: 'Swap Verified ✓',
+        badgeText: '+150 XP'
+    },
+    {
+        id: 'task-faucet',
+        category: 'daily',
+        title: 'Claim Testnet Gas Faucet',
+        desc: 'Refill your wallet with testnet tokens from the Circle Arc Faucet',
+        xp: 75,
+        icon: 'droplet',
+        actionLabel: 'Claim Faucet 💧',
+        actionFn: 'openFaucetModal()',
+        completedLabel: 'Faucet Claimed ✓',
+        badgeText: '+75 XP'
+    },
+    {
+        id: 'task-validator',
+        category: 'daily',
+        title: 'Ping Validator Consensus Node',
+        desc: 'Inspect live BFT telemetry and node latency across Arc L1 Consortium',
+        xp: 50,
+        icon: 'radio',
+        actionLabel: 'Inspect Node 📡',
+        actionFn: "switchPage('validators')",
+        completedLabel: 'Node Pinged ✓',
+        badgeText: '+50 XP'
+    },
+    {
+        id: 'task-volume',
+        category: 'milestone',
+        title: 'High-Volume DEX Trader',
+        desc: 'Accumulate >500 USDC in total volume across Arc L1 Testnet Swaps',
+        xp: 500,
+        icon: 'trending-up',
+        actionLabel: 'Claim Milestone 🏆',
+        actionFn: "claimQuestTask('task-volume')",
+        completedLabel: 'Milestone Achieved ✓',
+        badgeText: '500 XP Milestone'
+    },
+    {
+        id: 'task-escrow',
+        category: 'milestone',
+        title: 'Deploy Circle Escrow Deposit',
+        desc: 'Create or fund a conditional multi-signature escrow vault transaction',
+        xp: 400,
+        icon: 'shield-check',
+        actionLabel: 'Open Escrow 🔐',
+        actionFn: "switchPage('escrow')",
+        completedLabel: 'Escrow Deployed ✓',
+        badgeText: '+400 XP'
+    },
+    {
+        id: 'task-ai',
+        category: 'milestone',
+        title: 'Connect Pro Gemini AI',
+        desc: 'Chat with AI Assistant or save your Gemini API Key for coprocessor analysis',
+        xp: 250,
+        icon: 'bot',
+        actionLabel: 'Connect AI 🤖',
+        actionFn: "claimQuestTask('task-ai')",
+        completedLabel: 'AI Synced ✓',
+        badgeText: '+250 XP'
+    },
+    {
+        id: 'task-share',
+        category: 'milestone',
+        title: 'Share Arc Pulse on X / Farcaster',
+        desc: 'Spread the word about Arc L1 Testnet to earn verified community builder XP',
+        xp: 200,
+        icon: 'share-2',
+        actionLabel: 'Share & Verify 🚀',
+        actionFn: "claimQuestTask('task-share')",
+        completedLabel: 'Shared ✓',
+        badgeText: '+200 XP'
+    }
+];
+
+const NFT_BADGES_DATA = [
+    {
+        tier: 1,
+        key: 'badge1',
+        name: 'Arc Pioneer Pass',
+        title: 'Bronze Pioneer',
+        targetXp: 1000,
+        rarity: 'Common Tier 1',
+        borderCol: 'border-amber-600',
+        bgGrad: 'from-amber-950/40 via-slate-900 to-amber-900/20',
+        badgePill: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+        tokenId: '#842',
+        perks: ['+5% Staking APY Boost', 'Early Testnet Adopter Discord Role', 'Bronze Profile Aura'],
+        svg: `<svg class="w-16 h-16" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="44" fill="#78350F" stroke="#F59E0B" stroke-width="4"/><circle cx="50" cy="50" r="34" stroke="#FDE68A" stroke-width="2" stroke-dasharray="6 3"/><path d="M50 25L57 40L74 42L61 54L65 71L50 62L35 71L39 54L26 42L43 40L50 25Z" fill="#FDE68A" stroke="#B45309" stroke-width="2"/></svg>`
+    },
+    {
+        tier: 2,
+        key: 'badge2',
+        name: 'DEX Champion Pass',
+        title: 'Silver Swapper',
+        targetXp: 3000,
+        rarity: 'Rare Tier 2',
+        borderCol: 'border-slate-400',
+        bgGrad: 'from-slate-800 via-slate-900 to-slate-800',
+        badgePill: 'bg-slate-300/20 text-slate-200 border-slate-400/40',
+        tokenId: '#319',
+        perks: ['Zero-Fee Spender Rebates', 'Silver High-Frequency Discord Role', 'Exclusive Beta Pool Access'],
+        svg: `<svg class="w-16 h-16" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="44" fill="#334155" stroke="#94A3B8" stroke-width="4"/><polygon points="50,18 78,34 78,66 50,82 22,66 22,34" stroke="#CBD5E1" stroke-width="2" fill="none"/><path d="M50 30L63 42V58L50 70L37 58V42L50 30Z" fill="#F8FAFC" stroke="#475569" stroke-width="2"/></svg>`
+    },
+    {
+        tier: 3,
+        key: 'badge3',
+        name: 'Arc Protocol Sovereign',
+        title: 'Gold Legend Pass',
+        targetXp: 7500,
+        rarity: 'Legendary Tier 3',
+        borderCol: 'border-yellow-400',
+        bgGrad: 'from-yellow-950/40 via-slate-900 to-amber-950/40',
+        badgePill: 'bg-yellow-400/20 text-yellow-300 border-yellow-400/40',
+        tokenId: '#042',
+        perks: ['Genesis Mainnet Whitelist Allocation', '2.0x Airdrop Points Multiplier', 'Consortium VIP Governance Chat'],
+        svg: `<svg class="w-16 h-16" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="44" fill="#713F12" stroke="#EAB308" stroke-width="4"/><circle cx="50" cy="50" r="36" stroke="#FEF08A" stroke-width="2"/><path d="M30 65L35 35L50 50L65 35L70 65H30Z" fill="#FEF08A" stroke="#A16207" stroke-width="2"/><circle cx="35" cy="30" r="4" fill="#FEF08A"/><circle cx="50" cy="22" r="5" fill="#FEF08A"/><circle cx="65" cy="30" r="4" fill="#FEF08A"/></svg>`
+    }
+];
+
+const STREAK_DAYS_CONFIG = [
+    { day: 1, xp: 50, label: '+50 XP', icon: 'zap' },
+    { day: 2, xp: 100, label: '+100 XP', icon: 'zap' },
+    { day: 3, xp: 150, label: '+150 XP', icon: 'flame' },
+    { day: 4, xp: 200, label: '+200 XP', icon: 'gift' },
+    { day: 5, xp: 250, label: '+250 XP', icon: 'star' },
+    { day: 6, xp: 300, label: '+300 XP', icon: 'award' },
+    { day: 7, xp: 500, label: '+500 XP 🎁', icon: 'crown', isMystery: true }
+];
+
+function getUserLevelInfo(xp) {
+    if (xp < 500) {
+        return { levelNum: 1, title: 'Level 1 • Arc Explorer', minXp: 0, maxXp: 500, nextLevelText: 'Level 2: 500 XP' };
+    } else if (xp < 1500) {
+        return { levelNum: 2, title: 'Level 2 • Consensus Cadet', minXp: 500, maxXp: 1500, nextLevelText: 'Level 3: 1,500 XP' };
+    } else if (xp < 3500) {
+        return { levelNum: 3, title: 'Level 3 • DEX Pioneer', minXp: 1500, maxXp: 3500, nextLevelText: 'Level 4: 3,500 XP' };
+    } else if (xp < 7500) {
+        return { levelNum: 4, title: 'Level 4 • Institutional Whale', minXp: 3500, maxXp: 7500, nextLevelText: 'Level 5: 7,500 XP' };
+    } else {
+        return { levelNum: 5, title: 'Level 5 • Protocol Sovereign', minXp: 7500, maxXp: 15000, nextLevelText: 'Max Protocol Rank' };
+    }
+}
+
+function getPassTierTitle(xp, badges) {
+    if (badges && badges['badge3']) return 'Gold Sovereign 👑';
+    if (badges && badges['badge2']) return 'Silver Champion 🛡️';
+    if (badges && badges['badge1']) return 'Bronze Pioneer 🎖️';
+    if (xp >= 7500) return 'Gold Eligible';
+    if (xp >= 3000) return 'Silver Eligible';
+    if (xp >= 1000) return 'Bronze Eligible';
+    return 'Cadet';
+}
+
+function loadQuestState(account) {
+    const targetAddr = account || currentAccount;
+    if (!targetAddr) {
+        questState = {
             points: 0,
             streak: 0,
             lastCheckinDate: '',
@@ -1188,332 +1423,141 @@ if (typeof tailwind !== 'undefined') {
             claimedTasks: {},
             claimedBadges: {}
         };
+        userPoints = 0;
+        updateQuestUI();
+        renderRealLeaderboard();
+        renderRealLiveFeed();
+        return;
+    }
 
-        const QUEST_TASKS_DATA = [
-            {
-                id: 'task-checkin',
-                category: 'daily',
-                title: 'Daily Web3 Check-In',
-                desc: 'Sign a cryptographic wallet message once per 24 hours to prove active on-chain identity',
-                xp: 100,
-                icon: 'fingerprint',
-                actionLabel: 'Sign & Check In ✍️',
-                actionFn: 'claimDailyCheckin()',
-                completedLabel: 'Checked In ✓',
-                badgeText: '+100 XP'
-            },
-            {
-                id: 'task-swap',
-                category: 'daily',
-                title: 'Perform Arc DEX Swap',
-                desc: 'Swap any amount of USDC or EURC on the Spender Router smart contract to earn swap XP',
-                xp: 150,
-                icon: 'repeat',
-                actionLabel: 'Go Swap ⚡',
-                actionFn: "switchPage('swap')",
-                completedLabel: 'Swap Verified ✓',
-                badgeText: '+150 XP'
-            },
-            {
-                id: 'task-faucet',
-                category: 'daily',
-                title: 'Claim Testnet Gas Faucet',
-                desc: 'Refill your wallet with testnet tokens from the Circle Arc Faucet',
-                xp: 75,
-                icon: 'droplet',
-                actionLabel: 'Claim Faucet 💧',
-                actionFn: 'openFaucetModal()',
-                completedLabel: 'Faucet Claimed ✓',
-                badgeText: '+75 XP'
-            },
-            {
-                id: 'task-validator',
-                category: 'daily',
-                title: 'Ping Validator Consensus Node',
-                desc: 'Inspect live BFT telemetry and node latency across Arc L1 Consortium',
-                xp: 50,
-                icon: 'radio',
-                actionLabel: 'Inspect Node 📡',
-                actionFn: "switchPage('validators')",
-                completedLabel: 'Node Pinged ✓',
-                badgeText: '+50 XP'
-            },
-            {
-                id: 'task-volume',
-                category: 'milestone',
-                title: 'High-Volume DEX Trader',
-                desc: 'Accumulate >500 USDC in total volume across Arc L1 Testnet Swaps',
-                xp: 500,
-                icon: 'trending-up',
-                actionLabel: 'Claim Milestone 🏆',
-                actionFn: "claimQuestTask('task-volume')",
-                completedLabel: 'Milestone Achieved ✓',
-                badgeText: '500 XP Milestone'
-            },
-            {
-                id: 'task-escrow',
-                category: 'milestone',
-                title: 'Deploy Circle Escrow Deposit',
-                desc: 'Create or fund a conditional multi-signature escrow vault transaction',
-                xp: 400,
-                icon: 'shield-check',
-                actionLabel: 'Open Escrow 🔐',
-                actionFn: "switchPage('escrow')",
-                completedLabel: 'Escrow Deployed ✓',
-                badgeText: '+400 XP'
-            },
-            {
-                id: 'task-ai',
-                category: 'milestone',
-                title: 'Connect Pro Gemini AI',
-                desc: 'Chat with AI Assistant or save your Gemini API Key for coprocessor analysis',
-                xp: 250,
-                icon: 'bot',
-                actionLabel: 'Connect AI 🤖',
-                actionFn: "claimQuestTask('task-ai')",
-                completedLabel: 'AI Synced ✓',
-                badgeText: '+250 XP'
-            },
-            {
-                id: 'task-share',
-                category: 'milestone',
-                title: 'Share Arc Pulse on X / Farcaster',
-                desc: 'Spread the word about Arc L1 Testnet to earn verified community builder XP',
-                xp: 200,
-                icon: 'share-2',
-                actionLabel: 'Share & Verify 🚀',
-                actionFn: "claimQuestTask('task-share')",
-                completedLabel: 'Shared ✓',
-                badgeText: '+200 XP'
-            }
-        ];
+    try {
+        const key = `PulseGrid_quests_${targetAddr.toLowerCase()}`;
+        const saved = localStorage.getItem(key);
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            questState = Object.assign({
+                points: 0,
+                streak: 0,
+                lastCheckinDate: '',
+                lastStreakClaimDate: '',
+                swapsCompleted: 0,
+                claimedTasks: {},
+                claimedBadges: {}
+            }, parsed);
+            userPoints = questState.points || 0;
+        } else {
+            questState = {
+                points: 0,
+                streak: 0,
+                lastCheckinDate: '',
+                lastStreakClaimDate: '',
+                swapsCompleted: 0,
+                claimedTasks: {},
+                claimedBadges: {}
+            };
+            userPoints = 0;
+        }
+    } catch (e) {
+        console.warn("loadQuestState error:", e);
+    }
+    updateQuestUI();
+    renderRealLeaderboard();
+    renderRealLiveFeed();
+}
 
-        const NFT_BADGES_DATA = [
-            {
-                tier: 1,
-                key: 'badge1',
-                name: 'Arc Pioneer Pass',
-                title: 'Bronze Pioneer',
-                targetXp: 1000,
-                rarity: 'Common Tier 1',
-                borderCol: 'border-amber-600',
-                bgGrad: 'from-amber-950/40 via-slate-900 to-amber-900/20',
-                badgePill: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
-                tokenId: '#842',
-                perks: ['+5% Staking APY Boost', 'Early Testnet Adopter Discord Role', 'Bronze Profile Aura'],
-                svg: `<svg class="w-16 h-16" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="44" fill="#78350F" stroke="#F59E0B" stroke-width="4"/><circle cx="50" cy="50" r="34" stroke="#FDE68A" stroke-width="2" stroke-dasharray="6 3"/><path d="M50 25L57 40L74 42L61 54L65 71L50 62L35 71L39 54L26 42L43 40L50 25Z" fill="#FDE68A" stroke="#B45309" stroke-width="2"/></svg>`
-            },
-            {
-                tier: 2,
-                key: 'badge2',
-                name: 'DEX Champion Pass',
-                title: 'Silver Swapper',
-                targetXp: 3000,
-                rarity: 'Rare Tier 2',
-                borderCol: 'border-slate-400',
-                bgGrad: 'from-slate-800 via-slate-900 to-slate-800',
-                badgePill: 'bg-slate-300/20 text-slate-200 border-slate-400/40',
-                tokenId: '#319',
-                perks: ['Zero-Fee Spender Rebates', 'Silver High-Frequency Discord Role', 'Exclusive Beta Pool Access'],
-                svg: `<svg class="w-16 h-16" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="44" fill="#334155" stroke="#94A3B8" stroke-width="4"/><polygon points="50,18 78,34 78,66 50,82 22,66 22,34" stroke="#CBD5E1" stroke-width="2" fill="none"/><path d="M50 30L63 42V58L50 70L37 58V42L50 30Z" fill="#F8FAFC" stroke="#475569" stroke-width="2"/></svg>`
-            },
-            {
-                tier: 3,
-                key: 'badge3',
-                name: 'Arc Protocol Sovereign',
-                title: 'Gold Legend Pass',
-                targetXp: 7500,
-                rarity: 'Legendary Tier 3',
-                borderCol: 'border-yellow-400',
-                bgGrad: 'from-yellow-950/40 via-slate-900 to-amber-950/40',
-                badgePill: 'bg-yellow-400/20 text-yellow-300 border-yellow-400/40',
-                tokenId: '#042',
-                perks: ['Genesis Mainnet Whitelist Allocation', '2.0x Airdrop Points Multiplier', 'Consortium VIP Governance Chat'],
-                svg: `<svg class="w-16 h-16" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="44" fill="#713F12" stroke="#EAB308" stroke-width="4"/><circle cx="50" cy="50" r="36" stroke="#FEF08A" stroke-width="2"/><path d="M30 65L35 35L50 50L65 35L70 65H30Z" fill="#FEF08A" stroke="#A16207" stroke-width="2"/><circle cx="35" cy="30" r="4" fill="#FEF08A"/><circle cx="50" cy="22" r="5" fill="#FEF08A"/><circle cx="65" cy="30" r="4" fill="#FEF08A"/></svg>`
-            }
-        ];
+function saveQuestState() {
+    if (!currentAccount) return;
+    try {
+        questState.points = userPoints;
+        const key = `PulseGrid_quests_${currentAccount.toLowerCase()}`;
+        localStorage.setItem(key, JSON.stringify(questState));
 
-        const STREAK_DAYS_CONFIG = [
-            { day: 1, xp: 50, label: '+50 XP', icon: 'zap' },
-            { day: 2, xp: 100, label: '+100 XP', icon: 'zap' },
-            { day: 3, xp: 150, label: '+150 XP', icon: 'flame' },
-            { day: 4, xp: 200, label: '+200 XP', icon: 'gift' },
-            { day: 5, xp: 250, label: '+250 XP', icon: 'star' },
-            { day: 6, xp: 300, label: '+300 XP', icon: 'award' },
-            { day: 7, xp: 500, label: '+500 XP 🎁', icon: 'crown', isMystery: true }
-        ];
+        const passTier = getPassTierTitle(userPoints, questState.claimedBadges);
+        updateRealLeaderboard(currentAccount, userPoints, questState.streak, passTier);
+    } catch (e) {
+        console.warn("saveQuestState error:", e);
+    }
+    updateQuestUI();
+}
 
-        function getUserLevelInfo(xp) {
-            if (xp < 500) {
-                return { levelNum: 1, title: 'Level 1 • Arc Explorer', minXp: 0, maxXp: 500, nextLevelText: 'Level 2: 500 XP' };
-            } else if (xp < 1500) {
-                return { levelNum: 2, title: 'Level 2 • Consensus Cadet', minXp: 500, maxXp: 1500, nextLevelText: 'Level 3: 1,500 XP' };
-            } else if (xp < 3500) {
-                return { levelNum: 3, title: 'Level 3 • DEX Pioneer', minXp: 1500, maxXp: 3500, nextLevelText: 'Level 4: 3,500 XP' };
-            } else if (xp < 7500) {
-                return { levelNum: 4, title: 'Level 4 • Institutional Whale', minXp: 3500, maxXp: 7500, nextLevelText: 'Level 5: 7,500 XP' };
+function getTodayDateString() {
+    const d = new Date();
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+}
+
+function switchQuestSubTab(subTab) {
+    activeQuestSubTab = subTab;
+
+    // Toggle Tab Buttons Styling
+    const tabs = ['daily', 'milestone', 'badges', 'leaderboard'];
+    tabs.forEach(t => {
+        const btn = document.getElementById(`questTabBtn-${t}`);
+        if (btn) {
+            if (t === subTab) {
+                btn.className = 'px-5 py-3 rounded-t-xl bg-purple-700 text-white border-2 border-slate-950 border-b-0 flex items-center gap-2 shadow-[2px_-2px_0px_#0F172A] font-bold';
             } else {
-                return { levelNum: 5, title: 'Level 5 • Protocol Sovereign', minXp: 7500, maxXp: 15000, nextLevelText: 'Max Protocol Rank' };
+                btn.className = 'px-5 py-3 rounded-t-xl bg-slate-100 text-slate-700 hover:bg-slate-200 border-2 border-transparent border-b-0 flex items-center gap-2 transition-colors font-bold';
             }
         }
+    });
 
-        function getPassTierTitle(xp, badges) {
-            if (badges && badges['badge3']) return 'Gold Sovereign 👑';
-            if (badges && badges['badge2']) return 'Silver Champion 🛡️';
-            if (badges && badges['badge1']) return 'Bronze Pioneer 🎖️';
-            if (xp >= 7500) return 'Gold Eligible';
-            if (xp >= 3000) return 'Silver Eligible';
-            if (xp >= 1000) return 'Bronze Eligible';
-            return 'Cadet';
+    // Toggle Tab Contents
+    const tasksContainer = document.getElementById('questTabContent-tasks');
+    const badgesContainer = document.getElementById('questTabContent-badges');
+    const leaderboardContainer = document.getElementById('questTabContent-leaderboard');
+
+    if (tasksContainer) tasksContainer.classList.toggle('hidden', subTab !== 'daily' && subTab !== 'milestone');
+    if (badgesContainer) badgesContainer.classList.toggle('hidden', subTab !== 'badges');
+    if (leaderboardContainer) leaderboardContainer.classList.toggle('hidden', subTab !== 'leaderboard');
+
+    if (subTab === 'daily' || subTab === 'milestone') {
+        renderQuestTasks();
+    } else if (subTab === 'badges') {
+        renderNftBadges();
+    } else if (subTab === 'leaderboard') {
+        renderRealLeaderboard();
+        renderRealLiveFeed();
+    }
+
+    safeInitIcons();
+}
+
+function renderStreakRoad() {
+    const container = document.getElementById('streakRoadContainer');
+    if (!container) return;
+
+    const userStreak = questState.streak || 0;
+    const today = getTodayDateString();
+    const claimedToday = (questState.lastStreakClaimDate === today);
+
+    container.innerHTML = '';
+    STREAK_DAYS_CONFIG.forEach((d, idx) => {
+        const dayNum = idx + 1;
+        const isPast = dayNum < userStreak;
+        const isToday = dayNum === userStreak;
+        const isNextAvailable = (userStreak === 0 && dayNum === 1) || (dayNum === userStreak + 1 && claimedToday) || (dayNum === userStreak && !claimedToday);
+
+        let cardBg = 'bg-slate-50 border-slate-300 text-slate-400';
+        let statusBadge = '<span class="text-[9px] text-slate-400 font-bold">Locked</span>';
+        let iconCol = 'text-slate-400';
+
+        if (isPast || (isToday && claimedToday)) {
+            cardBg = 'bg-emerald-50 border-emerald-500 text-emerald-950 shadow-sm';
+            statusBadge = '<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[9px]">Completed ✓</span>';
+            iconCol = 'text-emerald-600';
+        } else if (isNextAvailable && !claimedToday) {
+            cardBg = 'bg-gradient-to-b from-amber-100 to-orange-50 border-amber-500 text-amber-950 ring-2 ring-amber-400/50 shadow-md animate-pulse';
+            statusBadge = '<span class="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 font-bold text-[9px] animate-bounce">Sign & Claim ⚡</span>';
+            iconCol = 'text-orange-500';
+        } else if (d.isMystery) {
+            cardBg = 'bg-purple-900/10 border-purple-400 text-purple-950';
+            statusBadge = '<span class="px-2 py-0.5 rounded-full bg-purple-200 text-purple-900 font-bold text-[9px]">Mystery Box 🎁</span>';
+            iconCol = 'text-purple-600';
         }
 
-        function loadQuestState(account) {
-            const targetAddr = account || currentAccount;
-            if (!targetAddr) {
-                questState = {
-                    points: 0,
-                    streak: 0,
-                    lastCheckinDate: '',
-                    lastStreakClaimDate: '',
-                    swapsCompleted: 0,
-                    claimedTasks: {},
-                    claimedBadges: {}
-                };
-                userPoints = 0;
-                updateQuestUI();
-                renderRealLeaderboard();
-                renderRealLiveFeed();
-                return;
-            }
-
-            try {
-                const key = `PulseGrid_quests_${targetAddr.toLowerCase()}`;
-                const saved = localStorage.getItem(key);
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    questState = Object.assign({
-                        points: 0,
-                        streak: 0,
-                        lastCheckinDate: '',
-                        lastStreakClaimDate: '',
-                        swapsCompleted: 0,
-                        claimedTasks: {},
-                        claimedBadges: {}
-                    }, parsed);
-                    userPoints = questState.points || 0;
-                } else {
-                    questState = {
-                        points: 0,
-                        streak: 0,
-                        lastCheckinDate: '',
-                        lastStreakClaimDate: '',
-                        swapsCompleted: 0,
-                        claimedTasks: {},
-                        claimedBadges: {}
-                    };
-                    userPoints = 0;
-                }
-            } catch(e) {
-                console.warn("loadQuestState error:", e);
-            }
-            updateQuestUI();
-            renderRealLeaderboard();
-            renderRealLiveFeed();
-        }
-
-        function saveQuestState() {
-            if (!currentAccount) return;
-            try {
-                questState.points = userPoints;
-                const key = `PulseGrid_quests_${currentAccount.toLowerCase()}`;
-                localStorage.setItem(key, JSON.stringify(questState));
-
-                const passTier = getPassTierTitle(userPoints, questState.claimedBadges);
-                updateRealLeaderboard(currentAccount, userPoints, questState.streak, passTier);
-            } catch(e) {
-                console.warn("saveQuestState error:", e);
-            }
-            updateQuestUI();
-        }
-
-        function getTodayDateString() {
-            const d = new Date();
-            return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
-        }
-
-        function switchQuestSubTab(subTab) {
-            activeQuestSubTab = subTab;
-            
-            // Toggle Tab Buttons Styling
-            const tabs = ['daily', 'milestone', 'badges', 'leaderboard'];
-            tabs.forEach(t => {
-                const btn = document.getElementById(`questTabBtn-${t}`);
-                if (btn) {
-                    if (t === subTab) {
-                        btn.className = 'px-5 py-3 rounded-t-xl bg-purple-700 text-white border-2 border-slate-950 border-b-0 flex items-center gap-2 shadow-[2px_-2px_0px_#0F172A] font-bold';
-                    } else {
-                        btn.className = 'px-5 py-3 rounded-t-xl bg-slate-100 text-slate-700 hover:bg-slate-200 border-2 border-transparent border-b-0 flex items-center gap-2 transition-colors font-bold';
-                    }
-                }
-            });
-
-            // Toggle Tab Contents
-            const tasksContainer = document.getElementById('questTabContent-tasks');
-            const badgesContainer = document.getElementById('questTabContent-badges');
-            const leaderboardContainer = document.getElementById('questTabContent-leaderboard');
-
-            if (tasksContainer) tasksContainer.classList.toggle('hidden', subTab !== 'daily' && subTab !== 'milestone');
-            if (badgesContainer) badgesContainer.classList.toggle('hidden', subTab !== 'badges');
-            if (leaderboardContainer) leaderboardContainer.classList.toggle('hidden', subTab !== 'leaderboard');
-
-            if (subTab === 'daily' || subTab === 'milestone') {
-                renderQuestTasks();
-            } else if (subTab === 'badges') {
-                renderNftBadges();
-            } else if (subTab === 'leaderboard') {
-                renderRealLeaderboard();
-                renderRealLiveFeed();
-            }
-
-            safeInitIcons();
-        }
-
-        function renderStreakRoad() {
-            const container = document.getElementById('streakRoadContainer');
-            if (!container) return;
-
-            const userStreak = questState.streak || 0;
-            const today = getTodayDateString();
-            const claimedToday = (questState.lastStreakClaimDate === today);
-
-            container.innerHTML = '';
-            STREAK_DAYS_CONFIG.forEach((d, idx) => {
-                const dayNum = idx + 1;
-                const isPast = dayNum < userStreak;
-                const isToday = dayNum === userStreak;
-                const isNextAvailable = (userStreak === 0 && dayNum === 1) || (dayNum === userStreak + 1 && claimedToday) || (dayNum === userStreak && !claimedToday);
-
-                let cardBg = 'bg-slate-50 border-slate-300 text-slate-400';
-                let statusBadge = '<span class="text-[9px] text-slate-400 font-bold">Locked</span>';
-                let iconCol = 'text-slate-400';
-
-                if (isPast || (isToday && claimedToday)) {
-                    cardBg = 'bg-emerald-50 border-emerald-500 text-emerald-950 shadow-sm';
-                    statusBadge = '<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[9px]">Completed ✓</span>';
-                    iconCol = 'text-emerald-600';
-                } else if (isNextAvailable && !claimedToday) {
-                    cardBg = 'bg-gradient-to-b from-amber-100 to-orange-50 border-amber-500 text-amber-950 ring-2 ring-amber-400/50 shadow-md animate-pulse';
-                    statusBadge = '<span class="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 font-bold text-[9px] animate-bounce">Sign & Claim ⚡</span>';
-                    iconCol = 'text-orange-500';
-                } else if (d.isMystery) {
-                    cardBg = 'bg-purple-900/10 border-purple-400 text-purple-950';
-                    statusBadge = '<span class="px-2 py-0.5 rounded-full bg-purple-200 text-purple-900 font-bold text-[9px]">Mystery Box 🎁</span>';
-                    iconCol = 'text-purple-600';
-                }
-
-                const el = document.createElement('div');
-                el.className = `p-3 rounded-xl border-2 flex flex-col items-center justify-between gap-2 min-h-[110px] ${cardBg}`;
-                el.innerHTML = `
+        const el = document.createElement('div');
+        el.className = `p-3 rounded-xl border-2 flex flex-col items-center justify-between gap-2 min-h-[110px] ${cardBg}`;
+        el.innerHTML = `
                     <div class="text-[10px] font-bold uppercase tracking-wider">Day ${dayNum}</div>
                     <div class="w-8 h-8 rounded-full bg-white/80 border border-current flex items-center justify-center ${iconCol}">
                         <i data-lucide="${d.icon}" class="w-4 h-4"></i>
@@ -1521,24 +1565,24 @@ if (typeof tailwind !== 'undefined') {
                     <div class="font-bold text-xs">${d.label}</div>
                     <div>${statusBadge}</div>
                 `;
-                container.appendChild(el);
-            });
-        }
+        container.appendChild(el);
+    });
+}
 
-        function renderQuestTasks() {
-            const container = document.getElementById('questCardsGrid');
-            if (!container) return;
+function renderQuestTasks() {
+    const container = document.getElementById('questCardsGrid');
+    if (!container) return;
 
-            const categoryFilter = activeQuestSubTab === 'milestone' ? 'milestone' : 'daily';
-            const filteredTasks = QUEST_TASKS_DATA.filter(t => t.category === categoryFilter);
+    const categoryFilter = activeQuestSubTab === 'milestone' ? 'milestone' : 'daily';
+    const filteredTasks = QUEST_TASKS_DATA.filter(t => t.category === categoryFilter);
 
-            container.innerHTML = '';
-            filteredTasks.forEach(task => {
-                const isClaimed = questState.claimedTasks && questState.claimedTasks[task.id];
-                const card = document.createElement('div');
-                card.className = 'pixel-card p-5 space-y-4 font-mono text-xs flex flex-col justify-between';
-                
-                card.innerHTML = `
+    container.innerHTML = '';
+    filteredTasks.forEach(task => {
+        const isClaimed = questState.claimedTasks && questState.claimedTasks[task.id];
+        const card = document.createElement('div');
+        card.className = 'pixel-card p-5 space-y-4 font-mono text-xs flex flex-col justify-between';
+
+        card.innerHTML = `
                     <div class="space-y-2">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2.5">
@@ -1568,25 +1612,25 @@ if (typeof tailwind !== 'undefined') {
                         `}
                     </div>
                 `;
-                container.appendChild(card);
-            });
-            safeInitIcons();
-        }
+        container.appendChild(card);
+    });
+    safeInitIcons();
+}
 
-        function renderNftBadges() {
-            const container = document.getElementById('nftBadgesGrid');
-            if (!container) return;
+function renderNftBadges() {
+    const container = document.getElementById('nftBadgesGrid');
+    if (!container) return;
 
-            container.innerHTML = '';
-            NFT_BADGES_DATA.forEach(badge => {
-                const isClaimed = questState.claimedBadges && questState.claimedBadges[badge.key];
-                const pct = Math.min(100, Math.round((userPoints / badge.targetXp) * 100));
-                const canMint = userPoints >= badge.targetXp && !isClaimed;
+    container.innerHTML = '';
+    NFT_BADGES_DATA.forEach(badge => {
+        const isClaimed = questState.claimedBadges && questState.claimedBadges[badge.key];
+        const pct = Math.min(100, Math.round((userPoints / badge.targetXp) * 100));
+        const canMint = userPoints >= badge.targetXp && !isClaimed;
 
-                const card = document.createElement('div');
-                card.className = `p-6 rounded-2xl bg-gradient-to-br ${badge.bgGrad} border-3 ${badge.borderCol} text-white space-y-5 font-mono text-xs shadow-[4px_4px_0px_#0F172A] relative overflow-hidden flex flex-col justify-between`;
-                
-                card.innerHTML = `
+        const card = document.createElement('div');
+        card.className = `p-6 rounded-2xl bg-gradient-to-br ${badge.bgGrad} border-3 ${badge.borderCol} text-white space-y-5 font-mono text-xs shadow-[4px_4px_0px_#0F172A] relative overflow-hidden flex flex-col justify-between`;
+
+        card.innerHTML = `
                     <div class="space-y-4">
                         <div class="flex items-center justify-between">
                             <span class="px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider ${badge.badgePill}">
@@ -1639,227 +1683,227 @@ if (typeof tailwind !== 'undefined') {
                         `}
                     </div>
                 `;
-                container.appendChild(card);
+        container.appendChild(card);
+    });
+    safeInitIcons();
+}
+
+// REAL CRYPTOGRAPHIC DAILY CHECK-IN & STREAK CLAIM (STRICT WEB3 SIGNATURE REQUIRED)
+async function claimDailyCheckin() {
+    if (!currentAccount) {
+        showToast('Wallet Required ⚠️', 'Please connect your Web3 wallet to verify and sign daily check-in!', 'warning');
+        handleWalletClick();
+        return;
+    }
+
+    const today = getTodayDateString();
+    if (questState.lastCheckinDate === today) {
+        showToast('Already Checked-In ✅', 'Daily check-in already recorded for today! Come back tomorrow for your next streak reward.', 'info');
+        return;
+    }
+
+    const provider = activeWeb3Provider || window.ethereum;
+    if (!provider || typeof provider.request !== 'function') {
+        showToast('Provider Error ❌', 'No active Web3 wallet provider detected. Please reconnect.', 'error');
+        return;
+    }
+
+    try {
+        showToast('Wallet Signature Requested ✍️', 'Please sign the authentication message in your wallet...', 'info');
+
+        const host = window.location.host || 'pulsegrid-hub.vercel.app';
+        const origin = window.location.origin || 'https://pulsegrid-hub.vercel.app';
+        const nonce = Math.random().toString(36).substring(2, 10);
+        const timestamp = new Date().toISOString();
+
+        // EIP-4361 Standard Sign-In format recognized by MetaMask Blockaid
+        const signMessage = `${host} wants you to sign in with your Ethereum account:\n${currentAccount}\n\nSign in to verify your daily check-in and claim Arc Testnet XP.\n\nURI: ${origin}\nVersion: 1\nChain ID: 5042002\nNonce: ${nonce}\nIssued At: ${timestamp}`;
+        const hexMsg = '0x' + Array.from(new TextEncoder().encode(signMessage)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+        let signature = null;
+        try {
+            signature = await provider.request({
+                method: 'personal_sign',
+                params: [hexMsg, currentAccount]
             });
-            safeInitIcons();
+        } catch (signErr) {
+            console.warn("User rejected signature:", signErr);
+            showToast('Signature Rejected ❌', 'You rejected or cancelled the wallet signature. Check-in was not recorded.', 'error');
+            return; // STRICT: STOP EXECUTION IF REJECTED
         }
 
-        // REAL CRYPTOGRAPHIC DAILY CHECK-IN & STREAK CLAIM (STRICT WEB3 SIGNATURE REQUIRED)
-        async function claimDailyCheckin() {
-            if (!currentAccount) {
-                showToast('Wallet Required ⚠️', 'Please connect your Web3 wallet to verify and sign daily check-in!', 'warning');
-                handleWalletClick();
-                return;
-            }
-
-            const today = getTodayDateString();
-            if (questState.lastCheckinDate === today) {
-                showToast('Already Checked-In ✅', 'Daily check-in already recorded for today! Come back tomorrow for your next streak reward.', 'info');
-                return;
-            }
-
-            const provider = activeWeb3Provider || window.ethereum;
-            if (!provider || typeof provider.request !== 'function') {
-                showToast('Provider Error ❌', 'No active Web3 wallet provider detected. Please reconnect.', 'error');
-                return;
-            }
-
-            try {
-                showToast('Wallet Signature Requested ✍️', 'Please sign the authentication message in your wallet...', 'info');
-
-                const host = window.location.host || 'pulsegrid-hub.vercel.app';
-                const origin = window.location.origin || 'https://pulsegrid-hub.vercel.app';
-                const nonce = Math.random().toString(36).substring(2, 10);
-                const timestamp = new Date().toISOString();
-
-                // EIP-4361 Standard Sign-In format recognized by MetaMask Blockaid
-                const signMessage = `${host} wants you to sign in with your Ethereum account:\n${currentAccount}\n\nSign in to verify your daily check-in and claim Arc Testnet XP.\n\nURI: ${origin}\nVersion: 1\nChain ID: 5042002\nNonce: ${nonce}\nIssued At: ${timestamp}`;
-                const hexMsg = '0x' + Array.from(new TextEncoder().encode(signMessage)).map(b => b.toString(16).padStart(2, '0')).join('');
-
-                let signature = null;
-                try {
-                    signature = await provider.request({
-                        method: 'personal_sign',
-                        params: [hexMsg, currentAccount]
-                    });
-                } catch (signErr) {
-                    console.warn("User rejected signature:", signErr);
-                    showToast('Signature Rejected ❌', 'You rejected or cancelled the wallet signature. Check-in was not recorded.', 'error');
-                    return; // STRICT: STOP EXECUTION IF REJECTED
-                }
-
-                if (!signature || typeof signature !== 'string' || !signature.startsWith('0x') || signature.length < 10) {
-                    showToast('Signature Error ❌', 'Valid cryptographic signature was not returned by wallet.', 'error');
-                    return;
-                }
-
-                // Check Streak Continuity (Yesterday vs Missed)
-                const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-                if (questState.lastCheckinDate === yesterday) {
-                    questState.streak = (questState.streak || 0) + 1;
-                } else if (!questState.lastCheckinDate) {
-                    questState.streak = 1;
-                } else {
-                    questState.streak = 1; // Streak reset if gap > 1 day
-                }
-
-                // Calculate Streak Multiplier XP
-                const baseReward = 100;
-                const multiplier = Math.min(2.0, 1 + ((questState.streak - 1) * 0.1));
-                const earnedXp = Math.round(baseReward * multiplier);
-
-                userPoints += earnedXp;
-                questState.points = userPoints;
-                questState.lastCheckinDate = today;
-                questState.lastStreakClaimDate = today;
-                if (!questState.claimedTasks) questState.claimedTasks = {};
-                questState.claimedTasks['task-checkin'] = true;
-
-                saveQuestState();
-                recordLiveFeedEvent('Claimed Daily Check-In', currentAccount, earnedXp);
-
-                showToast('Check-In Verified! 🎉', `Cryptographic signature confirmed on Arc L1! +${earnedXp} XP awarded! (Streak: ${questState.streak} Days 🔥)`, 'success');
-            } catch(err) {
-                console.error("Check-in execution error:", err);
-                showToast('Check-In Error', err.message || 'Could not verify wallet signature', 'error');
-            }
+        if (!signature || typeof signature !== 'string' || !signature.startsWith('0x') || signature.length < 10) {
+            showToast('Signature Error ❌', 'Valid cryptographic signature was not returned by wallet.', 'error');
+            return;
         }
 
-        async function claimDailyStreak() {
-            await claimDailyCheckin();
+        // Check Streak Continuity (Yesterday vs Missed)
+        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+        if (questState.lastCheckinDate === yesterday) {
+            questState.streak = (questState.streak || 0) + 1;
+        } else if (!questState.lastCheckinDate) {
+            questState.streak = 1;
+        } else {
+            questState.streak = 1; // Streak reset if gap > 1 day
         }
 
-        function claimQuestTask(taskId) {
-            if (!currentAccount) {
-                showToast('Wallet Required ⚠️', 'Connect your Web3 wallet first to complete and verify quests!', 'warning');
-                handleWalletClick();
-                return;
-            }
+        // Calculate Streak Multiplier XP
+        const baseReward = 100;
+        const multiplier = Math.min(2.0, 1 + ((questState.streak - 1) * 0.1));
+        const earnedXp = Math.round(baseReward * multiplier);
 
-            if (questState.claimedTasks && questState.claimedTasks[taskId]) {
-                showToast('Already Claimed ✅', 'You have already completed this quest!', 'info');
-                return;
-            }
+        userPoints += earnedXp;
+        questState.points = userPoints;
+        questState.lastCheckinDate = today;
+        questState.lastStreakClaimDate = today;
+        if (!questState.claimedTasks) questState.claimedTasks = {};
+        questState.claimedTasks['task-checkin'] = true;
 
-            const task = QUEST_TASKS_DATA.find(t => t.id === taskId);
-            const awardXp = task ? task.xp : 150;
+        saveQuestState();
+        recordLiveFeedEvent('Claimed Daily Check-In', currentAccount, earnedXp);
 
-            if (!questState.claimedTasks) questState.claimedTasks = {};
-            questState.claimedTasks[taskId] = true;
-            userPoints += awardXp;
-            saveQuestState();
+        showToast('Check-In Verified! 🎉', `Cryptographic signature confirmed on Arc L1! +${earnedXp} XP awarded! (Streak: ${questState.streak} Days 🔥)`, 'success');
+    } catch (err) {
+        console.error("Check-in execution error:", err);
+        showToast('Check-In Error', err.message || 'Could not verify wallet signature', 'error');
+    }
+}
 
-            recordLiveFeedEvent(`Completed ${task ? task.title : taskId}`, currentAccount, awardXp);
-            showToast('Quest Completed! 🏆', `+${awardXp} Pulse XP awarded for completing "${task ? task.title : taskId}"!`, 'success');
+async function claimDailyStreak() {
+    await claimDailyCheckin();
+}
+
+function claimQuestTask(taskId) {
+    if (!currentAccount) {
+        showToast('Wallet Required ⚠️', 'Connect your Web3 wallet first to complete and verify quests!', 'warning');
+        handleWalletClick();
+        return;
+    }
+
+    if (questState.claimedTasks && questState.claimedTasks[taskId]) {
+        showToast('Already Claimed ✅', 'You have already completed this quest!', 'info');
+        return;
+    }
+
+    const task = QUEST_TASKS_DATA.find(t => t.id === taskId);
+    const awardXp = task ? task.xp : 150;
+
+    if (!questState.claimedTasks) questState.claimedTasks = {};
+    questState.claimedTasks[taskId] = true;
+    userPoints += awardXp;
+    saveQuestState();
+
+    recordLiveFeedEvent(`Completed ${task ? task.title : taskId}`, currentAccount, awardXp);
+    showToast('Quest Completed! 🏆', `+${awardXp} Pulse XP awarded for completing "${task ? task.title : taskId}"!`, 'success');
+}
+
+async function mintNftBadge(tier) {
+    if (!currentAccount) {
+        showToast('Wallet Required ⚠️', 'Connect your Web3 wallet to mint your NFT pass!', 'warning');
+        handleWalletClick();
+        return;
+    }
+
+    const badge = NFT_BADGES_DATA.find(b => b.tier === tier);
+    if (!badge) return;
+
+    if (userPoints < badge.targetXp) {
+        showToast('XP Required 🔒', `You need ${badge.targetXp.toLocaleString()} XP to mint this pass. Current: ${userPoints.toLocaleString()} XP`, 'warning');
+        return;
+    }
+
+    const provider = activeWeb3Provider || window.ethereum;
+    if (provider && typeof provider.request === 'function') {
+        try {
+            showToast('Wallet Signature Requested ✍️', `Please sign NFT mint authorization for ${badge.name}...`, 'info');
+            const msg = `PulseGrid Arc Testnet NFT Mint\n\nPass: ${badge.name}\nTier: ${badge.tier}\nToken ID: ${badge.tokenId}\nWallet: ${currentAccount}\nNetwork: Arc L1 Testnet (5042002)`;
+            const hexMsg = '0x' + Array.from(new TextEncoder().encode(msg)).map(b => b.toString(16).padStart(2, '0')).join('');
+            await provider.request({ method: 'personal_sign', params: [hexMsg, currentAccount] });
+        } catch (e) {
+            showToast('Mint Cancelled ❌', 'Wallet signature was cancelled. NFT pass not minted.', 'error');
+            return;
         }
+    }
 
-        async function mintNftBadge(tier) {
-            if (!currentAccount) {
-                showToast('Wallet Required ⚠️', 'Connect your Web3 wallet to mint your NFT pass!', 'warning');
-                handleWalletClick();
-                return;
-            }
+    if (!questState.claimedBadges) questState.claimedBadges = {};
+    questState.claimedBadges[badge.key] = true;
+    saveQuestState();
 
-            const badge = NFT_BADGES_DATA.find(b => b.tier === tier);
-            if (!badge) return;
+    // Populate NFT Mint Modal
+    safeSetHtml('nftMintBadgeAvatar', badge.svg);
+    safeSetText('nftMintRarityTag', badge.rarity);
+    safeSetText('nftMintPassTitle', badge.name);
+    safeSetText('nftMintTokenId', `Token ID: ${badge.tokenId} • Arc L1 Mainnet Pass`);
+    safeSetHtml('nftMintPerksList', badge.perks.map(p => `<div>✓ ${p}</div>`).join(''));
 
-            if (userPoints < badge.targetXp) {
-                showToast('XP Required 🔒', `You need ${badge.targetXp.toLocaleString()} XP to mint this pass. Current: ${userPoints.toLocaleString()} XP`, 'warning');
-                return;
-            }
+    const modal = document.getElementById('nftMintModal');
+    if (modal) modal.classList.remove('hidden');
 
-            const provider = activeWeb3Provider || window.ethereum;
-            if (provider && typeof provider.request === 'function') {
-                try {
-                    showToast('Wallet Signature Requested ✍️', `Please sign NFT mint authorization for ${badge.name}...`, 'info');
-                    const msg = `PulseGrid Arc Testnet NFT Mint\n\nPass: ${badge.name}\nTier: ${badge.tier}\nToken ID: ${badge.tokenId}\nWallet: ${currentAccount}\nNetwork: Arc L1 Testnet (5042002)`;
-                    const hexMsg = '0x' + Array.from(new TextEncoder().encode(msg)).map(b => b.toString(16).padStart(2, '0')).join('');
-                    await provider.request({ method: 'personal_sign', params: [hexMsg, currentAccount] });
-                } catch(e) {
-                    showToast('Mint Cancelled ❌', 'Wallet signature was cancelled. NFT pass not minted.', 'error');
-                    return;
-                }
-            }
+    recordLiveFeedEvent(`Minted ${badge.name}`, currentAccount, 0);
+    showToast('NFT Minted On-Chain! 🎖️', `Congratulations! Minted ${badge.name} (${badge.tokenId}) on Arc Testnet!`, 'success');
+    safeInitIcons();
+}
 
-            if (!questState.claimedBadges) questState.claimedBadges = {};
-            questState.claimedBadges[badge.key] = true;
-            saveQuestState();
+function closeNftMintModal() {
+    const modal = document.getElementById('nftMintModal');
+    if (modal) modal.classList.add('hidden');
+}
 
-            // Populate NFT Mint Modal
-            safeSetHtml('nftMintBadgeAvatar', badge.svg);
-            safeSetText('nftMintRarityTag', badge.rarity);
-            safeSetText('nftMintPassTitle', badge.name);
-            safeSetText('nftMintTokenId', `Token ID: ${badge.tokenId} • Arc L1 Mainnet Pass`);
-            safeSetHtml('nftMintPerksList', badge.perks.map(p => `<div>✓ ${p}</div>`).join(''));
+// REAL ON-CHAIN SWAP HOOK (AWARDS XP ONLY AFTER ON-CHAIN TRANSACTION CONFIRMATION)
+function onSwapConfirmedOnChain() {
+    if (!currentAccount) return;
+    questState.swapsCompleted = (questState.swapsCompleted || 0) + 1;
+    userPoints += 150; // DEX Swap awards +150 XP
+    if (!questState.claimedTasks) questState.claimedTasks = {};
+    questState.claimedTasks['task-swap'] = true;
+    saveQuestState();
+    recordLiveFeedEvent('Completed Arc DEX Swap', currentAccount, 150);
+    showToast('+150 Points Earned! 🚀', 'Confirmed on-chain DEX Swap on Arc L1 added +150 Pulse XP!', 'success');
+}
 
-            const modal = document.getElementById('nftMintModal');
-            if (modal) modal.classList.remove('hidden');
-
-            recordLiveFeedEvent(`Minted ${badge.name}`, currentAccount, 0);
-            showToast('NFT Minted On-Chain! 🎖️', `Congratulations! Minted ${badge.name} (${badge.tokenId}) on Arc Testnet!`, 'success');
-            safeInitIcons();
+// REAL-TIME DYNAMIC LEADERBOARD ENGINE (ONLY REAL PARTICIPANTS)
+function updateRealLeaderboard(account, points, streak, passTier) {
+    if (!account || points <= 0) return;
+    try {
+        let leaderboard = JSON.parse(localStorage.getItem('PulseGrid_real_leaderboard_v2') || '[]');
+        const idx = leaderboard.findIndex(item => item.address.toLowerCase() === account.toLowerCase());
+        if (idx >= 0) {
+            leaderboard[idx].points = points;
+            leaderboard[idx].streak = streak;
+            leaderboard[idx].passTier = passTier;
+            leaderboard[idx].lastActive = Date.now();
+        } else {
+            leaderboard.push({
+                address: account,
+                points: points,
+                streak: streak,
+                passTier: passTier,
+                lastActive: Date.now()
+            });
         }
+        // Sort descending by points
+        leaderboard.sort((a, b) => b.points - a.points);
+        localStorage.setItem('PulseGrid_real_leaderboard_v2', JSON.stringify(leaderboard));
+        renderRealLeaderboard();
+    } catch (e) {
+        console.warn("updateRealLeaderboard error:", e);
+    }
+}
 
-        function closeNftMintModal() {
-            const modal = document.getElementById('nftMintModal');
-            if (modal) modal.classList.add('hidden');
-        }
+function renderRealLeaderboard() {
+    const tbody = document.getElementById('questLeaderboardBody');
+    if (!tbody) return;
 
-        // REAL ON-CHAIN SWAP HOOK (AWARDS XP ONLY AFTER ON-CHAIN TRANSACTION CONFIRMATION)
-        function onSwapConfirmedOnChain() {
-            if (!currentAccount) return;
-            questState.swapsCompleted = (questState.swapsCompleted || 0) + 1;
-            userPoints += 150; // DEX Swap awards +150 XP
-            if (!questState.claimedTasks) questState.claimedTasks = {};
-            questState.claimedTasks['task-swap'] = true;
-            saveQuestState();
-            recordLiveFeedEvent('Completed Arc DEX Swap', currentAccount, 150);
-            showToast('+150 Points Earned! 🚀', 'Confirmed on-chain DEX Swap on Arc L1 added +150 Pulse XP!', 'success');
-        }
+    let leaderboard = [];
+    try {
+        leaderboard = JSON.parse(localStorage.getItem('PulseGrid_real_leaderboard_v2') || '[]');
+    } catch (e) { }
 
-        // REAL-TIME DYNAMIC LEADERBOARD ENGINE (ONLY REAL PARTICIPANTS)
-        function updateRealLeaderboard(account, points, streak, passTier) {
-            if (!account || points <= 0) return;
-            try {
-                let leaderboard = JSON.parse(localStorage.getItem('PulseGrid_real_leaderboard_v2') || '[]');
-                const idx = leaderboard.findIndex(item => item.address.toLowerCase() === account.toLowerCase());
-                if (idx >= 0) {
-                    leaderboard[idx].points = points;
-                    leaderboard[idx].streak = streak;
-                    leaderboard[idx].passTier = passTier;
-                    leaderboard[idx].lastActive = Date.now();
-                } else {
-                    leaderboard.push({
-                        address: account,
-                        points: points,
-                        streak: streak,
-                        passTier: passTier,
-                        lastActive: Date.now()
-                    });
-                }
-                // Sort descending by points
-                leaderboard.sort((a, b) => b.points - a.points);
-                localStorage.setItem('PulseGrid_real_leaderboard_v2', JSON.stringify(leaderboard));
-                renderRealLeaderboard();
-            } catch(e) {
-                console.warn("updateRealLeaderboard error:", e);
-            }
-        }
+    // Filter only participants with > 0 XP
+    leaderboard = leaderboard.filter(p => p.points > 0);
 
-        function renderRealLeaderboard() {
-            const tbody = document.getElementById('questLeaderboardBody');
-            if (!tbody) return;
-
-            let leaderboard = [];
-            try {
-                leaderboard = JSON.parse(localStorage.getItem('PulseGrid_real_leaderboard_v2') || '[]');
-            } catch(e) {}
-
-            // Filter only participants with > 0 XP
-            leaderboard = leaderboard.filter(p => p.points > 0);
-
-            if (leaderboard.length === 0) {
-                tbody.innerHTML = `
+    if (leaderboard.length === 0) {
+        tbody.innerHTML = `
                     <tr>
                         <td colspan="5" class="py-12 text-center text-slate-500 font-mono space-y-3">
                             <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-600 mx-auto mb-2">
@@ -1877,20 +1921,20 @@ if (typeof tailwind !== 'undefined') {
                         </td>
                     </tr>
                 `;
-                safeInitIcons();
-                return;
-            }
+        safeInitIcons();
+        return;
+    }
 
-            tbody.innerHTML = '';
-            leaderboard.forEach((p, idx) => {
-                const isYou = currentAccount && (p.address.toLowerCase() === currentAccount.toLowerCase());
-                const shortAddr = `${p.address.substring(0, 6)}...${p.address.substring(p.address.length - 4)}`;
-                const rankBadge = idx === 0 ? '🥇 #1' : idx === 1 ? '🥈 #2' : idx === 2 ? '🥉 #3' : `#${idx + 1}`;
-                const rankCol = idx === 0 ? 'text-amber-500 font-black' : idx === 1 ? 'text-slate-400 font-black' : idx === 2 ? 'text-amber-700 font-black' : 'text-slate-500 font-bold';
+    tbody.innerHTML = '';
+    leaderboard.forEach((p, idx) => {
+        const isYou = currentAccount && (p.address.toLowerCase() === currentAccount.toLowerCase());
+        const shortAddr = `${p.address.substring(0, 6)}...${p.address.substring(p.address.length - 4)}`;
+        const rankBadge = idx === 0 ? '🥇 #1' : idx === 1 ? '🥈 #2' : idx === 2 ? '🥉 #3' : `#${idx + 1}`;
+        const rankCol = idx === 0 ? 'text-amber-500 font-black' : idx === 1 ? 'text-slate-400 font-black' : idx === 2 ? 'text-amber-700 font-black' : 'text-slate-500 font-bold';
 
-                const tr = document.createElement('tr');
-                tr.className = `hover:bg-purple-50/50 transition-colors ${isYou ? 'bg-purple-50/70 font-bold border-l-4 border-purple-700' : ''}`;
-                tr.innerHTML = `
+        const tr = document.createElement('tr');
+        tr.className = `hover:bg-purple-50/50 transition-colors ${isYou ? 'bg-purple-50/70 font-bold border-l-4 border-purple-700' : ''}`;
+        tr.innerHTML = `
                     <td class="py-3.5 ${rankCol}">${rankBadge}</td>
                     <td class="py-3.5 font-bold ${isYou ? 'text-purple-900' : 'text-slate-900'}">
                         <span>${shortAddr}</span>
@@ -1902,58 +1946,58 @@ if (typeof tailwind !== 'undefined') {
                     </td>
                     <td class="py-3.5 text-right font-black text-purple-700">${p.points.toLocaleString()} XP</td>
                 `;
-                tbody.appendChild(tr);
-            });
-            safeInitIcons();
-        }
+        tbody.appendChild(tr);
+    });
+    safeInitIcons();
+}
 
-        // REAL-TIME ACTIVITY FEED ENGINE
-        function recordLiveFeedEvent(action, account, xp) {
-            if (!account) return;
-            try {
-                let feed = JSON.parse(localStorage.getItem('PulseGrid_real_feed_v2') || '[]');
-                feed.unshift({
-                    action: action,
-                    account: account,
-                    xp: xp,
-                    timestamp: Date.now()
-                });
-                if (feed.length > 20) feed = feed.slice(0, 20);
-                localStorage.setItem('PulseGrid_real_feed_v2', JSON.stringify(feed));
-                renderRealLiveFeed();
-            } catch(e) {}
-        }
+// REAL-TIME ACTIVITY FEED ENGINE
+function recordLiveFeedEvent(action, account, xp) {
+    if (!account) return;
+    try {
+        let feed = JSON.parse(localStorage.getItem('PulseGrid_real_feed_v2') || '[]');
+        feed.unshift({
+            action: action,
+            account: account,
+            xp: xp,
+            timestamp: Date.now()
+        });
+        if (feed.length > 20) feed = feed.slice(0, 20);
+        localStorage.setItem('PulseGrid_real_feed_v2', JSON.stringify(feed));
+        renderRealLiveFeed();
+    } catch (e) { }
+}
 
-        function renderRealLiveFeed() {
-            const container = document.getElementById('questLiveFeed');
-            if (!container) return;
+function renderRealLiveFeed() {
+    const container = document.getElementById('questLiveFeed');
+    if (!container) return;
 
-            let feed = [];
-            try {
-                feed = JSON.parse(localStorage.getItem('PulseGrid_real_feed_v2') || '[]');
-            } catch(e) {}
+    let feed = [];
+    try {
+        feed = JSON.parse(localStorage.getItem('PulseGrid_real_feed_v2') || '[]');
+    } catch (e) { }
 
-            if (feed.length === 0) {
-                container.innerHTML = `
+    if (feed.length === 0) {
+        container.innerHTML = `
                     <div class="p-6 text-center text-slate-400 font-mono text-xs space-y-1">
                         <i data-lucide="radio" class="w-6 h-6 mx-auto text-slate-300"></i>
                         <div>No on-chain quest activity recorded yet.</div>
                         <div class="text-[10px] text-slate-400">Complete a check-in or DEX swap to start the live stream.</div>
                     </div>
                 `;
-                safeInitIcons();
-                return;
-            }
+        safeInitIcons();
+        return;
+    }
 
-            container.innerHTML = '';
-            feed.forEach(item => {
-                const shortAddr = `${item.account.substring(0, 6)}...${item.account.substring(item.account.length - 4)}`;
-                const timeDiff = Math.max(1, Math.floor((Date.now() - item.timestamp) / 1000));
-                const timeStr = timeDiff < 60 ? `${timeDiff}s ago` : `${Math.floor(timeDiff / 60)}m ago`;
+    container.innerHTML = '';
+    feed.forEach(item => {
+        const shortAddr = `${item.account.substring(0, 6)}...${item.account.substring(item.account.length - 4)}`;
+        const timeDiff = Math.max(1, Math.floor((Date.now() - item.timestamp) / 1000));
+        const timeStr = timeDiff < 60 ? `${timeDiff}s ago` : `${Math.floor(timeDiff / 60)}m ago`;
 
-                const el = document.createElement('div');
-                el.className = 'p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1';
-                el.innerHTML = `
+        const el = document.createElement('div');
+        el.className = 'p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1';
+        el.innerHTML = `
                     <div class="flex justify-between text-[10px]">
                         <span class="font-bold text-slate-900">${shortAddr}</span>
                         <span class="text-slate-400">${timeStr}</span>
@@ -1966,170 +2010,170 @@ if (typeof tailwind !== 'undefined') {
                         ${item.xp > 0 ? `<span class="text-emerald-700 font-black text-[10px]">+${item.xp} XP</span>` : ''}
                     </div>
                 `;
-                container.appendChild(el);
-            });
-            safeInitIcons();
-        }
+        container.appendChild(el);
+    });
+    safeInitIcons();
+}
 
-        function updateQuestUI() {
-            // Synchronize User Level & XP Bar
-            const levelInfo = getUserLevelInfo(userPoints);
-            safeSetText('questUserLevelTitle', levelInfo.title);
-            safeSetText('questLevelMinText', `${levelInfo.title.split('•')[0].trim()}: ${levelInfo.minXp.toLocaleString()} XP`);
-            safeSetText('questLevelMaxText', levelInfo.nextLevelText);
-            
-            const range = levelInfo.maxXp - levelInfo.minXp;
-            const currentInRange = userPoints - levelInfo.minXp;
-            const progressPct = Math.min(100, Math.max(0, Math.round((currentInRange / range) * 100)));
+function updateQuestUI() {
+    // Synchronize User Level & XP Bar
+    const levelInfo = getUserLevelInfo(userPoints);
+    safeSetText('questUserLevelTitle', levelInfo.title);
+    safeSetText('questLevelMinText', `${levelInfo.title.split('•')[0].trim()}: ${levelInfo.minXp.toLocaleString()} XP`);
+    safeSetText('questLevelMaxText', levelInfo.nextLevelText);
 
-            safeSetText('questLevelProgressLabel', `${userPoints.toLocaleString()} / ${levelInfo.maxXp.toLocaleString()} XP (${progressPct}% to next tier)`);
-            const pBar = document.getElementById('questLevelProgressBar');
-            if (pBar) pBar.style.width = `${progressPct}%`;
+    const range = levelInfo.maxXp - levelInfo.minXp;
+    const currentInRange = userPoints - levelInfo.minXp;
+    const progressPct = Math.min(100, Math.max(0, Math.round((currentInRange / range) * 100)));
 
-            safeSetText('userPointsVal', `${userPoints.toLocaleString()} XP`);
-            safeSetText('questStreakCount', questState.streak || 0);
-            safeSetText('badgesUserXpDisplay', `${userPoints.toLocaleString()} XP`);
+    safeSetText('questLevelProgressLabel', `${userPoints.toLocaleString()} / ${levelInfo.maxXp.toLocaleString()} XP (${progressPct}% to next tier)`);
+    const pBar = document.getElementById('questLevelProgressBar');
+    if (pBar) pBar.style.width = `${progressPct}%`;
 
-            renderStreakRoad();
-            if (activeQuestSubTab === 'daily' || activeQuestSubTab === 'milestone') {
-                renderQuestTasks();
-            } else if (activeQuestSubTab === 'badges') {
-                renderNftBadges();
-            } else if (activeQuestSubTab === 'leaderboard') {
-                renderRealLeaderboard();
-                renderRealLiveFeed();
-            }
+    safeSetText('userPointsVal', `${userPoints.toLocaleString()} XP`);
+    safeSetText('questStreakCount', questState.streak || 0);
+    safeSetText('badgesUserXpDisplay', `${userPoints.toLocaleString()} XP`);
 
-            safeInitIcons();
-        }
+    renderStreakRoad();
+    if (activeQuestSubTab === 'daily' || activeQuestSubTab === 'milestone') {
+        renderQuestTasks();
+    } else if (activeQuestSubTab === 'badges') {
+        renderNftBadges();
+    } else if (activeQuestSubTab === 'leaderboard') {
+        renderRealLeaderboard();
+        renderRealLiveFeed();
+    }
 
-        function switchWalletTab(tabId) {
-            activeWalletTab = tabId;
-            ['tokens', 'nfts', 'activity', 'security'].forEach(t => {
-                const btn = document.getElementById(`walletTabBtn-${t}`);
-                const content = document.getElementById(`walletTabContent-${t}`);
-                if (btn && content) {
-                    if (t === tabId) {
-                        btn.className = 'font-pixel font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl bg-purple-700 text-white border-2 border-slate-950 flex items-center gap-2 shrink-0 transition-all shadow-[2px_2px_0px_#0F172A]';
-                        content.classList.remove('hidden');
-                    } else {
-                        btn.className = 'font-pixel font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl text-slate-700 hover:text-slate-950 flex items-center gap-2 shrink-0 transition-all';
-                        content.classList.add('hidden');
-                    }
-                }
-            });
-            if (tabId === 'activity') renderWalletRealTxLog();
-            safeInitIcons();
-        }
+    safeInitIcons();
+}
 
-        function mintTestEbtc() {
-            if (!currentAccount) {
-                handleWalletClick();
-                return;
-            }
-            const currentEbtc = parseFloat(localStorage.getItem(`PulseGrid_ebtc_${currentAccount.toLowerCase()}`) || '0.00');
-            const newBal = (currentEbtc + 0.05).toFixed(4);
-            localStorage.setItem(`PulseGrid_ebtc_${currentAccount.toLowerCase()}`, newBal);
-            safeSetText('walletTabEbtcBal', `${newBal} eBTC`);
-
-            const mockHash = '0x' + Array.from({length: 64}, () => Math.floor(Math.random()*16).toString(16)).join('');
-            const tx = {
-                type: 'Mint Test eBTC',
-                pair: '+0.0500 eBTC (Arc Testnet)',
-                txHash: mockHash,
-                time: 'Just now'
-            };
-            const existing = JSON.parse(localStorage.getItem(`PulseGrid_txs_${currentAccount.toLowerCase()}`) || '[]');
-            existing.unshift(tx);
-            localStorage.setItem(`PulseGrid_txs_${currentAccount.toLowerCase()}`, JSON.stringify(existing.slice(0, 30)));
-
-            showToast('eBTC Minted! ₿', 'Successfully minted +0.0500 testnet eBTC to your Arc Web3 Wallet!', 'success');
-            renderWalletRealTxLog();
-        }
-
-        function renderWalletView() {
-            const expLink = document.getElementById('walletExplorerLink');
-
-            if (currentAccount) {
-                const formatted = `${currentAccount.substring(0,6)}...${currentAccount.substring(38)}`;
-                safeSetText('walletHeaderAddress', formatted);
-                safeSetText('walletConnectStatusText', 'Connected');
-                if (expLink) expLink.href = `https://testnet.arcscan.app/address/${currentAccount}`;
-
-                const usdcVal = TOKENS[0].balance * TOKENS[0].usdRate;
-                const eurcVal = TOKENS[1].balance * TOKENS[1].usdRate;
-                const total = (usdcVal + eurcVal).toFixed(2);
-
-                safeSetText('walletTotalUsdBalance', `$${parseFloat(total).toLocaleString(undefined, {minimumFractionDigits: 2})} USD`);
-                safeSetText('walletGasReserve', `${TOKENS[0].balance.toFixed(2)} USDC`);
-
-                safeSetText('walletTabUsdcBal', `${TOKENS[0].balance.toFixed(2)} USDC`);
-                safeSetText('walletTabUsdcUsd', `$${(TOKENS[0].balance * TOKENS[0].usdRate).toFixed(2)} USD`);
-                
-                safeSetText('walletTabEurcBal', `${TOKENS[1].balance.toFixed(2)} EURC`);
-                safeSetText('walletTabEurcUsd', `€${(TOKENS[1].balance * 0.92).toFixed(2)} EUR`);
-
-                const savedEbtc = parseFloat(localStorage.getItem(`PulseGrid_ebtc_${currentAccount.toLowerCase()}`) || '0.00').toFixed(4);
-                safeSetText('walletTabEbtcBal', `${savedEbtc} eBTC`);
-                safeSetText('walletTabArcBal', '100.00 ARC');
+function switchWalletTab(tabId) {
+    activeWalletTab = tabId;
+    ['tokens', 'nfts', 'activity', 'security'].forEach(t => {
+        const btn = document.getElementById(`walletTabBtn-${t}`);
+        const content = document.getElementById(`walletTabContent-${t}`);
+        if (btn && content) {
+            if (t === tabId) {
+                btn.className = 'font-pixel font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl bg-purple-700 text-white border-2 border-slate-950 flex items-center gap-2 shrink-0 transition-all shadow-[2px_2px_0px_#0F172A]';
+                content.classList.remove('hidden');
             } else {
-                safeSetText('walletHeaderAddress', '0x... (Connect Wallet)');
-                safeSetText('walletConnectStatusText', 'Connect Wallet');
-                safeSetText('walletTotalUsdBalance', '$0.00 USD');
-                safeSetText('walletGasReserve', '0.00 USDC');
-                if (expLink) expLink.href = 'https://testnet.arcscan.app';
-
-                safeSetText('walletTabUsdcBal', '0.00 USDC');
-                safeSetText('walletTabUsdcUsd', '$0.00 USD');
-                safeSetText('walletTabEurcBal', '0.00 EURC');
-                safeSetText('walletTabEurcUsd', '€0.00 EUR');
-                safeSetText('walletTabEbtcBal', '0.0000 eBTC');
-                safeSetText('walletTabArcBal', '0.00 ARC');
+                btn.className = 'font-pixel font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl text-slate-700 hover:text-slate-950 flex items-center gap-2 shrink-0 transition-all';
+                content.classList.add('hidden');
             }
-
-            renderWalletRealTxLog();
-            safeInitIcons();
         }
+    });
+    if (tabId === 'activity') renderWalletRealTxLog();
+    safeInitIcons();
+}
 
-        function renderPortfolioView() {
-            const usdcVal = TOKENS[0].balance * TOKENS[0].usdRate;
-            const eurcVal = TOKENS[1].balance * TOKENS[1].usdRate;
+function mintTestEbtc() {
+    if (!currentAccount) {
+        handleWalletClick();
+        return;
+    }
+    const currentEbtc = parseFloat(localStorage.getItem(`PulseGrid_ebtc_${currentAccount.toLowerCase()}`) || '0.00');
+    const newBal = (currentEbtc + 0.05).toFixed(4);
+    localStorage.setItem(`PulseGrid_ebtc_${currentAccount.toLowerCase()}`, newBal);
+    safeSetText('walletTabEbtcBal', `${newBal} eBTC`);
 
-            const total = (usdcVal + eurcVal).toFixed(2);
-            safeSetText('portfolioNetWorth', `$${parseFloat(total).toLocaleString(undefined, {minimumFractionDigits: 2})} USD`);
-        }
+    const mockHash = '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+    const tx = {
+        type: 'Mint Test eBTC',
+        pair: '+0.0500 eBTC (Arc Testnet)',
+        txHash: mockHash,
+        time: 'Just now'
+    };
+    const existing = JSON.parse(localStorage.getItem(`PulseGrid_txs_${currentAccount.toLowerCase()}`) || '[]');
+    existing.unshift(tx);
+    localStorage.setItem(`PulseGrid_txs_${currentAccount.toLowerCase()}`, JSON.stringify(existing.slice(0, 30)));
 
-        function renderWalletRealTxLog() {
-            const container = document.getElementById('walletRealTxListContainer');
-            if (!container) return;
+    showToast('eBTC Minted! ₿', 'Successfully minted +0.0500 testnet eBTC to your Arc Web3 Wallet!', 'success');
+    renderWalletRealTxLog();
+}
 
-            if (!currentAccount) {
-                container.innerHTML = `
+function renderWalletView() {
+    const expLink = document.getElementById('walletExplorerLink');
+
+    if (currentAccount) {
+        const formatted = `${currentAccount.substring(0, 6)}...${currentAccount.substring(38)}`;
+        safeSetText('walletHeaderAddress', formatted);
+        safeSetText('walletConnectStatusText', 'Connected');
+        if (expLink) expLink.href = `https://testnet.arcscan.app/address/${currentAccount}`;
+
+        const usdcVal = TOKENS[0].balance * TOKENS[0].usdRate;
+        const eurcVal = TOKENS[1].balance * TOKENS[1].usdRate;
+        const total = (usdcVal + eurcVal).toFixed(2);
+
+        safeSetText('walletTotalUsdBalance', `$${parseFloat(total).toLocaleString(undefined, { minimumFractionDigits: 2 })} USD`);
+        safeSetText('walletGasReserve', `${TOKENS[0].balance.toFixed(2)} USDC`);
+
+        safeSetText('walletTabUsdcBal', `${TOKENS[0].balance.toFixed(2)} USDC`);
+        safeSetText('walletTabUsdcUsd', `$${(TOKENS[0].balance * TOKENS[0].usdRate).toFixed(2)} USD`);
+
+        safeSetText('walletTabEurcBal', `${TOKENS[1].balance.toFixed(2)} EURC`);
+        safeSetText('walletTabEurcUsd', `€${(TOKENS[1].balance * 0.92).toFixed(2)} EUR`);
+
+        const savedEbtc = parseFloat(localStorage.getItem(`PulseGrid_ebtc_${currentAccount.toLowerCase()}`) || '0.00').toFixed(4);
+        safeSetText('walletTabEbtcBal', `${savedEbtc} eBTC`);
+        safeSetText('walletTabArcBal', '100.00 ARC');
+    } else {
+        safeSetText('walletHeaderAddress', '0x... (Connect Wallet)');
+        safeSetText('walletConnectStatusText', 'Connect Wallet');
+        safeSetText('walletTotalUsdBalance', '$0.00 USD');
+        safeSetText('walletGasReserve', '0.00 USDC');
+        if (expLink) expLink.href = 'https://testnet.arcscan.app';
+
+        safeSetText('walletTabUsdcBal', '0.00 USDC');
+        safeSetText('walletTabUsdcUsd', '$0.00 USD');
+        safeSetText('walletTabEurcBal', '0.00 EURC');
+        safeSetText('walletTabEurcUsd', '€0.00 EUR');
+        safeSetText('walletTabEbtcBal', '0.0000 eBTC');
+        safeSetText('walletTabArcBal', '0.00 ARC');
+    }
+
+    renderWalletRealTxLog();
+    safeInitIcons();
+}
+
+function renderPortfolioView() {
+    const usdcVal = TOKENS[0].balance * TOKENS[0].usdRate;
+    const eurcVal = TOKENS[1].balance * TOKENS[1].usdRate;
+
+    const total = (usdcVal + eurcVal).toFixed(2);
+    safeSetText('portfolioNetWorth', `$${parseFloat(total).toLocaleString(undefined, { minimumFractionDigits: 2 })} USD`);
+}
+
+function renderWalletRealTxLog() {
+    const container = document.getElementById('walletRealTxListContainer');
+    if (!container) return;
+
+    if (!currentAccount) {
+        container.innerHTML = `
                     <div class="p-8 text-center text-slate-500 font-sans italic space-y-2 bg-slate-50 border-2 border-slate-950 rounded-2xl">
                         <i data-lucide="inbox" class="w-8 h-8 mx-auto text-slate-400"></i>
                         <div class="font-bold text-slate-800 text-sm">No real transactions recorded yet.</div>
                         <div class="text-xs text-slate-500">Connect your Web3 wallet via WalletConnect and perform a swap, token send, or check-in on Arc Testnet.</div>
                     </div>
                 `;
-                safeInitIcons();
-                return;
-            }
+        safeInitIcons();
+        return;
+    }
 
-            const existing = JSON.parse(localStorage.getItem(`PulseGrid_txs_${currentAccount.toLowerCase()}`) || '[]');
-            if (existing.length === 0) {
-                container.innerHTML = `
+    const existing = JSON.parse(localStorage.getItem(`PulseGrid_txs_${currentAccount.toLowerCase()}`) || '[]');
+    if (existing.length === 0) {
+        container.innerHTML = `
                     <div class="p-8 text-center text-slate-500 font-sans italic space-y-2 bg-slate-50 border-2 border-slate-950 rounded-2xl">
                         <i data-lucide="inbox" class="w-8 h-8 mx-auto text-slate-400"></i>
                         <div class="font-bold text-slate-800 text-sm">No transactions yet for this account.</div>
                         <div class="text-xs text-slate-500">Execute a DEX swap, claim from faucet, or send tokens on Arc Testnet to see live transaction records here.</div>
                     </div>
                 `;
-            } else {
-                container.innerHTML = '';
-                existing.forEach(tx => {
-                    const div = document.createElement('div');
-                    div.className = 'p-4 rounded-2xl bg-slate-50 hover:bg-purple-50/40 border-2 border-slate-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all shadow-[2px_2px_0px_#0F172A]';
-                    div.innerHTML = `
+    } else {
+        container.innerHTML = '';
+        existing.forEach(tx => {
+            const div = document.createElement('div');
+            div.className = 'p-4 rounded-2xl bg-slate-50 hover:bg-purple-50/40 border-2 border-slate-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all shadow-[2px_2px_0px_#0F172A]';
+            div.innerHTML = `
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-xl bg-purple-100 border-2 border-slate-950 flex items-center justify-center text-purple-700 shrink-0 font-bold">
                                 <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
@@ -2150,181 +2194,181 @@ if (typeof tailwind !== 'undefined') {
                             <div class="text-[11px] text-slate-400 font-mono">${tx.time}</div>
                         </div>
                     `;
-                    container.appendChild(div);
-                });
-            }
-            safeInitIcons();
+            container.appendChild(div);
+        });
+    }
+    safeInitIcons();
+}
+
+function startLiveCountdown() {
+    const targetDate = new Date('2026-09-16T23:30:00+05:30').getTime();
+
+    function update() {
+        const now = new Date().getTime();
+        const diff = targetDate - now;
+
+        if (diff <= 0) {
+            safeSetText('cdDays', '00');
+            safeSetText('cdHours', '00');
+            safeSetText('cdMinutes', '00');
+            safeSetText('cdSeconds', '00');
+            return;
         }
 
-        function startLiveCountdown() {
-            const targetDate = new Date('2026-09-16T23:30:00+05:30').getTime();
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const secs = Math.floor((diff % (1000 * 60)) / 1000);
 
-            function update() {
-                const now = new Date().getTime();
-                const diff = targetDate - now;
+        safeSetText('cdDays', String(days).padStart(2, '0'));
+        safeSetText('cdHours', String(hours).padStart(2, '0'));
+        safeSetText('cdMinutes', String(mins).padStart(2, '0'));
+        safeSetText('cdSeconds', String(secs).padStart(2, '0'));
+    }
 
-                if (diff <= 0) {
-                    safeSetText('cdDays', '00');
-                    safeSetText('cdHours', '00');
-                    safeSetText('cdMinutes', '00');
-                    safeSetText('cdSeconds', '00');
-                    return;
-                }
+    update();
+    setInterval(update, 1000);
+}
 
-                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                const secs = Math.floor((diff % (1000 * 60)) / 1000);
+let currentLiveBlock = 0;
+let lastRpcLatencyMs = 0;
+let lastGasGwei = "0.001";
 
-                safeSetText('cdDays', String(days).padStart(2, '0'));
-                safeSetText('cdHours', String(hours).padStart(2, '0'));
-                safeSetText('cdMinutes', String(mins).padStart(2, '0'));
-                safeSetText('cdSeconds', String(secs).padStart(2, '0'));
-            }
+async function fetchRealRpcBlock() {
+    const startMs = performance.now();
+    let targetRpc = (typeof ARC_RPC_URL !== 'undefined') ? ARC_RPC_URL : 'https://rpc.testnet.arc.io';
+    let targetRpcAlt = (typeof ARC_RPC_URL_ALT !== 'undefined') ? ARC_RPC_URL_ALT : 'https://rpc.testnet.arc.network';
 
-            update();
-            setInterval(update, 1000);
+    try {
+        let res = await fetch(targetRpc, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_blockNumber', params: [], id: 1 })
+        }).catch(() => null);
+
+        if (!res || !res.ok) {
+            targetRpc = targetRpcAlt;
+            res = await fetch(targetRpc, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_blockNumber', params: [], id: 1 })
+            }).catch(() => null);
         }
 
-        let currentLiveBlock = 0;
-        let lastRpcLatencyMs = 0;
-        let lastGasGwei = "0.001";
+        const endMs = performance.now();
+        if (endMs > startMs) {
+            lastRpcLatencyMs = Math.round(endMs - startMs);
+        }
 
-        async function fetchRealRpcBlock() {
-            const startMs = performance.now();
-            let targetRpc = (typeof ARC_RPC_URL !== 'undefined') ? ARC_RPC_URL : 'https://rpc.testnet.arc.io';
-            let targetRpcAlt = (typeof ARC_RPC_URL_ALT !== 'undefined') ? ARC_RPC_URL_ALT : 'https://rpc.testnet.arc.network';
-            
-            try {
-                let res = await fetch(targetRpc, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_blockNumber', params: [], id: 1 })
-                }).catch(() => null);
-
-                if (!res || !res.ok) {
-                    targetRpc = targetRpcAlt;
-                    res = await fetch(targetRpc, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_blockNumber', params: [], id: 1 })
-                    }).catch(() => null);
+        if (res && res.ok) {
+            const data = await res.json();
+            if (data && data.result) {
+                const realHeight = parseInt(data.result, 16);
+                if (realHeight > 0) {
+                    currentLiveBlock = realHeight;
+                    safeSetText('statBlockHeight', `#${currentLiveBlock.toLocaleString()}`);
                 }
-
-                const endMs = performance.now();
-                if (endMs > startMs) {
-                    lastRpcLatencyMs = Math.round(endMs - startMs);
-                }
-
-                if (res && res.ok) {
-                    const data = await res.json();
-                    if (data && data.result) {
-                        const realHeight = parseInt(data.result, 16);
-                        if (realHeight > 0) {
-                            currentLiveBlock = realHeight;
-                            safeSetText('statBlockHeight', `#${currentLiveBlock.toLocaleString()}`);
-                        }
-                    }
-                }
-
-                // Fetch Real Gas Price
-                const gasRes = await fetch(targetRpc, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_gasPrice', params: [], id: 2 })
-                }).catch(() => null);
-
-                if (gasRes && gasRes.ok) {
-                    const gasData = await gasRes.json();
-                    if (gasData && gasData.result) {
-                        const gasWei = parseInt(gasData.result, 16);
-                        if (gasWei > 0) {
-                            lastGasGwei = (gasWei / 1e9).toFixed(3);
-                            safeSetText('statGasFeeText', `${lastGasGwei} Gwei (~0.001 USDC)`);
-                        }
-                    }
-                }
-            } catch(e) {
-                console.warn("Live RPC Telemetry error:", e);
             }
         }
 
-        function startLiveTelemetryTicker() {
-            fetchRealRpcBlock();
-            setInterval(fetchRealRpcBlock, 3000);
-        }
+        // Fetch Real Gas Price
+        const gasRes = await fetch(targetRpc, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_gasPrice', params: [], id: 2 })
+        }).catch(() => null);
 
-        async function refreshTelemetry() {
-            const icon = document.getElementById('refreshIcon');
-            if (icon) icon.classList.add('animate-spin');
-
-            await fetchRealRpcBlock();
-            
-            if (icon) icon.classList.remove('animate-spin');
-            showToast('Telemetry Updated', `Live Arc L1 Block #${currentLiveBlock.toLocaleString()} fetched (${lastRpcLatencyMs}ms RPC latency)`, 'info');
-        }
-
-        function openFaucetModal() {
-            safeSetText('faucetTargetAddrText', currentAccount || '0x... (Connect Wallet)');
-            const modal = document.getElementById('faucetModal');
-            if (modal) modal.classList.remove('hidden');
-        }
-
-        function closeFaucetModal() {
-            const modal = document.getElementById('faucetModal');
-            if (modal) modal.classList.add('hidden');
-        }
-
-        function claimInAppFaucet() {
-            if (!currentAccount) {
-                closeFaucetModal();
-                handleWalletClick();
-                return;
+        if (gasRes && gasRes.ok) {
+            const gasData = await gasRes.json();
+            if (gasData && gasData.result) {
+                const gasWei = parseInt(gasData.result, 16);
+                if (gasWei > 0) {
+                    lastGasGwei = (gasWei / 1e9).toFixed(3);
+                    safeSetText('statGasFeeText', `${lastGasGwei} Gwei (~0.001 USDC)`);
+                }
             }
-
-            TOKENS[0].balance += 100.00;
-            TOKENS[1].balance += 50.00;
-
-            updateTokenBalancesUI();
-
-            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            saveTxRecord(currentAccount, {
-                txHash: "0x" + Math.random().toString(16).substring(2,18),
-                type: 'Faucet Claim',
-                pair: 'Claimed +100 USDC & +50 EURC Testnet Tokens',
-                time: timeStr
-            });
-
-            closeFaucetModal();
-            window.open('https://faucet.circle.com/', '_blank');
-            showToast('Faucet Claimed!', 'Added Testnet USDC & EURC to wallet balance', 'success');
         }
+    } catch (e) {
+        console.warn("Live RPC Telemetry error:", e);
+    }
+}
 
-        function saveTxRecord(account, txObj) {
-            if (!account) return;
-            const key = `PulseGrid_txs_${account.toLowerCase()}`;
-            const existing = JSON.parse(localStorage.getItem(key) || '[]');
-            existing.unshift(txObj);
-            localStorage.setItem(key, JSON.stringify(existing.slice(0, 30)));
-            renderWalletRealTxLog();
-        }
+function startLiveTelemetryTicker() {
+    fetchRealRpcBlock();
+    setInterval(fetchRealRpcBlock, 3000);
+}
 
-        function openTxHistoryModal() {
-            const list = document.getElementById('txHistoryModalList');
-            if (!list) return;
+async function refreshTelemetry() {
+    const icon = document.getElementById('refreshIcon');
+    if (icon) icon.classList.add('animate-spin');
 
-            if (!currentAccount) {
-                list.innerHTML = `<div class="text-slate-500 text-center py-8 font-sans italic">No real transactions recorded yet. Connect wallet to view history.</div>`;
-            } else {
-                const existing = JSON.parse(localStorage.getItem(`PulseGrid_txs_${currentAccount.toLowerCase()}`) || '[]');
-                if (existing.length === 0) {
-                    list.innerHTML = `<div class="text-slate-500 text-center py-8 font-sans italic">No real transactions recorded yet for this account.</div>`;
-                } else {
-                    list.innerHTML = '';
-                    existing.forEach(tx => {
-                        const div = document.createElement('div');
-                        div.className = 'p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between';
-                        div.innerHTML = `
+    await fetchRealRpcBlock();
+
+    if (icon) icon.classList.remove('animate-spin');
+    showToast('Telemetry Updated', `Live Arc L1 Block #${currentLiveBlock.toLocaleString()} fetched (${lastRpcLatencyMs}ms RPC latency)`, 'info');
+}
+
+function openFaucetModal() {
+    safeSetText('faucetTargetAddrText', currentAccount || '0x... (Connect Wallet)');
+    const modal = document.getElementById('faucetModal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+function closeFaucetModal() {
+    const modal = document.getElementById('faucetModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function claimInAppFaucet() {
+    if (!currentAccount) {
+        closeFaucetModal();
+        handleWalletClick();
+        return;
+    }
+
+    TOKENS[0].balance += 100.00;
+    TOKENS[1].balance += 50.00;
+
+    updateTokenBalancesUI();
+
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    saveTxRecord(currentAccount, {
+        txHash: "0x" + Math.random().toString(16).substring(2, 18),
+        type: 'Faucet Claim',
+        pair: 'Claimed +100 USDC & +50 EURC Testnet Tokens',
+        time: timeStr
+    });
+
+    closeFaucetModal();
+    window.open('https://faucet.circle.com/', '_blank');
+    showToast('Faucet Claimed!', 'Added Testnet USDC & EURC to wallet balance', 'success');
+}
+
+function saveTxRecord(account, txObj) {
+    if (!account) return;
+    const key = `PulseGrid_txs_${account.toLowerCase()}`;
+    const existing = JSON.parse(localStorage.getItem(key) || '[]');
+    existing.unshift(txObj);
+    localStorage.setItem(key, JSON.stringify(existing.slice(0, 30)));
+    renderWalletRealTxLog();
+}
+
+function openTxHistoryModal() {
+    const list = document.getElementById('txHistoryModalList');
+    if (!list) return;
+
+    if (!currentAccount) {
+        list.innerHTML = `<div class="text-slate-500 text-center py-8 font-sans italic">No real transactions recorded yet. Connect wallet to view history.</div>`;
+    } else {
+        const existing = JSON.parse(localStorage.getItem(`PulseGrid_txs_${currentAccount.toLowerCase()}`) || '[]');
+        if (existing.length === 0) {
+            list.innerHTML = `<div class="text-slate-500 text-center py-8 font-sans italic">No real transactions recorded yet for this account.</div>`;
+        } else {
+            list.innerHTML = '';
+            existing.forEach(tx => {
+                const div = document.createElement('div');
+                div.className = 'p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex items-center justify-between';
+                div.innerHTML = `
                             <div>
                                 <div class="font-bold text-slate-950 text-sm">${tx.type}</div>
                                 <div class="text-xs text-slate-600">${tx.pair}</div>
@@ -2334,37 +2378,37 @@ if (typeof tailwind !== 'undefined') {
                                 <div class="text-[11px] text-slate-500">${tx.time}</div>
                             </div>
                         `;
-                        list.appendChild(div);
-                    });
-                }
-            }
-            const modal = document.getElementById('txHistoryModal');
-            if (modal) modal.classList.remove('hidden');
+                list.appendChild(div);
+            });
         }
+    }
+    const modal = document.getElementById('txHistoryModal');
+    if (modal) modal.classList.remove('hidden');
+}
 
-        function closeTxHistoryModal() {
-            const modal = document.getElementById('txHistoryModal');
-            if (modal) modal.classList.add('hidden');
-        }
+function closeTxHistoryModal() {
+    const modal = document.getElementById('txHistoryModal');
+    if (modal) modal.classList.add('hidden');
+}
 
-        function showToast(title, message, type = 'info') {
-            const container = document.getElementById('toastContainer');
-            if (!container) return;
+function showToast(title, message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
 
-            const toast = document.createElement('div');
-            let borderClass = 'border-purple-600 bg-white';
-            let icon = 'info';
+    const toast = document.createElement('div');
+    let borderClass = 'border-purple-600 bg-white';
+    let icon = 'info';
 
-            if (type === 'success') {
-                borderClass = 'border-emerald-600 bg-white';
-                icon = 'check-circle-2';
-            } else if (type === 'error') {
-                borderClass = 'border-rose-600 bg-white';
-                icon = 'alert-triangle';
-            }
+    if (type === 'success') {
+        borderClass = 'border-emerald-600 bg-white';
+        icon = 'check-circle-2';
+    } else if (type === 'error') {
+        borderClass = 'border-rose-600 bg-white';
+        icon = 'alert-triangle';
+    }
 
-            toast.className = `pointer-events-auto p-4 rounded-xl border-3 border-slate-950 shadow-[4px_4px_0px_#0F172A] ${borderClass} flex items-start gap-3 min-w-[280px] max-w-sm page-view`;
-            toast.innerHTML = `
+    toast.className = `pointer-events-auto p-4 rounded-xl border-3 border-slate-950 shadow-[4px_4px_0px_#0F172A] ${borderClass} flex items-start gap-3 min-w-[280px] max-w-sm page-view`;
+    toast.innerHTML = `
                 <i data-lucide="${icon}" class="w-5 h-5 text-slate-950 shrink-0 mt-0.5"></i>
                 <div class="flex-1">
                     <div class="font-pixel font-bold text-slate-950 text-xs">${title}</div>
@@ -2372,466 +2416,466 @@ if (typeof tailwind !== 'undefined') {
                 </div>
             `;
 
-            container.appendChild(toast);
-            safeInitIcons();
+    container.appendChild(toast);
+    safeInitIcons();
 
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transition = 'opacity 0.3s ease';
-                setTimeout(() => toast.remove(), 300);
-            }, 4000);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+
+
+// WEB3 TOOLS HUB INTERACTIVE LOGIC
+function switchToolsTab(tabName) {
+    document.querySelectorAll('.tools-tab-btn').forEach(btn => {
+        btn.className = 'tools-tab-btn py-2.5 px-4 rounded-t-xl font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-2';
+    });
+    document.querySelectorAll('.tools-tab-content').forEach(el => el.classList.add('hidden'));
+
+    const activeBtn = document.getElementById(`toolsTabBtn-${tabName}`);
+    if (activeBtn) {
+        activeBtn.className = 'tools-tab-btn py-2.5 px-4 rounded-t-xl font-bold bg-purple-700 text-white border-2 border-slate-950 border-b-0 flex items-center gap-2';
+    }
+
+    const activeContent = document.getElementById(`toolsTabContent-${tabName}`);
+    if (activeContent) activeContent.classList.remove('hidden');
+
+    safeInitIcons();
+}
+
+function useCurrentWalletForTool() {
+    if (!currentAccount) {
+        showToast('Wallet Needed', 'Please connect your wallet first', 'info');
+        handleWalletClick();
+        return;
+    }
+    const input = document.getElementById('toolWalletInput');
+    if (input) input.value = currentAccount;
+    analyzeWalletAddressTool();
+}
+
+async function analyzeWalletAddressTool() {
+    const input = document.getElementById('toolWalletInput');
+    const address = input ? input.value.trim() : '';
+
+    if (!address || !address.startsWith('0x') || address.length !== 42) {
+        showToast('Invalid Address', 'Please enter a valid 42-character EVM address (0x...)', 'error');
+        return;
+    }
+
+    showToast('Analyzing Wallet...', `Querying Arc Testnet RPC for ${address.substring(0, 8)}...`, 'info');
+
+    try {
+        // Fetch USDC balance
+        const usdcRes = await fetch(ARC_RPC_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_getBalance', params: [address, 'latest'], id: 1 })
+        }).then(r => r.json());
+
+        // Fetch Tx Count
+        const txCountRes = await fetch(ARC_RPC_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_getTransactionCount', params: [address, 'latest'], id: 2 })
+        }).then(r => r.json());
+
+        // Fetch EURC balance
+        const eurcContract = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a';
+        const balanceOfData = '0x70a08231' + address.substring(2).padStart(64, '0');
+        const eurcRes = await fetch(ARC_RPC_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_call', params: [{ to: eurcContract, data: balanceOfData }, 'latest'], id: 3 })
+        }).then(r => r.json());
+
+        const usdcBal = usdcRes?.result ? Number(BigInt(usdcRes.result)) / 1e18 : 0;
+        const txCount = txCountRes?.result ? parseInt(txCountRes.result, 16) : 0;
+        const eurcBal = (eurcRes?.result && eurcRes.result !== '0x') ? Number(BigInt(eurcRes.result)) / 1e6 : 0;
+
+        safeSetText('toolResUsdc', `${usdcBal.toFixed(4)} USDC`);
+        safeSetText('toolResEurc', `${eurcBal.toFixed(4)} EURC`);
+        safeSetText('toolResTxCount', `${txCount} Txs`);
+        safeSetText('toolResAddress', address);
+
+        const link = document.getElementById('toolResExplorerLink');
+        if (link) link.href = `https://testnet.arcscan.app/address/${address}`;
+
+        const resultDiv = document.getElementById('walletAnalysisResult');
+        if (resultDiv) resultDiv.classList.remove('hidden');
+
+        showToast('Analysis Complete', `Address verified on Arc Testnet!`, 'success');
+
+    } catch (err) {
+        console.error("Tool analysis error:", err);
+        showToast('Analysis Error', 'Could not query RPC for this address', 'error');
+    }
+}
+
+function inspectPresetContract(address) {
+    window.open(`https://testnet.arcscan.app/address/${address}`, '_blank');
+}
+
+async function runRpcLatencyTest() {
+    showToast('Testing Latency', 'Pinging Arc RPC endpoints...', 'info');
+    const start1 = performance.now();
+    try {
+        await fetch(ARC_RPC_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_chainId', params: [], id: 1 }) });
+        const lat1 = Math.round(performance.now() - start1);
+        safeSetText('rpcLatency1', `${lat1}ms (ONLINE)`);
+    } catch (e) { safeSetText('rpcLatency1', 'OFFLINE'); }
+
+    const start2 = performance.now();
+    try {
+        await fetch(ARC_RPC_URL_ALT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_chainId', params: [], id: 2 }) });
+        const lat2 = Math.round(performance.now() - start2);
+        safeSetText('rpcLatency2', `${lat2}ms (ONLINE)`);
+    } catch (e) { safeSetText('rpcLatency2', 'OFFLINE'); }
+
+    showToast('Telemetry Updated', 'Arc Testnet RPC endpoints active!', 'success');
+}
+
+function initApp() {
+    try {
+        updateTokenBalancesUI();
+        updateWalletUI();
+        renderWalletView();
+        renderPortfolioView();
+        initWalletConnectProvider();
+        if (typeof loadQuestState === 'function') {
+            loadQuestState(currentAccount);
         }
+        switchPage('monitor');
+        safeInitIcons();
+    } catch (e) { }
+}
 
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
 
-        // WEB3 TOOLS HUB INTERACTIVE LOGIC
-        function switchToolsTab(tabName) {
-            document.querySelectorAll('.tools-tab-btn').forEach(btn => {
-                btn.className = 'tools-tab-btn py-2.5 px-4 rounded-t-xl font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-2';
-            });
-            document.querySelectorAll('.tools-tab-content').forEach(el => el.classList.add('hidden'));
-
-            const activeBtn = document.getElementById(`toolsTabBtn-${tabName}`);
-            if (activeBtn) {
-                activeBtn.className = 'tools-tab-btn py-2.5 px-4 rounded-t-xl font-bold bg-purple-700 text-white border-2 border-slate-950 border-b-0 flex items-center gap-2';
-            }
-
-            const activeContent = document.getElementById(`toolsTabContent-${tabName}`);
-            if (activeContent) activeContent.classList.remove('hidden');
-
-            safeInitIcons();
-        }
-
-        function useCurrentWalletForTool() {
-            if (!currentAccount) {
-                showToast('Wallet Needed', 'Please connect your wallet first', 'info');
-                handleWalletClick();
-                return;
-            }
-            const input = document.getElementById('toolWalletInput');
-            if (input) input.value = currentAccount;
-            analyzeWalletAddressTool();
-        }
-
-        async function analyzeWalletAddressTool() {
-            const input = document.getElementById('toolWalletInput');
-            const address = input ? input.value.trim() : '';
-
-            if (!address || !address.startsWith('0x') || address.length !== 42) {
-                showToast('Invalid Address', 'Please enter a valid 42-character EVM address (0x...)', 'error');
-                return;
-            }
-
-            showToast('Analyzing Wallet...', `Querying Arc Testnet RPC for ${address.substring(0, 8)}...`, 'info');
-
-            try {
-                // Fetch USDC balance
-                const usdcRes = await fetch(ARC_RPC_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_getBalance', params: [address, 'latest'], id: 1 })
-                }).then(r => r.json());
-
-                // Fetch Tx Count
-                const txCountRes = await fetch(ARC_RPC_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_getTransactionCount', params: [address, 'latest'], id: 2 })
-                }).then(r => r.json());
-
-                // Fetch EURC balance
-                const eurcContract = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a';
-                const balanceOfData = '0x70a08231' + address.substring(2).padStart(64, '0');
-                const eurcRes = await fetch(ARC_RPC_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_call', params: [{ to: eurcContract, data: balanceOfData }, 'latest'], id: 3 })
-                }).then(r => r.json());
-
-                const usdcBal = usdcRes?.result ? Number(BigInt(usdcRes.result)) / 1e18 : 0;
-                const txCount = txCountRes?.result ? parseInt(txCountRes.result, 16) : 0;
-                const eurcBal = (eurcRes?.result && eurcRes.result !== '0x') ? Number(BigInt(eurcRes.result)) / 1e6 : 0;
-
-                safeSetText('toolResUsdc', `${usdcBal.toFixed(4)} USDC`);
-                safeSetText('toolResEurc', `${eurcBal.toFixed(4)} EURC`);
-                safeSetText('toolResTxCount', `${txCount} Txs`);
-                safeSetText('toolResAddress', address);
-
-                const link = document.getElementById('toolResExplorerLink');
-                if (link) link.href = `https://testnet.arcscan.app/address/${address}`;
-
-                const resultDiv = document.getElementById('walletAnalysisResult');
-                if (resultDiv) resultDiv.classList.remove('hidden');
-
-                showToast('Analysis Complete', `Address verified on Arc Testnet!`, 'success');
-
-            } catch(err) {
-                console.error("Tool analysis error:", err);
-                showToast('Analysis Error', 'Could not query RPC for this address', 'error');
-            }
-        }
-
-        function inspectPresetContract(address) {
-            window.open(`https://testnet.arcscan.app/address/${address}`, '_blank');
-        }
-
-        async function runRpcLatencyTest() {
-            showToast('Testing Latency', 'Pinging Arc RPC endpoints...', 'info');
-            const start1 = performance.now();
-            try {
-                await fetch(ARC_RPC_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_chainId', params: [], id: 1 }) });
-                const lat1 = Math.round(performance.now() - start1);
-                safeSetText('rpcLatency1', `${lat1}ms (ONLINE)`);
-            } catch(e) { safeSetText('rpcLatency1', 'OFFLINE'); }
-
-            const start2 = performance.now();
-            try {
-                await fetch(ARC_RPC_URL_ALT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_chainId', params: [], id: 2 }) });
-                const lat2 = Math.round(performance.now() - start2);
-                safeSetText('rpcLatency2', `${lat2}ms (ONLINE)`);
-            } catch(e) { safeSetText('rpcLatency2', 'OFFLINE'); }
-
-            showToast('Telemetry Updated', 'Arc Testnet RPC endpoints active!', 'success');
-        }
-
-        function initApp() {
-            try {
-                updateTokenBalancesUI();
-                updateWalletUI();
-                renderWalletView();
-                renderPortfolioView();
-                initWalletConnectProvider();
-                if (typeof loadQuestState === 'function') {
-                    loadQuestState(currentAccount);
-                }
-                switchPage('monitor');
-                safeInitIcons();
-            } catch(e) {}
-        }
-
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initApp);
-        } else {
-            initApp();
-        }
-    
 
 // --- EXTRACTED APPLICATION SCRIPT ---
 
 
-        // Multi-Language Translation Dictionary (10 Languages)
-        const i18nDict = {
-            en: {
-                nav_assistant: "AI Assistant",
-                nav_prediction: "Price Predictions",
-                nav_settings: "Settings",
-                ai_assistant_title: "Gemini Web3 AI Assistant",
-                ai_assistant_subtitle: "Real-time intelligent assistance for Arc Network, token swaps, and multi-chain analytics.",
-                quick_prompts: "Quick Prompts",
-                prediction_title: "Chain Price Predictions & Market Intelligence",
-                prediction_subtitle: "AI-driven predictive market models, trend forecasts, and root cause analysis across major blockchain networks.",
-                settings_title: "Application Settings",
-                settings_subtitle: "Configure user profile, connected wallets, display preferences, and regional localization."
-            },
-            hi: {
-                nav_assistant: "एआई सहायक",
-                nav_prediction: "मूल्य पूर्वानुमान",
-                nav_settings: "सेटिंग्स",
-                ai_assistant_title: "जेमिनी वेब3 एआई सहायक",
-                ai_assistant_subtitle: "आर्क नेटवर्क और टोकन स्वैप के लिए त्वरित बुद्धिमत्ता सहायता।",
-                quick_prompts: "त्वरित सुझाव",
-                prediction_title: "चेन मूल्य पूर्वानुमान एवं बाजार विश्लेषण",
-                prediction_subtitle: "ब्लॉकचेन नेटवर्क के लिए एआई संचालित पूर्वानुमान मॉडल।",
-                settings_title: "एप्लिकेशन सेटिंग्स",
-                settings_subtitle: "उपयोगकर्ता प्रोफ़ाइल और डिस्प्ले प्राथमिकताओं को कॉन्फ़िगर करें।"
-            },
-            es: {
-                nav_assistant: "Asistente IA",
-                nav_prediction: "Predicciones de Precios",
-                nav_settings: "Ajustes",
-                ai_assistant_title: "Asistente IA Gemini Web3",
-                ai_assistant_subtitle: "Asistencia inteligente en tiempo real para Arc Network y swaps.",
-                quick_prompts: "Prompts Rápidos",
-                prediction_title: "Predicciones de Precios y Mercado",
-                prediction_subtitle: "Modelos predictivos del mercado impulsados por IA.",
-                settings_title: "Ajustes de la Aplicación",
-                settings_subtitle: "Configure perfiles de usuario y preferencias de pantalla."
-            },
-            fr: {
-                nav_assistant: "Assistant IA",
-                nav_prediction: "Prédictions de Prix",
-                nav_settings: "Paramètres",
-                ai_assistant_title: "Assistant IA Gemini Web3",
-                ai_assistant_subtitle: "Assistance intelligente en temps réel pour Arc Network.",
-                quick_prompts: "Prompts Rapides",
-                prediction_title: "Prédictions de Prix et Analyse de Marché",
-                prediction_subtitle: "Modèles prédictifs du marché propulsés par IA.",
-                settings_title: "Paramètres de l'Application",
-                settings_subtitle: "Configurez le profil utilisateur et l'affichage."
-            },
-            de: {
-                nav_assistant: "KI-Assistent",
-                nav_prediction: "Preisprognosen",
-                nav_settings: "Einstellungen",
-                ai_assistant_title: "Gemini Web3 KI-Assistent",
-                ai_assistant_subtitle: "Echtzeit-Unterstützung für Arc Network und Token-Swaps.",
-                quick_prompts: "Schnellanfragen",
-                prediction_title: "Chain-Preisprognosen & Marktanalysen",
-                prediction_subtitle: "KI-gestützte Prognosemodelle für Blockchain-Netzwerke.",
-                settings_title: "Anwendungseinstellungen",
-                settings_subtitle: "Konfigurieren Sie Benutzerprofile und Anzeigeeinstellungen."
-            },
-            zh: {
-                nav_assistant: "AI 助手",
-                nav_prediction: "价格预测",
-                nav_settings: "设置",
-                ai_assistant_title: "Gemini Web3 AI 助手",
-                ai_assistant_subtitle: "针对 Arc 网络和代币兑换的实时智能助手。",
-                quick_prompts: "快捷提示",
-                prediction_title: "跨链价格预测与市场情报",
-                prediction_subtitle: "人工智能驱动的区块链预测模型。",
-                settings_title: "应用设置",
-                settings_subtitle: "配置用户资料和显示偏好。"
-            },
-            ja: {
-                nav_assistant: "AI アシスタント",
-                nav_prediction: "価格予測",
-                nav_settings: "設定",
-                ai_assistant_title: "Gemini Web3 AI アシスタント",
-                ai_assistant_subtitle: "Arc NetworkおよびトークンスワップのリアルタイムAIサポート。",
-                quick_prompts: "クイックプロンプト",
-                prediction_title: "価格予測＆分析",
-                prediction_subtitle: "主要ブロックチェーンのAI予測モデル。",
-                settings_title: "アプリケーション設定",
-                settings_subtitle: "ユーザープロファイルと表示設定を構成。"
-            },
-            ar: {
-                nav_assistant: "مساعد الذكاء الاصطناعي",
-                nav_prediction: "توقعات الأسعار",
-                nav_settings: "الإعدادات",
-                ai_assistant_title: "مساعد جيميناي للويب 3",
-                ai_assistant_subtitle: "مساعدة ذكية فورية لشبكة Arc وتداول التوكنات.",
-                quick_prompts: "مطالبات سريعة",
-                prediction_title: "توقعات أسعار السلاسل وتحليلات السوق",
-                prediction_subtitle: "نماذج التنبؤ بالسوق المدعومة بالذكاء الاصطناعي.",
-                settings_title: "إعدادات التطبيق",
-                settings_subtitle: "تهيئة ملف المستخدم وتفضيلات العرض."
-            },
-            ru: {
-                nav_assistant: "ИИ Помощник",
-                nav_prediction: "Прогнозы Цен",
-                nav_settings: "Настройки",
-                ai_assistant_title: "Gemini Web3 ИИ Помощник",
-                ai_assistant_subtitle: "Интеллектуальная помощь в реальном времени для Arc Network.",
-                quick_prompts: "Быстрые подсказки",
-                prediction_title: "Прогнозы Цен и Аналитика Рынка",
-                prediction_subtitle: "Прогностические модели рынка на базе ИИ.",
-                settings_title: "Настройки Приложения",
-                settings_subtitle: "Настройка профиля пользователя и параметров отображения."
-            },
-            pt: {
-                nav_assistant: "Assistente IA",
-                nav_prediction: "Previsões de Preços",
-                nav_settings: "Configurações",
-                ai_assistant_title: "Assistente IA Gemini Web3",
-                ai_assistant_subtitle: "Assistência inteligente em tempo real para a rede Arc.",
-                quick_prompts: "Prompts Rápidos",
-                prediction_title: "Previsões de Preços e Análise de Mercado",
-                prediction_subtitle: "Modelos preditivos de mercado orientados por IA.",
-                settings_title: "Configurações do Aplicativo",
-                settings_subtitle: "Configure o perfil do usuário e preferências."
-            }
-        };
+// Multi-Language Translation Dictionary (10 Languages)
+const i18nDict = {
+    en: {
+        nav_assistant: "AI Assistant",
+        nav_prediction: "Price Predictions",
+        nav_settings: "Settings",
+        ai_assistant_title: "Gemini Web3 AI Assistant",
+        ai_assistant_subtitle: "Real-time intelligent assistance for Arc Network, token swaps, and multi-chain analytics.",
+        quick_prompts: "Quick Prompts",
+        prediction_title: "Chain Price Predictions & Market Intelligence",
+        prediction_subtitle: "AI-driven predictive market models, trend forecasts, and root cause analysis across major blockchain networks.",
+        settings_title: "Application Settings",
+        settings_subtitle: "Configure user profile, connected wallets, display preferences, and regional localization."
+    },
+    hi: {
+        nav_assistant: "एआई सहायक",
+        nav_prediction: "मूल्य पूर्वानुमान",
+        nav_settings: "सेटिंग्स",
+        ai_assistant_title: "जेमिनी वेब3 एआई सहायक",
+        ai_assistant_subtitle: "आर्क नेटवर्क और टोकन स्वैप के लिए त्वरित बुद्धिमत्ता सहायता।",
+        quick_prompts: "त्वरित सुझाव",
+        prediction_title: "चेन मूल्य पूर्वानुमान एवं बाजार विश्लेषण",
+        prediction_subtitle: "ब्लॉकचेन नेटवर्क के लिए एआई संचालित पूर्वानुमान मॉडल।",
+        settings_title: "एप्लिकेशन सेटिंग्स",
+        settings_subtitle: "उपयोगकर्ता प्रोफ़ाइल और डिस्प्ले प्राथमिकताओं को कॉन्फ़िगर करें।"
+    },
+    es: {
+        nav_assistant: "Asistente IA",
+        nav_prediction: "Predicciones de Precios",
+        nav_settings: "Ajustes",
+        ai_assistant_title: "Asistente IA Gemini Web3",
+        ai_assistant_subtitle: "Asistencia inteligente en tiempo real para Arc Network y swaps.",
+        quick_prompts: "Prompts Rápidos",
+        prediction_title: "Predicciones de Precios y Mercado",
+        prediction_subtitle: "Modelos predictivos del mercado impulsados por IA.",
+        settings_title: "Ajustes de la Aplicación",
+        settings_subtitle: "Configure perfiles de usuario y preferencias de pantalla."
+    },
+    fr: {
+        nav_assistant: "Assistant IA",
+        nav_prediction: "Prédictions de Prix",
+        nav_settings: "Paramètres",
+        ai_assistant_title: "Assistant IA Gemini Web3",
+        ai_assistant_subtitle: "Assistance intelligente en temps réel pour Arc Network.",
+        quick_prompts: "Prompts Rapides",
+        prediction_title: "Prédictions de Prix et Analyse de Marché",
+        prediction_subtitle: "Modèles prédictifs du marché propulsés par IA.",
+        settings_title: "Paramètres de l'Application",
+        settings_subtitle: "Configurez le profil utilisateur et l'affichage."
+    },
+    de: {
+        nav_assistant: "KI-Assistent",
+        nav_prediction: "Preisprognosen",
+        nav_settings: "Einstellungen",
+        ai_assistant_title: "Gemini Web3 KI-Assistent",
+        ai_assistant_subtitle: "Echtzeit-Unterstützung für Arc Network und Token-Swaps.",
+        quick_prompts: "Schnellanfragen",
+        prediction_title: "Chain-Preisprognosen & Marktanalysen",
+        prediction_subtitle: "KI-gestützte Prognosemodelle für Blockchain-Netzwerke.",
+        settings_title: "Anwendungseinstellungen",
+        settings_subtitle: "Konfigurieren Sie Benutzerprofile und Anzeigeeinstellungen."
+    },
+    zh: {
+        nav_assistant: "AI 助手",
+        nav_prediction: "价格预测",
+        nav_settings: "设置",
+        ai_assistant_title: "Gemini Web3 AI 助手",
+        ai_assistant_subtitle: "针对 Arc 网络和代币兑换的实时智能助手。",
+        quick_prompts: "快捷提示",
+        prediction_title: "跨链价格预测与市场情报",
+        prediction_subtitle: "人工智能驱动的区块链预测模型。",
+        settings_title: "应用设置",
+        settings_subtitle: "配置用户资料和显示偏好。"
+    },
+    ja: {
+        nav_assistant: "AI アシスタント",
+        nav_prediction: "価格予測",
+        nav_settings: "設定",
+        ai_assistant_title: "Gemini Web3 AI アシスタント",
+        ai_assistant_subtitle: "Arc NetworkおよびトークンスワップのリアルタイムAIサポート。",
+        quick_prompts: "クイックプロンプト",
+        prediction_title: "価格予測＆分析",
+        prediction_subtitle: "主要ブロックチェーンのAI予測モデル。",
+        settings_title: "アプリケーション設定",
+        settings_subtitle: "ユーザープロファイルと表示設定を構成。"
+    },
+    ar: {
+        nav_assistant: "مساعد الذكاء الاصطناعي",
+        nav_prediction: "توقعات الأسعار",
+        nav_settings: "الإعدادات",
+        ai_assistant_title: "مساعد جيميناي للويب 3",
+        ai_assistant_subtitle: "مساعدة ذكية فورية لشبكة Arc وتداول التوكنات.",
+        quick_prompts: "مطالبات سريعة",
+        prediction_title: "توقعات أسعار السلاسل وتحليلات السوق",
+        prediction_subtitle: "نماذج التنبؤ بالسوق المدعومة بالذكاء الاصطناعي.",
+        settings_title: "إعدادات التطبيق",
+        settings_subtitle: "تهيئة ملف المستخدم وتفضيلات العرض."
+    },
+    ru: {
+        nav_assistant: "ИИ Помощник",
+        nav_prediction: "Прогнозы Цен",
+        nav_settings: "Настройки",
+        ai_assistant_title: "Gemini Web3 ИИ Помощник",
+        ai_assistant_subtitle: "Интеллектуальная помощь в реальном времени для Arc Network.",
+        quick_prompts: "Быстрые подсказки",
+        prediction_title: "Прогнозы Цен и Аналитика Рынка",
+        prediction_subtitle: "Прогностические модели рынка на базе ИИ.",
+        settings_title: "Настройки Приложения",
+        settings_subtitle: "Настройка профиля пользователя и параметров отображения."
+    },
+    pt: {
+        nav_assistant: "Assistente IA",
+        nav_prediction: "Previsões de Preços",
+        nav_settings: "Configurações",
+        ai_assistant_title: "Assistente IA Gemini Web3",
+        ai_assistant_subtitle: "Assistência inteligente em tempo real para a rede Arc.",
+        quick_prompts: "Prompts Rápidos",
+        prediction_title: "Previsões de Preços e Análise de Mercado",
+        prediction_subtitle: "Modelos preditivos de mercado orientados por IA.",
+        settings_title: "Configurações do Aplicativo",
+        settings_subtitle: "Configure o perfil do usuário e preferências."
+    }
+};
 
-        function changeLanguage(lang) {
-            const langMap = {
-                'en': 'en',
-                'hi': 'hi',
-                'es': 'es',
-                'fr': 'fr',
-                'de': 'de',
-                'zh': 'zh-CN',
-                'ja': 'ja',
-                'ar': 'ar',
-                'ru': 'ru',
-                'pt': 'pt'
-            };
+function changeLanguage(lang) {
+    const langMap = {
+        'en': 'en',
+        'hi': 'hi',
+        'es': 'es',
+        'fr': 'fr',
+        'de': 'de',
+        'zh': 'zh-CN',
+        'ja': 'ja',
+        'ar': 'ar',
+        'ru': 'ru',
+        'pt': 'pt'
+    };
 
-            const targetLang = langMap[lang] || 'en';
+    const targetLang = langMap[lang] || 'en';
 
-            // 1. Trigger Google Translate Widget for full-page translation
-            const select = document.querySelector('.goog-te-combo');
-            if (select) {
-                select.value = targetLang;
-                select.dispatchEvent(new Event('change'));
-            }
+    // 1. Trigger Google Translate Widget for full-page translation
+    const select = document.querySelector('.goog-te-combo');
+    if (select) {
+        select.value = targetLang;
+        select.dispatchEvent(new Event('change'));
+    }
 
-            const sel = document.getElementById('languageSelector');
-            if (sel) sel.value = lang;
-        }
+    const sel = document.getElementById('languageSelector');
+    if (sel) sel.value = lang;
+}
 
-        function saveGeminiApiKey() {
-            const input = document.getElementById('geminiApiKeyInput');
-            const assistantInput = document.getElementById('geminiApiKeyInputAssistant');
-            const keyVal = input && input.value.trim() ? input.value.trim() : (assistantInput ? assistantInput.value.trim() : '');
-            if (keyVal) {
-                localStorage.setItem('PulseGrid_gemini_api_key', keyVal);
-                if (input) input.value = keyVal;
-                if (assistantInput) assistantInput.value = keyVal;
-                showToast('Gemini API Key Saved! 🚀', 'Direct Official Google Gemini 2.0 / 1.5 AI Model is now ACTIVE!', 'success');
-            } else {
-                localStorage.removeItem('PulseGrid_gemini_api_key');
-                if (input) input.value = '';
-                if (assistantInput) assistantInput.value = '';
-                showToast('Gemini Key Cleared', 'Reverted to free AI mode', 'info');
-            }
-        }
+function saveGeminiApiKey() {
+    const input = document.getElementById('geminiApiKeyInput');
+    const assistantInput = document.getElementById('geminiApiKeyInputAssistant');
+    const keyVal = input && input.value.trim() ? input.value.trim() : (assistantInput ? assistantInput.value.trim() : '');
+    if (keyVal) {
+        localStorage.setItem('PulseGrid_gemini_api_key', keyVal);
+        if (input) input.value = keyVal;
+        if (assistantInput) assistantInput.value = keyVal;
+        showToast('Gemini API Key Saved! 🚀', 'Direct Official Google Gemini 2.0 / 1.5 AI Model is now ACTIVE!', 'success');
+    } else {
+        localStorage.removeItem('PulseGrid_gemini_api_key');
+        if (input) input.value = '';
+        if (assistantInput) assistantInput.value = '';
+        showToast('Gemini Key Cleared', 'Reverted to free AI mode', 'info');
+    }
+}
 
-        function saveGeminiApiKeyFromAssistant() {
-            const assistantInput = document.getElementById('geminiApiKeyInputAssistant');
-            const input = document.getElementById('geminiApiKeyInput');
-            const keyVal = assistantInput && assistantInput.value.trim() ? assistantInput.value.trim() : (input ? input.value.trim() : '');
-            if (keyVal) {
-                localStorage.setItem('PulseGrid_gemini_api_key', keyVal);
-                if (input) input.value = keyVal;
-                if (assistantInput) assistantInput.value = keyVal;
-                showToast('Gemini API Key Saved! 🚀', 'Direct Official Google Gemini 2.0 / 1.5 AI Model is now ACTIVE!', 'success');
-            } else {
-                saveGeminiApiKey();
-            }
-        }
+function saveGeminiApiKeyFromAssistant() {
+    const assistantInput = document.getElementById('geminiApiKeyInputAssistant');
+    const input = document.getElementById('geminiApiKeyInput');
+    const keyVal = assistantInput && assistantInput.value.trim() ? assistantInput.value.trim() : (input ? input.value.trim() : '');
+    if (keyVal) {
+        localStorage.setItem('PulseGrid_gemini_api_key', keyVal);
+        if (input) input.value = keyVal;
+        if (assistantInput) assistantInput.value = keyVal;
+        showToast('Gemini API Key Saved! 🚀', 'Direct Official Google Gemini 2.0 / 1.5 AI Model is now ACTIVE!', 'success');
+    } else {
+        saveGeminiApiKey();
+    }
+}
 
-        // REAL-TIME LIVE MAINNET COUNTDOWN TIMER (TARGET: SEPT 16, 2026 11:30 PM IST)
-        function startMainnetCountdown() {
-            function updateTimer() {
-                try {
-                    const targetDate = new Date('2026-09-16T23:30:00+05:30').getTime();
-                    const now = new Date().getTime();
-                    const diff = targetDate - now;
+// REAL-TIME LIVE MAINNET COUNTDOWN TIMER (TARGET: SEPT 16, 2026 11:30 PM IST)
+function startMainnetCountdown() {
+    function updateTimer() {
+        try {
+            const targetDate = new Date('2026-09-16T23:30:00+05:30').getTime();
+            const now = new Date().getTime();
+            const diff = targetDate - now;
 
-                    if (diff <= 0) {
-                        safeSetText('cdDays', '00');
-                        safeSetText('cdHours', '00');
-                        safeSetText('cdMinutes', '00');
-                        safeSetText('cdSeconds', '00');
-                        return;
-                    }
-
-                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-                    safeSetText('cdDays', String(days).padStart(2, '0'));
-                    safeSetText('cdHours', String(hours).padStart(2, '0'));
-                    safeSetText('cdMinutes', String(minutes).padStart(2, '0'));
-                    safeSetText('cdSeconds', String(seconds).padStart(2, '0'));
-                } catch(e) {}
+            if (diff <= 0) {
+                safeSetText('cdDays', '00');
+                safeSetText('cdHours', '00');
+                safeSetText('cdMinutes', '00');
+                safeSetText('cdSeconds', '00');
+                return;
             }
 
-            updateTimer();
-            setInterval(updateTimer, 1000);
-        }
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-        // LIVE BLOCK HEIGHT & NETWORK TELEMETRY TIMER
-        function startLiveTelemetryTimer() {
-            fetchRealRpcBlock();
-            setInterval(fetchRealRpcBlock, 3000);
-        }
+            safeSetText('cdDays', String(days).padStart(2, '0'));
+            safeSetText('cdHours', String(hours).padStart(2, '0'));
+            safeSetText('cdMinutes', String(minutes).padStart(2, '0'));
+            safeSetText('cdSeconds', String(seconds).padStart(2, '0'));
+        } catch (e) { }
+    }
 
-        // INTELLIGENT CONVERSATIONAL KNOWLEDGE ENGINE (DYNAMIC OFFLINE & HYBRID AI)
-        function generateSmartAiResponse(userMsg) {
-            const q = userMsg.toLowerCase().trim();
+    updateTimer();
+    setInterval(updateTimer, 1000);
+}
 
-            if (q.includes("name") || q.includes("naam") || q.includes("who are you") || q.includes("tum kaun ho")) {
-                return "Mera naam **Pro AI** (Gemini Web3 Engine) hai! Main Google Gemini technology par built ek super-smart Web3 AI Assistant hu. Main aapke har query ka detailed markdown reply de sakta hu!";
-            }
-            if (q.includes('kaise ho') || q.includes('kese ho') || q.includes('how are you')) {
-                return "Main ekdum badhiya hu! Main AI hu toh 100% active rehta hu 😄! Aap bataiye aap kaise hain? Aaj main aapki Web3 ya Coding me kya madad karu?";
-            }
-            if (q === 'hi' || q === 'hello' || q === 'hey' || q === 'namaste' || q === 'helo' || q === 'hlo') {
-                return "Hello! Main Pro AI (Gemini Web3 Engine) hu! Aap mujhse Web3, Arc Testnet, Coding, Crypto Prices ya kisi bhi general topic par question pooch sakte hain. Aaj main aapki kya madad karu?";
-            }
-            if (q.includes("kya haal hai") || q.includes("whats up") || q.includes("kya chal raha hai")) {
-                return "Sab ekdum badhiya chal raha hai! Aap bataiye aaj kya naya explore karna chahte hain?";
-            }
-            if (q.includes("kya kar sakte ho") || q.includes("what can you do") || q.includes("help")) {
-                return "Main aapke liye bohot saare kaam kar sakta hu:\n\n1. **Web3 & DEX**: Arc Testnet swaps, gas fees, aur wallet setup samjha sakta hu.\n2. **Coding**: Solidity, JavaScript, Python code write aur debug kar sakta hu.\n3. **Crypto Intelligence**: Bitcoin, Ethereum, Solana market predictions de sakta hu.\n4. **General Chat**: General knowledge, math, science, aur natural bhasha me aapse baatcheet kar sakta hu!";
-            }
-            if (q.includes("joke") || q.includes("chutkula") || q.includes("hanso")) {
-                return "Haha, ek mazaedar developer joke suniye:\n\n*Ek programmer ne dukan wale se kaha: '1 dozen ande le aao, aur agar seb milein toh 6 le aana.' Programmer 6 dozen ande le kar ghar aaya! Wife ne pucha: 'Itne ande kyu laye?' Programmer: 'Kyunki seb mil gaye the!'* 😂";
-            }
-            if (/\b(hindi|hinglish)\b/i.test(q) || q.includes("hindi aati hai")) {
-                return "Haan bilkul! Mujhe Hindi aur Hinglish dono achhi tarah aati hain. Aap bina kisi hesitation ke Hindi ya Hinglish me kuch bhi pooch sakte hain!";
-            }
-            if (q.includes("ritual") || (q.includes("mainnet") && q.includes("kab"))) {
-                return "### Ritual & Arc Mainnet Launch Update\n- **Ritual AI Network**: Ritual AI Coprocessor and Infernet Mainnet deployment **Q3/Q4 2026** me planned hai!\n- **Arc L1 Mainnet**: Official Arc Mainnet launch **September 16, 2026** ko set hai.\n- **Current Status**: Abhi Arc L1 Testnet (Chain ID `5042002`) active hai jisme aap Testnet DEX swaps aur quests try kar sakte hain!";
-            }
-            if (q.includes("arc") || q.includes("testnet")) {
-                return "### Arc L1 Testnet Overview\nArc L1 Testnet ek high-performance enterprise Layer-1 blockchain hai:\n\n- **Block Time**: ~450ms sub-second finality\n- **Native Gas Token**: USDC\n- **Chain ID**: 5042002\n- **RPC Endpoint**: https://rpc.testnet.arc.network\n- **Consortium Validators**: Circle, BlackRock, Visa, DTCC, BNY";
-            }
-            if (q.includes("swap") || q.includes("dex")) {
-                return "### PulseGrid DEX AMM Swap\nPulseGrid DEX par aap USDC ➔ EURC aur EURC ➔ USDC zero-slippage AMM swaps perform kar sakte hain:\n\n1. **Sub-second Finality**: Swaps complete in < 500ms.\n2. **Ultra-Low Gas Fee**: ~0.001 USDC native gas fee.\n3. **Points Reward**: Har confirmed swap par **+50 Builder PTS** milte hain!";
-            }
-            if (q.includes("btc") || q.includes("bitcoin")) {
-                return "### Bitcoin (BTC) Intelligence & Forecast\n- **Current Price**: ~$64,250.00\n- **Market Trend**: Bullish (+4.2% 24h)\n- **Key Support**: $62,000.00\n- **Resistance Target**: $66,900.00\n\n*Analysis*: Institutional inflows and ETF volume remain strong.";
-            }
-            if (q.includes("eth") || q.includes("ethereum")) {
-                return "### Ethereum (ETH) Intelligence & Forecast\n- **Current Price**: ~$3,240.50\n- **Market Trend**: Bullish (+5.8% 24h)\n- **Key Support**: $3,100.00\n- **Resistance Target**: $3,450.00\n\n*Analysis*: Layer-2 activity and staking queue reaching multi-month highs.";
-            }
-            if (q.includes("code") || q.includes("solidity") || q.includes("function") || q.includes("contract")) {
-                return "### Solidity Smart Contract Example\nHere is a complete ERC-20 token interface snippet:\n\n```solidity\n// SPDX-License-Identifier: MIT\npragma solidity ^0.8.20;\n\ninterface IERC20 {\n    function totalSupply() external view returns (uint256);\n    function balanceOf(address account) external view returns (uint256);\n    function transfer(address recipient, uint256 amount) external returns (bool);\n    function allowance(address owner, address spender) external view returns (uint256);\n    function approve(address spender, uint256 amount) external returns (bool);\n}\n```";
-            }
+// LIVE BLOCK HEIGHT & NETWORK TELEMETRY TIMER
+function startLiveTelemetryTimer() {
+    fetchRealRpcBlock();
+    setInterval(fetchRealRpcBlock, 3000);
+}
 
-            // General Knowledge & Detailed Dynamic Response for ANY Question
-            return `### Pro AI Answer: "${userMsg}"\n\nAapke question **"${userMsg}"** ka analysis:\n\n1. **Query Topic**: General Web3 / Protocol Telemetry Query\n2. **Network Sync**: Connected to Arc L1 Testnet (Chain ID 5042002)\n3. **Information**: Ritual AI Protocol and Arc Testnet Mainnet deployments are scheduled for **Q3/Q4 2026** (Arc L1 Target: Sept 16, 2026).\n\n*Pro Tip*: Direct Google Gemini 2.0 AI answers activate karne ke liye apni free Google API key enter karke Save button dabayein!`;
-        }
+// INTELLIGENT CONVERSATIONAL KNOWLEDGE ENGINE (DYNAMIC OFFLINE & HYBRID AI)
+function generateSmartAiResponse(userMsg) {
+    const q = userMsg.toLowerCase().trim();
 
-        function setTheme(mode) {
-            if (mode === 'dark') {
-                document.documentElement.classList.add('dark');
-                document.body.style.backgroundColor = '#0F172A';
-                document.body.style.color = '#F8FAFC';
-                document.getElementById('themeDarkBtn')?.classList.add('bg-purple-600', 'text-white');
-                document.getElementById('themeLightBtn')?.classList.remove('bg-purple-600', 'text-white');
-            } else {
-                document.documentElement.classList.remove('dark');
-                document.body.style.backgroundColor = '#FFFFFF';
-                document.body.style.color = '#0F172A';
-                document.getElementById('themeLightBtn')?.classList.add('bg-purple-600', 'text-white');
-                document.getElementById('themeDarkBtn')?.classList.remove('bg-purple-600', 'text-white');
-            }
-        }
+    if (q.includes("name") || q.includes("naam") || q.includes("who are you") || q.includes("tum kaun ho")) {
+        return "Mera naam **Pro AI** (Gemini Web3 Engine) hai! Main Google Gemini technology par built ek super-smart Web3 AI Assistant hu. Main aapke har query ka detailed markdown reply de sakta hu!";
+    }
+    if (q.includes('kaise ho') || q.includes('kese ho') || q.includes('how are you')) {
+        return "Main ekdum badhiya hu! Main AI hu toh 100% active rehta hu 😄! Aap bataiye aap kaise hain? Aaj main aapki Web3 ya Coding me kya madad karu?";
+    }
+    if (q === 'hi' || q === 'hello' || q === 'hey' || q === 'namaste' || q === 'helo' || q === 'hlo') {
+        return "Hello! Main Pro AI (Gemini Web3 Engine) hu! Aap mujhse Web3, Arc Testnet, Coding, Crypto Prices ya kisi bhi general topic par question pooch sakte hain. Aaj main aapki kya madad karu?";
+    }
+    if (q.includes("kya haal hai") || q.includes("whats up") || q.includes("kya chal raha hai")) {
+        return "Sab ekdum badhiya chal raha hai! Aap bataiye aaj kya naya explore karna chahte hain?";
+    }
+    if (q.includes("kya kar sakte ho") || q.includes("what can you do") || q.includes("help")) {
+        return "Main aapke liye bohot saare kaam kar sakta hu:\n\n1. **Web3 & DEX**: Arc Testnet swaps, gas fees, aur wallet setup samjha sakta hu.\n2. **Coding**: Solidity, JavaScript, Python code write aur debug kar sakta hu.\n3. **Crypto Intelligence**: Bitcoin, Ethereum, Solana market predictions de sakta hu.\n4. **General Chat**: General knowledge, math, science, aur natural bhasha me aapse baatcheet kar sakta hu!";
+    }
+    if (q.includes("joke") || q.includes("chutkula") || q.includes("hanso")) {
+        return "Haha, ek mazaedar developer joke suniye:\n\n*Ek programmer ne dukan wale se kaha: '1 dozen ande le aao, aur agar seb milein toh 6 le aana.' Programmer 6 dozen ande le kar ghar aaya! Wife ne pucha: 'Itne ande kyu laye?' Programmer: 'Kyunki seb mil gaye the!'* 😂";
+    }
+    if (/\b(hindi|hinglish)\b/i.test(q) || q.includes("hindi aati hai")) {
+        return "Haan bilkul! Mujhe Hindi aur Hinglish dono achhi tarah aati hain. Aap bina kisi hesitation ke Hindi ya Hinglish me kuch bhi pooch sakte hain!";
+    }
+    if (q.includes("ritual") || (q.includes("mainnet") && q.includes("kab"))) {
+        return "### Ritual & Arc Mainnet Launch Update\n- **Ritual AI Network**: Ritual AI Coprocessor and Infernet Mainnet deployment **Q3/Q4 2026** me planned hai!\n- **Arc L1 Mainnet**: Official Arc Mainnet launch **September 16, 2026** ko set hai.\n- **Current Status**: Abhi Arc L1 Testnet (Chain ID `5042002`) active hai jisme aap Testnet DEX swaps aur quests try kar sakte hain!";
+    }
+    if (q.includes("arc") || q.includes("testnet")) {
+        return "### Arc L1 Testnet Overview\nArc L1 Testnet ek high-performance enterprise Layer-1 blockchain hai:\n\n- **Block Time**: ~450ms sub-second finality\n- **Native Gas Token**: USDC\n- **Chain ID**: 5042002\n- **RPC Endpoint**: https://rpc.testnet.arc.network\n- **Consortium Validators**: Circle, BlackRock, Visa, DTCC, BNY";
+    }
+    if (q.includes("swap") || q.includes("dex")) {
+        return "### PulseGrid DEX AMM Swap\nPulseGrid DEX par aap USDC ➔ EURC aur EURC ➔ USDC zero-slippage AMM swaps perform kar sakte hain:\n\n1. **Sub-second Finality**: Swaps complete in < 500ms.\n2. **Ultra-Low Gas Fee**: ~0.001 USDC native gas fee.\n3. **Points Reward**: Har confirmed swap par **+50 Builder PTS** milte hain!";
+    }
+    if (q.includes("btc") || q.includes("bitcoin")) {
+        return "### Bitcoin (BTC) Intelligence & Forecast\n- **Current Price**: ~$64,250.00\n- **Market Trend**: Bullish (+4.2% 24h)\n- **Key Support**: $62,000.00\n- **Resistance Target**: $66,900.00\n\n*Analysis*: Institutional inflows and ETF volume remain strong.";
+    }
+    if (q.includes("eth") || q.includes("ethereum")) {
+        return "### Ethereum (ETH) Intelligence & Forecast\n- **Current Price**: ~$3,240.50\n- **Market Trend**: Bullish (+5.8% 24h)\n- **Key Support**: $3,100.00\n- **Resistance Target**: $3,450.00\n\n*Analysis*: Layer-2 activity and staking queue reaching multi-month highs.";
+    }
+    if (q.includes("code") || q.includes("solidity") || q.includes("function") || q.includes("contract")) {
+        return "### Solidity Smart Contract Example\nHere is a complete ERC-20 token interface snippet:\n\n```solidity\n// SPDX-License-Identifier: MIT\npragma solidity ^0.8.20;\n\ninterface IERC20 {\n    function totalSupply() external view returns (uint256);\n    function balanceOf(address account) external view returns (uint256);\n    function transfer(address recipient, uint256 amount) external returns (bool);\n    function allowance(address owner, address spender) external view returns (uint256);\n    function approve(address spender, uint256 amount) external returns (bool);\n}\n```";
+    }
 
-        function sendQuickPrompt(promptText) {
-            const input = document.getElementById('aiChatInput');
-            if (input) {
-                input.value = promptText;
-                handleAiChatSend();
-            }
-        }
+    // General Knowledge & Detailed Dynamic Response for ANY Question
+    return `### Pro AI Answer: "${userMsg}"\n\nAapke question **"${userMsg}"** ka analysis:\n\n1. **Query Topic**: General Web3 / Protocol Telemetry Query\n2. **Network Sync**: Connected to Arc L1 Testnet (Chain ID 5042002)\n3. **Information**: Ritual AI Protocol and Arc Testnet Mainnet deployments are scheduled for **Q3/Q4 2026** (Arc L1 Target: Sept 16, 2026).\n\n*Pro Tip*: Direct Google Gemini 2.0 AI answers activate karne ke liye apni free Google API key enter karke Save button dabayein!`;
+}
 
-        // REAL GEMINI-STYLE AI ASSISTANT
-        async function handleAiChatSend() {
-            try {
-                const input = document.getElementById('aiChatInput');
-                const chatBox = document.getElementById('aiChatBox');
-                if (!input || !chatBox || !input.value.trim()) return;
+function setTheme(mode) {
+    if (mode === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.body.style.backgroundColor = '#0F172A';
+        document.body.style.color = '#F8FAFC';
+        document.getElementById('themeDarkBtn')?.classList.add('bg-purple-600', 'text-white');
+        document.getElementById('themeLightBtn')?.classList.remove('bg-purple-600', 'text-white');
+    } else {
+        document.documentElement.classList.remove('dark');
+        document.body.style.backgroundColor = '#FFFFFF';
+        document.body.style.color = '#0F172A';
+        document.getElementById('themeLightBtn')?.classList.add('bg-purple-600', 'text-white');
+        document.getElementById('themeDarkBtn')?.classList.remove('bg-purple-600', 'text-white');
+    }
+}
 
-                const userMsg = input.value.trim();
-                input.value = '';
+function sendQuickPrompt(promptText) {
+    const input = document.getElementById('aiChatInput');
+    if (input) {
+        input.value = promptText;
+        handleAiChatSend();
+    }
+}
 
-                // Render User Bubble
-                const userBubble = document.createElement('div');
-                userBubble.className = 'flex gap-3 justify-end';
-                userBubble.innerHTML = `<div class="bg-purple-600 text-white rounded-2xl p-3.5 text-xs max-w-[80%] shadow-md">${escapeHtml(userMsg)}</div>`;
-                chatBox.appendChild(userBubble);
-                chatBox.scrollTop = chatBox.scrollHeight;
+// REAL GEMINI-STYLE AI ASSISTANT
+async function handleAiChatSend() {
+    try {
+        const input = document.getElementById('aiChatInput');
+        const chatBox = document.getElementById('aiChatBox');
+        if (!input || !chatBox || !input.value.trim()) return;
 
-                // Render Typing Indicator
-                const typingBubble = document.createElement('div');
-                typingBubble.id = 'aiTypingIndicator';
-                typingBubble.className = 'flex gap-3 items-center';
-                typingBubble.innerHTML = `
+        const userMsg = input.value.trim();
+        input.value = '';
+
+        // Render User Bubble
+        const userBubble = document.createElement('div');
+        userBubble.className = 'flex gap-3 justify-end';
+        userBubble.innerHTML = `<div class="bg-purple-600 text-white rounded-2xl p-3.5 text-xs max-w-[80%] shadow-md">${escapeHtml(userMsg)}</div>`;
+        chatBox.appendChild(userBubble);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // Render Typing Indicator
+        const typingBubble = document.createElement('div');
+        typingBubble.id = 'aiTypingIndicator';
+        typingBubble.className = 'flex gap-3 items-center';
+        typingBubble.innerHTML = `
                     <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center shrink-0">
                         <span class="text-purple-300 font-bold text-xs">AI</span>
                     </div>
@@ -2839,113 +2883,113 @@ if (typeof tailwind !== 'undefined') {
                         <span>Pro AI is thinking...</span>
                     </div>
                 `;
-                chatBox.appendChild(typingBubble);
-                chatBox.scrollTop = chatBox.scrollHeight;
+        chatBox.appendChild(typingBubble);
+        chatBox.scrollTop = chatBox.scrollHeight;
 
-                let aiReplyText = "";
+        let aiReplyText = "";
 
-                // --- LAYER 1: Google Gemini (only if user has a valid AIza key) ---
-                const userKey = (localStorage.getItem('PulseGrid_gemini_api_key') || '').trim();
-                const isValidGeminiKey = userKey.startsWith('AIza') && userKey.length > 20;
+        // --- LAYER 1: Google Gemini (only if user has a valid AIza key) ---
+        const userKey = (localStorage.getItem('PulseGrid_gemini_api_key') || '').trim();
+        const isValidGeminiKey = userKey.startsWith('AIza') && userKey.length > 20;
 
-                if (isValidGeminiKey) {
-                    const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-flash-8b'];
-                    for (const model of models) {
-                        if (aiReplyText) break;
-                        try {
-                            const ctrl = new AbortController();
-                            const tid = setTimeout(() => ctrl.abort(), 15000);
-                            const res = await fetch(
-                                `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${userKey}`,
-                                {
-                                    method: 'POST',
-                                    signal: ctrl.signal,
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                        system_instruction: { parts: [{ text: 'You are Pro AI — a brilliant, helpful assistant. Answer ANY question accurately in the user\'s language (Hindi, English, Hinglish, etc.). Be direct and clear.' }] },
-                                        contents: [{ role: 'user', parts: [{ text: userMsg }] }],
-                                        generationConfig: { temperature: 0.8, maxOutputTokens: 1500 }
-                                    })
-                                }
-                            );
-                            clearTimeout(tid);
-                            const data = await res.json();
-                            if (res.ok && data?.candidates?.[0]?.content?.parts?.[0]?.text) {
-                                aiReplyText = data.candidates[0].content.parts[0].text;
-                            } else if (data?.error) {
-                                console.warn('Gemini error:', data.error.message);
-                            }
-                        } catch(e) {
-                            if (e.name !== 'AbortError') console.warn('Gemini fetch fail:', e.message);
-                        }
-                    }
-                }
-
-                // --- LAYER 2: Pollinations AI — GET (free, no key, real GPT, reliable) ---
-                if (!aiReplyText) {
-                    try {
-                        const ctrl = new AbortController();
-                        const tid = setTimeout(() => ctrl.abort(), 20000);
-                        const sysPrompt = encodeURIComponent('You are Pro AI, a helpful assistant. Answer any question clearly in the user\'s language.');
-                        const msgEncoded = encodeURIComponent(userMsg);
-                        const pollUrl = `https://text.pollinations.ai/${msgEncoded}?model=openai&system=${sysPrompt}&seed=${Date.now() % 9999}`;
-                        const res = await fetch(pollUrl, { signal: ctrl.signal });
-                        clearTimeout(tid);
-                        if (res.ok) {
-                            const txt = await res.text();
-                            if (txt && txt.trim().length > 5) aiReplyText = txt.trim();
-                        }
-                    } catch(e) {
-                        if (e.name !== 'AbortError') console.warn('Pollinations GET fail:', e.message);
-                    }
-                }
-
-                // --- LAYER 3: Pollinations POST fallback ---
-                if (!aiReplyText) {
-                    try {
-                        const ctrl = new AbortController();
-                        const tid = setTimeout(() => ctrl.abort(), 20000);
-                        const res = await fetch('https://text.pollinations.ai/', {
+        if (isValidGeminiKey) {
+            const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-flash-8b'];
+            for (const model of models) {
+                if (aiReplyText) break;
+                try {
+                    const ctrl = new AbortController();
+                    const tid = setTimeout(() => ctrl.abort(), 15000);
+                    const res = await fetch(
+                        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${userKey}`,
+                        {
                             method: 'POST',
                             signal: ctrl.signal,
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
-                                model: 'openai',
-                                messages: [
-                                    { role: 'system', content: 'You are Pro AI. Answer any question helpfully in the user\'s language.' },
-                                    { role: 'user', content: userMsg }
-                                ]
+                                system_instruction: { parts: [{ text: 'You are Pro AI — a brilliant, helpful assistant. Answer ANY question accurately in the user\'s language (Hindi, English, Hinglish, etc.). Be direct and clear.' }] },
+                                contents: [{ role: 'user', parts: [{ text: userMsg }] }],
+                                generationConfig: { temperature: 0.8, maxOutputTokens: 1500 }
                             })
-                        });
-                        clearTimeout(tid);
-                        if (res.ok) {
-                            const txt = await res.text();
-                            if (txt && txt.trim().length > 5) aiReplyText = txt.trim();
                         }
-                    } catch(e) {}
+                    );
+                    clearTimeout(tid);
+                    const data = await res.json();
+                    if (res.ok && data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+                        aiReplyText = data.candidates[0].content.parts[0].text;
+                    } else if (data?.error) {
+                        console.warn('Gemini error:', data.error.message);
+                    }
+                } catch (e) {
+                    if (e.name !== 'AbortError') console.warn('Gemini fetch fail:', e.message);
                 }
+            }
+        }
 
-                // --- LAYER 4: Static fallback (only if all APIs fail) ---
-                if (!aiReplyText) {
-                    aiReplyText = generateSmartAiResponse(userMsg);
+        // --- LAYER 2: Pollinations AI — GET (free, no key, real GPT, reliable) ---
+        if (!aiReplyText) {
+            try {
+                const ctrl = new AbortController();
+                const tid = setTimeout(() => ctrl.abort(), 20000);
+                const sysPrompt = encodeURIComponent('You are Pro AI, a helpful assistant. Answer any question clearly in the user\'s language.');
+                const msgEncoded = encodeURIComponent(userMsg);
+                const pollUrl = `https://text.pollinations.ai/${msgEncoded}?model=openai&system=${sysPrompt}&seed=${Date.now() % 9999}`;
+                const res = await fetch(pollUrl, { signal: ctrl.signal });
+                clearTimeout(tid);
+                if (res.ok) {
+                    const txt = await res.text();
+                    if (txt && txt.trim().length > 5) aiReplyText = txt.trim();
                 }
+            } catch (e) {
+                if (e.name !== 'AbortError') console.warn('Pollinations GET fail:', e.message);
+            }
+        }
 
-                // Remove Typing Indicator
-                const indicator = document.getElementById('aiTypingIndicator');
-                if (indicator) indicator.remove();
+        // --- LAYER 3: Pollinations POST fallback ---
+        if (!aiReplyText) {
+            try {
+                const ctrl = new AbortController();
+                const tid = setTimeout(() => ctrl.abort(), 20000);
+                const res = await fetch('https://text.pollinations.ai/', {
+                    method: 'POST',
+                    signal: ctrl.signal,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: 'openai',
+                        messages: [
+                            { role: 'system', content: 'You are Pro AI. Answer any question helpfully in the user\'s language.' },
+                            { role: 'user', content: userMsg }
+                        ]
+                    })
+                });
+                clearTimeout(tid);
+                if (res.ok) {
+                    const txt = await res.text();
+                    if (txt && txt.trim().length > 5) aiReplyText = txt.trim();
+                }
+            } catch (e) { }
+        }
 
-                // Render AI Reply
-                const aiBubble = document.createElement('div');
-                aiBubble.className = 'flex gap-3';
+        // --- LAYER 4: Static fallback (only if all APIs fail) ---
+        if (!aiReplyText) {
+            aiReplyText = generateSmartAiResponse(userMsg);
+        }
 
-                let formatted = escapeHtml(aiReplyText)
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                    .replace(/```([\s\S]*?)```/g, '<pre class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-purple-300 font-mono text-xs overflow-x-auto my-2"><code>$1</code></pre>')
-                    .replace(/`([^`]+)`/g, '<code class="bg-slate-950 px-1.5 py-0.5 rounded text-purple-300 font-mono text-[11px] border border-slate-800">$1</code>')
-                    .replace(/\n/g, '<br>');
+        // Remove Typing Indicator
+        const indicator = document.getElementById('aiTypingIndicator');
+        if (indicator) indicator.remove();
 
-                aiBubble.innerHTML = `
+        // Render AI Reply
+        const aiBubble = document.createElement('div');
+        aiBubble.className = 'flex gap-3';
+
+        let formatted = escapeHtml(aiReplyText)
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/```([\s\S]*?)```/g, '<pre class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-purple-300 font-mono text-xs overflow-x-auto my-2"><code>$1</code></pre>')
+            .replace(/`([^`]+)`/g, '<code class="bg-slate-950 px-1.5 py-0.5 rounded text-purple-300 font-mono text-[11px] border border-slate-800">$1</code>')
+            .replace(/\n/g, '<br>');
+
+        aiBubble.innerHTML = `
                     <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center shrink-0">
                         <i data-lucide="bot" class="w-4 h-4 text-purple-300"></i>
                     </div>
@@ -2953,568 +2997,568 @@ if (typeof tailwind !== 'undefined') {
                         ${formatted}
                     </div>
                 `;
-                chatBox.appendChild(aiBubble);
-                if (window.lucide) window.lucide.createIcons();
-                chatBox.scrollTop = chatBox.scrollHeight;
-            } catch(chatErr) {
-                console.error("handleAiChatSend error:", chatErr);
-            }
+        chatBox.appendChild(aiBubble);
+        if (window.lucide) window.lucide.createIcons();
+        chatBox.scrollTop = chatBox.scrollHeight;
+    } catch (chatErr) {
+        console.error("handleAiChatSend error:", chatErr);
+    }
+}
+
+// ==========================================
+// PRO PREDICTION MARKETS & AI TRADE INTELLIGENCE ENGINE
+// ==========================================
+
+let activePredSubTab = 'forecasts';
+let activePredCategory = 'all';
+let activeChartCoin = null;
+let activeChartTimeframe = '24H';
+let activeChartType = 'area';
+let activeBetMarket = null;
+let selectedBetOutcome = 'YES';
+
+// HIGH-CONVICTION MULTI-COIN FORECAST DATASET
+const PREDICTION_COINS = [
+    {
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        category: 'Digital Gold #1',
+        type: 'l1',
+        rank: '#1',
+        price: '$64,850.00',
+        priceNum: 64850,
+        target: '$68,200.00',
+        targetNum: 68200,
+        change: '+4.35%',
+        isBull: true,
+        gainPct: '+5.17%',
+        signal: 'Strong Buy 🚀',
+        signalType: 'buy',
+        rsi: '62.8 (Bullish)',
+        macd: '+145.2 (Golden Cross)',
+        support: '$62,800',
+        resistance: '$67,400',
+        entry: '$64,200',
+        tp: '$68,200',
+        sl: '$62,400',
+        leverage: '5x - 10x',
+        confidence: '89%',
+        longRatio: '74% Long',
+        shortRatio: '26% Short',
+        vol24h: '$32.4B',
+        reason: 'Institutional spot ETF accumulation (+14,200 BTC net weekly) and exchange reserves hitting a 4-year low indicate sustained supply shock.',
+        logo: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png',
+        sparkline: [62800, 63100, 63450, 62900, 63800, 64200, 63900, 64500, 64850]
+    },
+    {
+        symbol: 'ETH',
+        name: 'Ethereum',
+        category: 'Smart Contracts L1 #2',
+        type: 'l1',
+        rank: '#2',
+        price: '$3,420.50',
+        priceNum: 3420.5,
+        target: '$3,680.00',
+        targetNum: 3680,
+        change: '+5.82%',
+        isBull: true,
+        gainPct: '+7.58%',
+        signal: 'Breakout Target ⚡',
+        signalType: 'buy',
+        rsi: '65.4 (Bullish)',
+        macd: '+38.6 (Upward Trend)',
+        support: '$3,280',
+        resistance: '$3,550',
+        entry: '$3,380',
+        tp: '$3,680',
+        sl: '$3,260',
+        leverage: '5x - 8x',
+        confidence: '86%',
+        longRatio: '71% Long',
+        shortRatio: '29% Short',
+        vol24h: '$18.6B',
+        reason: 'L2 gas settlement volume surges and staking deposit queues expanding (+220k ETH locked in 14 days) fuel upward momentum.',
+        logo: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png',
+        sparkline: [3220, 3260, 3290, 3250, 3340, 3380, 3350, 3400, 3420.5]
+    },
+    {
+        symbol: 'ARC',
+        name: 'Arc L1 Native (USDC Gas)',
+        category: 'Circle Arc Testnet #0',
+        type: 'arc',
+        rank: '#Arc Native',
+        price: '$1.0000',
+        priceNum: 1.0,
+        target: '$1.0000',
+        targetNum: 1.0,
+        change: '+0.00%',
+        isBull: true,
+        gainPct: 'Stable Peg 🛡️',
+        signal: 'Zero Volatility 🛡️',
+        signalType: 'stable',
+        rsi: '50.0 (Neutral Perfect)',
+        macd: '0.00 (Peg Lock)',
+        support: '$0.9998',
+        resistance: '$1.0002',
+        entry: '$1.0000',
+        tp: '$1.0000',
+        sl: '$0.9990',
+        leverage: '1x - 3x',
+        confidence: '99.9%',
+        longRatio: '96% Long',
+        shortRatio: '4% Short',
+        vol24h: '$4.8M',
+        reason: 'Deterministic deterministic zero-slippage USDC gas architecture backed 1:1 by Circle liquidity vaults with sub-cent transaction settlements.',
+        logo: 'logo.png',
+        sparkline: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+    },
+    {
+        symbol: 'SOL',
+        name: 'Solana',
+        category: 'High-Speed L1 #5',
+        type: 'l1',
+        rank: '#5',
+        price: '$154.20',
+        priceNum: 154.2,
+        target: '$168.00',
+        targetNum: 168,
+        change: '+6.40%',
+        isBull: true,
+        gainPct: '+8.95%',
+        signal: 'High Momentum 🚀',
+        signalType: 'buy',
+        rsi: '68.2 (Strong Overbought)',
+        macd: '+4.85 (Accelerating)',
+        support: '$144.00',
+        resistance: '$160.00',
+        entry: '$150.00',
+        tp: '$168.00',
+        sl: '$143.50',
+        leverage: '4x - 6x',
+        confidence: '82%',
+        longRatio: '69% Long',
+        shortRatio: '31% Short',
+        vol24h: '$8.2B',
+        reason: 'DEX daily trading volume surpassing all competitors with steady Firedancer validator testnet milestones.',
+        logo: 'https://assets.coingecko.com/coins/images/4128/small/solana.png',
+        sparkline: [142, 145, 144, 148, 147, 151, 150, 153, 154.2]
+    },
+    {
+        symbol: 'BNB',
+        name: 'BNB Chain',
+        category: 'Exchange & L1 #4',
+        type: 'l1',
+        rank: '#4',
+        price: '$588.40',
+        priceNum: 588.4,
+        target: '$615.00',
+        targetNum: 615,
+        change: '+3.15%',
+        isBull: true,
+        gainPct: '+4.52%',
+        signal: 'Accumulation ⚖️',
+        signalType: 'buy',
+        rsi: '58.1 (Healthy)',
+        macd: '+6.20 (Steady)',
+        support: '$565.00',
+        resistance: '$600.00',
+        entry: '$580.00',
+        tp: '$615.00',
+        sl: '$560.00',
+        leverage: '3x - 5x',
+        confidence: '81%',
+        longRatio: '63% Long',
+        shortRatio: '37% Short',
+        vol24h: '$1.9B',
+        reason: 'Continuous Launchpool staking lockups and aggressive quarterly auto-burn schedule reducing circulating supply.',
+        logo: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png',
+        sparkline: [568, 572, 570, 578, 575, 582, 580, 585, 588.4]
+    },
+    {
+        symbol: 'SUI',
+        name: 'Sui Network',
+        category: 'Move L1 High TPS #18',
+        type: 'l1',
+        rank: '#18',
+        price: '$1.040',
+        priceNum: 1.04,
+        target: '$1.250',
+        targetNum: 1.25,
+        change: '+17.4%',
+        isBull: true,
+        gainPct: '+20.19%',
+        signal: 'Super Bull 🚀',
+        signalType: 'buy',
+        rsi: '74.5 (High Velocity)',
+        macd: '+0.12 (Parabolic Wave)',
+        support: '$0.880',
+        resistance: '$1.120',
+        entry: '$0.980',
+        tp: '$1.250',
+        sl: '$0.860',
+        leverage: '5x - 10x',
+        confidence: '92%',
+        longRatio: '86% Long',
+        shortRatio: '14% Short',
+        vol24h: '$980M',
+        reason: 'DeFi TVL skyrocketing past $700M with institutional liquidity injections from native USDC bridge integrations.',
+        logo: 'https://assets.coingecko.com/coins/images/26375/small/sui_asset.png',
+        sparkline: [0.86, 0.89, 0.92, 0.90, 0.96, 0.98, 1.01, 1.02, 1.04]
+    },
+    {
+        symbol: 'LINK',
+        name: 'Chainlink',
+        category: 'DeFi Oracle & CCIP #14',
+        type: 'defi',
+        rank: '#14',
+        price: '$12.45',
+        priceNum: 12.45,
+        target: '$14.20',
+        targetNum: 14.2,
+        change: '+11.8%',
+        isBull: true,
+        gainPct: '+14.05%',
+        signal: 'Institutional Buy 💎',
+        signalType: 'buy',
+        rsi: '69.0 (Bullish Momentum)',
+        macd: '+0.64 (Golden Divergence)',
+        support: '$10.80',
+        resistance: '$13.00',
+        entry: '$11.80',
+        tp: '$14.20',
+        sl: '$10.60',
+        leverage: '5x',
+        confidence: '89%',
+        longRatio: '78% Long',
+        shortRatio: '22% Short',
+        vol24h: '$640M',
+        reason: 'Major tier-1 banking consortiums expand live settlement pilots utilizing Chainlink CCIP cross-chain token messaging.',
+        logo: 'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png',
+        sparkline: [10.9, 11.2, 11.1, 11.6, 11.5, 12.0, 11.9, 12.3, 12.45]
+    },
+    {
+        symbol: 'AVAX',
+        name: 'Avalanche',
+        category: 'Subnet L1 #12',
+        type: 'l1',
+        rank: '#12',
+        price: '$24.80',
+        priceNum: 24.8,
+        target: '$28.50',
+        targetNum: 28.5,
+        change: '+7.40%',
+        isBull: true,
+        gainPct: '+14.91%',
+        signal: 'Subnet Surge ⚡',
+        signalType: 'buy',
+        rsi: '63.4 (Bullish)',
+        macd: '+1.15 (Upward Slope)',
+        support: '$22.40',
+        resistance: '$26.00',
+        entry: '$23.80',
+        tp: '$28.50',
+        sl: '$21.90',
+        leverage: '4x - 6x',
+        confidence: '84%',
+        longRatio: '68% Long',
+        shortRatio: '32% Short',
+        vol24h: '$520M',
+        reason: 'Institutional asset tokenization subnets deployed by multi-billion dollar private credit fund managers.',
+        logo: 'https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png',
+        sparkline: [22.8, 23.2, 23.0, 23.8, 23.6, 24.2, 24.0, 24.5, 24.8]
+    },
+    {
+        symbol: 'PEPE',
+        name: 'Pepe',
+        category: 'Meme Liquidity #22',
+        type: 'memes',
+        rank: '#22',
+        price: '$0.0000084',
+        priceNum: 0.0000084,
+        target: '$0.0000105',
+        targetNum: 0.0000105,
+        change: '+17.9%',
+        isBull: true,
+        gainPct: '+25.00%',
+        signal: 'Whale Accumulation 🐋',
+        signalType: 'buy',
+        rsi: '72.1 (Overheated)',
+        macd: '+0.0000008 (Expansion)',
+        support: '$0.0000072',
+        resistance: '$0.0000092',
+        entry: '$0.0000078',
+        tp: '$0.0000105',
+        sl: '$0.0000069',
+        leverage: '3x - 5x',
+        confidence: '78%',
+        longRatio: '85% Long',
+        shortRatio: '15% Short',
+        vol24h: '$1.4B',
+        reason: 'Massive on-chain DEX wallet clustering and top 100 whale holder balances increasing +12% over 7 days.',
+        logo: 'https://assets.coingecko.com/coins/images/29850/small/pepe-token.png',
+        sparkline: [0.0000069, 0.0000072, 0.0000070, 0.0000076, 0.0000075, 0.0000080, 0.0000079, 0.0000082, 0.0000084]
+    },
+    {
+        symbol: 'POL',
+        name: 'Polygon 2.0',
+        category: 'ZK Layer 2 Ecosystem #19',
+        type: 'defi',
+        rank: '#19',
+        price: '$0.4280',
+        priceNum: 0.428,
+        target: '$0.4850',
+        targetNum: 0.485,
+        change: '+5.20%',
+        isBull: true,
+        gainPct: '+13.31%',
+        signal: 'ZK Expansion 🛡️',
+        signalType: 'buy',
+        rsi: '56.8 (Positive)',
+        macd: '+0.015 (Crossover)',
+        support: '$0.3950',
+        resistance: '$0.4500',
+        entry: '$0.4150',
+        tp: '$0.4850',
+        sl: '$0.3880',
+        leverage: '4x',
+        confidence: '82%',
+        longRatio: '67% Long',
+        shortRatio: '33% Short',
+        vol24h: '$290M',
+        reason: 'AggLayer aggregation protocol onboarding 4 new zkEVM gaming rollups, increasing cross-chain fee burn.',
+        logo: 'https://assets.coingecko.com/coins/images/4713/small/polygon.png',
+        sparkline: [0.395, 0.402, 0.400, 0.412, 0.410, 0.420, 0.418, 0.424, 0.428]
+    },
+    {
+        symbol: 'XRP',
+        name: 'Ripple XRP',
+        category: 'Settlements & FX #6',
+        type: 'defi',
+        rank: '#6',
+        price: '$0.5840',
+        priceNum: 0.584,
+        target: '$0.6450',
+        targetNum: 0.645,
+        change: '+8.50%',
+        isBull: true,
+        gainPct: '+10.44%',
+        signal: 'Legal Clarity ⚖️',
+        signalType: 'buy',
+        rsi: '67.3 (Bullish)',
+        macd: '+0.024 (Ascending)',
+        support: '$0.5350',
+        resistance: '$0.6100',
+        entry: '$0.5600',
+        tp: '$0.6450',
+        sl: '$0.5280',
+        leverage: '5x',
+        confidence: '85%',
+        longRatio: '76% Long',
+        shortRatio: '24% Short',
+        vol24h: '$2.1B',
+        reason: 'RLUSD enterprise stablecoin rollout and cross-border bank pilot expansions in APAC markets.',
+        logo: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png',
+        sparkline: [0.53, 0.545, 0.54, 0.56, 0.555, 0.575, 0.57, 0.58, 0.584]
+    },
+    {
+        symbol: 'DOGE',
+        name: 'Dogecoin',
+        category: 'Original Meme Coin #8',
+        type: 'memes',
+        rank: '#8',
+        price: '$0.1140',
+        priceNum: 0.114,
+        target: '$0.1320',
+        targetNum: 0.132,
+        change: '+13.4%',
+        isBull: true,
+        gainPct: '+15.78%',
+        signal: 'Social Surge 🐕',
+        signalType: 'buy',
+        rsi: '71.0 (Overbought)',
+        macd: '+0.008 (High Volume)',
+        support: '$0.0980',
+        resistance: '$0.1220',
+        entry: '$0.1060',
+        tp: '$0.1320',
+        sl: '$0.0950',
+        leverage: '3x - 5x',
+        confidence: '79%',
+        longRatio: '81% Long',
+        shortRatio: '19% Short',
+        vol24h: '$1.8B',
+        reason: 'Social sentiment momentum surge and whale wallet accumulation surpassing 2.4 Billion DOGE.',
+        logo: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png',
+        sparkline: [0.098, 0.102, 0.100, 0.107, 0.105, 0.111, 0.109, 0.112, 0.114]
+    }
+];
+
+// ON-CHAIN BINARY EVENT PREDICTION MARKETS (Polymarket / Arc Style)
+const PREDICTION_MARKETS = [
+    {
+        id: 'btc-100k',
+        title: 'Will Bitcoin surpass $100,000 before December 31, 2026?',
+        category: 'Macro Milestone',
+        yesPrice: 0.68,
+        noPrice: 0.32,
+        yesPct: 68,
+        noPct: 32,
+        volumeUsdc: 4250000,
+        volumeText: '$4.25M USDC',
+        endDate: 'Dec 31, 2026',
+        icon: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png'
+    },
+    {
+        id: 'arc-10k-tps',
+        title: 'Will Circle Arc L1 process >10,000 TPS on Testnet Stress Phase?',
+        category: 'Arc Ecosystem',
+        yesPrice: 0.84,
+        noPrice: 0.16,
+        yesPct: 84,
+        noPct: 16,
+        volumeUsdc: 1980000,
+        volumeText: '$1.98M USDC',
+        endDate: 'Nov 15, 2026',
+        icon: 'logo.png'
+    },
+    {
+        id: 'eth-staking-etf',
+        title: 'Will US SEC approve Staking for Ethereum Spot ETFs in 2026?',
+        category: 'Regulation & ETFs',
+        yesPrice: 0.54,
+        noPrice: 0.46,
+        yesPct: 54,
+        noPct: 46,
+        volumeUsdc: 1420000,
+        volumeText: '$1.42M USDC',
+        endDate: 'Oct 30, 2026',
+        icon: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png'
+    },
+    {
+        id: 'sol-dex-flip',
+        title: 'Will Solana 30-day DEX Volume surpass Ethereum L1 DEX Volume?',
+        category: 'DeFi & Volume',
+        yesPrice: 0.62,
+        noPrice: 0.38,
+        yesPct: 62,
+        noPct: 38,
+        volumeUsdc: 2890000,
+        volumeText: '$2.89M USDC',
+        endDate: 'Nov 30, 2026',
+        icon: 'https://assets.coingecko.com/coins/images/4128/small/solana.png'
+    },
+    {
+        id: 'fed-rate-cut',
+        title: 'Will the US Federal Reserve cut interest rates by 50bps or more?',
+        category: 'Macro Economics',
+        yesPrice: 0.74,
+        noPrice: 0.26,
+        yesPct: 74,
+        noPct: 26,
+        volumeUsdc: 5120000,
+        volumeText: '$5.12M USDC',
+        endDate: 'Sep 18, 2026',
+        icon: 'https://assets.coingecko.com/coins/images/325/small/Tether.png'
+    },
+    {
+        id: 'arc-zero-gas',
+        title: 'Will Arc L1 micro gas fee stay strictly below 0.002 USDC during peak congestion?',
+        category: 'Arc Ecosystem',
+        yesPrice: 0.94,
+        noPrice: 0.06,
+        yesPct: 94,
+        noPct: 6,
+        volumeUsdc: 980000,
+        volumeText: '$980K USDC',
+        endDate: 'Oct 15, 2026',
+        icon: 'logo.png'
+    }
+];
+
+// SUB-TAB SWITCHING
+function switchPredictionSubTab(tab) {
+    activePredSubTab = tab;
+    const btnForecasts = document.getElementById('predTabBtn-forecasts');
+    const btnMarkets = document.getElementById('predTabBtn-markets');
+    const subForecasts = document.getElementById('subView-forecasts');
+    const subMarkets = document.getElementById('subView-markets');
+
+    if (tab === 'forecasts') {
+        if (btnForecasts) {
+            btnForecasts.className = 'px-4 py-2 rounded-xl bg-purple-600 text-white shadow-md transition-all flex items-center gap-2 font-bold';
         }
-        
-        // ==========================================
-        // PRO PREDICTION MARKETS & AI TRADE INTELLIGENCE ENGINE
-        // ==========================================
+        if (btnMarkets) {
+            btnMarkets.className = 'px-4 py-2 rounded-xl text-slate-300 hover:text-white transition-all flex items-center gap-2 font-bold';
+        }
+        if (subForecasts) subForecasts.classList.remove('hidden');
+        if (subMarkets) subMarkets.classList.add('hidden');
+    } else {
+        if (btnMarkets) {
+            btnMarkets.className = 'px-4 py-2 rounded-xl bg-purple-600 text-white shadow-md transition-all flex items-center gap-2 font-bold';
+        }
+        if (btnForecasts) {
+            btnForecasts.className = 'px-4 py-2 rounded-xl text-slate-300 hover:text-white transition-all flex items-center gap-2 font-bold';
+        }
+        if (subMarkets) subMarkets.classList.remove('hidden');
+        if (subForecasts) subForecasts.classList.add('hidden');
+        renderPredictionMarkets(PREDICTION_MARKETS);
+    }
+    if (window.lucide) window.lucide.createIcons();
+}
 
-        let activePredSubTab = 'forecasts';
-        let activePredCategory = 'all';
-        let activeChartCoin = null;
-        let activeChartTimeframe = '24H';
-        let activeChartType = 'area';
-        let activeBetMarket = null;
-        let selectedBetOutcome = 'YES';
-
-        // HIGH-CONVICTION MULTI-COIN FORECAST DATASET
-        const PREDICTION_COINS = [
-            {
-                symbol: 'BTC',
-                name: 'Bitcoin',
-                category: 'Digital Gold #1',
-                type: 'l1',
-                rank: '#1',
-                price: '$64,850.00',
-                priceNum: 64850,
-                target: '$68,200.00',
-                targetNum: 68200,
-                change: '+4.35%',
-                isBull: true,
-                gainPct: '+5.17%',
-                signal: 'Strong Buy 🚀',
-                signalType: 'buy',
-                rsi: '62.8 (Bullish)',
-                macd: '+145.2 (Golden Cross)',
-                support: '$62,800',
-                resistance: '$67,400',
-                entry: '$64,200',
-                tp: '$68,200',
-                sl: '$62,400',
-                leverage: '5x - 10x',
-                confidence: '89%',
-                longRatio: '74% Long',
-                shortRatio: '26% Short',
-                vol24h: '$32.4B',
-                reason: 'Institutional spot ETF accumulation (+14,200 BTC net weekly) and exchange reserves hitting a 4-year low indicate sustained supply shock.',
-                logo: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png',
-                sparkline: [62800, 63100, 63450, 62900, 63800, 64200, 63900, 64500, 64850]
-            },
-            {
-                symbol: 'ETH',
-                name: 'Ethereum',
-                category: 'Smart Contracts L1 #2',
-                type: 'l1',
-                rank: '#2',
-                price: '$3,420.50',
-                priceNum: 3420.5,
-                target: '$3,680.00',
-                targetNum: 3680,
-                change: '+5.82%',
-                isBull: true,
-                gainPct: '+7.58%',
-                signal: 'Breakout Target ⚡',
-                signalType: 'buy',
-                rsi: '65.4 (Bullish)',
-                macd: '+38.6 (Upward Trend)',
-                support: '$3,280',
-                resistance: '$3,550',
-                entry: '$3,380',
-                tp: '$3,680',
-                sl: '$3,260',
-                leverage: '5x - 8x',
-                confidence: '86%',
-                longRatio: '71% Long',
-                shortRatio: '29% Short',
-                vol24h: '$18.6B',
-                reason: 'L2 gas settlement volume surges and staking deposit queues expanding (+220k ETH locked in 14 days) fuel upward momentum.',
-                logo: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png',
-                sparkline: [3220, 3260, 3290, 3250, 3340, 3380, 3350, 3400, 3420.5]
-            },
-            {
-                symbol: 'ARC',
-                name: 'Arc L1 Native (USDC Gas)',
-                category: 'Circle Arc Testnet #0',
-                type: 'arc',
-                rank: '#Arc Native',
-                price: '$1.0000',
-                priceNum: 1.0,
-                target: '$1.0000',
-                targetNum: 1.0,
-                change: '+0.00%',
-                isBull: true,
-                gainPct: 'Stable Peg 🛡️',
-                signal: 'Zero Volatility 🛡️',
-                signalType: 'stable',
-                rsi: '50.0 (Neutral Perfect)',
-                macd: '0.00 (Peg Lock)',
-                support: '$0.9998',
-                resistance: '$1.0002',
-                entry: '$1.0000',
-                tp: '$1.0000',
-                sl: '$0.9990',
-                leverage: '1x - 3x',
-                confidence: '99.9%',
-                longRatio: '96% Long',
-                shortRatio: '4% Short',
-                vol24h: '$4.8M',
-                reason: 'Deterministic deterministic zero-slippage USDC gas architecture backed 1:1 by Circle liquidity vaults with sub-cent transaction settlements.',
-                logo: 'logo.png',
-                sparkline: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
-            },
-            {
-                symbol: 'SOL',
-                name: 'Solana',
-                category: 'High-Speed L1 #5',
-                type: 'l1',
-                rank: '#5',
-                price: '$154.20',
-                priceNum: 154.2,
-                target: '$168.00',
-                targetNum: 168,
-                change: '+6.40%',
-                isBull: true,
-                gainPct: '+8.95%',
-                signal: 'High Momentum 🚀',
-                signalType: 'buy',
-                rsi: '68.2 (Strong Overbought)',
-                macd: '+4.85 (Accelerating)',
-                support: '$144.00',
-                resistance: '$160.00',
-                entry: '$150.00',
-                tp: '$168.00',
-                sl: '$143.50',
-                leverage: '4x - 6x',
-                confidence: '82%',
-                longRatio: '69% Long',
-                shortRatio: '31% Short',
-                vol24h: '$8.2B',
-                reason: 'DEX daily trading volume surpassing all competitors with steady Firedancer validator testnet milestones.',
-                logo: 'https://assets.coingecko.com/coins/images/4128/small/solana.png',
-                sparkline: [142, 145, 144, 148, 147, 151, 150, 153, 154.2]
-            },
-            {
-                symbol: 'BNB',
-                name: 'BNB Chain',
-                category: 'Exchange & L1 #4',
-                type: 'l1',
-                rank: '#4',
-                price: '$588.40',
-                priceNum: 588.4,
-                target: '$615.00',
-                targetNum: 615,
-                change: '+3.15%',
-                isBull: true,
-                gainPct: '+4.52%',
-                signal: 'Accumulation ⚖️',
-                signalType: 'buy',
-                rsi: '58.1 (Healthy)',
-                macd: '+6.20 (Steady)',
-                support: '$565.00',
-                resistance: '$600.00',
-                entry: '$580.00',
-                tp: '$615.00',
-                sl: '$560.00',
-                leverage: '3x - 5x',
-                confidence: '81%',
-                longRatio: '63% Long',
-                shortRatio: '37% Short',
-                vol24h: '$1.9B',
-                reason: 'Continuous Launchpool staking lockups and aggressive quarterly auto-burn schedule reducing circulating supply.',
-                logo: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png',
-                sparkline: [568, 572, 570, 578, 575, 582, 580, 585, 588.4]
-            },
-            {
-                symbol: 'SUI',
-                name: 'Sui Network',
-                category: 'Move L1 High TPS #18',
-                type: 'l1',
-                rank: '#18',
-                price: '$1.040',
-                priceNum: 1.04,
-                target: '$1.250',
-                targetNum: 1.25,
-                change: '+17.4%',
-                isBull: true,
-                gainPct: '+20.19%',
-                signal: 'Super Bull 🚀',
-                signalType: 'buy',
-                rsi: '74.5 (High Velocity)',
-                macd: '+0.12 (Parabolic Wave)',
-                support: '$0.880',
-                resistance: '$1.120',
-                entry: '$0.980',
-                tp: '$1.250',
-                sl: '$0.860',
-                leverage: '5x - 10x',
-                confidence: '92%',
-                longRatio: '86% Long',
-                shortRatio: '14% Short',
-                vol24h: '$980M',
-                reason: 'DeFi TVL skyrocketing past $700M with institutional liquidity injections from native USDC bridge integrations.',
-                logo: 'https://assets.coingecko.com/coins/images/26375/small/sui_asset.png',
-                sparkline: [0.86, 0.89, 0.92, 0.90, 0.96, 0.98, 1.01, 1.02, 1.04]
-            },
-            {
-                symbol: 'LINK',
-                name: 'Chainlink',
-                category: 'DeFi Oracle & CCIP #14',
-                type: 'defi',
-                rank: '#14',
-                price: '$12.45',
-                priceNum: 12.45,
-                target: '$14.20',
-                targetNum: 14.2,
-                change: '+11.8%',
-                isBull: true,
-                gainPct: '+14.05%',
-                signal: 'Institutional Buy 💎',
-                signalType: 'buy',
-                rsi: '69.0 (Bullish Momentum)',
-                macd: '+0.64 (Golden Divergence)',
-                support: '$10.80',
-                resistance: '$13.00',
-                entry: '$11.80',
-                tp: '$14.20',
-                sl: '$10.60',
-                leverage: '5x',
-                confidence: '89%',
-                longRatio: '78% Long',
-                shortRatio: '22% Short',
-                vol24h: '$640M',
-                reason: 'Major tier-1 banking consortiums expand live settlement pilots utilizing Chainlink CCIP cross-chain token messaging.',
-                logo: 'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png',
-                sparkline: [10.9, 11.2, 11.1, 11.6, 11.5, 12.0, 11.9, 12.3, 12.45]
-            },
-            {
-                symbol: 'AVAX',
-                name: 'Avalanche',
-                category: 'Subnet L1 #12',
-                type: 'l1',
-                rank: '#12',
-                price: '$24.80',
-                priceNum: 24.8,
-                target: '$28.50',
-                targetNum: 28.5,
-                change: '+7.40%',
-                isBull: true,
-                gainPct: '+14.91%',
-                signal: 'Subnet Surge ⚡',
-                signalType: 'buy',
-                rsi: '63.4 (Bullish)',
-                macd: '+1.15 (Upward Slope)',
-                support: '$22.40',
-                resistance: '$26.00',
-                entry: '$23.80',
-                tp: '$28.50',
-                sl: '$21.90',
-                leverage: '4x - 6x',
-                confidence: '84%',
-                longRatio: '68% Long',
-                shortRatio: '32% Short',
-                vol24h: '$520M',
-                reason: 'Institutional asset tokenization subnets deployed by multi-billion dollar private credit fund managers.',
-                logo: 'https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png',
-                sparkline: [22.8, 23.2, 23.0, 23.8, 23.6, 24.2, 24.0, 24.5, 24.8]
-            },
-            {
-                symbol: 'PEPE',
-                name: 'Pepe',
-                category: 'Meme Liquidity #22',
-                type: 'memes',
-                rank: '#22',
-                price: '$0.0000084',
-                priceNum: 0.0000084,
-                target: '$0.0000105',
-                targetNum: 0.0000105,
-                change: '+17.9%',
-                isBull: true,
-                gainPct: '+25.00%',
-                signal: 'Whale Accumulation 🐋',
-                signalType: 'buy',
-                rsi: '72.1 (Overheated)',
-                macd: '+0.0000008 (Expansion)',
-                support: '$0.0000072',
-                resistance: '$0.0000092',
-                entry: '$0.0000078',
-                tp: '$0.0000105',
-                sl: '$0.0000069',
-                leverage: '3x - 5x',
-                confidence: '78%',
-                longRatio: '85% Long',
-                shortRatio: '15% Short',
-                vol24h: '$1.4B',
-                reason: 'Massive on-chain DEX wallet clustering and top 100 whale holder balances increasing +12% over 7 days.',
-                logo: 'https://assets.coingecko.com/coins/images/29850/small/pepe-token.png',
-                sparkline: [0.0000069, 0.0000072, 0.0000070, 0.0000076, 0.0000075, 0.0000080, 0.0000079, 0.0000082, 0.0000084]
-            },
-            {
-                symbol: 'POL',
-                name: 'Polygon 2.0',
-                category: 'ZK Layer 2 Ecosystem #19',
-                type: 'defi',
-                rank: '#19',
-                price: '$0.4280',
-                priceNum: 0.428,
-                target: '$0.4850',
-                targetNum: 0.485,
-                change: '+5.20%',
-                isBull: true,
-                gainPct: '+13.31%',
-                signal: 'ZK Expansion 🛡️',
-                signalType: 'buy',
-                rsi: '56.8 (Positive)',
-                macd: '+0.015 (Crossover)',
-                support: '$0.3950',
-                resistance: '$0.4500',
-                entry: '$0.4150',
-                tp: '$0.4850',
-                sl: '$0.3880',
-                leverage: '4x',
-                confidence: '82%',
-                longRatio: '67% Long',
-                shortRatio: '33% Short',
-                vol24h: '$290M',
-                reason: 'AggLayer aggregation protocol onboarding 4 new zkEVM gaming rollups, increasing cross-chain fee burn.',
-                logo: 'https://assets.coingecko.com/coins/images/4713/small/polygon.png',
-                sparkline: [0.395, 0.402, 0.400, 0.412, 0.410, 0.420, 0.418, 0.424, 0.428]
-            },
-            {
-                symbol: 'XRP',
-                name: 'Ripple XRP',
-                category: 'Settlements & FX #6',
-                type: 'defi',
-                rank: '#6',
-                price: '$0.5840',
-                priceNum: 0.584,
-                target: '$0.6450',
-                targetNum: 0.645,
-                change: '+8.50%',
-                isBull: true,
-                gainPct: '+10.44%',
-                signal: 'Legal Clarity ⚖️',
-                signalType: 'buy',
-                rsi: '67.3 (Bullish)',
-                macd: '+0.024 (Ascending)',
-                support: '$0.5350',
-                resistance: '$0.6100',
-                entry: '$0.5600',
-                tp: '$0.6450',
-                sl: '$0.5280',
-                leverage: '5x',
-                confidence: '85%',
-                longRatio: '76% Long',
-                shortRatio: '24% Short',
-                vol24h: '$2.1B',
-                reason: 'RLUSD enterprise stablecoin rollout and cross-border bank pilot expansions in APAC markets.',
-                logo: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png',
-                sparkline: [0.53, 0.545, 0.54, 0.56, 0.555, 0.575, 0.57, 0.58, 0.584]
-            },
-            {
-                symbol: 'DOGE',
-                name: 'Dogecoin',
-                category: 'Original Meme Coin #8',
-                type: 'memes',
-                rank: '#8',
-                price: '$0.1140',
-                priceNum: 0.114,
-                target: '$0.1320',
-                targetNum: 0.132,
-                change: '+13.4%',
-                isBull: true,
-                gainPct: '+15.78%',
-                signal: 'Social Surge 🐕',
-                signalType: 'buy',
-                rsi: '71.0 (Overbought)',
-                macd: '+0.008 (High Volume)',
-                support: '$0.0980',
-                resistance: '$0.1220',
-                entry: '$0.1060',
-                tp: '$0.1320',
-                sl: '$0.0950',
-                leverage: '3x - 5x',
-                confidence: '79%',
-                longRatio: '81% Long',
-                shortRatio: '19% Short',
-                vol24h: '$1.8B',
-                reason: 'Social sentiment momentum surge and whale wallet accumulation surpassing 2.4 Billion DOGE.',
-                logo: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png',
-                sparkline: [0.098, 0.102, 0.100, 0.107, 0.105, 0.111, 0.109, 0.112, 0.114]
-            }
-        ];
-
-        // ON-CHAIN BINARY EVENT PREDICTION MARKETS (Polymarket / Arc Style)
-        const PREDICTION_MARKETS = [
-            {
-                id: 'btc-100k',
-                title: 'Will Bitcoin surpass $100,000 before December 31, 2026?',
-                category: 'Macro Milestone',
-                yesPrice: 0.68,
-                noPrice: 0.32,
-                yesPct: 68,
-                noPct: 32,
-                volumeUsdc: 4250000,
-                volumeText: '$4.25M USDC',
-                endDate: 'Dec 31, 2026',
-                icon: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png'
-            },
-            {
-                id: 'arc-10k-tps',
-                title: 'Will Circle Arc L1 process >10,000 TPS on Testnet Stress Phase?',
-                category: 'Arc Ecosystem',
-                yesPrice: 0.84,
-                noPrice: 0.16,
-                yesPct: 84,
-                noPct: 16,
-                volumeUsdc: 1980000,
-                volumeText: '$1.98M USDC',
-                endDate: 'Nov 15, 2026',
-                icon: 'logo.png'
-            },
-            {
-                id: 'eth-staking-etf',
-                title: 'Will US SEC approve Staking for Ethereum Spot ETFs in 2026?',
-                category: 'Regulation & ETFs',
-                yesPrice: 0.54,
-                noPrice: 0.46,
-                yesPct: 54,
-                noPct: 46,
-                volumeUsdc: 1420000,
-                volumeText: '$1.42M USDC',
-                endDate: 'Oct 30, 2026',
-                icon: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png'
-            },
-            {
-                id: 'sol-dex-flip',
-                title: 'Will Solana 30-day DEX Volume surpass Ethereum L1 DEX Volume?',
-                category: 'DeFi & Volume',
-                yesPrice: 0.62,
-                noPrice: 0.38,
-                yesPct: 62,
-                noPct: 38,
-                volumeUsdc: 2890000,
-                volumeText: '$2.89M USDC',
-                endDate: 'Nov 30, 2026',
-                icon: 'https://assets.coingecko.com/coins/images/4128/small/solana.png'
-            },
-            {
-                id: 'fed-rate-cut',
-                title: 'Will the US Federal Reserve cut interest rates by 50bps or more?',
-                category: 'Macro Economics',
-                yesPrice: 0.74,
-                noPrice: 0.26,
-                yesPct: 74,
-                noPct: 26,
-                volumeUsdc: 5120000,
-                volumeText: '$5.12M USDC',
-                endDate: 'Sep 18, 2026',
-                icon: 'https://assets.coingecko.com/coins/images/325/small/Tether.png'
-            },
-            {
-                id: 'arc-zero-gas',
-                title: 'Will Arc L1 micro gas fee stay strictly below 0.002 USDC during peak congestion?',
-                category: 'Arc Ecosystem',
-                yesPrice: 0.94,
-                noPrice: 0.06,
-                yesPct: 94,
-                noPct: 6,
-                volumeUsdc: 980000,
-                volumeText: '$980K USDC',
-                endDate: 'Oct 15, 2026',
-                icon: 'logo.png'
-            }
-        ];
-
-        // SUB-TAB SWITCHING
-        function switchPredictionSubTab(tab) {
-            activePredSubTab = tab;
-            const btnForecasts = document.getElementById('predTabBtn-forecasts');
-            const btnMarkets = document.getElementById('predTabBtn-markets');
-            const subForecasts = document.getElementById('subView-forecasts');
-            const subMarkets = document.getElementById('subView-markets');
-
-            if (tab === 'forecasts') {
-                if (btnForecasts) {
-                    btnForecasts.className = 'px-4 py-2 rounded-xl bg-purple-600 text-white shadow-md transition-all flex items-center gap-2 font-bold';
-                }
-                if (btnMarkets) {
-                    btnMarkets.className = 'px-4 py-2 rounded-xl text-slate-300 hover:text-white transition-all flex items-center gap-2 font-bold';
-                }
-                if (subForecasts) subForecasts.classList.remove('hidden');
-                if (subMarkets) subMarkets.classList.add('hidden');
+// CATEGORY FILTERING
+function setPredictionCategory(cat) {
+    activePredCategory = cat;
+    ['all', 'l1', 'defi', 'memes'].forEach(c => {
+        const btn = document.getElementById(`predCatBtn-${c}`);
+        if (btn) {
+            if (c === cat) {
+                btn.className = 'px-3 py-1.5 rounded-lg bg-purple-700 text-white font-bold shrink-0';
             } else {
-                if (btnMarkets) {
-                    btnMarkets.className = 'px-4 py-2 rounded-xl bg-purple-600 text-white shadow-md transition-all flex items-center gap-2 font-bold';
-                }
-                if (btnForecasts) {
-                    btnForecasts.className = 'px-4 py-2 rounded-xl text-slate-300 hover:text-white transition-all flex items-center gap-2 font-bold';
-                }
-                if (subMarkets) subMarkets.classList.remove('hidden');
-                if (subForecasts) subForecasts.classList.add('hidden');
-                renderPredictionMarkets(PREDICTION_MARKETS);
+                btn.className = 'px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold border border-slate-300 shrink-0';
             }
-            if (window.lucide) window.lucide.createIcons();
         }
+    });
+    filterPredictionCoins();
+}
 
-        // CATEGORY FILTERING
-        function setPredictionCategory(cat) {
-            activePredCategory = cat;
-            ['all', 'l1', 'defi', 'memes'].forEach(c => {
-                const btn = document.getElementById(`predCatBtn-${c}`);
-                if (btn) {
-                    if (c === cat) {
-                        btn.className = 'px-3 py-1.5 rounded-lg bg-purple-700 text-white font-bold shrink-0';
-                    } else {
-                        btn.className = 'px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold border border-slate-300 shrink-0';
-                    }
-                }
-            });
-            filterPredictionCoins();
-        }
+// MINI SPARKLINE SVG GENERATOR
+function generateSparklineSvg(sparkline, isBull, width = 120, height = 36) {
+    if (!sparkline || sparkline.length < 2) return '';
+    const min = Math.min(...sparkline);
+    const max = Math.max(...sparkline);
+    const range = (max - min) || 1;
+    const padding = 3;
+    const w = width - padding * 2;
+    const h = height - padding * 2;
 
-        // MINI SPARKLINE SVG GENERATOR
-        function generateSparklineSvg(sparkline, isBull, width = 120, height = 36) {
-            if (!sparkline || sparkline.length < 2) return '';
-            const min = Math.min(...sparkline);
-            const max = Math.max(...sparkline);
-            const range = (max - min) || 1;
-            const padding = 3;
-            const w = width - padding * 2;
-            const h = height - padding * 2;
+    const pts = sparkline.map((val, idx) => {
+        const x = padding + (idx / (sparkline.length - 1)) * w;
+        const y = height - padding - ((val - min) / range) * h;
+        return { x, y };
+    });
 
-            const pts = sparkline.map((val, idx) => {
-                const x = padding + (idx / (sparkline.length - 1)) * w;
-                const y = height - padding - ((val - min) / range) * h;
-                return { x, y };
-            });
+    // Smooth cubic spline
+    let pathD = `M ${pts[0].x},${pts[0].y}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+        const p0 = pts[i === 0 ? 0 : i - 1];
+        const p1 = pts[i];
+        const p2 = pts[i + 1];
+        const p3 = pts[i + 2 >= pts.length ? pts.length - 1 : i + 2];
 
-            // Smooth cubic spline
-            let pathD = `M ${pts[0].x},${pts[0].y}`;
-            for (let i = 0; i < pts.length - 1; i++) {
-                const p0 = pts[i === 0 ? 0 : i - 1];
-                const p1 = pts[i];
-                const p2 = pts[i + 1];
-                const p3 = pts[i + 2 >= pts.length ? pts.length - 1 : i + 2];
+        const cp1x = p1.x + (p2.x - p0.x) / 6;
+        const cp1y = p1.y + (p2.y - p0.y) / 6;
+        const cp2x = p2.x - (p3.x - p1.x) / 6;
+        const cp2y = p2.y - (p3.y - p1.y) / 6;
 
-                const cp1x = p1.x + (p2.x - p0.x) / 6;
-                const cp1y = p1.y + (p2.y - p0.y) / 6;
-                const cp2x = p2.x - (p3.x - p1.x) / 6;
-                const cp2y = p2.y - (p3.y - p1.y) / 6;
+        pathD += ` C ${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
+    }
 
-                pathD += ` C ${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
-            }
+    const areaD = `${pathD} L ${pts[pts.length - 1].x},${height} L ${pts[0].x},${height} Z`;
+    const color = isBull ? '#10b981' : '#f43f5e';
+    const gradId = `sparkGrad-${Math.random().toString(36).substr(2, 6)}`;
 
-            const areaD = `${pathD} L ${pts[pts.length - 1].x},${height} L ${pts[0].x},${height} Z`;
-            const color = isBull ? '#10b981' : '#f43f5e';
-            const gradId = `sparkGrad-${Math.random().toString(36).substr(2, 6)}`;
-
-            return `
+    return `
                 <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" class="overflow-visible">
                     <defs>
                         <linearGradient id="${gradId}" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -3527,22 +3571,22 @@ if (typeof tailwind !== 'undefined') {
                     <circle cx="${pts[pts.length - 1].x}" cy="${pts[pts.length - 1].y}" r="3" fill="${color}" stroke="#0F172A" stroke-width="1.5"/>
                 </svg>
             `;
-        }
+}
 
-        // RENDER PREDICTION COINS (AI FORECASTS)
-        function renderPredictionCoins(coinsToRender) {
-            const grid = document.getElementById('predictionCoinsGrid');
-            if (!grid) return;
+// RENDER PREDICTION COINS (AI FORECASTS)
+function renderPredictionCoins(coinsToRender) {
+    const grid = document.getElementById('predictionCoinsGrid');
+    if (!grid) return;
 
-            grid.innerHTML = '';
-            coinsToRender.forEach(c => {
-                const card = document.createElement('div');
-                card.onclick = () => openCoinChartModal(c.symbol);
-                card.className = 'pixel-card p-5 space-y-4 hover:-translate-y-1 transition-all cursor-pointer group bg-white text-slate-900 shadow-md';
-                
-                const sparklineSvg = generateSparklineSvg(c.sparkline, c.isBull, 110, 34);
+    grid.innerHTML = '';
+    coinsToRender.forEach(c => {
+        const card = document.createElement('div');
+        card.onclick = () => openCoinChartModal(c.symbol);
+        card.className = 'pixel-card p-5 space-y-4 hover:-translate-y-1 transition-all cursor-pointer group bg-white text-slate-900 shadow-md';
 
-                card.innerHTML = `
+        const sparklineSvg = generateSparklineSvg(c.sparkline, c.isBull, 110, 34);
+
+        card.innerHTML = `
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
                             <img src="${c.logo}" alt="${c.name}" class="w-10 h-10 rounded-xl object-contain bg-slate-50 p-1 border-2 border-slate-950 shadow-[2px_2px_0px_#0F172A] shrink-0 group-hover:scale-105 transition-transform" onerror="this.src='logo.png'">
@@ -3601,22 +3645,22 @@ if (typeof tailwind !== 'undefined') {
                         <i data-lucide="chevron-right" class="w-4 h-4 text-purple-700 group-hover:translate-x-1 transition-transform"></i>
                     </div>
                 `;
-                grid.appendChild(card);
-            });
+        grid.appendChild(card);
+    });
 
-            if (window.lucide) window.lucide.createIcons();
-        }
+    if (window.lucide) window.lucide.createIcons();
+}
 
-        // RENDER BINARY PREDICTION MARKETS
-        function renderPredictionMarkets(markets) {
-            const grid = document.getElementById('predictionMarketsGrid');
-            if (!grid) return;
+// RENDER BINARY PREDICTION MARKETS
+function renderPredictionMarkets(markets) {
+    const grid = document.getElementById('predictionMarketsGrid');
+    if (!grid) return;
 
-            grid.innerHTML = '';
-            markets.forEach(m => {
-                const card = document.createElement('div');
-                card.className = 'pixel-card p-5 space-y-4 bg-white text-slate-900 shadow-md';
-                card.innerHTML = `
+    grid.innerHTML = '';
+    markets.forEach(m => {
+        const card = document.createElement('div');
+        card.className = 'pixel-card p-5 space-y-4 bg-white text-slate-900 shadow-md';
+        card.innerHTML = `
                     <div class="flex items-start justify-between gap-2">
                         <div class="flex items-center gap-2">
                             <img src="${m.icon}" alt="" class="w-8 h-8 rounded-lg object-contain bg-slate-50 p-1 border border-slate-300" onerror="this.src='logo.png'">
@@ -3655,194 +3699,194 @@ if (typeof tailwind !== 'undefined') {
                         </button>
                     </div>
                 `;
-                grid.appendChild(card);
-            });
+        grid.appendChild(card);
+    });
 
-            if (window.lucide) window.lucide.createIcons();
+    if (window.lucide) window.lucide.createIcons();
+}
+
+// FILTER PREDICTION COINS / MARKETS
+function filterPredictionCoins() {
+    const query = document.getElementById('coinSearchInput')?.value?.toLowerCase() || '';
+
+    let filteredCoins = PREDICTION_COINS.filter(c => {
+        const matchesQuery = c.symbol.toLowerCase().includes(query) || c.name.toLowerCase().includes(query) || c.category.toLowerCase().includes(query);
+        const matchesCat = activePredCategory === 'all' || c.type === activePredCategory;
+        return matchesQuery && matchesCat;
+    });
+    renderPredictionCoins(filteredCoins);
+
+    let filteredMarkets = PREDICTION_MARKETS.filter(m => {
+        return m.title.toLowerCase().includes(query) || m.category.toLowerCase().includes(query);
+    });
+    renderPredictionMarkets(filteredMarkets);
+}
+
+// ==========================================
+// PRO DYNAMIC CHART ENGINE
+// ==========================================
+
+function generateTimeframeData(basePrice, isBull, timeframe) {
+    let count = 24;
+    let volatility = 0.015;
+    let timeLabels = [];
+    const now = new Date();
+
+    if (timeframe === '1H') {
+        count = 12;
+        volatility = 0.004;
+        for (let i = count - 1; i >= 0; i--) {
+            const d = new Date(now.getTime() - i * 5 * 60000);
+            timeLabels.push(`${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`);
         }
-
-        // FILTER PREDICTION COINS / MARKETS
-        function filterPredictionCoins() {
-            const query = document.getElementById('coinSearchInput')?.value?.toLowerCase() || '';
-            
-            let filteredCoins = PREDICTION_COINS.filter(c => {
-                const matchesQuery = c.symbol.toLowerCase().includes(query) || c.name.toLowerCase().includes(query) || c.category.toLowerCase().includes(query);
-                const matchesCat = activePredCategory === 'all' || c.type === activePredCategory;
-                return matchesQuery && matchesCat;
-            });
-            renderPredictionCoins(filteredCoins);
-
-            let filteredMarkets = PREDICTION_MARKETS.filter(m => {
-                return m.title.toLowerCase().includes(query) || m.category.toLowerCase().includes(query);
-            });
-            renderPredictionMarkets(filteredMarkets);
+    } else if (timeframe === '24H') {
+        count = 24;
+        volatility = 0.015;
+        for (let i = count - 1; i >= 0; i--) {
+            const d = new Date(now.getTime() - i * 3600000);
+            timeLabels.push(`${d.getHours().toString().padStart(2, '0')}:00`);
         }
-
-        // ==========================================
-        // PRO DYNAMIC CHART ENGINE
-        // ==========================================
-
-        function generateTimeframeData(basePrice, isBull, timeframe) {
-            let count = 24;
-            let volatility = 0.015;
-            let timeLabels = [];
-            const now = new Date();
-
-            if (timeframe === '1H') {
-                count = 12;
-                volatility = 0.004;
-                for (let i = count - 1; i >= 0; i--) {
-                    const d = new Date(now.getTime() - i * 5 * 60000);
-                    timeLabels.push(`${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`);
-                }
-            } else if (timeframe === '24H') {
-                count = 24;
-                volatility = 0.015;
-                for (let i = count - 1; i >= 0; i--) {
-                    const d = new Date(now.getTime() - i * 3600000);
-                    timeLabels.push(`${d.getHours().toString().padStart(2, '0')}:00`);
-                }
-            } else if (timeframe === '7D') {
-                count = 14;
-                volatility = 0.035;
-                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                for (let i = count - 1; i >= 0; i--) {
-                    const d = new Date(now.getTime() - i * 12 * 3600000);
-                    timeLabels.push(`${days[d.getDay()]} ${d.getHours()}:00`);
-                }
-            } else if (timeframe === '30D') {
-                count = 30;
-                volatility = 0.08;
-                for (let i = count - 1; i >= 0; i--) {
-                    const d = new Date(now.getTime() - i * 24 * 3600000);
-                    timeLabels.push(`${d.getMonth() + 1}/${d.getDate()}`);
-                }
-            } else if (timeframe === '1Y') {
-                count = 24;
-                volatility = 0.22;
-                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                for (let i = count - 1; i >= 0; i--) {
-                    const d = new Date(now.getTime() - i * 15 * 24 * 3600000);
-                    timeLabels.push(`${months[d.getMonth()]} ${d.getDate()}`);
-                }
-            }
-
-            // Generate deterministic yet natural looking random walk
-            let current = isBull ? basePrice * (1 - volatility * 1.5) : basePrice * (1 + volatility * 1.5);
-            let prices = [];
-            let volumes = [];
-            let ohlc = [];
-
-            // Seed based on coin name length
-            let seed = (basePrice % 100) + 1;
-            function pseudoRandom() {
-                seed = (seed * 9301 + 49297) % 233280;
-                return seed / 233280;
-            }
-
-            for (let i = 0; i < count; i++) {
-                const trend = isBull ? 0.003 : -0.003;
-                const changePct = (pseudoRandom() - 0.48 + trend) * volatility;
-                const open = current;
-                current = current * (1 + changePct);
-                const close = current;
-                const high = Math.max(open, close) * (1 + pseudoRandom() * (volatility * 0.5));
-                const low = Math.min(open, close) * (1 - pseudoRandom() * (volatility * 0.5));
-                const vol = (pseudoRandom() * 50 + 10).toFixed(1);
-
-                prices.push(close);
-                volumes.push(parseFloat(vol));
-                ohlc.push({ open, high, low, close, time: timeLabels[i], vol });
-            }
-
-            // Ensure last price matches exact base price
-            prices[prices.length - 1] = basePrice;
-            ohlc[ohlc.length - 1].close = basePrice;
-
-            return { prices, volumes, ohlc, timeLabels };
+    } else if (timeframe === '7D') {
+        count = 14;
+        volatility = 0.035;
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        for (let i = count - 1; i >= 0; i--) {
+            const d = new Date(now.getTime() - i * 12 * 3600000);
+            timeLabels.push(`${days[d.getDay()]} ${d.getHours()}:00`);
         }
+    } else if (timeframe === '30D') {
+        count = 30;
+        volatility = 0.08;
+        for (let i = count - 1; i >= 0; i--) {
+            const d = new Date(now.getTime() - i * 24 * 3600000);
+            timeLabels.push(`${d.getMonth() + 1}/${d.getDate()}`);
+        }
+    } else if (timeframe === '1Y') {
+        count = 24;
+        volatility = 0.22;
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        for (let i = count - 1; i >= 0; i--) {
+            const d = new Date(now.getTime() - i * 15 * 24 * 3600000);
+            timeLabels.push(`${months[d.getMonth()]} ${d.getDate()}`);
+        }
+    }
 
-        function renderModalDynamicChart(coin, timeframe, chartType) {
-            const wrapper = document.getElementById('svgChartWrapper');
-            if (!wrapper) return;
+    // Generate deterministic yet natural looking random walk
+    let current = isBull ? basePrice * (1 - volatility * 1.5) : basePrice * (1 + volatility * 1.5);
+    let prices = [];
+    let volumes = [];
+    let ohlc = [];
 
-            const data = generateTimeframeData(coin.priceNum, coin.isBull, timeframe);
-            const prices = data.prices;
-            const minPrice = Math.min(...prices) * 0.995;
-            const maxPrice = Math.max(...prices) * 1.005;
-            const range = (maxPrice - minPrice) || 1;
+    // Seed based on coin name length
+    let seed = (basePrice % 100) + 1;
+    function pseudoRandom() {
+        seed = (seed * 9301 + 49297) % 233280;
+        return seed / 233280;
+    }
 
-            const width = wrapper.clientWidth || 700;
-            const height = 240;
-            const chartPadding = { top: 20, right: 60, bottom: 40, left: 10 };
-            const plotW = width - chartPadding.left - chartPadding.right;
-            const plotH = height - chartPadding.top - chartPadding.bottom;
+    for (let i = 0; i < count; i++) {
+        const trend = isBull ? 0.003 : -0.003;
+        const changePct = (pseudoRandom() - 0.48 + trend) * volatility;
+        const open = current;
+        current = current * (1 + changePct);
+        const close = current;
+        const high = Math.max(open, close) * (1 + pseudoRandom() * (volatility * 0.5));
+        const low = Math.min(open, close) * (1 - pseudoRandom() * (volatility * 0.5));
+        const vol = (pseudoRandom() * 50 + 10).toFixed(1);
 
-            const pts = prices.map((p, i) => ({
-                x: chartPadding.left + (i / (prices.length - 1)) * plotW,
-                y: chartPadding.top + plotH - ((p - minPrice) / range) * plotH,
-                price: p,
-                time: data.timeLabels[i],
-                vol: data.volumes[i]
-            }));
+        prices.push(close);
+        volumes.push(parseFloat(vol));
+        ohlc.push({ open, high, low, close, time: timeLabels[i], vol });
+    }
 
-            // Grid lines & labels (4 horizontal lines)
-            let gridSvg = '';
-            for (let g = 0; g <= 4; g++) {
-                const gy = chartPadding.top + (plotH / 4) * g;
-                const priceVal = maxPrice - (range / 4) * g;
-                const formattedPrice = priceVal >= 1000 ? `$${priceVal.toLocaleString('en-US', { maximumFractionDigits: 0 })}` : priceVal >= 1 ? `$${priceVal.toFixed(2)}` : `$${priceVal.toFixed(6)}`;
-                gridSvg += `
+    // Ensure last price matches exact base price
+    prices[prices.length - 1] = basePrice;
+    ohlc[ohlc.length - 1].close = basePrice;
+
+    return { prices, volumes, ohlc, timeLabels };
+}
+
+function renderModalDynamicChart(coin, timeframe, chartType) {
+    const wrapper = document.getElementById('svgChartWrapper');
+    if (!wrapper) return;
+
+    const data = generateTimeframeData(coin.priceNum, coin.isBull, timeframe);
+    const prices = data.prices;
+    const minPrice = Math.min(...prices) * 0.995;
+    const maxPrice = Math.max(...prices) * 1.005;
+    const range = (maxPrice - minPrice) || 1;
+
+    const width = wrapper.clientWidth || 700;
+    const height = 240;
+    const chartPadding = { top: 20, right: 60, bottom: 40, left: 10 };
+    const plotW = width - chartPadding.left - chartPadding.right;
+    const plotH = height - chartPadding.top - chartPadding.bottom;
+
+    const pts = prices.map((p, i) => ({
+        x: chartPadding.left + (i / (prices.length - 1)) * plotW,
+        y: chartPadding.top + plotH - ((p - minPrice) / range) * plotH,
+        price: p,
+        time: data.timeLabels[i],
+        vol: data.volumes[i]
+    }));
+
+    // Grid lines & labels (4 horizontal lines)
+    let gridSvg = '';
+    for (let g = 0; g <= 4; g++) {
+        const gy = chartPadding.top + (plotH / 4) * g;
+        const priceVal = maxPrice - (range / 4) * g;
+        const formattedPrice = priceVal >= 1000 ? `$${priceVal.toLocaleString('en-US', { maximumFractionDigits: 0 })}` : priceVal >= 1 ? `$${priceVal.toFixed(2)}` : `$${priceVal.toFixed(6)}`;
+        gridSvg += `
                     <line x1="${chartPadding.left}" y1="${gy}" x2="${width - chartPadding.right}" y2="${gy}" stroke="#1e293b" stroke-dasharray="3 3" stroke-width="1"/>
                     <text x="${width - chartPadding.right + 8}" y="${gy + 4}" fill="#64748b" font-family="monospace" font-size="10">${formattedPrice}</text>
                 `;
-            }
+    }
 
-            // Bottom Time Labels (select 5 intervals)
-            let timeSvg = '';
-            const step = Math.floor(pts.length / 5);
-            for (let t = 0; t < pts.length; t += step) {
-                const pt = pts[t];
-                timeSvg += `
+    // Bottom Time Labels (select 5 intervals)
+    let timeSvg = '';
+    const step = Math.floor(pts.length / 5);
+    for (let t = 0; t < pts.length; t += step) {
+        const pt = pts[t];
+        timeSvg += `
                     <text x="${pt.x}" y="${height - 12}" fill="#64748b" font-family="monospace" font-size="10" text-anchor="middle">${pt.time}</text>
                 `;
-            }
+    }
 
-            let chartContent = '';
-            const strokeColor = coin.isBull ? '#10b981' : '#f43f5e';
-            const gradId = `modalChartGrad-${coin.symbol}`;
+    let chartContent = '';
+    const strokeColor = coin.isBull ? '#10b981' : '#f43f5e';
+    const gradId = `modalChartGrad-${coin.symbol}`;
 
-            if (chartType === 'area') {
-                // Smooth Spline
-                let pathD = `M ${pts[0].x},${pts[0].y}`;
-                for (let i = 0; i < pts.length - 1; i++) {
-                    const p0 = pts[i === 0 ? 0 : i - 1];
-                    const p1 = pts[i];
-                    const p2 = pts[i + 1];
-                    const p3 = pts[i + 2 >= pts.length ? pts.length - 1 : i + 2];
+    if (chartType === 'area') {
+        // Smooth Spline
+        let pathD = `M ${pts[0].x},${pts[0].y}`;
+        for (let i = 0; i < pts.length - 1; i++) {
+            const p0 = pts[i === 0 ? 0 : i - 1];
+            const p1 = pts[i];
+            const p2 = pts[i + 1];
+            const p3 = pts[i + 2 >= pts.length ? pts.length - 1 : i + 2];
 
-                    const cp1x = p1.x + (p2.x - p0.x) / 6;
-                    const cp1y = p1.y + (p2.y - p0.y) / 6;
-                    const cp2x = p2.x - (p3.x - p1.x) / 6;
-                    const cp2y = p2.y - (p3.y - p1.y) / 6;
+            const cp1x = p1.x + (p2.x - p0.x) / 6;
+            const cp1y = p1.y + (p2.y - p0.y) / 6;
+            const cp2x = p2.x - (p3.x - p1.x) / 6;
+            const cp2y = p2.y - (p3.y - p1.y) / 6;
 
-                    pathD += ` C ${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
-                }
+            pathD += ` C ${cp1x.toFixed(1)},${cp1y.toFixed(1)} ${cp2x.toFixed(1)},${cp2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
+        }
 
-                const areaD = `${pathD} L ${pts[pts.length - 1].x},${chartPadding.top + plotH} L ${pts[0].x},${chartPadding.top + plotH} Z`;
+        const areaD = `${pathD} L ${pts[pts.length - 1].x},${chartPadding.top + plotH} L ${pts[0].x},${chartPadding.top + plotH} Z`;
 
-                // Volume Histogram Bars
-                let volBars = '';
-                const maxVol = Math.max(...data.volumes) || 1;
-                const volHeight = 35;
-                pts.forEach((pt, i) => {
-                    const bh = (pt.vol / maxVol) * volHeight;
-                    const bx = pt.x - 3;
-                    const by = chartPadding.top + plotH - bh;
-                    volBars += `<rect x="${bx}" y="${by}" width="6" height="${bh}" fill="#334155" opacity="0.4" rx="1"/>`;
-                });
+        // Volume Histogram Bars
+        let volBars = '';
+        const maxVol = Math.max(...data.volumes) || 1;
+        const volHeight = 35;
+        pts.forEach((pt, i) => {
+            const bh = (pt.vol / maxVol) * volHeight;
+            const bx = pt.x - 3;
+            const by = chartPadding.top + plotH - bh;
+            volBars += `<rect x="${bx}" y="${by}" width="6" height="${bh}" fill="#334155" opacity="0.4" rx="1"/>`;
+        });
 
-                chartContent = `
+        chartContent = `
                     <defs>
                         <linearGradient id="${gradId}" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" stop-color="${strokeColor}" stop-opacity="0.38"/>
@@ -3853,33 +3897,33 @@ if (typeof tailwind !== 'undefined') {
                     <path d="${areaD}" fill="url(#${gradId})" />
                     <path d="${pathD}" fill="none" stroke="${strokeColor}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
                 `;
-            } else {
-                // Candlestick Chart
-                let candleSvg = '';
-                const candleW = Math.max(4, plotW / data.ohlc.length - 3);
-                data.ohlc.forEach((c, i) => {
-                    const cx = chartPadding.left + (i / (data.ohlc.length - 1)) * plotW;
-                    const openY = chartPadding.top + plotH - ((c.open - minPrice) / range) * plotH;
-                    const closeY = chartPadding.top + plotH - ((c.close - minPrice) / range) * plotH;
-                    const highY = chartPadding.top + plotH - ((c.high - minPrice) / range) * plotH;
-                    const lowY = chartPadding.top + plotH - ((c.low - minPrice) / range) * plotH;
+    } else {
+        // Candlestick Chart
+        let candleSvg = '';
+        const candleW = Math.max(4, plotW / data.ohlc.length - 3);
+        data.ohlc.forEach((c, i) => {
+            const cx = chartPadding.left + (i / (data.ohlc.length - 1)) * plotW;
+            const openY = chartPadding.top + plotH - ((c.open - minPrice) / range) * plotH;
+            const closeY = chartPadding.top + plotH - ((c.close - minPrice) / range) * plotH;
+            const highY = chartPadding.top + plotH - ((c.high - minPrice) / range) * plotH;
+            const lowY = chartPadding.top + plotH - ((c.low - minPrice) / range) * plotH;
 
-                    const isGreen = c.close >= c.open;
-                    const cColor = isGreen ? '#10b981' : '#f43f5e';
-                    const topY = Math.min(openY, closeY);
-                    const rectH = Math.max(2, Math.abs(closeY - openY));
+            const isGreen = c.close >= c.open;
+            const cColor = isGreen ? '#10b981' : '#f43f5e';
+            const topY = Math.min(openY, closeY);
+            const rectH = Math.max(2, Math.abs(closeY - openY));
 
-                    candleSvg += `
+            candleSvg += `
                         <!-- Wick -->
                         <line x1="${cx}" y1="${highY}" x2="${cx}" y2="${lowY}" stroke="${cColor}" stroke-width="1.5" />
                         <!-- Body -->
                         <rect x="${cx - candleW / 2}" y="${topY}" width="${candleW}" height="${rectH}" fill="${cColor}" stroke="${cColor}" rx="1"/>
                     `;
-                });
-                chartContent = candleSvg;
-            }
+        });
+        chartContent = candleSvg;
+    }
 
-            wrapper.innerHTML = `
+    wrapper.innerHTML = `
                 <svg id="mainInteractiveSvg" width="100%" height="${height}" viewBox="0 0 ${width} ${height}" class="w-full h-full select-none">
                     ${gridSvg}
                     ${timeSvg}
@@ -3890,642 +3934,642 @@ if (typeof tailwind !== 'undefined') {
                 </svg>
             `;
 
-            // Interactive mouse tracking
-            wrapper.onmousemove = (e) => {
-                const rect = wrapper.getBoundingClientRect();
-                const mouseX = e.clientX - rect.left;
-                if (mouseX < chartPadding.left || mouseX > width - chartPadding.right) return;
+    // Interactive mouse tracking
+    wrapper.onmousemove = (e) => {
+        const rect = wrapper.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        if (mouseX < chartPadding.left || mouseX > width - chartPadding.right) return;
 
-                // Find closest point
-                let closest = pts[0];
-                let minDiff = Infinity;
-                pts.forEach(pt => {
-                    const diff = Math.abs(pt.x - mouseX);
-                    if (diff < minDiff) {
-                        minDiff = diff;
-                        closest = pt;
-                    }
-                });
-
-                const crossX = document.getElementById('crosshairX');
-                const pulse = document.getElementById('hoverPointPulse');
-                const tooltipBox = document.getElementById('chartHoverTooltipBox');
-
-                if (crossX) {
-                    crossX.setAttribute('x1', closest.x);
-                    crossX.setAttribute('x2', closest.x);
-                    crossX.setAttribute('opacity', '1');
-                }
-                if (pulse) {
-                    pulse.setAttribute('cx', closest.x);
-                    pulse.setAttribute('cy', closest.y);
-                    pulse.setAttribute('opacity', '1');
-                }
-                if (tooltipBox) {
-                    tooltipBox.classList.remove('hidden');
-                    const formatted = closest.price >= 1000 ? `$${closest.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : closest.price >= 1 ? `$${closest.price.toFixed(2)}` : `$${closest.price.toFixed(6)}`;
-                    safeSetText('hoverPointPrice', formatted);
-                    safeSetText('hoverPointTime', closest.time);
-                    safeSetText('hoverPointVol', `Vol: $${closest.vol}M`);
-                }
-            };
-
-            wrapper.onmouseleave = () => {
-                const crossX = document.getElementById('crosshairX');
-                const pulse = document.getElementById('hoverPointPulse');
-                const tooltipBox = document.getElementById('chartHoverTooltipBox');
-                if (crossX) crossX.setAttribute('opacity', '0');
-                if (pulse) pulse.setAttribute('opacity', '0');
-                if (tooltipBox) tooltipBox.classList.add('hidden');
-            };
-        }
-
-        function setModalChartTimeframe(tf) {
-            activeChartTimeframe = tf;
-            ['1H', '24H', '7D', '30D', '1Y'].forEach(t => {
-                const btn = document.getElementById(`tfBtn-${t}`);
-                if (btn) {
-                    if (t === tf) {
-                        btn.className = 'px-2.5 py-1 rounded-lg bg-purple-700 text-white shadow-sm transition-colors';
-                    } else {
-                        btn.className = 'px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-950 transition-colors';
-                    }
-                }
-            });
-            if (activeChartCoin) {
-                renderModalDynamicChart(activeChartCoin, activeChartTimeframe, activeChartType);
+        // Find closest point
+        let closest = pts[0];
+        let minDiff = Infinity;
+        pts.forEach(pt => {
+            const diff = Math.abs(pt.x - mouseX);
+            if (diff < minDiff) {
+                minDiff = diff;
+                closest = pt;
             }
-        }
+        });
 
-        function setModalChartType(type) {
-            activeChartType = type;
-            const btnArea = document.getElementById('chartTypeBtn-area');
-            const btnCandle = document.getElementById('chartTypeBtn-candle');
-            if (type === 'area') {
-                if (btnArea) btnArea.className = 'px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[11px]';
-                if (btnCandle) btnCandle.className = 'px-2.5 py-1 rounded-lg bg-slate-200 text-slate-700 hover:text-slate-950 text-[11px]';
+        const crossX = document.getElementById('crosshairX');
+        const pulse = document.getElementById('hoverPointPulse');
+        const tooltipBox = document.getElementById('chartHoverTooltipBox');
+
+        if (crossX) {
+            crossX.setAttribute('x1', closest.x);
+            crossX.setAttribute('x2', closest.x);
+            crossX.setAttribute('opacity', '1');
+        }
+        if (pulse) {
+            pulse.setAttribute('cx', closest.x);
+            pulse.setAttribute('cy', closest.y);
+            pulse.setAttribute('opacity', '1');
+        }
+        if (tooltipBox) {
+            tooltipBox.classList.remove('hidden');
+            const formatted = closest.price >= 1000 ? `$${closest.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : closest.price >= 1 ? `$${closest.price.toFixed(2)}` : `$${closest.price.toFixed(6)}`;
+            safeSetText('hoverPointPrice', formatted);
+            safeSetText('hoverPointTime', closest.time);
+            safeSetText('hoverPointVol', `Vol: $${closest.vol}M`);
+        }
+    };
+
+    wrapper.onmouseleave = () => {
+        const crossX = document.getElementById('crosshairX');
+        const pulse = document.getElementById('hoverPointPulse');
+        const tooltipBox = document.getElementById('chartHoverTooltipBox');
+        if (crossX) crossX.setAttribute('opacity', '0');
+        if (pulse) pulse.setAttribute('opacity', '0');
+        if (tooltipBox) tooltipBox.classList.add('hidden');
+    };
+}
+
+function setModalChartTimeframe(tf) {
+    activeChartTimeframe = tf;
+    ['1H', '24H', '7D', '30D', '1Y'].forEach(t => {
+        const btn = document.getElementById(`tfBtn-${t}`);
+        if (btn) {
+            if (t === tf) {
+                btn.className = 'px-2.5 py-1 rounded-lg bg-purple-700 text-white shadow-sm transition-colors';
             } else {
-                if (btnCandle) btnCandle.className = 'px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[11px]';
-                if (btnArea) btnArea.className = 'px-2.5 py-1 rounded-lg bg-slate-200 text-slate-700 hover:text-slate-950 text-[11px]';
-            }
-            if (activeChartCoin) {
-                renderModalDynamicChart(activeChartCoin, activeChartTimeframe, activeChartType);
+                btn.className = 'px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-950 transition-colors';
             }
         }
+    });
+    if (activeChartCoin) {
+        renderModalDynamicChart(activeChartCoin, activeChartTimeframe, activeChartType);
+    }
+}
 
-        function openCoinChartModal(symbol) {
-            const coin = PREDICTION_COINS.find(c => c.symbol === symbol) || PREDICTION_COINS[0];
-            activeChartCoin = coin;
+function setModalChartType(type) {
+    activeChartType = type;
+    const btnArea = document.getElementById('chartTypeBtn-area');
+    const btnCandle = document.getElementById('chartTypeBtn-candle');
+    if (type === 'area') {
+        if (btnArea) btnArea.className = 'px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[11px]';
+        if (btnCandle) btnCandle.className = 'px-2.5 py-1 rounded-lg bg-slate-200 text-slate-700 hover:text-slate-950 text-[11px]';
+    } else {
+        if (btnCandle) btnCandle.className = 'px-2.5 py-1 rounded-lg bg-slate-900 text-white text-[11px]';
+        if (btnArea) btnArea.className = 'px-2.5 py-1 rounded-lg bg-slate-200 text-slate-700 hover:text-slate-950 text-[11px]';
+    }
+    if (activeChartCoin) {
+        renderModalDynamicChart(activeChartCoin, activeChartTimeframe, activeChartType);
+    }
+}
 
-            const modal = document.getElementById('coinChartModal');
-            if (!modal) return;
+function openCoinChartModal(symbol) {
+    const coin = PREDICTION_COINS.find(c => c.symbol === symbol) || PREDICTION_COINS[0];
+    activeChartCoin = coin;
 
-            safeSetText('modalCoinName', `${coin.name} (${coin.symbol})`);
-            safeSetText('modalCoinCategory', coin.category);
-            safeSetText('modalCoinRankBadge', `Rank ${coin.rank}`);
-            safeSetText('modalCoinPrice', coin.price);
-            safeSetText('modalCoinChange', `${coin.change} (24h)`);
-            safeSetText('modalRsi', coin.rsi);
-            safeSetText('modalMacd', coin.macd);
-            safeSetText('modalSupport', coin.support);
-            safeSetText('modalResistance', coin.resistance);
-            safeSetText('modalEntry', coin.entry);
-            safeSetText('modalTp', coin.tp);
-            safeSetText('modalSl', coin.sl);
-            safeSetText('modalLongRatio', `${coin.longRatio} Interest`);
-            safeSetText('modalConfidence', `${coin.confidence} Conviction`);
-            safeSetText('modalSignalBadge', coin.signal);
+    const modal = document.getElementById('coinChartModal');
+    if (!modal) return;
 
-            const iconContainer = document.getElementById('modalCoinIcon');
-            if (iconContainer) {
-                iconContainer.innerHTML = `<img src="${coin.logo}" alt="${coin.name}" class="w-full h-full object-contain p-1 rounded-xl" onerror="this.src='logo.png'">`;
+    safeSetText('modalCoinName', `${coin.name} (${coin.symbol})`);
+    safeSetText('modalCoinCategory', coin.category);
+    safeSetText('modalCoinRankBadge', `Rank ${coin.rank}`);
+    safeSetText('modalCoinPrice', coin.price);
+    safeSetText('modalCoinChange', `${coin.change} (24h)`);
+    safeSetText('modalRsi', coin.rsi);
+    safeSetText('modalMacd', coin.macd);
+    safeSetText('modalSupport', coin.support);
+    safeSetText('modalResistance', coin.resistance);
+    safeSetText('modalEntry', coin.entry);
+    safeSetText('modalTp', coin.tp);
+    safeSetText('modalSl', coin.sl);
+    safeSetText('modalLongRatio', `${coin.longRatio} Interest`);
+    safeSetText('modalConfidence', `${coin.confidence} Conviction`);
+    safeSetText('modalSignalBadge', coin.signal);
+
+    const iconContainer = document.getElementById('modalCoinIcon');
+    if (iconContainer) {
+        iconContainer.innerHTML = `<img src="${coin.logo}" alt="${coin.name}" class="w-full h-full object-contain p-1 rounded-xl" onerror="this.src='logo.png'">`;
+    }
+
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        renderModalDynamicChart(coin, activeChartTimeframe, activeChartType);
+    }, 50);
+
+    if (window.lucide) window.lucide.createIcons();
+}
+
+function closeCoinChartModal() {
+    const modal = document.getElementById('coinChartModal');
+    if (modal) modal.classList.add('hidden');
+    activeChartCoin = null;
+}
+
+// ==========================================
+// BINARY PREDICTION BETTING ENGINE
+// ==========================================
+
+function openPredictionBetModal(marketId, defaultOutcome = 'YES') {
+    const market = PREDICTION_MARKETS.find(m => m.id === marketId) || PREDICTION_MARKETS[0];
+    activeBetMarket = market;
+    selectedBetOutcome = defaultOutcome;
+
+    safeSetText('betModalCategory', market.category);
+    safeSetText('betModalTitle', market.title);
+    safeSetText('betModalYesPrice', `$${market.yesPrice.toFixed(2)}`);
+    safeSetText('betModalNoPrice', `$${market.noPrice.toFixed(2)}`);
+    safeSetText('betModalYesProb', `${market.yesPct}% Probability`);
+    safeSetText('betModalNoProb', `${market.noPct}% Probability`);
+
+    selectBetOutcome(defaultOutcome);
+    calculateBetPayout();
+
+    const modal = document.getElementById('predictionBetModal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+function selectBetOutcome(outcome) {
+    selectedBetOutcome = outcome;
+    const btnYes = document.getElementById('betOutcomeBtn-YES');
+    const btnNo = document.getElementById('betOutcomeBtn-NO');
+
+    if (outcome === 'YES') {
+        if (btnYes) btnYes.className = 'p-3 rounded-xl border-2 border-slate-950 bg-emerald-600 text-white font-bold text-center shadow-[2px_2px_0px_#0F172A] transition-all scale-[1.02]';
+        if (btnNo) btnNo.className = 'p-3 rounded-xl border-2 border-slate-950 bg-slate-100 text-slate-800 font-bold text-center hover:bg-slate-200 shadow-[2px_2px_0px_#0F172A] transition-all';
+    } else {
+        if (btnNo) btnNo.className = 'p-3 rounded-xl border-2 border-slate-950 bg-rose-600 text-white font-bold text-center shadow-[2px_2px_0px_#0F172A] transition-all scale-[1.02]';
+        if (btnYes) btnYes.className = 'p-3 rounded-xl border-2 border-slate-950 bg-slate-100 text-slate-800 font-bold text-center hover:bg-slate-200 shadow-[2px_2px_0px_#0F172A] transition-all';
+    }
+    calculateBetPayout();
+}
+
+function calculateBetPayout() {
+    if (!activeBetMarket) return;
+    const amountInput = document.getElementById('betAmountInput');
+    const amount = parseFloat(amountInput?.value) || 10;
+    const price = selectedBetOutcome === 'YES' ? activeBetMarket.yesPrice : activeBetMarket.noPrice;
+    const shares = (amount / price).toFixed(2);
+    const payout = (shares * 1.0).toFixed(2);
+    const returnPct = (((payout - amount) / amount) * 100).toFixed(1);
+
+    safeSetText('betSharesText', `${shares} Shares`);
+    safeSetText('betPayoutText', `$${payout} USDC (+${returnPct}%)`);
+}
+
+function recordUserBet(marketId, marketTitle, outcome, amount, txHash) {
+    try {
+        const history = JSON.parse(localStorage.getItem('arc_prediction_bets') || '[]');
+        history.unshift({
+            marketId,
+            marketTitle,
+            outcome,
+            amount,
+            txHash,
+            timestamp: new Date().toISOString()
+        });
+        localStorage.setItem('arc_prediction_bets', JSON.stringify(history.slice(0, 50)));
+    } catch (e) { }
+}
+
+async function executePredictionBet() {
+    if (!activeBetMarket) return;
+    const amountInput = document.getElementById('betAmountInput');
+    const amount = parseFloat(amountInput?.value) || 10;
+    if (amount <= 0) {
+        showToast('Invalid Amount', 'Please enter a positive USDC stake amount.', 'error');
+        return;
+    }
+
+    const provider = activeWeb3Provider || window.ethereum;
+    if (!provider) {
+        showToast('No Wallet Connected', 'Please connect your Web3 wallet (MetaMask or Circle Wallet) first!', 'error');
+        openConnectWalletModal();
+        return;
+    }
+
+    const confirmBtn = document.querySelector('#predictionBetModal button[onclick="executePredictionBet()"]') || document.querySelector('#predictionBetModal .btn-pixel');
+    const originalBtnHtml = confirmBtn ? confirmBtn.innerHTML : 'Confirm Prediction Bet';
+
+    try {
+        if (!window.ethers) {
+            throw new Error("Ethers.js library not loaded in browser.");
+        }
+
+        if (confirmBtn) {
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Connecting Arc Testnet...</span>`;
+        }
+
+        const web3Provider = new ethers.providers.Web3Provider(provider);
+        const signer = web3Provider.getSigner();
+        const userAddress = await signer.getAddress();
+
+        const usdcUnits = ethers.utils.parseUnits(amount.toString(), 6);
+        const usdcContract = new ethers.Contract(ERC20_USDC_ADDRESS, ERC20_ABI, signer);
+
+        if (confirmBtn) {
+            confirmBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Verifying USDC Balance...</span>`;
+        }
+
+        let userBal = ethers.BigNumber.from(0);
+        try {
+            userBal = await usdcContract.balanceOf(userAddress);
+        } catch (e) { }
+
+        if (userBal.lt(usdcUnits)) {
+            showToast('Insufficient USDC', `You have ${ethers.utils.formatUnits(userBal, 6)} USDC on Arc Testnet. Please fund your wallet.`, 'error');
+            if (confirmBtn) {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = originalBtnHtml;
             }
-
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                renderModalDynamicChart(coin, activeChartTimeframe, activeChartType);
-            }, 50);
-
-            if (window.lucide) window.lucide.createIcons();
+            return;
         }
 
-        function closeCoinChartModal() {
-            const modal = document.getElementById('coinChartModal');
-            if (modal) modal.classList.add('hidden');
-            activeChartCoin = null;
+        // Check Allowance
+        if (confirmBtn) {
+            confirmBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Checking Allowance...</span>`;
         }
 
-        // ==========================================
-        // BINARY PREDICTION BETTING ENGINE
-        // ==========================================
+        let allowance = ethers.BigNumber.from(0);
+        try {
+            allowance = await usdcContract.allowance(userAddress, PREDICTION_MARKET_ADDRESS);
+        } catch (e) { }
 
-        function openPredictionBetModal(marketId, defaultOutcome = 'YES') {
-            const market = PREDICTION_MARKETS.find(m => m.id === marketId) || PREDICTION_MARKETS[0];
-            activeBetMarket = market;
-            selectedBetOutcome = defaultOutcome;
-
-            safeSetText('betModalCategory', market.category);
-            safeSetText('betModalTitle', market.title);
-            safeSetText('betModalYesPrice', `$${market.yesPrice.toFixed(2)}`);
-            safeSetText('betModalNoPrice', `$${market.noPrice.toFixed(2)}`);
-            safeSetText('betModalYesProb', `${market.yesPct}% Probability`);
-            safeSetText('betModalNoProb', `${market.noPct}% Probability`);
-
-            selectBetOutcome(defaultOutcome);
-            calculateBetPayout();
-
-            const modal = document.getElementById('predictionBetModal');
-            if (modal) modal.classList.remove('hidden');
-        }
-
-        function selectBetOutcome(outcome) {
-            selectedBetOutcome = outcome;
-            const btnYes = document.getElementById('betOutcomeBtn-YES');
-            const btnNo = document.getElementById('betOutcomeBtn-NO');
-
-            if (outcome === 'YES') {
-                if (btnYes) btnYes.className = 'p-3 rounded-xl border-2 border-slate-950 bg-emerald-600 text-white font-bold text-center shadow-[2px_2px_0px_#0F172A] transition-all scale-[1.02]';
-                if (btnNo) btnNo.className = 'p-3 rounded-xl border-2 border-slate-950 bg-slate-100 text-slate-800 font-bold text-center hover:bg-slate-200 shadow-[2px_2px_0px_#0F172A] transition-all';
-            } else {
-                if (btnNo) btnNo.className = 'p-3 rounded-xl border-2 border-slate-950 bg-rose-600 text-white font-bold text-center shadow-[2px_2px_0px_#0F172A] transition-all scale-[1.02]';
-                if (btnYes) btnYes.className = 'p-3 rounded-xl border-2 border-slate-950 bg-slate-100 text-slate-800 font-bold text-center hover:bg-slate-200 shadow-[2px_2px_0px_#0F172A] transition-all';
+        if (allowance.lt(usdcUnits)) {
+            showToast('Step 1/2: Approve USDC', 'Please confirm USDC Approval in your wallet...', 'info');
+            if (confirmBtn) {
+                confirmBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Confirming Approval...</span>`;
             }
-            calculateBetPayout();
+            const approveTx = await usdcContract.approve(PREDICTION_MARKET_ADDRESS, ethers.constants.MaxUint256);
+            showToast('Approval Broadcasted', `Tx: ${approveTx.hash.substring(0, 10)}... Waiting for block`, 'info');
+            await approveTx.wait();
+            showToast('USDC Approved! 🚀', 'Step 1 complete! Now placing on-chain prediction stake...', 'success');
         }
 
-        function calculateBetPayout() {
-            if (!activeBetMarket) return;
-            const amountInput = document.getElementById('betAmountInput');
-            const amount = parseFloat(amountInput?.value) || 10;
-            const price = selectedBetOutcome === 'YES' ? activeBetMarket.yesPrice : activeBetMarket.noPrice;
-            const shares = (amount / price).toFixed(2);
-            const payout = (shares * 1.0).toFixed(2);
-            const returnPct = (((payout - amount) / amount) * 100).toFixed(1);
+        // Step 2: Buy Shares on ArcPulsePredictionMarket
+        const marketIndex = PREDICTION_MARKETS.findIndex(m => m.id === activeBetMarket.id);
+        const targetMarketId = marketIndex >= 0 ? marketIndex : 0;
+        const isYes = selectedBetOutcome === 'YES';
 
-            safeSetText('betSharesText', `${shares} Shares`);
-            safeSetText('betPayoutText', `$${payout} USDC (+${returnPct}%)`);
+        showToast('Step 2/2: Confirm Bet', `Staking ${amount} USDC on ${selectedBetOutcome} on Arc L1...`, 'info');
+        if (confirmBtn) {
+            confirmBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Broadcasting to Arc L1...</span>`;
         }
 
-        function recordUserBet(marketId, marketTitle, outcome, amount, txHash) {
-            try {
-                const history = JSON.parse(localStorage.getItem('arc_prediction_bets') || '[]');
-                history.unshift({
-                    marketId,
-                    marketTitle,
-                    outcome,
-                    amount,
-                    txHash,
-                    timestamp: new Date().toISOString()
-                });
-                localStorage.setItem('arc_prediction_bets', JSON.stringify(history.slice(0, 50)));
-            } catch(e) {}
+        const predictionContract = new ethers.Contract(PREDICTION_MARKET_ADDRESS, PREDICTION_MARKET_ABI, signer);
+        const betTx = await predictionContract.buyShares(targetMarketId, isYes, usdcUnits, {
+            gasLimit: 350000
+        });
+
+        showToast('Transaction Broadcasted', `Tx: ${betTx.hash.substring(0, 10)}... Mining on Arc Testnet`, 'info');
+        const receipt = await betTx.wait();
+        const txHash = receipt.transactionHash || betTx.hash;
+
+        showToast(`🎉 Stake of ${amount} USDC on ${selectedBetOutcome} Confirmed!`, `Tx: ${txHash.substring(0, 8)}... (Arc L1)`, 'success');
+
+        recordUserBet(targetMarketId, activeBetMarket.title, selectedBetOutcome, amount, txHash);
+        closePredictionBetModal();
+
+        if (typeof updateBalances === 'function') updateBalances();
+        if (typeof fetchRealOnChainBalances === 'function') fetchRealOnChainBalances();
+    } catch (err) {
+        console.error('Prediction Bet Error:', err);
+        const errorMsg = err?.data?.message || err?.message || 'Transaction rejected or failed';
+        showToast('Prediction Bet Failed', errorMsg.substring(0, 85), 'error');
+    } finally {
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = originalBtnHtml;
         }
+    }
+}
 
-        async function executePredictionBet() {
-            if (!activeBetMarket) return;
-            const amountInput = document.getElementById('betAmountInput');
-            const amount = parseFloat(amountInput?.value) || 10;
-            if (amount <= 0) {
-                showToast('Invalid Amount', 'Please enter a positive USDC stake amount.', 'error');
-                return;
-            }
+async function claimPredictionWinnings(marketId) {
+    const provider = activeWeb3Provider || window.ethereum;
+    if (!provider) {
+        showToast('No Wallet', 'Please connect your Web3 wallet first.', 'error');
+        return;
+    }
+    try {
+        const web3Provider = new ethers.providers.Web3Provider(provider);
+        const signer = web3Provider.getSigner();
+        const predictionContract = new ethers.Contract(PREDICTION_MARKET_ADDRESS, PREDICTION_MARKET_ABI, signer);
 
-            const provider = activeWeb3Provider || window.ethereum;
-            if (!provider) {
-                showToast('No Wallet Connected', 'Please connect your Web3 wallet (MetaMask or Circle Wallet) first!', 'error');
-                openConnectWalletModal();
-                return;
-            }
+        showToast('Claiming Payout', `Claiming USDC winnings for Market #${marketId}...`, 'info');
+        const tx = await predictionContract.claimWinnings(marketId, { gasLimit: 300000 });
+        showToast('Transaction Broadcasted', `Tx: ${tx.hash.substring(0, 10)}... Waiting for block`, 'info');
+        const receipt = await tx.wait();
+        showToast('Winnings Claimed! 🎉', `USDC payout transferred to your wallet! Tx: ${receipt.transactionHash.substring(0, 8)}...`, 'success');
+        if (typeof updateBalances === 'function') updateBalances();
+    } catch (err) {
+        console.error(err);
+        const msg = err?.data?.message || err?.message || 'Transaction failed';
+        showToast('Claim Failed', msg.substring(0, 85), 'error');
+    }
+}
 
-            const confirmBtn = document.querySelector('#predictionBetModal button[onclick="executePredictionBet()"]') || document.querySelector('#predictionBetModal .btn-pixel');
-            const originalBtnHtml = confirmBtn ? confirmBtn.innerHTML : 'Confirm Prediction Bet';
+function closePredictionBetModal() {
+    const modal = document.getElementById('predictionBetModal');
+    if (modal) modal.classList.add('hidden');
+    activeBetMarket = null;
+}
 
-            try {
-                if (!window.ethers) {
-                    throw new Error("Ethers.js library not loaded in browser.");
-                }
+// Global exports for Prediction Engine
+if (typeof window !== 'undefined') {
+    window.PREDICTION_COINS = PREDICTION_COINS;
+    window.PREDICTION_MARKETS = PREDICTION_MARKETS;
+    window.switchPredictionSubTab = switchPredictionSubTab;
+    window.setPredictionCategory = setPredictionCategory;
+    window.renderPredictionCoins = renderPredictionCoins;
+    window.renderPredictionMarkets = renderPredictionMarkets;
+    window.filterPredictionCoins = filterPredictionCoins;
+    window.openCoinChartModal = openCoinChartModal;
+    window.closeCoinChartModal = closeCoinChartModal;
+    window.setModalChartTimeframe = setModalChartTimeframe;
+    window.setModalChartType = setModalChartType;
+    window.openPredictionBetModal = openPredictionBetModal;
+    window.closePredictionBetModal = closePredictionBetModal;
+    window.selectBetOutcome = selectBetOutcome;
+    window.calculateBetPayout = calculateBetPayout;
+    window.executePredictionBet = executePredictionBet;
+    window.claimPredictionWinnings = claimPredictionWinnings;
+    window.PREDICTION_MARKET_ADDRESS = PREDICTION_MARKET_ADDRESS;
+    window.openWalletSendModal = openWalletSendModal;
+    window.closeWalletSendModal = closeWalletSendModal;
+    window.setSendMaxAmount = setSendMaxAmount;
+    window.executeRealSendToken = executeRealSendToken;
+    window.generateSparklineSvg = generateSparklineSvg;
+    window.generateTimeframeData = generateTimeframeData;
+}
 
-                if (confirmBtn) {
-                    confirmBtn.disabled = true;
-                    confirmBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Connecting Arc Testnet...</span>`;
-                }
+// ==========================================
+// VALIDATOR STATUS & TELEMETRY ENGINE
+// ==========================================
+const VALIDATORS_LIST = [
+    {
+        id: 'circle-alpha',
+        name: 'Circle Node Alpha',
+        logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#0066F5"/><circle cx="16" cy="16" r="11" stroke="white" stroke-width="2.5" stroke-dasharray="6 3"/><path d="M16 9V23M12.5 12.5C12.5 11.1 13.9 10.5 16 10.5C18.2 10.5 19.5 11.5 19.5 13C19.5 16 12.5 15.5 12.5 18.5C12.5 20.2 14 21.5 16 21.5C18.4 21.5 19.5 20.4 19.5 19" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>`,
+        badge: 'Consortium Lead',
+        organization: 'Circle Internet Financial',
+        address: '0x1f84...892A',
+        fullAddress: '0x1f84C371B2dE51A07b5C558D8eF3c4bC2E60892A',
+        status: 'online',
+        uptime: 99.99,
+        latency: 1.2,
+        lastBlockSigned: 56258045,
+        stakeUsdc: 1250000,
+        votingPower: 15.2,
+        location: 'Ashburn, VA',
+        region: 'US East (N. Virginia)',
+        hardware: { cpu: '64 vCPU AMD EPYC', ram: '256 GB ECC', bandwidth: '10 Gbps' }
+    },
+    {
+        id: 'blackrock-prime',
+        name: 'BlackRock Prime Consensus',
+        logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#0F172A"/><path d="M7 8H17C19.8 8 21.5 9.5 21.5 11.8C21.5 13.5 20.5 14.8 19 15.3C21 15.8 22.5 17.3 22.5 19.8C22.5 22.5 20.2 24 17 24H7V8ZM11 11.5V14.5H16.2C17.3 14.5 18 13.9 18 13C18 12.1 17.3 11.5 16.2 11.5H11ZM11 17.5V20.5H16.8C18 20.5 18.8 19.8 18.8 19C18.8 18.2 18 17.5 16.8 17.5H11Z" fill="#F8FAFC"/><rect x="23" y="8" width="3" height="16" fill="#F59E0B"/></svg>`,
+        badge: 'Institutional Tier 1',
+        organization: 'BlackRock Financial Markets',
+        address: '0x4b21...418C',
+        fullAddress: '0x4b218C8E19d7eF9A0837d9472e391F09903b418C',
+        status: 'online',
+        uptime: 99.98,
+        latency: 2.1,
+        lastBlockSigned: 56258045,
+        stakeUsdc: 950000,
+        votingPower: 11.5,
+        location: 'New York, NY',
+        region: 'US East (New York)',
+        hardware: { cpu: '64 vCPU Xeon Gold', ram: '256 GB ECC', bandwidth: '10 Gbps' }
+    },
+    {
+        id: 'visa-settle',
+        name: 'Visa Settlement Relay',
+        logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#1A1F71"/><path d="M12.5 22L15 10H18L15.5 22H12.5Z" fill="#FFFFFF"/><path d="M22.5 10.3C21.8 10 20.7 9.8 19.4 9.8C16 9.8 13.6 11.6 13.6 14.2C13.6 16.1 15.3 17.2 16.6 17.8C17.9 18.5 18.3 18.9 18.3 19.5C18.3 20.4 17.2 20.8 16.2 20.8C14.8 20.8 14 20.6 12.9 20.1L12.4 19.9L12 22.2C12.7 22.5 14 22.8 15.4 22.8C19 22.8 21.4 21 21.4 18.3C21.4 16.1 19.6 15 18 14.2C16.9 13.6 16.4 13.2 16.4 12.6C16.4 11.9 17.2 11.6 18.1 11.6C19.1 11.6 19.9 11.8 20.5 12.1L21 12.3L22.5 10.3Z" fill="#FFFFFF"/><path d="M26 10H23.6C22.9 10 22.3 10.4 22 11.1L18.8 22H21.9L22.5 20.3H26.3L26.7 22H29.5L27 10.3C26.8 10.1 26.4 10 26 10ZM23.4 18C23.7 17.2 24.8 13.9 24.8 13.9C24.8 13.9 25.1 13 25.3 12.4L25.6 14.1L26.1 18H23.4Z" fill="#FFFFFF"/><path d="M9.8 10L6.7 18.2L6.4 16.6C5.9 14.9 4.3 13 2.5 12L5.2 22H8.3L13 10H9.8Z" fill="#F7B600"/></svg>`,
+        badge: 'Institutional Tier 1',
+        organization: 'Visa Inc.',
+        address: '0x7c93...333F',
+        fullAddress: '0x7c933F85E2d937A01648bcDaE099f648D80F333F',
+        status: 'online',
+        uptime: 99.99,
+        latency: 1.8,
+        lastBlockSigned: 56258044,
+        stakeUsdc: 850000,
+        votingPower: 10.3,
+        location: 'Boardman, OR',
+        region: 'US West (Oregon)',
+        hardware: { cpu: '64 vCPU AMD EPYC', ram: '256 GB ECC', bandwidth: '10 Gbps' }
+    },
+    {
+        id: 'dtcc-consensus',
+        name: 'DTCC Global Clearing Node',
+        logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#002D62"/><rect x="5" y="7" width="22" height="4" rx="1.5" fill="#00A3E0"/><rect x="7" y="13" width="3" height="10" fill="#FFFFFF"/><rect x="12" y="13" width="3" height="10" fill="#FFFFFF"/><rect x="17" y="13" width="3" height="10" fill="#FFFFFF"/><rect x="22" y="13" width="3" height="10" fill="#FFFFFF"/><rect x="5" y="24" width="22" height="2" rx="1" fill="#00A3E0"/></svg>`,
+        badge: 'Institutional Tier 1',
+        organization: 'Depository Trust & Clearing Corp',
+        address: '0x9e17...72D1',
+        fullAddress: '0x9e172D437F8E8024976c66289bDE9eA7584A72D1',
+        status: 'online',
+        uptime: 99.95,
+        latency: 3.0,
+        lastBlockSigned: 56258045,
+        stakeUsdc: 780000,
+        votingPower: 9.5,
+        location: 'Frankfurt',
+        region: 'EU Central (Germany)',
+        hardware: { cpu: '32 vCPU AMD EPYC', ram: '128 GB ECC', bandwidth: '5 Gbps' }
+    },
+    {
+        id: 'bny-custody',
+        name: 'BNY Mellon Digital Custody',
+        logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#182A3A"/><path d="M6 10L16 6L26 10V18C26 23.5 16 27 16 27C16 27 6 23.5 6 18V10Z" fill="#C59B27"/><path d="M9 12L16 9L23 12V17C23 21 16 24 16 24C16 24 9 21 9 17V12Z" fill="#182A3A"/><path d="M12 16L15 19L20 13" stroke="#C59B27" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+        badge: 'Custodian Node',
+        organization: 'Bank of New York Mellon',
+        address: '0x3d9A...9992',
+        fullAddress: '0x3d9A6720f358BE28357492cda1952a12B4169992',
+        status: 'online',
+        uptime: 99.97,
+        latency: 2.4,
+        lastBlockSigned: 56258044,
+        stakeUsdc: 720000,
+        votingPower: 8.7,
+        location: 'New York, NY',
+        region: 'US East (New York)',
+        hardware: { cpu: '64 vCPU Xeon Gold', ram: '256 GB ECC', bandwidth: '10 Gbps' }
+    },
+    {
+        id: 'state-street',
+        name: 'State Street Alpha Relay',
+        logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#002664"/><path d="M7 21C11 23 21 23 25 21C25 21 23 24 16 24C9 24 7 21 7 21Z" fill="#008080"/><path d="M16 7V19M16 8L22 13H16M16 10L10 14H16" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="16" cy="16" r="14" stroke="#00A3E0" stroke-width="1.5" stroke-dasharray="4 2"/></svg>`,
+        badge: 'Custodian Node',
+        organization: 'State Street Corp',
+        address: '0x821F...8831',
+        fullAddress: '0x821F069273c88B270c53A8De1bEc43194B4E8831',
+        status: 'online',
+        uptime: 99.94,
+        latency: 3.2,
+        lastBlockSigned: 56258045,
+        stakeUsdc: 650000,
+        votingPower: 7.9,
+        location: 'Boston, MA',
+        region: 'US East (Massachusetts)',
+        hardware: { cpu: '32 vCPU Xeon Gold', ram: '128 GB ECC', bandwidth: '5 Gbps' }
+    },
+    {
+        id: 'jpmorgan-onyx',
+        name: 'JPMorgan Onyx Engine',
+        logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#111827"/><path d="M10 6H22L27 11V21L22 26H10L5 21V11L10 6Z" fill="#2563EB"/><path d="M12 9H20L24 13V19L20 23H12L8 19V13L12 9Z" fill="#0F172A"/><path d="M16 11L20 16L16 21L12 16L16 11Z" fill="#60A5FA"/></svg>`,
+        badge: 'Institutional Tier 1',
+        organization: 'JPMorgan Chase & Co.',
+        address: '0x51E2...1c2A',
+        fullAddress: '0x51E28a55427Fe0937b2d56E99cE8E423b4971c2A',
+        status: 'online',
+        uptime: 99.96,
+        latency: 4.1,
+        lastBlockSigned: 56258045,
+        stakeUsdc: 600000,
+        votingPower: 7.3,
+        location: 'London',
+        region: 'EU West (London)',
+        hardware: { cpu: '64 vCPU AMD EPYC', ram: '256 GB ECC', bandwidth: '10 Gbps' }
+    },
+    {
+        id: 'fidelity-assets',
+        name: 'Fidelity Digital Assets Node',
+        logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#0D5230"/><path d="M16 6L25 24H7L16 6Z" fill="#22C55E"/><path d="M16 11L22 23H10L16 11Z" fill="#0D5230"/><circle cx="16" cy="18" r="3.5" fill="#FACC15"/></svg>`,
+        badge: 'Institutional Tier 1',
+        organization: 'Fidelity Investments',
+        address: '0x6e9C...6004',
+        fullAddress: '0x6e9C1496632B5c4CFe0D853a8113426e273f6004',
+        status: 'online',
+        uptime: 99.98,
+        latency: 2.7,
+        lastBlockSigned: 56258044,
+        stakeUsdc: 580000,
+        votingPower: 7.0,
+        location: 'Secaucus, NJ',
+        region: 'US East (New Jersey)',
+        hardware: { cpu: '32 vCPU AMD EPYC', ram: '128 GB ECC', bandwidth: '10 Gbps' }
+    },
+    {
+        id: 'coinbase-cloud',
+        name: 'Coinbase Cloud Validator',
+        logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#0052FF"/><circle cx="16" cy="16" r="10" fill="#FFFFFF"/><circle cx="16" cy="16" r="5.5" fill="#0052FF"/><rect x="14" y="14" width="4" height="4" rx="1" fill="#FFFFFF"/></svg>`,
+        badge: 'Infrastructure Partner',
+        organization: 'Coinbase Global, Inc.',
+        address: '0x228d...1977',
+        fullAddress: '0x228dA56d81741508216b34fAcF4Fe4eAE4901977',
+        status: 'online',
+        uptime: 99.92,
+        latency: 3.8,
+        lastBlockSigned: 56258045,
+        stakeUsdc: 520000,
+        votingPower: 6.3,
+        location: 'San Jose, CA',
+        region: 'US West (California)',
+        hardware: { cpu: '32 vCPU AMD EPYC', ram: '128 GB ECC', bandwidth: '5 Gbps' }
+    },
+    {
+        id: 'franklin-templeton',
+        name: 'Franklin Templeton OnChain',
+        logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#004A98"/><circle cx="16" cy="16" r="11" stroke="#F59E0B" stroke-width="2"/><path d="M16 8V24M12 12H20M13 16H19M14 20H18" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/></svg>`,
+        badge: 'Asset Manager',
+        organization: 'Franklin Templeton',
+        address: '0xa41B...42f7',
+        fullAddress: '0xa41B9e19c35398B1a13bB4E7dEbD08a98C1542f7',
+        status: 'online',
+        uptime: 99.91,
+        latency: 14.5,
+        lastBlockSigned: 56258043,
+        stakeUsdc: 490000,
+        votingPower: 5.9,
+        location: 'Singapore',
+        region: 'AP Southeast (Singapore)',
+        hardware: { cpu: '32 vCPU AMD EPYC', ram: '128 GB ECC', bandwidth: '5 Gbps' }
+    },
+    {
+        id: 'nomura-laser',
+        name: 'Nomura Laser Digital',
+        logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#BE1E2D"/><path d="M8 8L16 16L8 24H13L21 16L13 8H8Z" fill="#FFFFFF"/><path d="M16 8L24 16L16 24H21L29 16L21 8H16Z" fill="#FFA3AD"/></svg>`,
+        badge: 'Digital Assets Division',
+        organization: 'Nomura Holdings',
+        address: '0xd888...22C8',
+        fullAddress: '0xd888F93297a760cE455Db8E88E4B97eC481A22C8',
+        status: 'syncing',
+        uptime: 99.12,
+        latency: 18.2,
+        lastBlockSigned: 56258039,
+        stakeUsdc: 410000,
+        votingPower: 5.0,
+        location: 'Tokyo',
+        region: 'AP Northeast (Tokyo)',
+        hardware: { cpu: '32 vCPU Xeon Gold', ram: '128 GB ECC', bandwidth: '5 Gbps' }
+    },
+    {
+        id: 'arc-community',
+        name: 'Arc Community Pulse Node',
+        logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#7B2CBF"/><circle cx="16" cy="16" r="10" stroke="#00E5FF" stroke-width="2" stroke-dasharray="3 3"/><circle cx="16" cy="16" r="5" fill="#00E5FF"/><path d="M9 16H13L15 12L17 20L19 16H23" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+        badge: 'Community Pioneer',
+        organization: 'Arc Ecosystem Foundation',
+        address: '0x1102...0291',
+        fullAddress: '0x11029cEbAF7619280e227e7d69C0099436dF0291',
+        status: 'online',
+        uptime: 99.85,
+        latency: 5.3,
+        lastBlockSigned: 56258045,
+        stakeUsdc: 350000,
+        votingPower: 4.2,
+        location: 'Amsterdam',
+        region: 'EU West (Netherlands)',
+        hardware: { cpu: '32 vCPU AMD EPYC', ram: '128 GB ECC', bandwidth: '5 Gbps' }
+    }
+];
 
-                const web3Provider = new ethers.providers.Web3Provider(provider);
-                const signer = web3Provider.getSigner();
-                const userAddress = await signer.getAddress();
+let currentValidatorSearchQuery = '';
+let currentValidatorStatusFilter = 'all';
+let currentSelectedModalValidator = null;
+let validatorBlockHeight = 56258045;
+let validatorEpochNum = 4821;
 
-                const usdcUnits = ethers.utils.parseUnits(amount.toString(), 6);
-                const usdcContract = new ethers.Contract(ERC20_USDC_ADDRESS, ERC20_ABI, signer);
+function renderValidatorsTable() {
+    try {
+        const tbody = document.getElementById('validatorTableBody');
+        if (!tbody) return;
 
-                if (confirmBtn) {
-                    confirmBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Verifying USDC Balance...</span>`;
-                }
+        const filtered = VALIDATORS_LIST.filter(node => {
+            const q = currentValidatorSearchQuery.toLowerCase();
+            const matchesSearch = !q ||
+                node.name.toLowerCase().includes(q) ||
+                node.organization.toLowerCase().includes(q) ||
+                node.fullAddress.toLowerCase().includes(q) ||
+                node.location.toLowerCase().includes(q);
 
-                let userBal = ethers.BigNumber.from(0);
-                try {
-                    userBal = await usdcContract.balanceOf(userAddress);
-                } catch(e) {}
+            const matchesStatus = currentValidatorStatusFilter === 'all' || node.status === currentValidatorStatusFilter;
+            return matchesSearch && matchesStatus;
+        });
 
-                if (userBal.lt(usdcUnits)) {
-                    showToast('Insufficient USDC', `You have ${ethers.utils.formatUnits(userBal, 6)} USDC on Arc Testnet. Please fund your wallet.`, 'error');
-                    if (confirmBtn) {
-                        confirmBtn.disabled = false;
-                        confirmBtn.innerHTML = originalBtnHtml;
-                    }
-                    return;
-                }
-
-                // Check Allowance
-                if (confirmBtn) {
-                    confirmBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Checking Allowance...</span>`;
-                }
-
-                let allowance = ethers.BigNumber.from(0);
-                try {
-                    allowance = await usdcContract.allowance(userAddress, PREDICTION_MARKET_ADDRESS);
-                } catch(e) {}
-
-                if (allowance.lt(usdcUnits)) {
-                    showToast('Step 1/2: Approve USDC', 'Please confirm USDC Approval in your wallet...', 'info');
-                    if (confirmBtn) {
-                        confirmBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Confirming Approval...</span>`;
-                    }
-                    const approveTx = await usdcContract.approve(PREDICTION_MARKET_ADDRESS, ethers.constants.MaxUint256);
-                    showToast('Approval Broadcasted', `Tx: ${approveTx.hash.substring(0, 10)}... Waiting for block`, 'info');
-                    await approveTx.wait();
-                    showToast('USDC Approved! 🚀', 'Step 1 complete! Now placing on-chain prediction stake...', 'success');
-                }
-
-                // Step 2: Buy Shares on ArcPulsePredictionMarket
-                const marketIndex = PREDICTION_MARKETS.findIndex(m => m.id === activeBetMarket.id);
-                const targetMarketId = marketIndex >= 0 ? marketIndex : 0;
-                const isYes = selectedBetOutcome === 'YES';
-
-                showToast('Step 2/2: Confirm Bet', `Staking ${amount} USDC on ${selectedBetOutcome} on Arc L1...`, 'info');
-                if (confirmBtn) {
-                    confirmBtn.innerHTML = `<span class="flex items-center justify-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Broadcasting to Arc L1...</span>`;
-                }
-
-                const predictionContract = new ethers.Contract(PREDICTION_MARKET_ADDRESS, PREDICTION_MARKET_ABI, signer);
-                const betTx = await predictionContract.buyShares(targetMarketId, isYes, usdcUnits, {
-                    gasLimit: 350000
-                });
-
-                showToast('Transaction Broadcasted', `Tx: ${betTx.hash.substring(0, 10)}... Mining on Arc Testnet`, 'info');
-                const receipt = await betTx.wait();
-                const txHash = receipt.transactionHash || betTx.hash;
-
-                showToast(`🎉 Stake of ${amount} USDC on ${selectedBetOutcome} Confirmed!`, `Tx: ${txHash.substring(0, 8)}... (Arc L1)`, 'success');
-
-                recordUserBet(targetMarketId, activeBetMarket.title, selectedBetOutcome, amount, txHash);
-                closePredictionBetModal();
-
-                if (typeof updateBalances === 'function') updateBalances();
-                if (typeof fetchRealOnChainBalances === 'function') fetchRealOnChainBalances();
-            } catch (err) {
-                console.error('Prediction Bet Error:', err);
-                const errorMsg = err?.data?.message || err?.message || 'Transaction rejected or failed';
-                showToast('Prediction Bet Failed', errorMsg.substring(0, 85), 'error');
-            } finally {
-                if (confirmBtn) {
-                    confirmBtn.disabled = false;
-                    confirmBtn.innerHTML = originalBtnHtml;
-                }
-            }
-        }
-
-        async function claimPredictionWinnings(marketId) {
-            const provider = activeWeb3Provider || window.ethereum;
-            if (!provider) {
-                showToast('No Wallet', 'Please connect your Web3 wallet first.', 'error');
-                return;
-            }
-            try {
-                const web3Provider = new ethers.providers.Web3Provider(provider);
-                const signer = web3Provider.getSigner();
-                const predictionContract = new ethers.Contract(PREDICTION_MARKET_ADDRESS, PREDICTION_MARKET_ABI, signer);
-
-                showToast('Claiming Payout', `Claiming USDC winnings for Market #${marketId}...`, 'info');
-                const tx = await predictionContract.claimWinnings(marketId, { gasLimit: 300000 });
-                showToast('Transaction Broadcasted', `Tx: ${tx.hash.substring(0, 10)}... Waiting for block`, 'info');
-                const receipt = await tx.wait();
-                showToast('Winnings Claimed! 🎉', `USDC payout transferred to your wallet! Tx: ${receipt.transactionHash.substring(0, 8)}...`, 'success');
-                if (typeof updateBalances === 'function') updateBalances();
-            } catch (err) {
-                console.error(err);
-                const msg = err?.data?.message || err?.message || 'Transaction failed';
-                showToast('Claim Failed', msg.substring(0, 85), 'error');
-            }
-        }
-
-        function closePredictionBetModal() {
-            const modal = document.getElementById('predictionBetModal');
-            if (modal) modal.classList.add('hidden');
-            activeBetMarket = null;
-        }
-
-        // Global exports for Prediction Engine
-        if (typeof window !== 'undefined') {
-            window.PREDICTION_COINS = PREDICTION_COINS;
-            window.PREDICTION_MARKETS = PREDICTION_MARKETS;
-            window.switchPredictionSubTab = switchPredictionSubTab;
-            window.setPredictionCategory = setPredictionCategory;
-            window.renderPredictionCoins = renderPredictionCoins;
-            window.renderPredictionMarkets = renderPredictionMarkets;
-            window.filterPredictionCoins = filterPredictionCoins;
-            window.openCoinChartModal = openCoinChartModal;
-            window.closeCoinChartModal = closeCoinChartModal;
-            window.setModalChartTimeframe = setModalChartTimeframe;
-            window.setModalChartType = setModalChartType;
-            window.openPredictionBetModal = openPredictionBetModal;
-            window.closePredictionBetModal = closePredictionBetModal;
-            window.selectBetOutcome = selectBetOutcome;
-            window.calculateBetPayout = calculateBetPayout;
-            window.executePredictionBet = executePredictionBet;
-            window.claimPredictionWinnings = claimPredictionWinnings;
-            window.PREDICTION_MARKET_ADDRESS = PREDICTION_MARKET_ADDRESS;
-            window.openWalletSendModal = openWalletSendModal;
-            window.closeWalletSendModal = closeWalletSendModal;
-            window.setSendMaxAmount = setSendMaxAmount;
-            window.executeRealSendToken = executeRealSendToken;
-            window.generateSparklineSvg = generateSparklineSvg;
-            window.generateTimeframeData = generateTimeframeData;
-        }
-
-        // ==========================================
-        // VALIDATOR STATUS & TELEMETRY ENGINE
-        // ==========================================
-        const VALIDATORS_LIST = [
-            {
-                id: 'circle-alpha',
-                name: 'Circle Node Alpha',
-                logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="16" fill="#0066F5"/><circle cx="16" cy="16" r="11" stroke="white" stroke-width="2.5" stroke-dasharray="6 3"/><path d="M16 9V23M12.5 12.5C12.5 11.1 13.9 10.5 16 10.5C18.2 10.5 19.5 11.5 19.5 13C19.5 16 12.5 15.5 12.5 18.5C12.5 20.2 14 21.5 16 21.5C18.4 21.5 19.5 20.4 19.5 19" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>`,
-                badge: 'Consortium Lead',
-                organization: 'Circle Internet Financial',
-                address: '0x1f84...892A',
-                fullAddress: '0x1f84C371B2dE51A07b5C558D8eF3c4bC2E60892A',
-                status: 'online',
-                uptime: 99.99,
-                latency: 1.2,
-                lastBlockSigned: 56258045,
-                stakeUsdc: 1250000,
-                votingPower: 15.2,
-                location: 'Ashburn, VA',
-                region: 'US East (N. Virginia)',
-                hardware: { cpu: '64 vCPU AMD EPYC', ram: '256 GB ECC', bandwidth: '10 Gbps' }
-            },
-            {
-                id: 'blackrock-prime',
-                name: 'BlackRock Prime Consensus',
-                logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#0F172A"/><path d="M7 8H17C19.8 8 21.5 9.5 21.5 11.8C21.5 13.5 20.5 14.8 19 15.3C21 15.8 22.5 17.3 22.5 19.8C22.5 22.5 20.2 24 17 24H7V8ZM11 11.5V14.5H16.2C17.3 14.5 18 13.9 18 13C18 12.1 17.3 11.5 16.2 11.5H11ZM11 17.5V20.5H16.8C18 20.5 18.8 19.8 18.8 19C18.8 18.2 18 17.5 16.8 17.5H11Z" fill="#F8FAFC"/><rect x="23" y="8" width="3" height="16" fill="#F59E0B"/></svg>`,
-                badge: 'Institutional Tier 1',
-                organization: 'BlackRock Financial Markets',
-                address: '0x4b21...418C',
-                fullAddress: '0x4b218C8E19d7eF9A0837d9472e391F09903b418C',
-                status: 'online',
-                uptime: 99.98,
-                latency: 2.1,
-                lastBlockSigned: 56258045,
-                stakeUsdc: 950000,
-                votingPower: 11.5,
-                location: 'New York, NY',
-                region: 'US East (New York)',
-                hardware: { cpu: '64 vCPU Xeon Gold', ram: '256 GB ECC', bandwidth: '10 Gbps' }
-            },
-            {
-                id: 'visa-settle',
-                name: 'Visa Settlement Relay',
-                logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#1A1F71"/><path d="M12.5 22L15 10H18L15.5 22H12.5Z" fill="#FFFFFF"/><path d="M22.5 10.3C21.8 10 20.7 9.8 19.4 9.8C16 9.8 13.6 11.6 13.6 14.2C13.6 16.1 15.3 17.2 16.6 17.8C17.9 18.5 18.3 18.9 18.3 19.5C18.3 20.4 17.2 20.8 16.2 20.8C14.8 20.8 14 20.6 12.9 20.1L12.4 19.9L12 22.2C12.7 22.5 14 22.8 15.4 22.8C19 22.8 21.4 21 21.4 18.3C21.4 16.1 19.6 15 18 14.2C16.9 13.6 16.4 13.2 16.4 12.6C16.4 11.9 17.2 11.6 18.1 11.6C19.1 11.6 19.9 11.8 20.5 12.1L21 12.3L22.5 10.3Z" fill="#FFFFFF"/><path d="M26 10H23.6C22.9 10 22.3 10.4 22 11.1L18.8 22H21.9L22.5 20.3H26.3L26.7 22H29.5L27 10.3C26.8 10.1 26.4 10 26 10ZM23.4 18C23.7 17.2 24.8 13.9 24.8 13.9C24.8 13.9 25.1 13 25.3 12.4L25.6 14.1L26.1 18H23.4Z" fill="#FFFFFF"/><path d="M9.8 10L6.7 18.2L6.4 16.6C5.9 14.9 4.3 13 2.5 12L5.2 22H8.3L13 10H9.8Z" fill="#F7B600"/></svg>`,
-                badge: 'Institutional Tier 1',
-                organization: 'Visa Inc.',
-                address: '0x7c93...333F',
-                fullAddress: '0x7c933F85E2d937A01648bcDaE099f648D80F333F',
-                status: 'online',
-                uptime: 99.99,
-                latency: 1.8,
-                lastBlockSigned: 56258044,
-                stakeUsdc: 850000,
-                votingPower: 10.3,
-                location: 'Boardman, OR',
-                region: 'US West (Oregon)',
-                hardware: { cpu: '64 vCPU AMD EPYC', ram: '256 GB ECC', bandwidth: '10 Gbps' }
-            },
-            {
-                id: 'dtcc-consensus',
-                name: 'DTCC Global Clearing Node',
-                logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#002D62"/><rect x="5" y="7" width="22" height="4" rx="1.5" fill="#00A3E0"/><rect x="7" y="13" width="3" height="10" fill="#FFFFFF"/><rect x="12" y="13" width="3" height="10" fill="#FFFFFF"/><rect x="17" y="13" width="3" height="10" fill="#FFFFFF"/><rect x="22" y="13" width="3" height="10" fill="#FFFFFF"/><rect x="5" y="24" width="22" height="2" rx="1" fill="#00A3E0"/></svg>`,
-                badge: 'Institutional Tier 1',
-                organization: 'Depository Trust & Clearing Corp',
-                address: '0x9e17...72D1',
-                fullAddress: '0x9e172D437F8E8024976c66289bDE9eA7584A72D1',
-                status: 'online',
-                uptime: 99.95,
-                latency: 3.0,
-                lastBlockSigned: 56258045,
-                stakeUsdc: 780000,
-                votingPower: 9.5,
-                location: 'Frankfurt',
-                region: 'EU Central (Germany)',
-                hardware: { cpu: '32 vCPU AMD EPYC', ram: '128 GB ECC', bandwidth: '5 Gbps' }
-            },
-            {
-                id: 'bny-custody',
-                name: 'BNY Mellon Digital Custody',
-                logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#182A3A"/><path d="M6 10L16 6L26 10V18C26 23.5 16 27 16 27C16 27 6 23.5 6 18V10Z" fill="#C59B27"/><path d="M9 12L16 9L23 12V17C23 21 16 24 16 24C16 24 9 21 9 17V12Z" fill="#182A3A"/><path d="M12 16L15 19L20 13" stroke="#C59B27" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-                badge: 'Custodian Node',
-                organization: 'Bank of New York Mellon',
-                address: '0x3d9A...9992',
-                fullAddress: '0x3d9A6720f358BE28357492cda1952a12B4169992',
-                status: 'online',
-                uptime: 99.97,
-                latency: 2.4,
-                lastBlockSigned: 56258044,
-                stakeUsdc: 720000,
-                votingPower: 8.7,
-                location: 'New York, NY',
-                region: 'US East (New York)',
-                hardware: { cpu: '64 vCPU Xeon Gold', ram: '256 GB ECC', bandwidth: '10 Gbps' }
-            },
-            {
-                id: 'state-street',
-                name: 'State Street Alpha Relay',
-                logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#002664"/><path d="M7 21C11 23 21 23 25 21C25 21 23 24 16 24C9 24 7 21 7 21Z" fill="#008080"/><path d="M16 7V19M16 8L22 13H16M16 10L10 14H16" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="16" cy="16" r="14" stroke="#00A3E0" stroke-width="1.5" stroke-dasharray="4 2"/></svg>`,
-                badge: 'Custodian Node',
-                organization: 'State Street Corp',
-                address: '0x821F...8831',
-                fullAddress: '0x821F069273c88B270c53A8De1bEc43194B4E8831',
-                status: 'online',
-                uptime: 99.94,
-                latency: 3.2,
-                lastBlockSigned: 56258045,
-                stakeUsdc: 650000,
-                votingPower: 7.9,
-                location: 'Boston, MA',
-                region: 'US East (Massachusetts)',
-                hardware: { cpu: '32 vCPU Xeon Gold', ram: '128 GB ECC', bandwidth: '5 Gbps' }
-            },
-            {
-                id: 'jpmorgan-onyx',
-                name: 'JPMorgan Onyx Engine',
-                logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#111827"/><path d="M10 6H22L27 11V21L22 26H10L5 21V11L10 6Z" fill="#2563EB"/><path d="M12 9H20L24 13V19L20 23H12L8 19V13L12 9Z" fill="#0F172A"/><path d="M16 11L20 16L16 21L12 16L16 11Z" fill="#60A5FA"/></svg>`,
-                badge: 'Institutional Tier 1',
-                organization: 'JPMorgan Chase & Co.',
-                address: '0x51E2...1c2A',
-                fullAddress: '0x51E28a55427Fe0937b2d56E99cE8E423b4971c2A',
-                status: 'online',
-                uptime: 99.96,
-                latency: 4.1,
-                lastBlockSigned: 56258045,
-                stakeUsdc: 600000,
-                votingPower: 7.3,
-                location: 'London',
-                region: 'EU West (London)',
-                hardware: { cpu: '64 vCPU AMD EPYC', ram: '256 GB ECC', bandwidth: '10 Gbps' }
-            },
-            {
-                id: 'fidelity-assets',
-                name: 'Fidelity Digital Assets Node',
-                logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#0D5230"/><path d="M16 6L25 24H7L16 6Z" fill="#22C55E"/><path d="M16 11L22 23H10L16 11Z" fill="#0D5230"/><circle cx="16" cy="18" r="3.5" fill="#FACC15"/></svg>`,
-                badge: 'Institutional Tier 1',
-                organization: 'Fidelity Investments',
-                address: '0x6e9C...6004',
-                fullAddress: '0x6e9C1496632B5c4CFe0D853a8113426e273f6004',
-                status: 'online',
-                uptime: 99.98,
-                latency: 2.7,
-                lastBlockSigned: 56258044,
-                stakeUsdc: 580000,
-                votingPower: 7.0,
-                location: 'Secaucus, NJ',
-                region: 'US East (New Jersey)',
-                hardware: { cpu: '32 vCPU AMD EPYC', ram: '128 GB ECC', bandwidth: '10 Gbps' }
-            },
-            {
-                id: 'coinbase-cloud',
-                name: 'Coinbase Cloud Validator',
-                logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#0052FF"/><circle cx="16" cy="16" r="10" fill="#FFFFFF"/><circle cx="16" cy="16" r="5.5" fill="#0052FF"/><rect x="14" y="14" width="4" height="4" rx="1" fill="#FFFFFF"/></svg>`,
-                badge: 'Infrastructure Partner',
-                organization: 'Coinbase Global, Inc.',
-                address: '0x228d...1977',
-                fullAddress: '0x228dA56d81741508216b34fAcF4Fe4eAE4901977',
-                status: 'online',
-                uptime: 99.92,
-                latency: 3.8,
-                lastBlockSigned: 56258045,
-                stakeUsdc: 520000,
-                votingPower: 6.3,
-                location: 'San Jose, CA',
-                region: 'US West (California)',
-                hardware: { cpu: '32 vCPU AMD EPYC', ram: '128 GB ECC', bandwidth: '5 Gbps' }
-            },
-            {
-                id: 'franklin-templeton',
-                name: 'Franklin Templeton OnChain',
-                logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#004A98"/><circle cx="16" cy="16" r="11" stroke="#F59E0B" stroke-width="2"/><path d="M16 8V24M12 12H20M13 16H19M14 20H18" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/></svg>`,
-                badge: 'Asset Manager',
-                organization: 'Franklin Templeton',
-                address: '0xa41B...42f7',
-                fullAddress: '0xa41B9e19c35398B1a13bB4E7dEbD08a98C1542f7',
-                status: 'online',
-                uptime: 99.91,
-                latency: 14.5,
-                lastBlockSigned: 56258043,
-                stakeUsdc: 490000,
-                votingPower: 5.9,
-                location: 'Singapore',
-                region: 'AP Southeast (Singapore)',
-                hardware: { cpu: '32 vCPU AMD EPYC', ram: '128 GB ECC', bandwidth: '5 Gbps' }
-            },
-            {
-                id: 'nomura-laser',
-                name: 'Nomura Laser Digital',
-                logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#BE1E2D"/><path d="M8 8L16 16L8 24H13L21 16L13 8H8Z" fill="#FFFFFF"/><path d="M16 8L24 16L16 24H21L29 16L21 8H16Z" fill="#FFA3AD"/></svg>`,
-                badge: 'Digital Assets Division',
-                organization: 'Nomura Holdings',
-                address: '0xd888...22C8',
-                fullAddress: '0xd888F93297a760cE455Db8E88E4B97eC481A22C8',
-                status: 'syncing',
-                uptime: 99.12,
-                latency: 18.2,
-                lastBlockSigned: 56258039,
-                stakeUsdc: 410000,
-                votingPower: 5.0,
-                location: 'Tokyo',
-                region: 'AP Northeast (Tokyo)',
-                hardware: { cpu: '32 vCPU Xeon Gold', ram: '128 GB ECC', bandwidth: '5 Gbps' }
-            },
-            {
-                id: 'arc-community',
-                name: 'Arc Community Pulse Node',
-                logoSvg: `<svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="7" fill="#7B2CBF"/><circle cx="16" cy="16" r="10" stroke="#00E5FF" stroke-width="2" stroke-dasharray="3 3"/><circle cx="16" cy="16" r="5" fill="#00E5FF"/><path d="M9 16H13L15 12L17 20L19 16H23" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-                badge: 'Community Pioneer',
-                organization: 'Arc Ecosystem Foundation',
-                address: '0x1102...0291',
-                fullAddress: '0x11029cEbAF7619280e227e7d69C0099436dF0291',
-                status: 'online',
-                uptime: 99.85,
-                latency: 5.3,
-                lastBlockSigned: 56258045,
-                stakeUsdc: 350000,
-                votingPower: 4.2,
-                location: 'Amsterdam',
-                region: 'EU West (Netherlands)',
-                hardware: { cpu: '32 vCPU AMD EPYC', ram: '128 GB ECC', bandwidth: '5 Gbps' }
-            }
-        ];
-
-        let currentValidatorSearchQuery = '';
-        let currentValidatorStatusFilter = 'all';
-        let currentSelectedModalValidator = null;
-        let validatorBlockHeight = 56258045;
-        let validatorEpochNum = 4821;
-
-        function renderValidatorsTable() {
-            try {
-                const tbody = document.getElementById('validatorTableBody');
-                if (!tbody) return;
-
-                const filtered = VALIDATORS_LIST.filter(node => {
-                    const q = currentValidatorSearchQuery.toLowerCase();
-                    const matchesSearch = !q ||
-                        node.name.toLowerCase().includes(q) ||
-                        node.organization.toLowerCase().includes(q) ||
-                        node.fullAddress.toLowerCase().includes(q) ||
-                        node.location.toLowerCase().includes(q);
-
-                    const matchesStatus = currentValidatorStatusFilter === 'all' || node.status === currentValidatorStatusFilter;
-                    return matchesSearch && matchesStatus;
-                });
-
-                if (filtered.length === 0) {
-                    tbody.innerHTML = `
+        if (filtered.length === 0) {
+            tbody.innerHTML = `
                         <tr>
                             <td colspan="8" class="py-10 text-center text-slate-400 font-mono">
                                 No validators found matching "${currentValidatorSearchQuery}".
                             </td>
                         </tr>
                     `;
-                    return;
-                }
+            return;
+        }
 
-                tbody.innerHTML = filtered.map(node => {
-                    const isOnline = node.status === 'online';
-                    const statusBadge = isOnline
-                        ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-400 font-bold font-mono text-xs"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> ONLINE</span>`
-                        : `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-400 font-bold font-mono text-xs"><span class="w-2 h-2 rounded-full bg-amber-500 animate-spin"></span> SYNCING</span>`;
+        tbody.innerHTML = filtered.map(node => {
+            const isOnline = node.status === 'online';
+            const statusBadge = isOnline
+                ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-400 font-bold font-mono text-xs"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> ONLINE</span>`
+                : `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-400 font-bold font-mono text-xs"><span class="w-2 h-2 rounded-full bg-amber-500 animate-spin"></span> SYNCING</span>`;
 
-                    const latencyColor = node.latency < 3.0
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                        : node.latency < 10.0
-                        ? 'bg-blue-50 text-blue-700 border-blue-200'
-                        : 'bg-amber-50 text-amber-700 border-amber-200';
+            const latencyColor = node.latency < 3.0
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                : node.latency < 10.0
+                    ? 'bg-blue-50 text-blue-700 border-blue-200'
+                    : 'bg-amber-50 text-amber-700 border-amber-200';
 
-                    const uptimeBarColor = node.uptime > 99.9 ? 'bg-emerald-500' : 'bg-teal-500';
+            const uptimeBarColor = node.uptime > 99.9 ? 'bg-emerald-500' : 'bg-teal-500';
 
-                    const blocksAgo = validatorBlockHeight - node.lastBlockSigned;
-                    const blockSignedText = blocksAgo <= 0 ? 'Just now (leader)' : `${blocksAgo} blocks ago`;
+            const blocksAgo = validatorBlockHeight - node.lastBlockSigned;
+            const blockSignedText = blocksAgo <= 0 ? 'Just now (leader)' : `${blocksAgo} blocks ago`;
 
-                    return `
+            return `
                         <tr class="hover:bg-purple-50/40 transition-colors">
                             <td class="py-4 px-4 sm:px-6">
                                 <div class="flex items-center gap-3">
@@ -4591,177 +4635,177 @@ if (typeof tailwind !== 'undefined') {
                             </td>
                         </tr>
                     `;
-                }).join('');
+        }).join('');
 
-                safeInitIcons();
-            } catch(e) {
-                console.warn("renderValidatorsTable error:", e);
+        safeInitIcons();
+    } catch (e) {
+        console.warn("renderValidatorsTable error:", e);
+    }
+}
+
+function onValidatorSearchChange(val) {
+    currentValidatorSearchQuery = val || '';
+    renderValidatorsTable();
+}
+
+function setValidatorStatusFilter(status) {
+    currentValidatorStatusFilter = status;
+    ['all', 'online', 'syncing'].forEach(s => {
+        const btn = document.getElementById(`valFilterBtn-${s}`);
+        if (btn) {
+            if (s === status) {
+                btn.className = 'px-3 py-1.5 rounded-lg bg-purple-700 text-white shadow-sm transition-all font-bold';
+            } else {
+                btn.className = 'px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-950 transition-all font-bold';
             }
         }
+    });
+    renderValidatorsTable();
+}
 
-        function onValidatorSearchChange(val) {
-            currentValidatorSearchQuery = val || '';
-            renderValidatorsTable();
+function copyValidatorAddress(addr, name) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(addr);
+        showToast('Address Copied! 📋', `${name} consensus address copied to clipboard`, 'success');
+    }
+}
+
+function openValidatorDetails(id) {
+    const node = VALIDATORS_LIST.find(v => v.id === id);
+    if (!node) return;
+    currentSelectedModalValidator = node;
+
+    safeSetText('modalValName', node.name);
+    safeSetText('modalValOrg', `${node.organization} • ${node.region}`);
+    safeSetText('modalValStatus', node.status.toUpperCase());
+    safeSetText('modalValLatency', `${node.latency} ms`);
+    safeSetText('modalValPower', `${node.votingPower}% (${(node.stakeUsdc).toLocaleString()} USDC)`);
+    safeSetText('modalValUptime', `${node.uptime}% (0 Slashed)`);
+    safeSetText('modalValCpu', node.hardware.cpu);
+    safeSetText('modalValRam', node.hardware.ram);
+    safeSetText('modalValBandwidth', node.hardware.bandwidth);
+    safeSetText('modalValFullAddr', node.fullAddress);
+
+    const avatarEl = document.getElementById('modalValAvatar');
+    if (avatarEl) avatarEl.innerHTML = node.logoSvg;
+
+    const modal = document.getElementById('validatorDetailsModal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+function closeValidatorDetails() {
+    const modal = document.getElementById('validatorDetailsModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function copyModalValidatorAddr() {
+    if (currentSelectedModalValidator) {
+        copyValidatorAddress(currentSelectedModalValidator.fullAddress, currentSelectedModalValidator.name);
+    }
+}
+
+function refreshValidatorTelemetry() {
+    const icon = document.getElementById('validatorRefreshIcon');
+    if (icon) icon.classList.add('animate-spin');
+    setTimeout(() => {
+        if (icon) icon.classList.remove('animate-spin');
+        showToast('Telemetry Synced ⚡', 'Live Arc L1 consensus metrics updated', 'success');
+        renderValidatorsTable();
+    }, 600);
+}
+
+function startLiveValidatorTelemetry() {
+    setInterval(() => {
+        validatorBlockHeight += 1;
+        if (validatorBlockHeight % 100 === 0) {
+            validatorEpochNum += 1;
         }
 
-        function setValidatorStatusFilter(status) {
-            currentValidatorStatusFilter = status;
-            ['all', 'online', 'syncing'].forEach(s => {
-                const btn = document.getElementById(`valFilterBtn-${s}`);
-                if (btn) {
-                    if (s === status) {
-                        btn.className = 'px-3 py-1.5 rounded-lg bg-purple-700 text-white shadow-sm transition-all font-bold';
-                    } else {
-                        btn.className = 'px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-950 transition-all font-bold';
-                    }
+        // Update metric cards
+        safeSetText('valStatBlock', `#${validatorBlockHeight.toLocaleString()}`);
+        safeSetText('valStatEpoch', `Epoch #${validatorEpochNum}`);
+
+        // Jitter latencies
+        VALIDATORS_LIST.forEach(v => {
+            if (v.status === 'online') {
+                const jitter = (Math.random() - 0.5) * 0.3;
+                v.latency = Math.max(0.9, Number((v.latency + jitter).toFixed(1)));
+                if (Math.random() > 0.15) {
+                    v.lastBlockSigned = validatorBlockHeight;
                 }
-            });
-            renderValidatorsTable();
-        }
-
-        function copyValidatorAddress(addr, name) {
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(addr);
-                showToast('Address Copied! 📋', `${name} consensus address copied to clipboard`, 'success');
-            }
-        }
-
-        function openValidatorDetails(id) {
-            const node = VALIDATORS_LIST.find(v => v.id === id);
-            if (!node) return;
-            currentSelectedModalValidator = node;
-
-            safeSetText('modalValName', node.name);
-            safeSetText('modalValOrg', `${node.organization} • ${node.region}`);
-            safeSetText('modalValStatus', node.status.toUpperCase());
-            safeSetText('modalValLatency', `${node.latency} ms`);
-            safeSetText('modalValPower', `${node.votingPower}% (${(node.stakeUsdc).toLocaleString()} USDC)`);
-            safeSetText('modalValUptime', `${node.uptime}% (0 Slashed)`);
-            safeSetText('modalValCpu', node.hardware.cpu);
-            safeSetText('modalValRam', node.hardware.ram);
-            safeSetText('modalValBandwidth', node.hardware.bandwidth);
-            safeSetText('modalValFullAddr', node.fullAddress);
-
-            const avatarEl = document.getElementById('modalValAvatar');
-            if (avatarEl) avatarEl.innerHTML = node.logoSvg;
-
-            const modal = document.getElementById('validatorDetailsModal');
-            if (modal) modal.classList.remove('hidden');
-        }
-
-        function closeValidatorDetails() {
-            const modal = document.getElementById('validatorDetailsModal');
-            if (modal) modal.classList.add('hidden');
-        }
-
-        function copyModalValidatorAddr() {
-            if (currentSelectedModalValidator) {
-                copyValidatorAddress(currentSelectedModalValidator.fullAddress, currentSelectedModalValidator.name);
-            }
-        }
-
-        function refreshValidatorTelemetry() {
-            const icon = document.getElementById('validatorRefreshIcon');
-            if (icon) icon.classList.add('animate-spin');
-            setTimeout(() => {
-                if (icon) icon.classList.remove('animate-spin');
-                showToast('Telemetry Synced ⚡', 'Live Arc L1 consensus metrics updated', 'success');
-                renderValidatorsTable();
-            }, 600);
-        }
-
-        function startLiveValidatorTelemetry() {
-            setInterval(() => {
-                validatorBlockHeight += 1;
-                if (validatorBlockHeight % 100 === 0) {
-                    validatorEpochNum += 1;
-                }
-
-                // Update metric cards
-                safeSetText('valStatBlock', `#${validatorBlockHeight.toLocaleString()}`);
-                safeSetText('valStatEpoch', `Epoch #${validatorEpochNum}`);
-
-                // Jitter latencies
-                VALIDATORS_LIST.forEach(v => {
-                    if (v.status === 'online') {
-                        const jitter = (Math.random() - 0.5) * 0.3;
-                        v.latency = Math.max(0.9, Number((v.latency + jitter).toFixed(1)));
-                        if (Math.random() > 0.15) {
-                            v.lastBlockSigned = validatorBlockHeight;
-                        }
-                    }
-                });
-
-                const avgLat = (VALIDATORS_LIST.reduce((a, b) => a + b.latency, 0) / VALIDATORS_LIST.length).toFixed(1);
-                safeSetText('valStatLatency', `${avgLat} ms`);
-
-                if (activePage === 'validators') {
-                    renderValidatorsTable();
-                }
-            }, 1800);
-        }
-
-        function updateQuestTimerStatus() {
-            try {
-                const timerEl = document.getElementById('dailyQuestTimerText');
-                if (timerEl) {
-                    timerEl.innerText = 'Ready to Claim';
-                }
-            } catch(e) {}
-        }
-
-        // INITIALIZATION LOGIC
-        document.addEventListener('DOMContentLoaded', () => {
-            try {
-                // Parse URL Query Parameters for deep linking (?page=swap, ?page=wallet, etc.)
-                const urlParams = new URLSearchParams(window.location.search);
-                const requestedPage = urlParams.get('page');
-                const requestedAction = urlParams.get('action');
-
-                if (requestedPage) {
-                    switchPage(requestedPage);
-                } else {
-                    switchPage('monitor');
-                }
-
-                if (requestedAction === 'faucet') {
-                    setTimeout(() => { openFaucetModal(); }, 400);
-                }
-
-                if (typeof renderPredictionCoins === 'function' && typeof PREDICTION_COINS !== 'undefined') {
-                    renderPredictionCoins(PREDICTION_COINS);
-                }
-                if (typeof renderPredictionMarkets === 'function' && typeof PREDICTION_MARKETS !== 'undefined') {
-                    renderPredictionMarkets(PREDICTION_MARKETS);
-                }
-                if (typeof startMainnetCountdown === 'function') {
-                    startMainnetCountdown();
-                }
-                // Restore saved Gemini API Key into UI inputs on startup
-                const savedGeminiKey = localStorage.getItem('PulseGrid_gemini_api_key');
-                const apiKeyInput = document.getElementById('geminiApiKeyInput');
-                const apiKeyInputAssistant = document.getElementById('geminiApiKeyInputAssistant');
-                if (savedGeminiKey) {
-                    if (apiKeyInput) apiKeyInput.value = savedGeminiKey;
-                    if (apiKeyInputAssistant) apiKeyInputAssistant.value = savedGeminiKey;
-                }
-
-                loadQuestState();
-
-                if (typeof startLiveTelemetryTimer === 'function') {
-                    startLiveTelemetryTimer();
-                }
-                if (typeof renderValidatorsTable === 'function') {
-                    renderValidatorsTable();
-                }
-                if (typeof startLiveValidatorTelemetry === 'function') {
-                    startLiveValidatorTelemetry();
-                }
-                updateQuestTimerStatus();
-                setInterval(updateQuestTimerStatus, 30000);
-                safeInitIcons();
-            } catch(err) {
-                console.warn("DOMContentLoaded initialization warning:", err);
             }
         });
-    
+
+        const avgLat = (VALIDATORS_LIST.reduce((a, b) => a + b.latency, 0) / VALIDATORS_LIST.length).toFixed(1);
+        safeSetText('valStatLatency', `${avgLat} ms`);
+
+        if (activePage === 'validators') {
+            renderValidatorsTable();
+        }
+    }, 1800);
+}
+
+function updateQuestTimerStatus() {
+    try {
+        const timerEl = document.getElementById('dailyQuestTimerText');
+        if (timerEl) {
+            timerEl.innerText = 'Ready to Claim';
+        }
+    } catch (e) { }
+}
+
+// INITIALIZATION LOGIC
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        // Parse URL Query Parameters for deep linking (?page=swap, ?page=wallet, etc.)
+        const urlParams = new URLSearchParams(window.location.search);
+        const requestedPage = urlParams.get('page');
+        const requestedAction = urlParams.get('action');
+
+        if (requestedPage) {
+            switchPage(requestedPage);
+        } else {
+            switchPage('monitor');
+        }
+
+        if (requestedAction === 'faucet') {
+            setTimeout(() => { openFaucetModal(); }, 400);
+        }
+
+        if (typeof renderPredictionCoins === 'function' && typeof PREDICTION_COINS !== 'undefined') {
+            renderPredictionCoins(PREDICTION_COINS);
+        }
+        if (typeof renderPredictionMarkets === 'function' && typeof PREDICTION_MARKETS !== 'undefined') {
+            renderPredictionMarkets(PREDICTION_MARKETS);
+        }
+        if (typeof startMainnetCountdown === 'function') {
+            startMainnetCountdown();
+        }
+        // Restore saved Gemini API Key into UI inputs on startup
+        const savedGeminiKey = localStorage.getItem('PulseGrid_gemini_api_key');
+        const apiKeyInput = document.getElementById('geminiApiKeyInput');
+        const apiKeyInputAssistant = document.getElementById('geminiApiKeyInputAssistant');
+        if (savedGeminiKey) {
+            if (apiKeyInput) apiKeyInput.value = savedGeminiKey;
+            if (apiKeyInputAssistant) apiKeyInputAssistant.value = savedGeminiKey;
+        }
+
+        loadQuestState();
+
+        if (typeof startLiveTelemetryTimer === 'function') {
+            startLiveTelemetryTimer();
+        }
+        if (typeof renderValidatorsTable === 'function') {
+            renderValidatorsTable();
+        }
+        if (typeof startLiveValidatorTelemetry === 'function') {
+            startLiveValidatorTelemetry();
+        }
+        updateQuestTimerStatus();
+        setInterval(updateQuestTimerStatus, 30000);
+        safeInitIcons();
+    } catch (err) {
+        console.warn("DOMContentLoaded initialization warning:", err);
+    }
+});
+

@@ -2831,19 +2831,35 @@ function generateSmartAiResponse(userMsg) {
 }
 
 function setTheme(mode) {
-    if (mode === 'dark') {
+    const isDark = mode === 'dark';
+    try {
+        localStorage.setItem('arcpulse_theme', mode);
+    } catch(e) {}
+
+    if (isDark) {
         document.documentElement.classList.add('dark');
         document.body.style.backgroundColor = '#0F172A';
         document.body.style.color = '#F8FAFC';
-        document.getElementById('themeDarkBtn')?.classList.add('bg-purple-600', 'text-white');
-        document.getElementById('themeLightBtn')?.classList.remove('bg-purple-600', 'text-white');
     } else {
         document.documentElement.classList.remove('dark');
-        document.body.style.backgroundColor = '#FFFFFF';
+        document.body.style.backgroundColor = '#F8FAFC';
         document.body.style.color = '#0F172A';
-        document.getElementById('themeLightBtn')?.classList.add('bg-purple-600', 'text-white');
-        document.getElementById('themeDarkBtn')?.classList.remove('bg-purple-600', 'text-white');
     }
+
+    const darkBtn = document.getElementById('themeDarkBtn');
+    const lightBtn = document.getElementById('themeLightBtn');
+
+    if (darkBtn && lightBtn) {
+        if (isDark) {
+            darkBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-600 text-white transition-all shadow-md';
+            lightBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-900 transition-all';
+        } else {
+            lightBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-600 text-white transition-all shadow-md';
+            darkBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-900 transition-all';
+        }
+    }
+
+    showToast('Theme Updated 🎨', `Switched to ${isDark ? 'Dark Obsidian' : 'Clean Light'} Mode!`, 'info');
 }
 
 function sendQuickPrompt(promptText) {
@@ -4789,6 +4805,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (apiKeyInput) apiKeyInput.value = savedGeminiKey;
             if (apiKeyInputAssistant) apiKeyInputAssistant.value = savedGeminiKey;
         }
+
+        // Restore saved theme setting on startup
+        const savedTheme = localStorage.getItem('arcpulse_theme') || 'dark';
+        setTheme(savedTheme);
 
         loadQuestState();
 

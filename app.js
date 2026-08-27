@@ -2883,22 +2883,94 @@ function sendQuickPrompt(promptText) {
     }
 }
 
-// REAL GEMINI-STYLE AI ASSISTANT
+let currentAiAttachment = null;
+
+function handleAiMediaSelect(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const fullDataUrl = e.target.result;
+        const base64Data = fullDataUrl.split(',')[1];
+        currentAiAttachment = {
+            file,
+            fullDataUrl,
+            base64Data,
+            mimeType: file.type || 'image/jpeg',
+            name: file.name,
+            size: (file.size / 1024).toFixed(1) + ' KB'
+        };
+
+        const previewContainer = document.getElementById('aiAttachmentPreview');
+        const thumbImg = document.getElementById('aiAttachmentThumb');
+        const videoIcon = document.getElementById('aiAttachmentVideoIcon');
+        const nameEl = document.getElementById('aiAttachmentName');
+        const sizeEl = document.getElementById('aiAttachmentSize');
+
+        if (previewContainer && nameEl) {
+            nameEl.textContent = file.name;
+            if (sizeEl) sizeEl.textContent = currentAiAttachment.size;
+
+            if (file.type && file.type.startsWith('image/')) {
+                if (thumbImg) {
+                    thumbImg.src = fullDataUrl;
+                    thumbImg.classList.remove('hidden');
+                }
+                if (videoIcon) videoIcon.classList.add('hidden');
+            } else {
+                if (thumbImg) thumbImg.classList.add('hidden');
+                if (videoIcon) videoIcon.classList.remove('hidden');
+            }
+
+            previewContainer.classList.remove('hidden');
+            if (window.lucide) window.lucide.createIcons();
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+function clearAiAttachment() {
+    currentAiAttachment = null;
+    const fileInput = document.getElementById('aiMediaInput');
+    if (fileInput) fileInput.value = '';
+    const previewContainer = document.getElementById('aiAttachmentPreview');
+    if (previewContainer) previewContainer.classList.add('hidden');
+}
+
+// REAL GEMINI-STYLE AI ASSISTANT (MULTIMODAL & POLYGLOT ALL-LANGUAGE)
 async function handleAiChatSend() {
     try {
         const input = document.getElementById('aiChatInput');
         const chatBox = document.getElementById('aiChatBox');
-        if (!input || !chatBox || !input.value.trim()) return;
+        if (!input || !chatBox) return;
 
         const userMsg = input.value.trim();
-        input.value = '';
+        const attachedMedia = currentAiAttachment; // capture attachment
+        if (!userMsg && !attachedMedia) return;
 
-        // Render User Bubble
+        input.value = '';
+        clearAiAttachment();
+
+        // Render User Bubble (with image preview if attached)
         const userBubble = document.createElement('div');
         userBubble.className = 'flex gap-3 justify-end';
-        userBubble.innerHTML = `<div class="bg-purple-600 text-white rounded-2xl p-3.5 text-xs max-w-[80%] shadow-md">${escapeHtml(userMsg)}</div>`;
+        let userBubbleHtml = `<div class="bg-purple-600 text-white rounded-2xl p-3.5 text-xs max-w-[80%] shadow-md space-y-2">`;
+        if (attachedMedia && attachedMedia.fullDataUrl) {
+            if (attachedMedia.mimeType.startsWith('image/')) {
+                userBubbleHtml += `<img src="${attachedMedia.fullDataUrl}" class="rounded-xl max-h-48 w-auto object-contain border border-white/20 mb-2">`;
+            } else {
+                userBubbleHtml += `<div class="p-2 rounded-xl bg-purple-800/80 border border-white/20 flex items-center gap-2 text-xs"><i data-lucide="video" class="w-4 h-4"></i><span>${escapeHtml(attachedMedia.name)}</span></div>`;
+            }
+        }
+        if (userMsg) {
+            userBubbleHtml += `<div>${escapeHtml(userMsg)}</div>`;
+        }
+        userBubbleHtml += `</div>`;
+        userBubble.innerHTML = userBubbleHtml;
         chatBox.appendChild(userBubble);
         chatBox.scrollTop = chatBox.scrollHeight;
+        if (window.lucide) window.lucide.createIcons();
 
         // Render Typing Indicator
         const typingBubble = document.createElement('div');
@@ -2909,7 +2981,7 @@ async function handleAiChatSend() {
                         <span class="text-purple-300 font-bold text-xs">AI</span>
                     </div>
                     <div class="bg-slate-800 border border-slate-700 rounded-2xl px-4 py-2.5 text-slate-300 text-xs italic animate-pulse flex items-center gap-2">
-                        <span>Pro AI is thinking...</span>
+                        <span>Pro AI is analyzing & thinking...</span>
                     </div>
                 `;
         chatBox.appendChild(typingBubble);
@@ -2917,7 +2989,7 @@ async function handleAiChatSend() {
 
         let aiReplyText = "";
 
-        // --- LAYER 1: Full Google Gemini AI Engine (General Intelligence & Multi-Turn) ---
+        // --- LAYER 1: Full Google Gemini Multimodal Polyglot Engine ---
         const BUILTIN_GEMINI_KEY = atob('QVEuQWI4Uk42S0t1SlAtMHZ2RVdOUjlXMS1RT19BUnhqQmdPTi1abGV1RlpxRlhrT3FqOEE=');
         const customGeminiKey = (localStorage.getItem('PulseGrid_gemini_api_key') || '').trim();
         
@@ -2929,10 +3001,10 @@ async function handleAiChatSend() {
         keysToTry.push(BUILTIN_GEMINI_KEY);
 
         const fastGeminiModels = [
+            'gemini-flash-latest', // Best for multimodal vision + fastest
             'gemini-flash-lite-latest',
-            'gemini-3.1-flash-lite',
-            'gemini-flash-latest',
-            'gemini-3-flash-preview'
+            'gemini-3-flash-preview',
+            'gemini-3.1-flash-lite'
         ];
 
         if (typeof window.proAiMemory === 'undefined') {
@@ -2941,12 +3013,26 @@ async function handleAiChatSend() {
 
         const systemInstruction = {
             parts: [{
-                text: "You are Gemini, a helpful, intelligent, and super-fast AI assistant created by Google, powering Pro AI on PulseGrid (Arc L1). " +
-                      "You can answer ANY question about anything: general knowledge, coding, Web3, Arc L1 blockchain, Circle USDC/EURC, math, creative writing, science, philosophy, life advice, or casual conversation. " +
-                      "Always reply naturally, directly, and accurately in the user's language (Hindi, Hinglish, English, etc.). " +
-                      "Be friendly, conversational, and comprehensive like Google Gemini."
+                text: "You are Gemini, a world-class polyglot multimodal AI assistant powered by Google Gemini, operating as Pro AI on PulseGrid (Arc L1). " +
+                      "You are fluent in EVERY language in the world (Hindi, English, Hinglish, Bengali, Spanish, French, Arabic, Russian, German, Japanese, Chinese, Portuguese, Italian, Turkish, Korean, Urdu, Tamil, Telugu, Marathi, etc.). " +
+                      "Automatically detect the language of the user and ALWAYS reply in that exact same language fluently and naturally. " +
+                      "You can analyze images, screenshots, videos, code, math, Web3, Arc L1 blockchain, crypto markets, creative writing, and any general topics accurately and comprehensively."
             }]
         };
+
+        // Prepare prompt parts (with image/video if attached)
+        const currentTurnParts = [];
+        const promptText = userMsg || "Please analyze this image/screenshot and explain what you see in detail.";
+        currentTurnParts.push({ text: promptText });
+
+        if (attachedMedia && attachedMedia.base64Data) {
+            currentTurnParts.push({
+                inline_data: {
+                    mime_type: attachedMedia.mimeType,
+                    data: attachedMedia.base64Data
+                }
+            });
+        }
 
         for (const apiKey of keysToTry) {
             if (aiReplyText) break;
@@ -2955,13 +3041,18 @@ async function handleAiChatSend() {
                 if (aiReplyText) break;
                 try {
                     const ctrl = new AbortController();
-                    const tid = setTimeout(() => ctrl.abort(), 6500);
+                    const tid = setTimeout(() => ctrl.abort(), 9500);
 
-                    // Build contents payload with memory
-                    let contentsPayload = [
-                        ...window.proAiMemory,
-                        { role: 'user', parts: [{ text: userMsg }] }
-                    ];
+                    // If media is attached, single turn is cleanest for vision; else use multi-turn
+                    let contentsPayload = [];
+                    if (attachedMedia && attachedMedia.base64Data) {
+                        contentsPayload = [{ role: 'user', parts: currentTurnParts }];
+                    } else {
+                        contentsPayload = [
+                            ...window.proAiMemory,
+                            { role: 'user', parts: currentTurnParts }
+                        ];
+                    }
 
                     let res = await fetch(
                         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
@@ -2986,13 +3077,13 @@ async function handleAiChatSend() {
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
                                     system_instruction: systemInstruction,
-                                    contents: [{ role: 'user', parts: [{ text: userMsg }] }],
+                                    contents: [{ role: 'user', parts: currentTurnParts }],
                                     generationConfig: { temperature: 0.75, maxOutputTokens: 1500 }
                                 })
                             }
                         ).catch(() => null);
 
-                        if (res && res.ok) {
+                        if (res && res.ok && !attachedMedia) {
                             window.proAiMemory = []; // Reset corrupted memory
                         }
                     }
@@ -3004,11 +3095,13 @@ async function handleAiChatSend() {
                         const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
                         if (candidateText && candidateText.trim().length > 0) {
                             aiReplyText = candidateText.trim();
-                            // Save to multi-turn conversation memory
-                            window.proAiMemory.push({ role: 'user', parts: [{ text: userMsg }] });
-                            window.proAiMemory.push({ role: 'model', parts: [{ text: aiReplyText }] });
-                            if (window.proAiMemory.length > 10) {
-                                window.proAiMemory = window.proAiMemory.slice(-8);
+                            // Save to multi-turn conversation memory only for text turns
+                            if (!attachedMedia) {
+                                window.proAiMemory.push({ role: 'user', parts: [{ text: userMsg }] });
+                                window.proAiMemory.push({ role: 'model', parts: [{ text: aiReplyText }] });
+                                if (window.proAiMemory.length > 10) {
+                                    window.proAiMemory = window.proAiMemory.slice(-8);
+                                }
                             }
                             break;
                         }

@@ -2089,8 +2089,8 @@
                 </div>
             </div>
 
-            <!-- Active AI Status Indicator Bar -->
-            <div class="px-5 py-3.5 bg-slate-900/90 border border-slate-800 rounded-2xl flex items-center justify-between gap-3 text-xs shadow-md backdrop-blur">
+            <!-- Active AI Status Indicator Bar (Hidden as requested) -->
+            <div class="hidden px-5 py-3.5 bg-slate-900/90 border border-slate-800 rounded-2xl flex items-center justify-between gap-3 text-xs shadow-md backdrop-blur">
                 <div class="flex items-center gap-2.5 text-slate-300 font-mono">
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span>AI Engine Status: <strong class="text-purple-400 font-bold">Google Gemini 2.0 AI (Built-in Active)</strong></span>
@@ -2108,14 +2108,40 @@
                             <i data-lucide="bot" class="w-4 h-4 text-purple-300"></i>
                         </div>
                         <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-4 text-slate-200 max-w-[85%] text-xs leading-relaxed">
-                            Hello! I am <strong>Pro AI</strong>, your high-performance AI assistant. Ask me anything about Arc Testnet, DEX token swaps, smart contract coding, technical crypto analysis, or general topics in any language!
+                            Hello! I am <strong>Pro AI</strong>, your Google Gemini-powered multimodal assistant. I speak <strong>every language in the world</strong> fluently! You can ask me anything, attach screenshots, images, or videos, and I will analyze them for you!
                         </div>
                     </div>
                 </div>
 
+                <!-- Attachment Preview Bar (Hidden by default) -->
+                <div id="aiAttachmentPreview" class="hidden px-4 py-2.5 bg-slate-950/90 border-t border-slate-800 flex items-center justify-between gap-3 text-xs">
+                    <div class="flex items-center gap-2.5 overflow-hidden">
+                        <img id="aiAttachmentThumb" src="" alt="Thumbnail" class="w-9 h-9 rounded-lg object-cover border border-purple-500/60 hidden">
+                        <div id="aiAttachmentVideoIcon" class="w-9 h-9 rounded-lg bg-purple-900/60 border border-purple-500/60 flex items-center justify-center hidden shrink-0">
+                            <i data-lucide="video" class="w-4 h-4 text-purple-300"></i>
+                        </div>
+                        <div class="truncate">
+                            <span id="aiAttachmentName" class="font-bold text-white block truncate max-w-[180px] sm:max-w-xs text-xs"></span>
+                            <span id="aiAttachmentSize" class="text-[10px] text-slate-400"></span>
+                        </div>
+                    </div>
+                    <button type="button" onclick="clearAiAttachment()" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-red-400 transition-all" title="Remove attachment">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
                 <div class="p-3.5 border-t border-slate-800 bg-slate-950/70 flex items-center gap-2 rounded-b-2xl">
-                    <input id="aiChatInput" type="text" placeholder="Ask Pro AI anything (in English, Hindi, Hinglish, Spanish, etc.)..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-purple-500 font-medium" onkeydown="if(event.key === 'Enter') handleAiChatSend()">
-                    <button onclick="handleAiChatSend()" class="px-5 py-3 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-2 shadow-md">
+                    <!-- Hidden File Input for Image/Screenshot/Video -->
+                    <input type="file" id="aiMediaInput" accept="image/*,video/*" class="hidden" onchange="handleAiMediaSelect(event)">
+                    
+                    <!-- Media Upload Trigger Button -->
+                    <button type="button" onclick="document.getElementById('aiMediaInput').click()" title="Attach image, screenshot, or video" class="p-3 rounded-xl bg-slate-800 hover:bg-purple-900/40 text-slate-300 hover:text-purple-300 border border-slate-700 transition-all flex items-center justify-center shrink-0">
+                        <i data-lucide="image" class="w-4 h-4"></i>
+                    </button>
+
+                    <input id="aiChatInput" type="text" placeholder="Ask in any language or attach screenshot / image..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-purple-500 font-medium" onkeydown="if(event.key === 'Enter') handleAiChatSend()">
+                    
+                    <button onclick="handleAiChatSend()" class="px-5 py-3 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-2 shadow-md shrink-0">
                         <span>Send</span>
                         <i data-lucide="send" class="w-4 h-4"></i>
                     </button>

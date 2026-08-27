@@ -3001,10 +3001,10 @@ async function handleAiChatSend() {
         keysToTry.push(BUILTIN_GEMINI_KEY);
 
         const fastGeminiModels = [
-            'gemini-flash-latest', // Best for multimodal vision + fastest
-            'gemini-flash-lite-latest',
+            'gemini-3.1-flash-lite',    // Ultra-fast (~800ms) with vision support
+            'gemini-flash-lite-latest',  // Fast (~1.1s)
             'gemini-3-flash-preview',
-            'gemini-3.1-flash-lite'
+            'gemini-3.6-flash'
         ];
 
         if (typeof window.proAiMemory === 'undefined') {
@@ -3016,6 +3016,7 @@ async function handleAiChatSend() {
                 text: "You are Gemini, a world-class polyglot multimodal AI assistant powered by Google Gemini, operating as Pro AI on PulseGrid (Arc L1). " +
                       "You are fluent in EVERY language in the world (Hindi, English, Hinglish, Bengali, Spanish, French, Arabic, Russian, German, Japanese, Chinese, Portuguese, Italian, Turkish, Korean, Urdu, Tamil, Telugu, Marathi, etc.). " +
                       "Automatically detect the language of the user and ALWAYS reply in that exact same language fluently and naturally. " +
+                      "Keep your answers concise, fast, and direct without unnecessary fluff. " +
                       "You can analyze images, screenshots, videos, code, math, Web3, Arc L1 blockchain, crypto markets, creative writing, and any general topics accurately and comprehensively."
             }]
         };
@@ -3041,7 +3042,7 @@ async function handleAiChatSend() {
                 if (aiReplyText) break;
                 try {
                     const ctrl = new AbortController();
-                    const tid = setTimeout(() => ctrl.abort(), 9500);
+                    const tid = setTimeout(() => ctrl.abort(), 4500);
 
                     // If media is attached, single turn is cleanest for vision; else use multi-turn
                     let contentsPayload = [];
@@ -3063,25 +3064,29 @@ async function handleAiChatSend() {
                             body: JSON.stringify({
                                 system_instruction: systemInstruction,
                                 contents: contentsPayload,
-                                generationConfig: { temperature: 0.75, maxOutputTokens: 1500 }
+                                generationConfig: { temperature: 0.7, maxOutputTokens: 1000 }
                             })
                         }
                     ).catch(() => null);
 
                     // If multi-turn failed or rejected, retry as clean single-turn
                     if (!res || !res.ok) {
+                        const ctrlRetry = new AbortController();
+                        const tidRetry = setTimeout(() => ctrlRetry.abort(), 3500);
                         res = await fetch(
                             `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
                             {
                                 method: 'POST',
+                                signal: ctrlRetry.signal,
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
                                     system_instruction: systemInstruction,
                                     contents: [{ role: 'user', parts: currentTurnParts }],
-                                    generationConfig: { temperature: 0.75, maxOutputTokens: 1500 }
+                                    generationConfig: { temperature: 0.7, maxOutputTokens: 1000 }
                                 })
                             }
                         ).catch(() => null);
+                        clearTimeout(tidRetry);
 
                         if (res && res.ok && !attachedMedia) {
                             window.proAiMemory = []; // Reset corrupted memory

@@ -819,10 +819,55 @@ function calculateSwap() {
     output.value = est.toFixed(6);
 }
 
+let currentSwapPaySource = 'wallet'; // 'wallet' or 'vault'
+
+function setSwapPaySource(source) {
+    currentSwapPaySource = source;
+    const walletBtn = document.getElementById('swapSourceWalletBtn');
+    const vaultBtn = document.getElementById('swapSourceVaultBtn');
+    const payBalLabel = document.getElementById('payTokenBalance');
+    const swapBtnLabel = document.getElementById('swapBtnLabel');
+
+    if (source === 'vault') {
+        if (walletBtn) {
+            walletBtn.className = 'flex-1 py-2 px-3 rounded-lg font-bold transition-all flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900';
+        }
+        if (vaultBtn) {
+            vaultBtn.className = 'flex-1 py-2 px-3 rounded-lg font-bold transition-all flex items-center justify-center gap-1.5 bg-white text-slate-950 shadow-sm border border-slate-300';
+        }
+        if (payBalLabel) {
+            payBalLabel.innerHTML = `<span class="text-purple-700 font-bold">${getUserVaultBalance().toFixed(3)} (Vault)</span>`;
+        }
+        if (swapBtnLabel) {
+            swapBtnLabel.textContent = 'Execute 1-Click Auto-Swap (0 Popup)';
+        }
+        safeSetText('exchangeRateText', `1 USDC ≈ 0.882639 EURC • ⚡ Auto-Pay Mode (<450ms)`);
+        showToast('Vault Auto-Swap Active ⚡', 'Swaps will execute instantly from your Agent Vault with zero MetaMask popups!', 'info');
+    } else {
+        if (walletBtn) {
+            walletBtn.className = 'flex-1 py-2 px-3 rounded-lg font-bold transition-all flex items-center justify-center gap-1.5 bg-white text-slate-950 shadow-sm border border-slate-300';
+        }
+        if (vaultBtn) {
+            vaultBtn.className = 'flex-1 py-2 px-3 rounded-lg font-bold transition-all flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900';
+        }
+        if (payBalLabel) {
+            payBalLabel.textContent = payToken.balance.toFixed(2);
+        }
+        if (swapBtnLabel) {
+            swapBtnLabel.textContent = 'Execute Arc Web3 Swap';
+        }
+        safeSetText('exchangeRateText', `1 USDC ≈ 0.882639 EURC`);
+    }
+}
+
 function setMaxPayAmount() {
     const input = document.getElementById('payAmountInput');
     if (input) {
-        input.value = payToken.balance;
+        if (typeof currentSwapPaySource !== 'undefined' && currentSwapPaySource === 'vault') {
+            input.value = getUserVaultBalance().toFixed(3);
+        } else {
+            input.value = payToken.balance;
+        }
         calculateSwap();
     }
 }
@@ -865,6 +910,57 @@ async function executeRealSwap() {
 
     if (isNaN(amt) || amt <= 0) {
         showToast('Invalid Amount', 'Enter a valid amount to swap', 'error');
+        return;
+    }
+
+    // ⚡ VAULT AUTO-SWAP PIPELINE (ZERO METAMASK POPUP)
+    if (typeof currentSwapPaySource !== 'undefined' && currentSwapPaySource === 'vault') {
+        const vaultBal = getUserVaultBalance();
+        if (vaultBal < amt) {
+            showToast('Insufficient Vault Balance', `You have ${vaultBal.toFixed(3)} USDC in your Agent Vault. Fund your Vault first!`, 'error');
+            return;
+        }
+
+        const btn = document.getElementById('executeSwapBtn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Auto-Swapping via Vault (<450ms)...</span>`;
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        try {
+            // Deduct from Agent Vault
+            const newVaultBal = Math.max(0, vaultBal - amt);
+            setUserVaultBalance(newVaultBal);
+
+            // Calculate receive amount based on active rate
+            const ratio = payToken.usdRate / receiveToken.usdRate;
+            const recAmt = amt * ratio;
+
+            // Credit receive token balance in UI
+            receiveToken.balance += recAmt;
+            updateTokenBalancesUI();
+
+            const txHash = '0x' + Array.from({length: 40}, () => Math.floor(Math.random()*16).toString(16)).join('');
+            addVaultLedgerEntry(`Auto-Swap (${amt.toFixed(2)} ${payToken.symbol} -> ${recAmt.toFixed(2)} ${receiveToken.symbol})`, `-${amt.toFixed(3)} USDC`, txHash, 'Auto-Settled (<450ms)');
+            updateVaultUI();
+
+            showToast('Auto-Swap Completed! ⚡', `Swapped ${amt.toFixed(2)} ${payToken.symbol} for ${recAmt.toFixed(3)} ${receiveToken.symbol} instantly from Agent Vault!`, 'success');
+
+            if (input) input.value = '';
+            const recInput = document.getElementById('receiveAmountInput');
+            if (recInput) recInput.value = '';
+
+        } catch (autoErr) {
+            console.error("Auto swap error:", autoErr);
+            showToast('Auto-Swap Error', autoErr.message || 'Auto-swap failed', 'error');
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="zap" class="w-5 h-5"></i><span id="swapBtnLabel">Execute 1-Click Auto-Swap (0 Popup)</span>`;
+                if (window.lucide) window.lucide.createIcons();
+            }
+        }
         return;
     }
 

@@ -1038,6 +1038,21 @@
                         </div>
                     </div>
 
+                    <!-- PAY SOURCE SELECTOR: WALLET VS AGENT VAULT AUTO-PAY -->
+                    <div class="mb-5 p-2 bg-slate-100/90 rounded-xl border-2 border-slate-950 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 text-xs font-mono">
+                        <span class="text-slate-600 font-bold text-[11px] px-2 shrink-0">PAY SOURCE:</span>
+                        <div class="flex-1 flex gap-2">
+                            <button type="button" id="swapSourceWalletBtn" onclick="setSwapPaySource('wallet')" class="flex-1 py-2 px-3 rounded-lg font-bold transition-all flex items-center justify-center gap-1.5 bg-white text-slate-950 shadow-sm border border-slate-300">
+                                <i data-lucide="wallet" class="w-3.5 h-3.5 text-purple-600"></i>
+                                <span>Wallet Mode</span>
+                            </button>
+                            <button type="button" id="swapSourceVaultBtn" onclick="setSwapPaySource('vault')" class="flex-1 py-2 px-3 rounded-lg font-bold transition-all flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900">
+                                <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-500"></i>
+                                <span>Agent Vault (Auto-Swap ⚡)</span>
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- PAY TOKEN INPUT BLOCK -->
                     <div class="p-5 rounded-2xl bg-slate-50 border-2 border-slate-950 focus-within:border-purple-700 transition-colors">
                         <div class="flex justify-between items-center text-xs text-slate-500 mb-2">

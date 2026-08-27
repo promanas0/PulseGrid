@@ -378,16 +378,6 @@
                     <i data-lucide="pie-chart" class="w-4 h-4 shrink-0"></i>
                     <span>Portfolio</span>
                 </button>
-
-                <button onclick="switchPage('escrow')" id="nav-btn-escrow" class="sidebar-link w-full">
-                    <i data-lucide="lock" class="w-4 h-4 shrink-0"></i>
-                    <span>Escrow Vault</span>
-                </button>
-
-                <button onclick="switchPage('agentpay')" id="nav-btn-agentpay" class="sidebar-link w-full">
-                    <i data-lucide="credit-card" class="w-4 h-4 shrink-0"></i>
-                    <span>Agent Vault</span>
-                </button>
             </div>
 
             <!-- SECTION 3: APPS & AI -->
@@ -586,10 +576,6 @@
                         <button onclick="switchPageAndCloseDrawer('portfolio')" id="mobile-more-btn-portfolio" class="p-3 rounded-xl bg-slate-50 hover:bg-purple-50 border-2 border-slate-950 flex items-center gap-2 font-bold text-slate-800 text-left transition-colors">
                             <i data-lucide="pie-chart" class="w-4 h-4 text-indigo-600 shrink-0"></i>
                             <span>Portfolio</span>
-                        </button>
-                        <button onclick="switchPageAndCloseDrawer('escrow')" id="mobile-more-btn-escrow" class="p-3 rounded-xl bg-slate-50 hover:bg-purple-50 border-2 border-slate-950 flex items-center gap-2 font-bold text-slate-800 text-left transition-colors">
-                            <i data-lucide="lock" class="w-4 h-4 text-purple-600 shrink-0"></i>
-                            <span>Escrow Vault</span>
                         </button>
                         <button onclick="switchPageAndCloseDrawer('market')" id="mobile-more-btn-market" class="p-3 rounded-xl bg-slate-50 hover:bg-purple-50 border-2 border-slate-950 flex items-center gap-2 font-bold text-slate-800 text-left transition-colors">
                             <i data-lucide="store" class="w-4 h-4 text-amber-600 shrink-0"></i>
@@ -1035,21 +1021,6 @@
                                 <span>Swap on Arc Testnet</span>
                             </h2>
                             <p class="text-xs text-slate-600 mt-1.5 font-medium">Real-time DEX Rate synced with Terminal SDK: 1 USDC = 0.882639 EURC</p>
-                        </div>
-                    </div>
-
-                    <!-- PAY SOURCE SELECTOR: WALLET VS AGENT VAULT AUTO-PAY -->
-                    <div class="mb-5 p-2 bg-slate-100/90 rounded-xl border-2 border-slate-950 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 text-xs font-mono">
-                        <span class="text-slate-600 font-bold text-[11px] px-2 shrink-0">PAY SOURCE:</span>
-                        <div class="flex-1 flex gap-2">
-                            <button type="button" id="swapSourceWalletBtn" onclick="setSwapPaySource('wallet')" class="flex-1 py-2 px-3 rounded-lg font-bold transition-all flex items-center justify-center gap-1.5 bg-white text-slate-950 shadow-sm border border-slate-300">
-                                <i data-lucide="wallet" class="w-3.5 h-3.5 text-purple-600"></i>
-                                <span>Wallet Mode</span>
-                            </button>
-                            <button type="button" id="swapSourceVaultBtn" onclick="setSwapPaySource('vault')" class="flex-1 py-2 px-3 rounded-lg font-bold transition-all flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900">
-                                <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-500"></i>
-                                <span>Agent Vault (Auto-Swap ⚡)</span>
-                            </button>
                         </div>
                     </div>
 
@@ -1563,58 +1534,6 @@
             </div>
         </section>
 
-        <!-- PAGE 6: CIRCLE ESCROW VIEW -->
-        <section id="view-escrow" class="page-view hidden space-y-8">
-            <div class="pixel-card-emerald p-6 sm:p-8 space-y-6">
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b-2 border-slate-950">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-2xl bg-emerald-600 text-white border-2 border-slate-950 flex items-center justify-center font-bold shadow-[3px_3px_0px_#0F172A]">
-                            <i data-lucide="shield-check" class="w-6 h-6"></i>
-                        </div>
-                        <div>
-                            <h2 class="font-pixel text-2xl font-black text-slate-950">Circle ERC-8183 AI Escrow</h2>
-                            <p class="text-xs text-slate-600 font-medium">Programmatic USDC Milestone Escrow Audited by AI Agent</p>
-                        </div>
-                    </div>
-                    <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-500 text-xs font-silkscreen font-bold">ERC-8183 COMPLIANT</span>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="space-y-4 font-mono text-xs">
-                        <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 space-y-3">
-                            <div class="font-bold text-slate-950 text-sm">Lock Milestone Funds in Escrow</div>
-                            <div>
-                                <label class="text-[11px] text-slate-500 font-bold">Counterparty / Recipient Address</label>
-                                <input type="text" id="escrowRecipientInput" placeholder="0x..." class="w-full mt-1 p-2.5 bg-white border-2 border-slate-950 rounded-xl font-mono text-xs outline-none">
-                            </div>
-                            <div>
-                                <label class="text-[11px] text-slate-500 font-bold">Escrow Amount (USDC)</label>
-                                <input type="number" id="escrowAmountInput" placeholder="50.00" class="w-full mt-1 p-2.5 bg-white border-2 border-slate-950 rounded-xl font-mono text-xs outline-none">
-                            </div>
-                            <button onclick="executeEscrowDeposit()" class="btn-pixel w-full py-3 rounded-xl bg-emerald-600 text-white font-bold">
-                                Create Milestone Escrow
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="p-6 rounded-xl bg-slate-50 border-2 border-slate-950 space-y-4 font-mono text-xs">
-                        <div class="font-bold text-slate-950 text-sm flex items-center justify-between">
-                            <span>Active Escrow Vaults</span>
-                            <span class="text-emerald-700">1 Verified</span>
-                        </div>
-                        <div class="p-4 rounded-xl bg-white border-2 border-slate-950 space-y-2">
-                            <div class="flex justify-between text-slate-700 font-bold">
-                                <span>Vault #8183-A</span>
-                                <span class="text-emerald-700">100.00 USDC</span>
-                            </div>
-                            <div class="text-[11px] text-slate-500">Recipient: 0x71C...90B</div>
-                            <div class="text-[10px] text-emerald-800 font-bold bg-emerald-50 p-2 rounded-lg border border-emerald-300">
-                                AI Verification: Code deliverables approved on Arc L1.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </section>
 
         <!-- PAGE 7: AI AGENT HUB VIEW -->
@@ -2086,138 +2005,6 @@
         </section>
 
     
-        <!-- AI ASSISTANT SECTION -->
-        
-        <!-- SECTION: x402 AGENT PAY VAULT -->
-        <section id="view-agentpay" class="page-view hidden space-y-6 max-w-5xl mx-auto font-sans">
-            <!-- Header -->
-            <div class="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div>
-                    <div class="flex items-center gap-2.5">
-                        <div class="p-2.5 rounded-xl bg-purple-50 text-purple-700 border border-purple-200">
-                            <i data-lucide="credit-card" class="w-5 h-5"></i>
-                        </div>
-                        <h2 class="text-xl font-bold text-slate-900">Agent Pay Vault</h2>
-                        <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-mono font-medium">
-                            ERC-4337 Session Rules
-                        </span>
-                    </div>
-                    <p class="text-xs text-slate-500 mt-1.5 font-mono">
-                        Smart Contract: <a href="https://explorer.testnet.arc.network/address/0x67623B1c2F27ae0B1ad5d19786474261b88cEd1D" target="_blank" class="text-purple-700 underline font-bold hover:text-purple-900">0x67623B1c2F27ae0B1ad5d19786474261b88cEd1D ↗</a>
-                    </p>
-                </div>
-
-                <div class="flex items-center gap-2 font-mono text-xs">
-                    <span class="text-slate-500">Connected Wallet:</span>
-                    <span id="vaultOwnerAddrBadge" class="px-3 py-1 rounded-lg bg-slate-100 font-bold text-slate-800 font-mono">Not Connected</span>
-                </div>
-            </div>
-
-            <!-- 3 Stat Metrics -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-1">
-                    <div class="text-xs text-slate-500 font-mono">Your Deposited Vault Balance</div>
-                    <div id="userVaultBalDisplay" class="text-2xl font-black text-slate-900 font-mono">0.000 USDC</div>
-                    <div class="text-[11px] text-emerald-600 font-medium">Available for autonomous queries</div>
-                </div>
-
-                <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-1">
-                    <div class="text-xs text-slate-500 font-mono">Daily Spending Limit</div>
-                    <div id="userVaultLimitDisplay" class="text-2xl font-black text-slate-900 font-mono">1.000 USDC</div>
-                    <div class="text-[11px] text-slate-500 font-medium">Auto-capped security rule</div>
-                </div>
-
-                <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-1">
-                    <div class="text-xs text-slate-500 font-mono">Total Settled Micro-Fees</div>
-                    <div id="userVaultSpentDisplay" class="text-2xl font-black text-purple-700 font-mono">0.000 USDC</div>
-                    <div class="text-[11px] text-slate-500 font-medium">0 queries executed today</div>
-                </div>
-            </div>
-
-            <!-- Action Panels: Deposit & Withdraw -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Deposit Box -->
-                <div class="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4">
-                    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                        <span class="font-bold text-sm text-slate-900">Deposit USDC into Agent Vault</span>
-                        <span class="text-xs text-slate-500 font-mono">Wallet: <strong id="vaultWalletUsdcBal" class="text-slate-900">0.00 USDC</strong></span>
-                    </div>
-
-                    <p class="text-xs text-slate-600 leading-relaxed font-sans">
-                        Deposit USDC into your private escrow account on the ArcAgentPay smart contract. Your AI assistant will automatically deduct micro-fees (0.001 USDC) from this balance without opening MetaMask.
-                    </p>
-
-                    <div class="space-y-2">
-                        <label class="text-xs text-slate-500 font-mono">Deposit Amount (USDC):</label>
-                        <div class="flex gap-2">
-                            <input type="number" id="vaultDepositInput" value="0.10" step="0.05" min="0.01" max="100" class="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-slate-900 font-bold font-mono text-sm outline-none focus:border-purple-600 focus:bg-white transition-all">
-                            <button onclick="setVaultDepositPill(0.10)" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-mono font-bold">0.10</button>
-                            <button onclick="setVaultDepositPill(0.50)" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-mono font-bold">0.50</button>
-                            <button onclick="setVaultDepositPill(1.00)" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-mono font-bold">1.00</button>
-                        </div>
-                    </div>
-
-                    <button onclick="executeVaultDeposit()" id="btnVaultDeposit" class="w-full py-3.5 bg-purple-700 hover:bg-purple-800 text-white rounded-xl font-mono text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2">
-                        <i data-lucide="arrow-down-to-dot" class="w-4 h-4"></i>
-                        <span>Deposit via MetaMask</span>
-                    </button>
-                </div>
-
-                <!-- Withdraw & Settings Box -->
-                <div class="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4">
-                    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                        <span class="font-bold text-sm text-slate-900">Withdraw Funds to Wallet</span>
-                        <span class="text-xs text-slate-500 font-mono">Vault: <strong id="vaultAvailableToWithdraw" class="text-emerald-700">0.000 USDC</strong></span>
-                    </div>
-
-                    <p class="text-xs text-slate-600 leading-relaxed font-sans">
-                        Withdraw your unspent USDC from the smart contract back to your MetaMask wallet at any time. No lockup period or penalty.
-                    </p>
-
-                    <div class="space-y-2">
-                        <label class="text-xs text-slate-500 font-mono">Withdraw Amount (USDC):</label>
-                        <div class="flex gap-2">
-                            <input type="number" id="vaultWithdrawInput" value="0.10" step="0.05" min="0.001" class="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-slate-900 font-bold font-mono text-sm outline-none focus:border-purple-600 focus:bg-white transition-all">
-                            <button onclick="setVaultMaxWithdraw()" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-mono font-bold">MAX</button>
-                        </div>
-                    </div>
-
-                    <button onclick="executeVaultWithdraw()" id="btnVaultWithdraw" class="w-full py-3.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-mono text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2">
-                        <i data-lucide="arrow-up-from-dot" class="w-4 h-4"></i>
-                        <span>Withdraw to Wallet</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Execution Logs Table -->
-            <div class="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4 font-mono text-xs">
-                <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-                    <span class="font-bold text-sm text-slate-900 font-sans">Settlement Ledger &amp; History</span>
-                    <button onclick="testVaultMicroPay()" class="px-3 py-1.5 rounded-lg bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 font-bold text-[11px] transition-colors">
-                        Execute Micro-Payment (0.001 USDC)
-                    </button>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead>
-                            <tr class="text-slate-400 text-[11px] border-b border-slate-100">
-                                <th class="pb-2">Time</th>
-                                <th class="pb-2">Operation</th>
-                                <th class="pb-2">Amount</th>
-                                <th class="pb-2">Transaction</th>
-                                <th class="pb-2 text-right">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="vaultLedgerBody" class="divide-y divide-slate-100 text-[11px] text-slate-700">
-                            <tr>
-                                <td colspan="5" class="py-6 text-center text-slate-400 font-sans">No transactions yet. Deposit USDC to begin autonomous micro-payments.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
         <!-- PRO AI SECTION -->
         <section id="view-assistant" class="page-view hidden space-y-6 max-w-6xl mx-auto">
             <div class="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 border border-slate-800 shadow-xl text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -2232,11 +2019,10 @@
                 </div>
 
                 <div class="flex items-center gap-2.5">
-                    <button onclick="switchPage('agentpay')" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-mono font-bold transition-all flex items-center gap-2 shadow-md" title="Manage Agent Vault Balance">
-                        <i data-lucide="credit-card" class="w-3.5 h-3.5 text-purple-400"></i>
-                        <span>Agent Vault: </span>
-                        <strong id="assistantVaultBadge" class="text-emerald-400 font-bold">0.000 USDC</strong>
-                    </button>
+                    <div class="px-3.5 py-2 bg-purple-950/60 border border-purple-500/30 rounded-xl text-xs font-mono font-bold text-purple-200 flex items-center gap-2 shadow-sm">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5 text-emerald-400"></i>
+                        <span>Arc Intelligence Engine</span>
+                    </div>
                     <button onclick="startNewProAiChat()" class="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md">
                         <i data-lucide="plus" class="w-4 h-4"></i>
                         <span>New Chat</span>
@@ -3037,59 +2823,6 @@
                 Claim +100 USDC Faucet Tokens
             </button>
         </div>
-    </div>
-
-    <!-- x402 AGENT RULES & SPENDING LIMITS MODAL -->
-    <div id="x402ConfigModal" class="fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="pixel-card-purple w-full max-w-lg p-6 space-y-4 font-mono text-xs">
-            <div class="flex items-center justify-between pb-2 border-b-2 border-slate-950">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="cpu" class="w-5 h-5 text-purple-700"></i>
-                    <h3 class="font-pixel font-bold text-slate-950 text-base">x402 Agent Spending Rules</h3>
-                </div>
-                <button onclick="closeX402ConfigModal()" class="text-slate-500 hover:text-slate-950">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            
-            <p class="text-slate-600 font-sans text-xs">
-                Configure autonomous on-chain session rules for Pro AI. The agent pays HTTP 402 micro-fees automatically within your set budget without prompting MetaMask.
-            </p>
-
-            <div class="space-y-3 bg-slate-50 p-4 rounded-xl border-2 border-slate-950">
-                <div class="flex justify-between items-center">
-                    <span class="text-slate-500">ArcVaultPay Contract:</span>
-                    <a href="https://explorer.testnet.arc.network/address/0x67623B1c2F27ae0B1ad5d19786474261b88cEd1D" target="_blank" class="font-bold text-purple-700 underline hover:text-purple-900">0x67623B1c2F27ae0B1ad5d19786474261b88cEd1D ↗</a>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-slate-500">Execution Settlement:</span>
-                    <span class="font-bold text-teal-600">Arc L1 (&lt;450ms Finality)</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-slate-500">Payment Standard:</span>
-                    <span class="font-bold text-purple-700">ERC-4337 Session / HTTP 402</span>
-                </div>
-                <div class="flex justify-between items-center pt-2 border-t border-slate-200">
-                    <span class="text-slate-700 font-bold">Daily Auto-Spend Limit:</span>
-                    <div class="flex items-center gap-1.5">
-                        <input type="number" id="x402LimitInput" value="1.00" step="0.5" min="0.1" max="50" class="w-20 bg-white border border-slate-300 rounded-lg px-2 py-1 text-right font-bold text-slate-950 outline-none">
-                        <span class="font-bold text-purple-700">USDC</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex gap-2.5 pt-2">
-                <button onclick="saveX402Rules()" class="btn-pixel flex-1 py-3 rounded-xl bg-purple-700 text-white font-bold text-xs flex items-center justify-center gap-2">
-                    <i data-lucide="check" class="w-4 h-4"></i>
-                    <span>Save Agent Rules</span>
-                </button>
-                <button onclick="closeX402ConfigModal()" class="px-4 py-3 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs">
-                    Cancel
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- TX HISTORY MODAL -->
     <div id="txHistoryModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="pixel-card-purple w-full max-w-lg p-6 space-y-4">

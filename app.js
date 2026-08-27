@@ -316,7 +316,7 @@ function switchPage(pageId) {
         } else {
             // Highlight the "More" button if the page is inside the More menu
             const moreBtn = document.getElementById('mobile-nav-btn-more');
-            if (moreBtn && ['portfolio', 'market', 'escrow', 'tools', 'games', 'prediction', 'settings', 'about'].includes(pageId)) {
+            if (moreBtn && ['portfolio', 'market', 'tools', 'games', 'prediction', 'settings', 'about'].includes(pageId)) {
                 moreBtn.classList.add('active');
             }
         }
@@ -336,8 +336,6 @@ function switchPage(pageId) {
         } else if (pageId === 'prediction') {
             if (typeof renderPredictionCoins === 'function' && typeof PREDICTION_COINS !== 'undefined') renderPredictionCoins(PREDICTION_COINS);
             if (typeof renderPredictionMarkets === 'function' && typeof PREDICTION_MARKETS !== 'undefined') renderPredictionMarkets(PREDICTION_MARKETS);
-        } else if (pageId === 'agentpay') {
-            if (typeof updateVaultUI === 'function') updateVaultUI();
         } else if (pageId === 'settings') {
             const settingsAddr = document.getElementById('settingsWalletAddress');
             if (settingsAddr) settingsAddr.value = currentAccount || 'Not Connected';
@@ -594,9 +592,6 @@ function onWalletConnected(account, providerName, isAutoReconnect = false) {
         if (typeof loadQuestState === 'function') {
             loadQuestState(account);
         }
-        if (typeof updateVaultUI === 'function') {
-            updateVaultUI();
-        }
 
         if (!isAutoReconnect) {
             showToast('Wallet Connected!', `Connected via ${providerName} on Arc Testnet`, 'success');
@@ -625,9 +620,6 @@ async function disconnectWallet() {
     renderPortfolioView();
     if (typeof loadQuestState === 'function') {
         loadQuestState(null);
-    }
-    if (typeof updateVaultUI === 'function') {
-        updateVaultUI();
     }
     showToast('Wallet Disconnected', 'Session cleared.', 'info');
 }
@@ -684,7 +676,6 @@ function updateWalletUI() {
         if (connectBtn) connectBtn.classList.remove('hidden');
         if (disconnectBtn) disconnectBtn.classList.add('hidden');
     }
-    if (typeof updateVaultUI === 'function') updateVaultUI();
 }
 
 async function fetchBalances(accountAddress = currentAccount) {
@@ -819,55 +810,10 @@ function calculateSwap() {
     output.value = est.toFixed(6);
 }
 
-let currentSwapPaySource = 'wallet'; // 'wallet' or 'vault'
-
-function setSwapPaySource(source) {
-    currentSwapPaySource = source;
-    const walletBtn = document.getElementById('swapSourceWalletBtn');
-    const vaultBtn = document.getElementById('swapSourceVaultBtn');
-    const payBalLabel = document.getElementById('payTokenBalance');
-    const swapBtnLabel = document.getElementById('swapBtnLabel');
-
-    if (source === 'vault') {
-        if (walletBtn) {
-            walletBtn.className = 'flex-1 py-2 px-3 rounded-lg font-bold transition-all flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900';
-        }
-        if (vaultBtn) {
-            vaultBtn.className = 'flex-1 py-2 px-3 rounded-lg font-bold transition-all flex items-center justify-center gap-1.5 bg-white text-slate-950 shadow-sm border border-slate-300';
-        }
-        if (payBalLabel) {
-            payBalLabel.innerHTML = `<span class="text-purple-700 font-bold">${getUserVaultBalance().toFixed(3)} (Vault)</span>`;
-        }
-        if (swapBtnLabel) {
-            swapBtnLabel.textContent = 'Execute 1-Click Auto-Swap (0 Popup)';
-        }
-        safeSetText('exchangeRateText', `1 USDC ≈ 0.882639 EURC • ⚡ Auto-Pay Mode (<450ms)`);
-        showToast('Vault Auto-Swap Active ⚡', 'Swaps will execute instantly from your Agent Vault with zero MetaMask popups!', 'info');
-    } else {
-        if (walletBtn) {
-            walletBtn.className = 'flex-1 py-2 px-3 rounded-lg font-bold transition-all flex items-center justify-center gap-1.5 bg-white text-slate-950 shadow-sm border border-slate-300';
-        }
-        if (vaultBtn) {
-            vaultBtn.className = 'flex-1 py-2 px-3 rounded-lg font-bold transition-all flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900';
-        }
-        if (payBalLabel) {
-            payBalLabel.textContent = payToken.balance.toFixed(2);
-        }
-        if (swapBtnLabel) {
-            swapBtnLabel.textContent = 'Execute Arc Web3 Swap';
-        }
-        safeSetText('exchangeRateText', `1 USDC ≈ 0.882639 EURC`);
-    }
-}
-
 function setMaxPayAmount() {
     const input = document.getElementById('payAmountInput');
     if (input) {
-        if (typeof currentSwapPaySource !== 'undefined' && currentSwapPaySource === 'vault') {
-            input.value = getUserVaultBalance().toFixed(3);
-        } else {
-            input.value = payToken.balance;
-        }
+        input.value = payToken.balance;
         calculateSwap();
     }
 }
@@ -910,57 +856,6 @@ async function executeRealSwap() {
 
     if (isNaN(amt) || amt <= 0) {
         showToast('Invalid Amount', 'Enter a valid amount to swap', 'error');
-        return;
-    }
-
-    // ⚡ VAULT AUTO-SWAP PIPELINE (ZERO METAMASK POPUP)
-    if (typeof currentSwapPaySource !== 'undefined' && currentSwapPaySource === 'vault') {
-        const vaultBal = getUserVaultBalance();
-        if (vaultBal < amt) {
-            showToast('Insufficient Vault Balance', `You have ${vaultBal.toFixed(3)} USDC in your Agent Vault. Fund your Vault first!`, 'error');
-            return;
-        }
-
-        const btn = document.getElementById('executeSwapBtn');
-        if (btn) {
-            btn.disabled = true;
-            btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Auto-Swapping via Vault (<450ms)...</span>`;
-            if (window.lucide) window.lucide.createIcons();
-        }
-
-        try {
-            // Deduct from Agent Vault
-            const newVaultBal = Math.max(0, vaultBal - amt);
-            setUserVaultBalance(newVaultBal);
-
-            // Calculate receive amount based on active rate
-            const ratio = payToken.usdRate / receiveToken.usdRate;
-            const recAmt = amt * ratio;
-
-            // Credit receive token balance in UI
-            receiveToken.balance += recAmt;
-            updateTokenBalancesUI();
-
-            const txHash = '0x' + Array.from({length: 40}, () => Math.floor(Math.random()*16).toString(16)).join('');
-            addVaultLedgerEntry(`Auto-Swap (${amt.toFixed(2)} ${payToken.symbol} -> ${recAmt.toFixed(2)} ${receiveToken.symbol})`, `-${amt.toFixed(3)} USDC`, txHash, 'Auto-Settled (<450ms)');
-            updateVaultUI();
-
-            showToast('Auto-Swap Completed! ⚡', `Swapped ${amt.toFixed(2)} ${payToken.symbol} for ${recAmt.toFixed(3)} ${receiveToken.symbol} instantly from Agent Vault!`, 'success');
-
-            if (input) input.value = '';
-            const recInput = document.getElementById('receiveAmountInput');
-            if (recInput) recInput.value = '';
-
-        } catch (autoErr) {
-            console.error("Auto swap error:", autoErr);
-            showToast('Auto-Swap Error', autoErr.message || 'Auto-swap failed', 'error');
-        } finally {
-            if (btn) {
-                btn.disabled = false;
-                btn.innerHTML = `<i data-lucide="zap" class="w-5 h-5"></i><span id="swapBtnLabel">Execute 1-Click Auto-Swap (0 Popup)</span>`;
-                if (window.lucide) window.lucide.createIcons();
-            }
-        }
         return;
     }
 
@@ -1307,25 +1202,6 @@ async function executeRealSendToken() {
     }
 }
 
-function executeEscrowDeposit() {
-    if (!currentAccount) {
-        handleWalletClick();
-        return;
-    }
-    const recipient = document.getElementById('escrowRecipientInput')?.value;
-    const amt = parseFloat(document.getElementById('escrowAmountInput')?.value || 0);
-
-    if (!recipient || isNaN(amt) || amt <= 0) {
-        showToast('Invalid Input', 'Enter recipient address and valid USDC escrow amount', 'error');
-        return;
-    }
-
-    TOKENS[0].balance = Math.max(0, TOKENS[0].balance - amt);
-    updateTokenBalancesUI();
-
-    showToast('Escrow Created!', `Locked ${amt} USDC in ERC-8183 Vault for ${recipient.substring(0, 8)}...`, 'success');
-}
-
 function triggerAgentCycle() {
     showToast('AI Agent Active', 'ERC-8004 Autonomous Agent executed market cycle on Arc L1', 'success');
 }
@@ -1407,15 +1283,15 @@ const QUEST_TASKS_DATA = [
         badgeText: '500 XP Milestone'
     },
     {
-        id: 'task-escrow',
+        id: 'task-validators',
         category: 'milestone',
-        title: 'Deploy Circle Escrow Deposit',
-        desc: 'Create or fund a conditional multi-signature escrow vault transaction',
+        title: 'Inspect Arc Consortium Validators',
+        desc: 'Review consensus health and voting power of institutional validator nodes',
         xp: 400,
         icon: 'shield-check',
-        actionLabel: 'Open Escrow 🔐',
-        actionFn: "switchPage('escrow')",
-        completedLabel: 'Escrow Deployed ✓',
+        actionLabel: 'Inspect Nodes ⚡',
+        actionFn: "switchPage('validators')",
+        completedLabel: 'Nodes Inspected ✓',
         badgeText: '+400 XP'
     },
     {
@@ -3253,24 +3129,6 @@ async function handleAiChatSend() {
 
         // Remove Typing Indicator
         const indicator = document.getElementById('aiTypingIndicator');
-        // Deduct 0.001 USDC micro-fee from Agent Vault autonomously
-        let vaultAutoPaid = false;
-        const currentVaultBal = getUserVaultBalance();
-        if (currentVaultBal >= 0.001) {
-            const newBal = currentVaultBal - 0.001;
-            setUserVaultBalance(newBal);
-
-            const spentKey = 'arc_vault_spent_' + (currentAccount || 'guest');
-            const spent = parseFloat(localStorage.getItem(spentKey) || '0') + 0.001;
-            localStorage.setItem(spentKey, spent.toFixed(4));
-
-            const txHash = '0x' + Array.from({length: 40}, () => Math.floor(Math.random()*16).toString(16)).join('');
-            addVaultLedgerEntry('Pro AI Query Settlement', '-0.001 USDC', txHash, 'Auto-Paid (<450ms)');
-            updateVaultUI();
-            vaultAutoPaid = true;
-            showToast('x402 Auto-Paid ⚡', '0.001 USDC deducted autonomously from Agent Vault', 'info');
-        }
-
         // Render AI Reply
         const aiBubble = document.createElement('div');
         aiBubble.className = 'flex gap-3';
@@ -3282,38 +3140,12 @@ async function handleAiChatSend() {
             .replace(/`([^`]+)`/g, '<code class="bg-slate-950 px-1.5 py-0.5 rounded text-purple-300 font-mono text-[11px] border border-slate-800">$1</code>')
             .replace(/\n/g, '<br>');
 
-        let feeFooterHtml = '';
-        if (vaultAutoPaid) {
-            feeFooterHtml = `
-<div class="mt-3 pt-2.5 border-t border-slate-700/80 flex items-center justify-between text-[11px] font-mono">
-                    <div class="flex items-center gap-1.5 text-emerald-400 font-bold">
-                        <i data-lucide="zap" class="w-3.5 h-3.5"></i>
-                        <span>x402 Auto-Paid: 0.001 USDC</span>
-                    </div>
-                    <span class="text-slate-400">Vault Balance: <strong class="text-white font-mono">${(getUserVaultBalance()).toFixed(3)} USDC</strong></span>
-                </div>
-            `;
-        } else {
-            feeFooterHtml = `
-                <div class="mt-3 pt-2.5 border-t border-slate-700/80 flex items-center justify-between text-[11px] font-mono">
-                    <div class="flex items-center gap-1.5 text-amber-400">
-                        <i data-lucide="info" class="w-3.5 h-3.5"></i>
-                        <span>Free Trial Mode (Vault: 0.000 USDC)</span>
-                    </div>
-                    <button onclick="switchPage('agentpay')" class="text-purple-400 hover:text-purple-300 underline font-bold">
-                        Fund Vault ↗
-                    </button>
-                </div>
-            `;
-        }
-
         aiBubble.innerHTML = `
                     <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center shrink-0">
                         <i data-lucide="bot" class="w-4 h-4 text-purple-300"></i>
                     </div>
                     <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 text-slate-200 max-w-[85%] text-xs leading-relaxed shadow-lg whitespace-pre-line">
                         ${formatted}
-                        ${feeFooterHtml}
                     </div>
                 `;
         chatBox.appendChild(aiBubble);
@@ -3322,512 +3154,6 @@ async function handleAiChatSend() {
     } catch (chatErr) {
         console.error("handleAiChatSend error:", chatErr);
     }
-}
-
-// ==========================================
-// x402 AUTONOMOUS AI AGENT PAYMENT ENGINE
-// ==========================================
-const ARC_AGENT_PAY_CONTRACT_ADDRESS = '0x67623B1c2F27ae0B1ad5d19786474261b88cEd1D';
-const ARC_VAULT_PAY_ABI = [
-    "function deposit(uint256 _amount) external",
-    "function withdraw(uint256 _amount) external",
-    "function executeAutoPay(address _user, address _serviceProvider, uint256 _fee, string calldata _endpoint) external returns (bool)",
-    "function getUserVault(address _user) external view returns (uint256 balance, uint256 dailyLimit, uint256 spent, uint256 remaining)",
-    "function userBalances(address user) external view returns (uint256)"
-];
-let agentDailySpendLimit = 1.00;
-
-function openX402ConfigModal() {
-    const input = document.getElementById('x402LimitInput');
-    if (input) input.value = agentDailySpendLimit.toFixed(2);
-    const modal = document.getElementById('x402ConfigModal');
-    if (modal) modal.classList.remove('hidden');
-    if (window.lucide) window.lucide.createIcons();
-}
-
-function closeX402ConfigModal() {
-    const modal = document.getElementById('x402ConfigModal');
-    if (modal) modal.classList.add('hidden');
-}
-
-function saveX402Rules() {
-    const input = document.getElementById('x402LimitInput');
-    if (input) {
-        const val = parseFloat(input.value);
-        if (!isNaN(val) && val > 0) {
-            agentDailySpendLimit = val;
-            safeSetText('agentSpendLimitBadge', `${agentDailySpendLimit.toFixed(2)} USDC`);
-            showToast('Agent Rule Updated ⚙️', `Daily autonomous budget set to ${agentDailySpendLimit.toFixed(2)} USDC`, 'success');
-        }
-    }
-    closeX402ConfigModal();
-}
-
-async function runX402AutoPayDemo() {
-    // 0. Ensure wallet is connected first
-    if (!currentAccount) {
-        showToast('Connect Wallet Required 👛', 'Please connect your Arc Testnet wallet to authorize AI Agent Auto-Pay!', 'warning');
-        if (typeof handleWalletClick === 'function') handleWalletClick();
-        return;
-    }
-
-    // Switch to Assistant tab if not active
-    if (typeof switchPage === 'function') {
-        switchPage('assistant');
-    }
-
-    const box = document.getElementById('aiChatBox');
-    if (!box) return;
-
-    showToast('x402 Agent Triggered ⚡', 'Requesting restricted Arc L1 Institutional Intelligence...', 'info');
-
-    const shortOwner = `${currentAccount.substring(0, 6)}...${currentAccount.substring(currentAccount.length - 4)}`;
-
-    // 1. Simulate the HTTP 402 Request Bubble
-    const requestBubble = document.createElement('div');
-    requestBubble.className = 'flex gap-3 justify-end';
-    requestBubble.innerHTML = `
-        <div class="bg-purple-600 text-white rounded-2xl p-3.5 text-xs max-w-[85%] shadow-md font-mono space-y-1">
-            <div class="flex items-center gap-1.5 font-bold text-amber-300">
-                <i data-lucide="cpu" class="w-4 h-4"></i>
-                <span>GET /api/v1/arc-institutional-alpha</span>
-            </div>
-            <div class="text-[11px] text-purple-200">Owner: <span class="font-bold text-white font-mono">${shortOwner}</span> • Target: <span class="font-bold text-white font-mono">0x6762...Ed1D</span></div>
-        </div>
-    `;
-    box.appendChild(requestBubble);
-    box.scrollTop = box.scrollHeight;
-    if (window.lucide) window.lucide.createIcons();
-
-    // 2. Simulate HTTP 402 Payment Challenge & Autonomous Settlement
-    setTimeout(() => {
-        const txHash = '0x' + Array.from({length: 40}, () => Math.floor(Math.random()*16).toString(16)).join('');
-        const shortTx = `${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}`;
-        const executionMs = Math.floor(380 + Math.random() * 60);
-
-        // Deduct from live user vault balance
-        const currentBal = getUserVaultBalance();
-        if (currentBal >= 0.001) {
-            setUserVaultBalance(currentBal - 0.001);
-            addVaultLedgerEntry('Institutional Alpha Query', '-0.001 USDC', txHash, 'Auto-Paid (<450ms)');
-        }
-
-        const x402PipelineBubble = document.createElement('div');
-        x402PipelineBubble.className = 'flex gap-3';
-        x402PipelineBubble.innerHTML = `
-            <div class="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-500 flex items-center justify-center shrink-0">
-                <i data-lucide="lock" class="w-4 h-4 text-amber-400"></i>
-            </div>
-            <div class="bg-slate-900 border-2 border-amber-500/40 rounded-2xl p-4 text-slate-200 max-w-[85%] text-xs font-mono space-y-2.5 shadow-xl">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <span class="text-amber-400 font-bold flex items-center gap-1.5">
-                        <i data-lucide="lock" class="w-3.5 h-3.5"></i>
-                        <span>HTTP 402 Payment Required (0.001 USDC)</span>
-                    </span>
-                    <span class="px-2 py-0.5 rounded bg-amber-950 text-amber-300 text-[10px] border border-amber-800">AUTOMATED</span>
-                </div>
-                
-                <div class="text-slate-300 space-y-1 text-[11px]">
-                    <div>⚡ <strong>Smart Contract:</strong> <a href="https://explorer.testnet.arc.network/address/0x67623B1c2F27ae0B1ad5d19786474261b88cEd1D" target="_blank" class="text-purple-400 font-bold underline hover:text-purple-300">0x6762...Ed1D</a> (ArcVaultPay.sol)</div>
-                    <div>⚡ <strong>Rule Check:</strong> Pre-authorized limit ($0.001 &le; $${agentDailySpendLimit.toFixed(2)} USDC) matched for <span class="text-purple-300 font-bold">${shortOwner}</span>.</div>
-                    <div>⚡ <strong>Action:</strong> Autonomous ERC-4337 session settlement executed with zero signing delay.</div>
-                    <div>⚡ <strong>Arc L1 Tx:</strong> <span class="text-purple-400 font-bold">${shortTx}</span> (<span class="text-emerald-400 font-bold">${executionMs}ms finality</span>)</div>
-                </div>
-
-                <div class="pt-2 border-t border-slate-800 flex items-center justify-between text-emerald-400 font-bold text-[11px]">
-                    <span class="flex items-center gap-1">
-                        <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i>
-                        <span>Payment Verified on Arc Testnet</span>
-                    </span>
-                    <span class="text-slate-400 font-normal">HTTP 200 UNLOCKED</span>
-                </div>
-            </div>
-        `;
-        box.appendChild(x402PipelineBubble);
-        box.scrollTop = box.scrollHeight;
-        if (window.lucide) window.lucide.createIcons();
-
-        // 3. Deliver the Unlocked Exclusive Institutional Alpha Report
-        setTimeout(() => {
-            const reportBubble = document.createElement('div');
-            reportBubble.className = 'flex gap-3';
-            reportBubble.innerHTML = `
-                <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center shrink-0">
-                    <i data-lucide="sparkles" class="w-4 h-4 text-purple-300"></i>
-                </div>
-                <div class="bg-slate-900 border-2 border-purple-500/50 rounded-2xl p-5 text-slate-100 max-w-[90%] text-xs leading-relaxed shadow-2xl space-y-3">
-                    <div class="flex items-center justify-between border-b border-purple-500/30 pb-2">
-                        <div class="font-bold text-sm text-purple-300 flex items-center gap-2 font-mono">
-                            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
-                            <span>Arc L1 Institutional Whale & Liquidity Alpha</span>
-                        </div>
-                        <a href="https://explorer.testnet.arc.network/address/0x67623B1c2F27ae0B1ad5d19786474261b88cEd1D" target="_blank" class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-mono font-bold hover:bg-emerald-500/30">
-                            Verified on ArcVaultPay ↗
-                        </a>
-                    </div>
-
-                    <div class="space-y-2 text-slate-200">
-                        <p><strong>1. Consortium Node Settlement Speed:</strong> Circle, BlackRock, Visa, and DTCC nodes currently processing blocks in <strong>~450ms</strong> with zero micro-fee variance (0.001 USDC fixed gas).</p>
-                        <p><strong>2. Whale Inflow Detected:</strong> Over <strong>$18.4M USDC</strong> simulated liquidity moved into Arc L1 AMM pools ahead of the September 16 Mainnet launch window.</p>
-                        <p><strong>3. Circle CCTP Liquidity Corridor:</strong> Cross-chain burning & minting throughput increased by +34.2% across Ethereum, Arbitrum, and Base testnets.</p>
-                    </div>
-
-                    <div class="p-3 bg-purple-950/50 rounded-xl border border-purple-500/30 text-[11px] font-mono text-purple-200">
-                        💡 <strong>Contract Verified:</strong> Settled via on-chain contract <strong class="text-white font-mono">0x67623B1c2F27ae0B1ad5d19786474261b88cEd1D</strong> on Arc L1. Sub-second agent payments with zero human bottleneck.
-                    </div>
-                </div>
-            `;
-            box.appendChild(reportBubble);
-            box.scrollTop = box.scrollHeight;
-            if (window.lucide) window.lucide.createIcons();
-
-            showToast('Alpha Report Unlocked! 🚀', 'x402 Autonomous settlement verified via ArcVaultPay contract', 'success');
-        }, 600);
-
-    }, 550);
-}
-
-// ==========================================
-// DEDICATED x402 AGENT PAY VAULT ENGINE
-// ==========================================
-
-function getUserVaultKey() {
-    if (!currentAccount) return 'arc_vault_guest';
-    return `arc_vault_${currentAccount.toLowerCase()}`;
-}
-
-function getUserVaultBalance() {
-    const key = getUserVaultKey();
-    const stored = localStorage.getItem(key);
-    if (!stored) return 0.00;
-    const val = parseFloat(stored);
-    return isNaN(val) ? 0.00 : val;
-}
-
-function setUserVaultBalance(amount) {
-    const key = getUserVaultKey();
-    localStorage.setItem(key, Math.max(0, amount).toFixed(4));
-    updateVaultUI();
-}
-
-async function updateVaultUI() {
-    const bal = getUserVaultBalance();
-    safeSetText('userVaultBalDisplay', `${bal.toFixed(3)} USDC`);
-    safeSetText('vaultAvailableToWithdraw', `${bal.toFixed(3)} USDC`);
-    safeSetText('assistantVaultBadge', `${bal.toFixed(3)} USDC`);
-
-    if (currentAccount) {
-        const shortAddr = `${currentAccount.substring(0, 6)}...${currentAccount.substring(currentAccount.length - 4)}`;
-        safeSetText('vaultOwnerAddrBadge', shortAddr);
-    } else {
-        safeSetText('vaultOwnerAddrBadge', 'Not Connected');
-    }
-
-    if (typeof TOKENS !== 'undefined' && TOKENS[0]) {
-        safeSetText('vaultWalletUsdcBal', `${TOKENS[0].balance.toFixed(2)} USDC`);
-    }
-
-    const spent = parseFloat(localStorage.getItem('arc_vault_spent_' + (currentAccount || 'guest')) || '0');
-    safeSetText('userVaultSpentDisplay', `${spent.toFixed(3)} USDC`);
-    safeSetText('userVaultLimitDisplay', `${agentDailySpendLimit.toFixed(3)} USDC`);
-
-    renderVaultLedger();
-
-    // Silently sync real on-chain balance from contract
-    if (currentAccount && window.ethers && (activeWeb3Provider || window.ethereum)) {
-        try {
-            const provider = new ethers.providers.Web3Provider(activeWeb3Provider || window.ethereum);
-            const vaultContract = new ethers.Contract(ARC_AGENT_PAY_CONTRACT_ADDRESS, ARC_VAULT_PAY_ABI, provider);
-            const onChainRaw = await vaultContract.userBalances(currentAccount);
-            const onChainUsdc = Number(onChainRaw) / 1e6;
-            if (onChainUsdc > 0 || bal === 0) {
-                localStorage.setItem(getUserVaultKey(), onChainUsdc.toFixed(4));
-                safeSetText('userVaultBalDisplay', `${onChainUsdc.toFixed(3)} USDC`);
-                safeSetText('vaultAvailableToWithdraw', `${onChainUsdc.toFixed(3)} USDC`);
-                safeSetText('assistantVaultBadge', `${onChainUsdc.toFixed(3)} USDC`);
-            }
-        } catch (e) { }
-    }
-}
-
-function setVaultDepositPill(val) {
-    const input = document.getElementById('vaultDepositInput');
-    if (input) input.value = val.toFixed(2);
-}
-
-function setVaultMaxWithdraw() {
-    const input = document.getElementById('vaultWithdrawInput');
-    const bal = getUserVaultBalance();
-    if (input) input.value = bal.toFixed(3);
-}
-
-async function executeVaultDeposit() {
-    if (!currentAccount) {
-        showToast('Connect Wallet Required', 'Please connect your Arc Testnet wallet first.', 'warning');
-        if (typeof handleWalletClick === 'function') handleWalletClick();
-        return;
-    }
-
-    const input = document.getElementById('vaultDepositInput');
-    const amt = parseFloat(input ? input.value : '0.10');
-
-    if (isNaN(amt) || amt <= 0) {
-        showToast('Invalid Amount', 'Please enter a valid deposit amount greater than 0.', 'error');
-        return;
-    }
-
-    const providerObj = activeWeb3Provider || window.ethereum;
-    if (!providerObj) {
-        showToast('Wallet Not Detected', 'Please install or unlock MetaMask.', 'error');
-        return;
-    }
-
-    const btn = document.getElementById('btnVaultDeposit');
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Confirming in MetaMask...</span>`;
-        if (window.lucide) window.lucide.createIcons();
-    }
-
-    try {
-        if (!window.ethers) {
-            throw new Error("Ethers.js library not loaded in browser.");
-        }
-
-        const provider = new ethers.providers.Web3Provider(providerObj);
-        const signer = provider.getSigner();
-
-        const amtUnits6 = ethers.utils.parseUnits(amt.toString(), 6);
-
-        // 1. Check ERC-20 USDC Allowance for ArcVaultPay contract
-        const usdcContract = new ethers.Contract(
-            ERC20_USDC_ADDRESS,
-            [
-                "function transfer(address to, uint256 amount) returns (bool)",
-                "function approve(address spender, uint256 amount) returns (bool)",
-                "function allowance(address owner, address spender) view returns (uint256)",
-                "function balanceOf(address account) view returns (uint256)"
-            ],
-            signer
-        );
-
-        let allowance = ethers.BigNumber.from(0);
-        try {
-            allowance = await usdcContract.allowance(currentAccount, ARC_AGENT_PAY_CONTRACT_ADDRESS);
-        } catch (e) { }
-
-        if (allowance.lt(amtUnits6)) {
-            showToast('Step 1/2: Approve USDC ⚙️', 'Please approve ArcVaultPay in MetaMask...', 'info');
-            const approveTx = await usdcContract.approve(ARC_AGENT_PAY_CONTRACT_ADDRESS, ethers.constants.MaxUint256);
-            await approveTx.wait();
-            showToast('USDC Approved ✅', 'Now confirming deposit in MetaMask...', 'info');
-        }
-
-        // 2. Call on-chain deposit(uint256) on ArcVaultPay contract
-        showToast('Step 2/2: Confirm Deposit ↗', `Confirm depositing ${amt.toFixed(2)} USDC in MetaMask...`, 'info');
-        const vaultContract = new ethers.Contract(ARC_AGENT_PAY_CONTRACT_ADDRESS, ARC_VAULT_PAY_ABI, signer);
-        const depositTx = await vaultContract.deposit(amtUnits6);
-
-        showToast('Broadcasting Deposit...', 'Waiting for Arc Testnet block confirmation (<450ms)...', 'info');
-        const receipt = await depositTx.wait();
-        const confirmedHash = receipt.transactionHash || depositTx.hash;
-
-        // Deduct from wallet balance in UI
-        if (typeof TOKENS !== 'undefined' && TOKENS[0]) {
-            TOKENS[0].balance = Math.max(0, TOKENS[0].balance - amt);
-            if (typeof updateWalletUI === 'function') updateWalletUI();
-        }
-
-        // Credit to personal Agent Vault balance
-        const newBal = getUserVaultBalance() + amt;
-        setUserVaultBalance(newBal);
-
-        addVaultLedgerEntry('Vault Deposit', `+${amt.toFixed(3)} USDC`, confirmedHash, 'Confirmed');
-        showToast('Vault Funded On-Chain! 🚀', `Successfully deposited ${amt.toFixed(2)} USDC into your Agent Vault!`, 'success');
-
-        if (typeof fetchRealOnChainBalances === 'function') {
-            fetchRealOnChainBalances(currentAccount);
-        }
-
-    } catch (err) {
-        console.error("Deposit error:", err);
-        if (err.code === 4001 || err.code === 'ACTION_REJECTED' || err.message?.includes('rejected') || err.message?.includes('denied')) {
-            showToast('Deposit Cancelled', 'Transaction was rejected in MetaMask.', 'error');
-        } else {
-            showToast('Transaction Error', err.reason || err.message || 'Transaction could not be completed in MetaMask.', 'error');
-        }
-    } finally {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = `<i data-lucide="arrow-down-to-dot" class="w-4 h-4"></i><span>Deposit via MetaMask</span>`;
-            if (window.lucide) window.lucide.createIcons();
-        }
-    }
-}
-
-async function executeVaultWithdraw() {
-    if (!currentAccount) {
-        showToast('Connect Wallet Required', 'Please connect your Arc Testnet wallet first.', 'warning');
-        if (typeof handleWalletClick === 'function') handleWalletClick();
-        return;
-    }
-
-    const input = document.getElementById('vaultWithdrawInput');
-    const amt = parseFloat(input ? input.value : '0');
-    const currentVaultBal = getUserVaultBalance();
-
-    if (isNaN(amt) || amt <= 0) {
-        showToast('Invalid Amount', 'Please enter a valid amount to withdraw.', 'error');
-        return;
-    }
-
-    if (amt > currentVaultBal) {
-        showToast('Exceeds Balance', `Available vault balance is ${currentVaultBal.toFixed(3)} USDC.`, 'error');
-        return;
-    }
-
-    const btn = document.getElementById('btnVaultWithdraw');
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Confirming in MetaMask...</span>`;
-        if (window.lucide) window.lucide.createIcons();
-    }
-
-    try {
-        const providerObj = activeWeb3Provider || window.ethereum;
-        if (!providerObj || !window.ethers) {
-            throw new Error("MetaMask is required for on-chain withdrawal.");
-        }
-
-        const provider = new ethers.providers.Web3Provider(providerObj);
-        const signer = provider.getSigner();
-        const amtUnits6 = ethers.utils.parseUnits(amt.toString(), 6);
-
-        // Call on-chain withdraw(uint256) on ArcVaultPay contract
-        showToast('MetaMask Popup ↗', `Confirm withdrawing ${amt.toFixed(3)} USDC in MetaMask...`, 'info');
-        const vaultContract = new ethers.Contract(ARC_AGENT_PAY_CONTRACT_ADDRESS, ARC_VAULT_PAY_ABI, signer);
-        const withdrawTx = await vaultContract.withdraw(amtUnits6);
-
-        showToast('Broadcasting Withdrawal...', 'Contract is transferring USDC back to your wallet...', 'info');
-        const receipt = await withdrawTx.wait();
-        const confirmedHash = receipt.transactionHash || withdrawTx.hash;
-
-        const newVaultBal = Math.max(0, currentVaultBal - amt);
-        setUserVaultBalance(newVaultBal);
-
-        // Fetch fresh real on-chain balance so wallet UI updates instantly
-        if (typeof fetchRealOnChainBalances === 'function') {
-            fetchRealOnChainBalances(currentAccount);
-        }
-
-        addVaultLedgerEntry('Vault Withdrawal', `-${amt.toFixed(3)} USDC`, confirmedHash, 'Transferred to Wallet');
-        showToast('USDC Received in Wallet! 💸', `Successfully withdrew ${amt.toFixed(3)} USDC back into your MetaMask wallet!`, 'success');
-
-    } catch (err) {
-        console.error("Withdrawal error:", err);
-        if (err.code === 4001 || err.code === 'ACTION_REJECTED' || err.message?.includes('rejected') || err.message?.includes('denied')) {
-            showToast('Withdrawal Cancelled', 'Transaction was rejected in MetaMask.', 'error');
-        } else {
-            showToast('Withdrawal Error', err.reason || err.message || 'Withdrawal failed on-chain.', 'error');
-        }
-    } finally {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = `<i data-lucide="arrow-up-from-dot" class="w-4 h-4"></i><span>Withdraw to Wallet</span>`;
-            if (window.lucide) window.lucide.createIcons();
-        }
-    }
-}
-
-function testVaultMicroPay() {
-    if (!currentAccount) {
-        showToast('Connect Wallet Required', 'Please connect your Arc Testnet wallet first.', 'warning');
-        if (typeof handleWalletClick === 'function') handleWalletClick();
-        return;
-    }
-
-    const bal = getUserVaultBalance();
-    if (bal < 0.001) {
-        showToast('Vault Empty', 'Please deposit at least 0.05 USDC into your Agent Vault first!', 'error');
-        return;
-    }
-
-    const newBal = bal - 0.001;
-    setUserVaultBalance(newBal);
-
-    const spentKey = 'arc_vault_spent_' + currentAccount;
-    const spent = parseFloat(localStorage.getItem(spentKey) || '0') + 0.001;
-    localStorage.setItem(spentKey, spent.toFixed(4));
-    safeSetText('userVaultSpentDisplay', `${spent.toFixed(3)} USDC`);
-
-    const txHash = '0x' + Array.from({length: 40}, () => Math.floor(Math.random()*16).toString(16)).join('');
-    addVaultLedgerEntry('Autonomous Query Fee', '-0.001 USDC', txHash, 'Settled (<450ms)');
-    showToast('Micro-Payment Settled', '0.001 USDC deducted autonomously from Agent Vault.', 'success');
-}
-
-function getVaultLedger() {
-    const key = 'arc_vault_ledger_' + (currentAccount || 'guest');
-    try {
-        return JSON.parse(localStorage.getItem(key)) || [];
-    } catch(e) {
-        return [];
-    }
-}
-
-function addVaultLedgerEntry(operation, amount, txHash, status) {
-    const key = 'arc_vault_ledger_' + (currentAccount || 'guest');
-    const ledger = getVaultLedger();
-    ledger.unshift({
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-        operation,
-        amount,
-        txHash,
-        status
-    });
-    if (ledger.length > 15) ledger.pop();
-    localStorage.setItem(key, JSON.stringify(ledger));
-    renderVaultLedger();
-}
-
-function renderVaultLedger() {
-    const tbody = document.getElementById('vaultLedgerBody');
-    if (!tbody) return;
-
-    const ledger = getVaultLedger();
-    if (ledger.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="5" class="py-6 text-center text-slate-400 font-sans">No transactions yet. Deposit USDC to begin autonomous micro-payments.</td>
-            </tr>
-        `;
-        return;
-    }
-
-    let html = '';
-    for (const item of ledger) {
-        const shortHash = item.txHash ? `${item.txHash.substring(0, 8)}...${item.txHash.substring(item.txHash.length - 4)}` : '0x...';
-        const isCredit = item.amount.startsWith('+');
-        const colorClass = isCredit ? 'text-emerald-600 font-bold' : 'text-slate-800 font-bold';
-
-        html += `
-            <tr class="hover:bg-slate-50 transition-colors">
-                <td class="py-2.5 text-slate-500 font-mono">${item.time}</td>
-                <td class="py-2.5 font-medium text-slate-800 font-sans">${escapeHtml(item.operation)}</td>
-                <td class="py-2.5 font-mono ${colorClass}">${item.amount}</td>
-                <td class="py-2.5 font-mono">
-                    <a href="https://explorer.testnet.arc.network/tx/${item.txHash}" target="_blank" class="text-purple-700 hover:underline">
-                        ${shortHash} ↗
-                    </a>
-                </td>
-                <td class="py-2.5 text-right">
-                    <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
-                        ${item.status}
-                    </span>
-                </td>
-            </tr>
-        `;
-    }
-    tbody.innerHTML = html;
 }
 
 // ==========================================

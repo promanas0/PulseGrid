@@ -2917,88 +2917,84 @@ async function handleAiChatSend() {
 
         let aiReplyText = "";
 
-        // --- LAYER 1: Google Gemini (only if user has a valid AIza key) ---
-        const userKey = (localStorage.getItem('PulseGrid_gemini_api_key') || '').trim();
-        const isValidGeminiKey = userKey.startsWith('AIza') && userKey.length > 20;
+        // --- LAYER 1: Google Gemini High-Speed Engine (Built-in Active) ---
+        const BUILTIN_GEMINI_KEY = atob('QVEuQWI4Uk42S0t1SlAtMHZ2RVdOUjlXMS1RT19BUnhqQmdPTi1abGV1RlpxRlhrT3FqOEE=');
+        const customGeminiKey = (localStorage.getItem('PulseGrid_gemini_api_key') || '').trim();
+        const activeGeminiKey = (customGeminiKey.length > 20) ? customGeminiKey : BUILTIN_GEMINI_KEY;
 
-        if (isValidGeminiKey) {
-            const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-flash-8b'];
-            for (const model of models) {
-                if (aiReplyText) break;
-                try {
-                    const ctrl = new AbortController();
-                    const tid = setTimeout(() => ctrl.abort(), 15000);
-                    const res = await fetch(
-                        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${userKey}`,
-                        {
-                            method: 'POST',
-                            signal: ctrl.signal,
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                system_instruction: { parts: [{ text: 'You are Pro AI — a brilliant, helpful assistant. Answer ANY question accurately in the user\'s language (Hindi, English, Hinglish, etc.). Be direct and clear.' }] },
-                                contents: [{ role: 'user', parts: [{ text: userMsg }] }],
-                                generationConfig: { temperature: 0.8, maxOutputTokens: 1500 }
-                            })
-                        }
-                    );
-                    clearTimeout(tid);
-                    const data = await res.json();
-                    if (res.ok && data?.candidates?.[0]?.content?.parts?.[0]?.text) {
-                        aiReplyText = data.candidates[0].content.parts[0].text;
-                    } else if (data?.error) {
-                        console.warn('Gemini error:', data.error.message);
+        const fastGeminiModels = [
+            'gemini-flash-lite-latest',
+            'gemini-3.1-flash-lite',
+            'gemini-flash-latest',
+            'gemini-3-flash-preview'
+        ];
+
+        if (typeof window.proAiMemory === 'undefined') {
+            window.proAiMemory = [];
+        }
+
+        for (const model of fastGeminiModels) {
+            if (aiReplyText) break;
+            try {
+                const ctrl = new AbortController();
+                const tid = setTimeout(() => ctrl.abort(), 6500);
+
+                const contentsPayload = [
+                    ...window.proAiMemory,
+                    { role: 'user', parts: [{ text: userMsg }] }
+                ];
+
+                const res = await fetch(
+                    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${activeGeminiKey}`,
+                    {
+                        method: 'POST',
+                        signal: ctrl.signal,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: contentsPayload,
+                            generationConfig: { temperature: 0.75, maxOutputTokens: 1200 }
+                        })
                     }
-                } catch (e) {
-                    if (e.name !== 'AbortError') console.warn('Gemini fetch fail:', e.message);
+                );
+                clearTimeout(tid);
+
+                if (res.ok) {
+                    const data = await res.json();
+                    const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (candidateText && candidateText.trim().length > 0) {
+                        aiReplyText = candidateText.trim();
+                        // Save to multi-turn conversation memory
+                        window.proAiMemory.push({ role: 'user', parts: [{ text: userMsg }] });
+                        window.proAiMemory.push({ role: 'model', parts: [{ text: aiReplyText }] });
+                        if (window.proAiMemory.length > 10) {
+                            window.proAiMemory = window.proAiMemory.slice(-8);
+                        }
+                        break;
+                    }
                 }
+            } catch (fetchErr) {
+                // Silently fallback to next model
             }
         }
 
-        // --- LAYER 2: Pollinations AI — GET (free, no key, real GPT, reliable) ---
+        // --- LAYER 2: High-Speed Secondary AI Fallback ---
         if (!aiReplyText) {
             try {
                 const ctrl = new AbortController();
-                const tid = setTimeout(() => ctrl.abort(), 20000);
-                const sysPrompt = encodeURIComponent('You are Pro AI, a helpful assistant. Answer any question clearly in the user\'s language.');
+                const tid = setTimeout(() => ctrl.abort(), 6000);
+                const sysPrompt = encodeURIComponent('You are Pro AI, the official Web3 assistant for PulseGrid on Arc L1. Answer helpful, direct and clear in the user\'s language.');
                 const msgEncoded = encodeURIComponent(userMsg);
                 const pollUrl = `https://text.pollinations.ai/${msgEncoded}?model=openai&system=${sysPrompt}&seed=${Date.now() % 9999}`;
                 const res = await fetch(pollUrl, { signal: ctrl.signal });
                 clearTimeout(tid);
                 if (res.ok) {
                     const txt = await res.text();
-                    if (txt && txt.trim().length > 5) aiReplyText = txt.trim();
-                }
-            } catch (e) {
-                if (e.name !== 'AbortError') console.warn('Pollinations GET fail:', e.message);
-            }
-        }
-
-        // --- LAYER 3: Pollinations POST fallback ---
-        if (!aiReplyText) {
-            try {
-                const ctrl = new AbortController();
-                const tid = setTimeout(() => ctrl.abort(), 20000);
-                const res = await fetch('https://text.pollinations.ai/', {
-                    method: 'POST',
-                    signal: ctrl.signal,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        model: 'openai',
-                        messages: [
-                            { role: 'system', content: 'You are Pro AI. Answer any question helpfully in the user\'s language.' },
-                            { role: 'user', content: userMsg }
-                        ]
-                    })
-                });
-                clearTimeout(tid);
-                if (res.ok) {
-                    const txt = await res.text();
-                    if (txt && txt.trim().length > 5) aiReplyText = txt.trim();
+                    if (txt && txt.trim().length > 3) aiReplyText = txt.trim();
                 }
             } catch (e) { }
         }
 
-        // --- LAYER 4: Static fallback (only if all APIs fail) ---
+        // --- LAYER 3: Smart Local Fallback (Guaranteed Instant Answer) ---
         if (!aiReplyText) {
             aiReplyText = generateSmartAiResponse(userMsg);
         }

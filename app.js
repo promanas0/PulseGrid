@@ -581,8 +581,11 @@ async function fetchRealOnChainBalances(account) {
     renderPortfolioView();
 }
 
-function onWalletConnected(account, providerName) {
+function onWalletConnected(account, providerName, isAutoReconnect = false) {
     try {
+        localStorage.setItem('pulsegrid_connected_wallet', account);
+        if (providerName) localStorage.setItem('pulsegrid_provider_name', providerName);
+
         fetchRealOnChainBalances(account);
         updateTokenBalancesUI();
         updateWalletUI();
@@ -591,12 +594,17 @@ function onWalletConnected(account, providerName) {
         if (typeof loadQuestState === 'function') {
             loadQuestState(account);
         }
-        showToast('Wallet Connected!', `Connected via ${providerName} on Arc Testnet`, 'success');
+        if (typeof updateVaultUI === 'function') {
+            updateVaultUI();
+        }
 
-        // Open in-app Sign-In / Verification popup
-        setTimeout(() => {
-            openAuthSignModal();
-        }, 400);
+        if (!isAutoReconnect) {
+            showToast('Wallet Connected!', `Connected via ${providerName} on Arc Testnet`, 'success');
+            // Open in-app Sign-In / Verification popup only on initial fresh connect
+            setTimeout(() => {
+                openAuthSignModal();
+            }, 400);
+        }
     } catch (e) { }
 }
 
@@ -606,6 +614,8 @@ async function disconnectWallet() {
             await activeWeb3Provider.disconnect();
         }
     } catch (e) { }
+    localStorage.removeItem('pulsegrid_connected_wallet');
+    localStorage.removeItem('pulsegrid_provider_name');
     currentAccount = null;
     activeWeb3Provider = null;
     TOKENS.forEach(t => t.balance = 0.00);
@@ -615,6 +625,9 @@ async function disconnectWallet() {
     renderPortfolioView();
     if (typeof loadQuestState === 'function') {
         loadQuestState(null);
+    }
+    if (typeof updateVaultUI === 'function') {
+        updateVaultUI();
     }
     showToast('Wallet Disconnected', 'Session cleared.', 'info');
 }
@@ -5400,8 +5413,51 @@ document.addEventListener('DOMContentLoaded', () => {
         updateQuestTimerStatus();
         setInterval(updateQuestTimerStatus, 30000);
         safeInitIcons();
+
+        // Persistent Wallet Auto-Reconnect on Page Refresh
+        autoReconnectWallet();
     } catch (err) {
         console.warn("DOMContentLoaded initialization warning:", err);
     }
 });
+
+async function autoReconnectWallet() {
+    try {
+        const savedAccount = localStorage.getItem('pulsegrid_connected_wallet');
+        if (!savedAccount) return;
+
+        if (window.ethereum) {
+            // Silently check if user is already connected in MetaMask (No popup!)
+            const accounts = await window.ethereum.request({ method: 'eth_accounts' }).catch(() => null);
+            if (accounts && accounts.length > 0) {
+                const matched = accounts.find(a => a.toLowerCase() === savedAccount.toLowerCase()) || accounts[0];
+                currentAccount = matched;
+                activeWeb3Provider = window.ethereum;
+                onWalletConnected(currentAccount, 'MetaMask', true);
+                return;
+            }
+        }
+
+        // Restore saved session if user was connected previously
+        if (savedAccount && savedAccount.startsWith('0x')) {
+            currentAccount = savedAccount;
+            if (window.ethereum) activeWeb3Provider = window.ethereum;
+            onWalletConnected(currentAccount, 'Restored Session', true);
+        }
+    } catch (e) {
+        console.warn("Auto-reconnect notice:", e);
+    }
+}
+
+// Global MetaMask Account Change & Disconnect Listener
+if (typeof window !== 'undefined' && window.ethereum && typeof window.ethereum.on === 'function') {
+    window.ethereum.on('accountsChanged', (accounts) => {
+        if (accounts && accounts.length > 0) {
+            currentAccount = accounts[0];
+            onWalletConnected(currentAccount, 'MetaMask', true);
+        } else {
+            disconnectWallet();
+        }
+    });
+}
 

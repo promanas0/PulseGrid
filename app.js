@@ -3168,6 +3168,7 @@ async function handleAiChatSend() {
 // ==========================================
 // x402 AUTONOMOUS AI AGENT PAYMENT ENGINE
 // ==========================================
+const ARC_AGENT_PAY_CONTRACT_ADDRESS = '0xA617282f90DACd860099Fad170bF651B13746617';
 let agentDailySpendLimit = 1.00;
 
 function openX402ConfigModal() {
@@ -3216,7 +3217,7 @@ async function runX402AutoPayDemo() {
                 <i data-lucide="cpu" class="w-4 h-4"></i>
                 <span>GET /api/v1/arc-institutional-alpha</span>
             </div>
-            <div class="text-[11px] text-purple-200">Autonomous query initiated by Pro AI Agent (0x71C4...4E29)</div>
+            <div class="text-[11px] text-purple-200">Target Contract: <span class="font-bold text-white font-mono">0xA617...6617</span> (ArcAgentPay)</div>
         </div>
     `;
     box.appendChild(requestBubble);
@@ -3235,7 +3236,7 @@ async function runX402AutoPayDemo() {
             <div class="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-400 flex items-center justify-center shrink-0">
                 <span class="text-amber-300 font-bold text-xs font-mono">402</span>
             </div>
-            <div class="bg-slate-950 border-2 border-amber-500/50 rounded-2xl p-4 text-slate-200 max-w-[90%] text-xs font-mono space-y-2 shadow-2xl">
+            <div class="bg-slate-950 border-2 border-amber-500/50 rounded-2xl p-4 text-slate-200 max-w-[90%] text-xs font-mono space-y-2.5 shadow-2xl">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                     <span class="text-amber-400 font-bold flex items-center gap-1.5">
                         <i data-lucide="lock" class="w-3.5 h-3.5"></i>
@@ -3245,8 +3246,9 @@ async function runX402AutoPayDemo() {
                 </div>
                 
                 <div class="text-slate-300 space-y-1 text-[11px]">
+                    <div>⚡ <strong>Smart Contract:</strong> <a href="https://explorer.testnet.arc.network/address/0xA617282f90DACd860099Fad170bF651B13746617" target="_blank" class="text-purple-400 font-bold underline hover:text-purple-300">0xA617...6617</a> (ArcAgentPay.sol)</div>
                     <div>⚡ <strong>Rule Check:</strong> Pre-authorized limit ($0.001 &le; $${agentDailySpendLimit.toFixed(2)} USDC) matched.</div>
-                    <div>⚡ <strong>Action:</strong> Autonomous ERC-4337 settlement executed with zero signing delay.</div>
+                    <div>⚡ <strong>Action:</strong> Autonomous ERC-4337 session settlement executed with zero signing delay.</div>
                     <div>⚡ <strong>Arc L1 Tx:</strong> <span class="text-purple-400 font-bold">${shortTx}</span> (<span class="text-emerald-400 font-bold">${executionMs}ms finality</span>)</div>
                 </div>
 
@@ -3277,9 +3279,9 @@ async function runX402AutoPayDemo() {
                             <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
                             <span>Arc L1 Institutional Whale & Liquidity Alpha</span>
                         </div>
-                        <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-mono font-bold">
-                            Verified x402 Receipt
-                        </span>
+                        <a href="https://explorer.testnet.arc.network/address/0xA617282f90DACd860099Fad170bF651B13746617" target="_blank" class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-mono font-bold hover:bg-emerald-500/30">
+                            Verified on ArcAgentPay ↗
+                        </a>
                     </div>
 
                     <div class="space-y-2 text-slate-200">
@@ -3289,7 +3291,7 @@ async function runX402AutoPayDemo() {
                     </div>
 
                     <div class="p-3 bg-purple-950/50 rounded-xl border border-purple-500/30 text-[11px] font-mono text-purple-200">
-                        💡 <strong>Key Takeaway:</strong> Pro AI autonomous micro-payments enable programmatic agent-to-agent economies on Arc L1 with sub-second finality. No human bottleneck, 100% autonomous.
+                        💡 <strong>Contract Verified:</strong> Settled via on-chain contract <strong class="text-white font-mono">0xA617282f90DACd860099Fad170bF651B13746617</strong> on Arc L1. Sub-second agent payments with zero human bottleneck.
                     </div>
                 </div>
             `;
@@ -3297,7 +3299,7 @@ async function runX402AutoPayDemo() {
             box.scrollTop = box.scrollHeight;
             if (window.lucide) window.lucide.createIcons();
 
-            showToast('Alpha Report Unlocked! 🚀', 'x402 Autonomous settlement completed on Arc L1 (<450ms)', 'success');
+            showToast('Alpha Report Unlocked! 🚀', 'x402 Autonomous settlement verified via ArcAgentPay contract', 'success');
         }, 600);
 
     }, 550);

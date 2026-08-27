@@ -5020,6 +5020,17 @@ if (typeof window !== 'undefined' && window.ethereum && typeof window.ethereum.o
 // 1-CLICK ERC-20 TOKEN CREATOR & LAUNCHPAD ENGINE ON ARC TESTNET
 // =========================================================================
 
+// Official ArcTokenFactory deployed on Arc Testnet (Chain ID 5042002)
+const ARC_TOKEN_FACTORY_ADDRESS = '0x0De23effB0606a595d15578635AD0c0D1659e08e';
+
+const ARC_TOKEN_FACTORY_ABI = [
+    "function createToken(string calldata _name, string calldata _symbol, uint256 _initialSupply, uint8 _decimals) external returns (address)",
+    "function getTotalTokensCount() external view returns (uint256)",
+    "function getAllTokens() external view returns (tuple(address tokenAddress, string name, string symbol, uint256 initialSupply, uint8 decimals, address creator, uint256 createdAt)[])",
+    "function getTokensByCreator(address _creator) external view returns (address[] memory)",
+    "event TokenCreated(address indexed tokenAddress, string name, string symbol, uint256 initialSupply, uint8 decimals, address indexed creator, uint256 createdAt)"
+];
+
 const ARC_CUSTOM_TOKEN_ABI = [
     "constructor(string memory _name, string memory _symbol, uint256 _initialSupply, uint8 _decimals, address _recipient)",
     "function name() external view returns (string memory)",
@@ -5143,33 +5154,85 @@ async function deployArcToken() {
         const provider = new ethers.providers.Web3Provider(providerObj);
         const signer = provider.getSigner();
 
-        showToast('MetaMask Popup ↗', `Confirm deploying token ${symbol} on Arc Testnet...`, 'info');
+        let tokenAddress = null;
+        let txHash = null;
 
-        // Compile Contract Factory using pre-compiled bytecode & ABI
-        const factory = new ethers.ContractFactory(
-            ARC_CUSTOM_TOKEN_ABI,
-            '0x' + ARC_CUSTOM_TOKEN_BYTECODE,
-            signer
-        );
+        // 1. Primary: Deploy via ArcTokenFactory contract
+        try {
+            showToast('MetaMask Popup ↗', `Confirm deploying token ${symbol} via ArcTokenFactory...`, 'info');
+            const factoryContract = new ethers.Contract(ARC_TOKEN_FACTORY_ADDRESS, ARC_TOKEN_FACTORY_ABI, signer);
+            
+            const initialSupplyUnits = ethers.BigNumber.from(Math.floor(supply).toString());
+            const tx = await factoryContract.createToken(
+                name,
+                symbol,
+                initialSupplyUnits,
+                decimals
+            );
 
-        // Deploy contract with constructor arguments: (_name, _symbol, _initialSupply, _decimals, _recipient)
-        const deployedContract = await factory.deploy(
-            name,
-            symbol,
-            supply,
-            decimals,
-            currentAccount
-        );
+            showToast('Broadcasting to Arc L1...', 'Waiting for institutional block confirmation (<450ms)...', 'info');
 
-        showToast('Broadcasting to Arc L1...', 'Waiting for institutional block confirmation (<450ms)...', 'info');
+            if (btn) {
+                btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Verifying on Arc L1...</span>`;
+                if (window.lucide) window.lucide.createIcons();
+            }
 
-        if (btn) {
-            btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Verifying on Arc L1...</span>`;
-            if (window.lucide) window.lucide.createIcons();
+            const receipt = await tx.wait();
+            txHash = receipt.transactionHash || tx.hash;
+
+            // Extract tokenAddress from TokenCreated event
+            const iface = new ethers.utils.Interface(ARC_TOKEN_FACTORY_ABI);
+            for (const log of receipt.logs) {
+                try {
+                    const parsed = iface.parseLog(log);
+                    if (parsed && parsed.name === 'TokenCreated') {
+                        tokenAddress = parsed.args.tokenAddress;
+                        break;
+                    }
+                } catch (e) { }
+            }
+
+            if (!tokenAddress) {
+                const creatorTokens = await factoryContract.getTokensByCreator(currentAccount);
+                if (creatorTokens && creatorTokens.length > 0) {
+                    tokenAddress = creatorTokens[creatorTokens.length - 1];
+                }
+            }
+
+        } catch (factoryErr) {
+            console.warn("Factory contract deploy note, trying direct deploy fallback:", factoryErr);
+            if (factoryErr.code === 4001 || factoryErr.code === 'ACTION_REJECTED' || factoryErr.message?.includes('rejected') || factoryErr.message?.includes('denied')) {
+                throw factoryErr;
+            }
+
+            // Fallback: Direct EVM Bytecode deployment
+            const factory = new ethers.ContractFactory(
+                ARC_CUSTOM_TOKEN_ABI,
+                '0x' + ARC_CUSTOM_TOKEN_BYTECODE,
+                signer
+            );
+
+            const deployedContract = await factory.deploy(
+                name,
+                symbol,
+                Math.floor(supply),
+                decimals,
+                currentAccount
+            );
+
+            if (btn) {
+                btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Verifying on Arc L1...</span>`;
+                if (window.lucide) window.lucide.createIcons();
+            }
+
+            const receipt = await deployedContract.deployTransaction.wait();
+            tokenAddress = deployedContract.address;
+            txHash = receipt.transactionHash || deployedContract.deployTransaction.hash;
         }
 
-        const receipt = await deployedContract.deployTransaction.wait();
-        const tokenAddress = deployedContract.address;
+        if (!tokenAddress) {
+            throw new Error("Could not determine deployed token contract address.");
+        }
 
         lastDeployedTokenMeta = {
             address: tokenAddress,
@@ -5178,7 +5241,7 @@ async function deployArcToken() {
             supply,
             decimals,
             category,
-            txHash: receipt.transactionHash || deployedContract.deployTransaction.hash,
+            txHash: txHash || '',
             creator: currentAccount,
             createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
@@ -5288,10 +5351,58 @@ async function addTokenToMetaMask(tokenAddress, symbol, decimals = 18) {
     }
 }
 
-function renderUserCreatedTokens() {
+async function syncOnChainTokensFromFactory() {
+    if (!currentAccount || !window.ethers) return;
+    const providerObj = activeWeb3Provider || window.ethereum;
+    if (!providerObj) return;
+
+    try {
+        const provider = new ethers.providers.Web3Provider(providerObj);
+        const factoryContract = new ethers.Contract(ARC_TOKEN_FACTORY_ADDRESS, ARC_TOKEN_FACTORY_ABI, provider);
+        const onChainTokens = await factoryContract.getAllTokens();
+
+        if (onChainTokens && onChainTokens.length > 0) {
+            const key = getUserCreatedTokensKey();
+            const localTokens = getUserCreatedTokens();
+            let changed = false;
+
+            for (const ot of onChainTokens) {
+                if (ot.creator.toLowerCase() === currentAccount.toLowerCase()) {
+                    const exists = localTokens.some(lt => lt.address.toLowerCase() === ot.tokenAddress.toLowerCase());
+                    if (!exists) {
+                        localTokens.unshift({
+                            address: ot.tokenAddress,
+                            name: ot.name,
+                            symbol: ot.symbol,
+                            supply: Number(ot.initialSupply),
+                            decimals: Number(ot.decimals),
+                            category: 'DeFi',
+                            creator: ot.creator,
+                            createdAt: new Date(Number(ot.createdAt) * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        });
+                        changed = true;
+                    }
+                }
+            }
+
+            if (changed) {
+                localStorage.setItem(key, JSON.stringify(localTokens));
+                renderUserCreatedTokens(false);
+            }
+        }
+    } catch(e) {
+        console.warn("syncOnChainTokensFromFactory notice:", e);
+    }
+}
+
+function renderUserCreatedTokens(shouldSync = true) {
     const listContainer = document.getElementById('userCreatedTokensList');
     const countBadge = document.getElementById('userCreatedTokensCount');
     const transferSelect = document.getElementById('transferTokenSelect');
+
+    if (shouldSync) {
+        syncOnChainTokensFromFactory();
+    }
 
     const tokens = getUserCreatedTokens();
 

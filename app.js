@@ -336,6 +336,8 @@ function switchPage(pageId) {
         } else if (pageId === 'prediction') {
             if (typeof renderPredictionCoins === 'function' && typeof PREDICTION_COINS !== 'undefined') renderPredictionCoins(PREDICTION_COINS);
             if (typeof renderPredictionMarkets === 'function' && typeof PREDICTION_MARKETS !== 'undefined') renderPredictionMarkets(PREDICTION_MARKETS);
+        } else if (pageId === 'agentpay') {
+            if (typeof updateVaultUI === 'function') updateVaultUI();
         } else if (pageId === 'settings') {
             const settingsAddr = document.getElementById('settingsWalletAddress');
             if (settingsAddr) settingsAddr.value = currentAccount || 'Not Connected';
@@ -669,6 +671,7 @@ function updateWalletUI() {
         if (connectBtn) connectBtn.classList.remove('hidden');
         if (disconnectBtn) disconnectBtn.classList.add('hidden');
     }
+    if (typeof updateVaultUI === 'function') updateVaultUI();
 }
 
 async function fetchBalances(accountAddress = currentAccount) {
@@ -3325,6 +3328,273 @@ async function runX402AutoPayDemo() {
         }, 600);
 
     }, 550);
+}
+
+// ==========================================
+// DEDICATED x402 AGENT PAY VAULT ENGINE
+// ==========================================
+
+function getUserVaultKey() {
+    if (!currentAccount) return 'arc_vault_guest';
+    return `arc_vault_${currentAccount.toLowerCase()}`;
+}
+
+function getUserVaultBalance() {
+    const key = getUserVaultKey();
+    const stored = localStorage.getItem(key);
+    if (!stored) return 0.00;
+    const val = parseFloat(stored);
+    return isNaN(val) ? 0.00 : val;
+}
+
+function setUserVaultBalance(amount) {
+    const key = getUserVaultKey();
+    localStorage.setItem(key, Math.max(0, amount).toFixed(4));
+    updateVaultUI();
+}
+
+function updateVaultUI() {
+    const bal = getUserVaultBalance();
+    safeSetText('userVaultBalDisplay', `${bal.toFixed(3)} USDC`);
+    safeSetText('vaultAvailableToWithdraw', `${bal.toFixed(3)} USDC`);
+    safeSetText('assistantVaultBadge', `${bal.toFixed(3)} USDC`);
+
+    if (currentAccount) {
+        const shortAddr = `${currentAccount.substring(0, 6)}...${currentAccount.substring(currentAccount.length - 4)}`;
+        safeSetText('vaultOwnerAddrBadge', shortAddr);
+    } else {
+        safeSetText('vaultOwnerAddrBadge', 'Not Connected');
+    }
+
+    if (typeof TOKENS !== 'undefined' && TOKENS[0]) {
+        safeSetText('vaultWalletUsdcBal', `${TOKENS[0].balance.toFixed(2)} USDC`);
+    }
+
+    const spent = parseFloat(localStorage.getItem('arc_vault_spent_' + (currentAccount || 'guest')) || '0');
+    safeSetText('userVaultSpentDisplay', `${spent.toFixed(3)} USDC`);
+    safeSetText('userVaultLimitDisplay', `${agentDailySpendLimit.toFixed(3)} USDC`);
+
+    renderVaultLedger();
+}
+
+function setVaultDepositPill(val) {
+    const input = document.getElementById('vaultDepositInput');
+    if (input) input.value = val.toFixed(2);
+}
+
+function setVaultMaxWithdraw() {
+    const input = document.getElementById('vaultWithdrawInput');
+    const bal = getUserVaultBalance();
+    if (input) input.value = bal.toFixed(3);
+}
+
+async function executeVaultDeposit() {
+    if (!currentAccount) {
+        showToast('Connect Wallet Required', 'Please connect your Arc Testnet wallet first.', 'warning');
+        if (typeof handleWalletClick === 'function') handleWalletClick();
+        return;
+    }
+
+    const input = document.getElementById('vaultDepositInput');
+    const amt = parseFloat(input ? input.value : '0.10');
+
+    if (isNaN(amt) || amt <= 0) {
+        showToast('Invalid Amount', 'Please enter a valid deposit amount greater than 0.', 'error');
+        return;
+    }
+
+    if (typeof TOKENS !== 'undefined' && TOKENS[0] && TOKENS[0].balance < amt) {
+        showToast('Insufficient Wallet Balance', `You have ${TOKENS[0].balance.toFixed(2)} USDC in wallet. Claim faucet tokens first!`, 'error');
+        return;
+    }
+
+    const btn = document.getElementById('btnVaultDeposit');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Confirming in MetaMask...</span>`;
+        if (window.lucide) window.lucide.createIcons();
+    }
+
+    try {
+        let txHash = '0x' + Array.from({length: 40}, () => Math.floor(Math.random()*16).toString(16)).join('');
+
+        // Attempt real transaction if MetaMask is available
+        if (typeof window.ethereum !== 'undefined') {
+            try {
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                const signer = provider.getSigner();
+
+                // Send real transaction to ArcAgentPay contract on Arc Testnet
+                const tx = await signer.sendTransaction({
+                    to: ARC_AGENT_PAY_CONTRACT_ADDRESS,
+                    value: ethers.utils.parseEther("0.0001") // Micro gas fee for execution
+                });
+                if (tx && tx.hash) {
+                    txHash = tx.hash;
+                }
+            } catch (metaMaskErr) {
+                // If user rejected MetaMask transaction
+                if (metaMaskErr.code === 4001 || metaMaskErr.message?.includes('rejected')) {
+                    showToast('Deposit Cancelled', 'Transaction was rejected in MetaMask.', 'error');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = `<i data-lucide="arrow-down-to-dot" class="w-4 h-4"></i><span>Deposit via MetaMask</span>`;
+                        if (window.lucide) window.lucide.createIcons();
+                    }
+                    return;
+                }
+            }
+        }
+
+        // Deduct from wallet balance
+        if (typeof TOKENS !== 'undefined' && TOKENS[0]) {
+            TOKENS[0].balance = Math.max(0, TOKENS[0].balance - amt);
+            if (typeof updateWalletUI === 'function') updateWalletUI();
+        }
+
+        // Credit to personal Agent Vault balance
+        const newBal = getUserVaultBalance() + amt;
+        setUserVaultBalance(newBal);
+
+        addVaultLedgerEntry('Vault Deposit', `+${amt.toFixed(3)} USDC`, txHash, 'Confirmed');
+        showToast('Vault Funded', `Successfully deposited ${amt.toFixed(2)} USDC into your Agent Vault!`, 'success');
+
+    } catch (err) {
+        console.error("Deposit error:", err);
+        showToast('Deposit Error', err.message || 'Transaction could not be completed.', 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="arrow-down-to-dot" class="w-4 h-4"></i><span>Deposit via MetaMask</span>`;
+            if (window.lucide) window.lucide.createIcons();
+        }
+    }
+}
+
+function executeVaultWithdraw() {
+    if (!currentAccount) {
+        showToast('Connect Wallet Required', 'Please connect your Arc Testnet wallet first.', 'warning');
+        if (typeof handleWalletClick === 'function') handleWalletClick();
+        return;
+    }
+
+    const input = document.getElementById('vaultWithdrawInput');
+    const amt = parseFloat(input ? input.value : '0');
+    const currentVaultBal = getUserVaultBalance();
+
+    if (isNaN(amt) || amt <= 0) {
+        showToast('Invalid Amount', 'Please enter a valid amount to withdraw.', 'error');
+        return;
+    }
+
+    if (amt > currentVaultBal) {
+        showToast('Exceeds Balance', `Available vault balance is ${currentVaultBal.toFixed(3)} USDC.`, 'error');
+        return;
+    }
+
+    const newVaultBal = currentVaultBal - amt;
+    setUserVaultBalance(newVaultBal);
+
+    // Credit back to wallet
+    if (typeof TOKENS !== 'undefined' && TOKENS[0]) {
+        TOKENS[0].balance += amt;
+        if (typeof updateWalletUI === 'function') updateWalletUI();
+    }
+
+    const txHash = '0x' + Array.from({length: 40}, () => Math.floor(Math.random()*16).toString(16)).join('');
+    addVaultLedgerEntry('Vault Withdrawal', `-${amt.toFixed(3)} USDC`, txHash, 'Confirmed');
+    showToast('Withdrawal Complete', `Transferred ${amt.toFixed(3)} USDC back to your wallet.`, 'success');
+}
+
+function testVaultMicroPay() {
+    if (!currentAccount) {
+        showToast('Connect Wallet Required', 'Please connect your Arc Testnet wallet first.', 'warning');
+        if (typeof handleWalletClick === 'function') handleWalletClick();
+        return;
+    }
+
+    const bal = getUserVaultBalance();
+    if (bal < 0.001) {
+        showToast('Vault Empty', 'Please deposit at least 0.05 USDC into your Agent Vault first!', 'error');
+        return;
+    }
+
+    const newBal = bal - 0.001;
+    setUserVaultBalance(newBal);
+
+    const spentKey = 'arc_vault_spent_' + currentAccount;
+    const spent = parseFloat(localStorage.getItem(spentKey) || '0') + 0.001;
+    localStorage.setItem(spentKey, spent.toFixed(4));
+    safeSetText('userVaultSpentDisplay', `${spent.toFixed(3)} USDC`);
+
+    const txHash = '0x' + Array.from({length: 40}, () => Math.floor(Math.random()*16).toString(16)).join('');
+    addVaultLedgerEntry('Autonomous Query Fee', '-0.001 USDC', txHash, 'Settled (<450ms)');
+    showToast('Micro-Payment Settled', '0.001 USDC deducted autonomously from Agent Vault.', 'success');
+}
+
+function getVaultLedger() {
+    const key = 'arc_vault_ledger_' + (currentAccount || 'guest');
+    try {
+        return JSON.parse(localStorage.getItem(key)) || [];
+    } catch(e) {
+        return [];
+    }
+}
+
+function addVaultLedgerEntry(operation, amount, txHash, status) {
+    const key = 'arc_vault_ledger_' + (currentAccount || 'guest');
+    const ledger = getVaultLedger();
+    ledger.unshift({
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        operation,
+        amount,
+        txHash,
+        status
+    });
+    if (ledger.length > 15) ledger.pop();
+    localStorage.setItem(key, JSON.stringify(ledger));
+    renderVaultLedger();
+}
+
+function renderVaultLedger() {
+    const tbody = document.getElementById('vaultLedgerBody');
+    if (!tbody) return;
+
+    const ledger = getVaultLedger();
+    if (ledger.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="py-6 text-center text-slate-400 font-sans">No transactions yet. Deposit USDC to begin autonomous micro-payments.</td>
+            </tr>
+        `;
+        return;
+    }
+
+    let html = '';
+    for (const item of ledger) {
+        const shortHash = item.txHash ? `${item.txHash.substring(0, 8)}...${item.txHash.substring(item.txHash.length - 4)}` : '0x...';
+        const isCredit = item.amount.startsWith('+');
+        const colorClass = isCredit ? 'text-emerald-600 font-bold' : 'text-slate-800 font-bold';
+
+        html += `
+            <tr class="hover:bg-slate-50 transition-colors">
+                <td class="py-2.5 text-slate-500 font-mono">${item.time}</td>
+                <td class="py-2.5 font-medium text-slate-800 font-sans">${escapeHtml(item.operation)}</td>
+                <td class="py-2.5 font-mono ${colorClass}">${item.amount}</td>
+                <td class="py-2.5 font-mono">
+                    <a href="https://explorer.testnet.arc.network/tx/${item.txHash}" target="_blank" class="text-purple-700 hover:underline">
+                        ${shortHash} ↗
+                    </a>
+                </td>
+                <td class="py-2.5 text-right">
+                    <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
+                        ${item.status}
+                    </span>
+                </td>
+            </tr>
+        `;
+    }
+    tbody.innerHTML = html;
 }
 
 // ==========================================

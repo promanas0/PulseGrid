@@ -3229,6 +3229,14 @@ async function runX402AutoPayDemo() {
         const txHash = '0x' + Array.from({length: 40}, () => Math.floor(Math.random()*16).toString(16)).join('');
         const shortTx = `${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}`;
         const executionMs = Math.floor(380 + Math.random() * 60);
+        // Deduct 0.001 USDC from live user balance & update wallet UI
+        if (typeof TOKENS !== 'undefined' && TOKENS[0]) {
+            TOKENS[0].balance = Math.max(0, TOKENS[0].balance - 0.001);
+            if (typeof updateWalletUI === 'function') updateWalletUI();
+            safeSetText('sidebarUsdcBal', `${TOKENS[0].balance.toFixed(3)} USDC`);
+        }
+        agentSpentToday = (typeof agentSpentToday === 'number' ? agentSpentToday : 0) + 0.001;
+        safeSetText('agentSpendLimitBadge', `${agentDailySpendLimit.toFixed(2)} USDC (Spent: $${agentSpentToday.toFixed(3)})`);
 
         const x402PipelineBubble = document.createElement('div');
         x402PipelineBubble.className = 'flex gap-3';

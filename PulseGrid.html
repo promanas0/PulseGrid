@@ -1692,12 +1692,63 @@
                             <div class="space-y-1.5">
                                 <label class="text-[11px] font-bold text-slate-700 uppercase">Category Tag</label>
                                 <select id="newTokenCategory" onchange="updateTokenPreview()" class="w-full p-3 bg-slate-50 border-2 border-slate-950 rounded-xl font-bold text-slate-950 outline-none">
-                                    <option value="DeFi">💰 DeFi &amp; Staking</option>
-                                    <option value="Meme">🚀 Meme Token</option>
-                                    <option value="Gaming">🎮 Gaming &amp; Metaverse</option>
-                                    <option value="AI">🤖 AI &amp; Autonomous Agent</option>
-                                    <option value="Utility">⚡ Utility &amp; Governance</option>
+                                    <option value="DeFi">DeFi &amp; Staking</option>
+                                    <option value="Meme">Meme Token</option>
+                                    <option value="Gaming">Gaming &amp; Metaverse</option>
+                                    <option value="AI">AI &amp; Autonomous Agent</option>
+                                    <option value="Utility">Utility &amp; Governance</option>
                                 </select>
+                            </div>
+                        </div>
+
+                        <!-- Token Logo / Image Selection -->
+                        <div class="space-y-2 font-mono text-xs">
+                            <div class="flex justify-between items-center">
+                                <label class="text-[11px] font-bold text-slate-700 uppercase flex items-center gap-1.5">
+                                    <i data-lucide="image" class="w-3.5 h-3.5 text-purple-700"></i>
+                                    <span>Token Logo / Image</span>
+                                </label>
+                                <span class="text-[10px] text-slate-400">PNG, SVG or URL</span>
+                            </div>
+
+                            <div class="flex gap-2 items-center">
+                                <div class="relative flex-1">
+                                    <input type="url" id="newTokenImageUrl" placeholder="Paste image URL (https://...) or upload file" oninput="updateTokenPreview()" class="w-full pl-8 pr-3 py-2.5 bg-slate-50 border-2 border-slate-950 rounded-xl font-mono text-xs text-slate-950 outline-none focus:bg-white focus:border-purple-700 transition-colors">
+                                    <i data-lucide="link" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3 pointer-events-none"></i>
+                                </div>
+                                <label for="tokenLogoFileInput" class="px-3 py-2.5 bg-purple-50 hover:bg-purple-100 border-2 border-slate-950 rounded-xl font-bold text-[11px] text-purple-900 cursor-pointer flex items-center gap-1.5 transition-colors shrink-0 shadow-sm">
+                                    <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                                    <span>Upload</span>
+                                    <input type="file" id="tokenLogoFileInput" accept="image/*" class="hidden" onchange="handleTokenLogoUpload(event)">
+                                </label>
+                                <button type="button" onclick="clearTokenLogo()" class="px-2.5 py-2.5 bg-slate-100 hover:bg-slate-200 border-2 border-slate-950 rounded-xl text-slate-600 transition-colors" title="Clear Image">
+                                    <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+
+                            <!-- Web3 Presets (Pure SVG icons, no emojis) -->
+                            <div class="flex flex-wrap items-center gap-1.5 pt-1">
+                                <span class="text-[10px] text-slate-500 font-bold">Presets:</span>
+                                <button type="button" onclick="setTokenLogoPreset('diamond')" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-purple-100 border border-slate-300 text-[10px] font-bold text-slate-800 flex items-center gap-1">
+                                    <i data-lucide="gem" class="w-3 h-3 text-cyan-600"></i>
+                                    <span>Diamond</span>
+                                </button>
+                                <button type="button" onclick="setTokenLogoPreset('shield')" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-purple-100 border border-slate-300 text-[10px] font-bold text-slate-800 flex items-center gap-1">
+                                    <i data-lucide="shield" class="w-3 h-3 text-purple-600"></i>
+                                    <span>Shield</span>
+                                </button>
+                                <button type="button" onclick="setTokenLogoPreset('flame')" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-purple-100 border border-slate-300 text-[10px] font-bold text-slate-800 flex items-center gap-1">
+                                    <i data-lucide="flame" class="w-3 h-3 text-orange-600"></i>
+                                    <span>Flame</span>
+                                </button>
+                                <button type="button" onclick="setTokenLogoPreset('bot')" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-purple-100 border border-slate-300 text-[10px] font-bold text-slate-800 flex items-center gap-1">
+                                    <i data-lucide="bot" class="w-3 h-3 text-emerald-600"></i>
+                                    <span>Agent AI</span>
+                                </button>
+                                <button type="button" onclick="setTokenLogoPreset('zap')" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-purple-100 border border-slate-300 text-[10px] font-bold text-slate-800 flex items-center gap-1">
+                                    <i data-lucide="zap" class="w-3 h-3 text-amber-500"></i>
+                                    <span>Pulse</span>
+                                </button>
                             </div>
                         </div>
 
@@ -1711,8 +1762,11 @@
                                 </span>
                             </div>
                             <div class="flex items-center gap-3">
-                                <div id="previewTokenAvatar" class="w-12 h-12 rounded-xl bg-gradient-to-tr from-purple-600 to-pink-500 border-2 border-white/20 flex items-center justify-center font-pixel text-xl font-black text-white shadow-inner">
-                                    M
+                                <div class="relative w-12 h-12 rounded-xl overflow-hidden bg-slate-800 border-2 border-white/20 flex items-center justify-center shrink-0 shadow-inner">
+                                    <img id="previewTokenImg" src="" alt="Token Logo" class="hidden w-full h-full object-cover">
+                                    <div id="previewTokenAvatar" class="w-full h-full bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center font-pixel text-xl font-black text-white">
+                                        M
+                                    </div>
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center gap-2">
@@ -1741,10 +1795,10 @@
                     <div id="tokenDeploySuccessCard" class="hidden pixel-card-emerald p-6 space-y-4 font-mono text-xs">
                         <div class="flex items-center gap-3 pb-3 border-b-2 border-slate-950">
                             <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold">
-                                <i data-lucide="check" class="w-6 h-6"></i>
+                                <i data-lucide="check-circle-2" class="w-6 h-6"></i>
                             </div>
                             <div>
-                                <h4 class="font-pixel text-lg font-bold text-slate-950">Token Deployed Successfully! 🎉</h4>
+                                <h4 class="font-pixel text-lg font-bold text-slate-950">Token Deployed Successfully</h4>
                                 <p class="text-[11px] text-slate-600 font-sans">Your token contract is live on Arc Testnet with institutional consensus.</p>
                             </div>
                         </div>
@@ -1772,12 +1826,12 @@
                         <!-- 1-Click MetaMask Import & Explorer Links -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                             <button type="button" onclick="addCurrentTokenToMetaMask()" class="py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold flex items-center justify-center gap-2 border-2 border-slate-950 shadow-[2px_2px_0px_#0F172A] transition-all">
-                                <span class="text-base">🦊</span>
+                                <i data-lucide="plus-circle" class="w-4 h-4"></i>
                                 <span>Add to MetaMask (1-Click)</span>
                             </button>
                             <a id="successExplorerLink" href="#" target="_blank" class="py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold flex items-center justify-center gap-2 border-2 border-slate-950 shadow-[2px_2px_0px_#0F172A] transition-all">
                                 <i data-lucide="external-link" class="w-4 h-4 text-purple-300"></i>
-                                <span>View on Arc Explorer ↗</span>
+                                <span>View on Arc Explorer</span>
                             </a>
                         </div>
                     </div>

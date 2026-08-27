@@ -5051,18 +5051,74 @@ const ARC_CUSTOM_TOKEN_BYTECODE = "60c060405234801562000010575f80fd5b50604051620
 
 let lastDeployedTokenMeta = null;
 
+// Built-in Web3 Vector Icon Presets for Custom Tokens
+const TOKEN_LOGO_PRESETS = {
+    diamond: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2306b6d4'/%3E%3Cstop offset='100%25' stop-color='%233b82f6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='24' fill='%230f172a'/%3E%3Cpolygon points='50,15 85,38 50,85 15,38' fill='url(%23g)' stroke='%2338bdf8' stroke-width='3'/%3E%3Cpolygon points='50,15 85,38 50,48 15,38' fill='%23e0f2fe' fill-opacity='0.4'/%3E%3C/svg%3E",
+    shield: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='s' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%237e22ce'/%3E%3Cstop offset='100%25' stop-color='%23ec4899'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='24' fill='%230f172a'/%3E%3Cpath d='M50,18 L80,30 C80,60 50,82 50,82 C50,82 20,60 20,30 Z' fill='url(%23s)' stroke='%23d8b4fe' stroke-width='3'/%3E%3C/svg%3E",
+    flame: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='f' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23f97316'/%3E%3Cstop offset='100%25' stop-color='%23ef4444'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='24' fill='%230f172a'/%3E%3Cpath d='M50,15 C55,30 75,40 75,60 C75,75 64,85 50,85 C36,85 25,75 25,60 C25,45 40,35 45,28 C46,35 52,38 52,44 C48,44 45,47 45,51 C45,56 49,60 54,60 C48,65 42,75 50,75 C60,75 66,66 64,57 C62,48 50,30 50,15 Z' fill='url(%23f)'/%3E%3C/svg%3E",
+    bot: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='b' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2310b981'/%3E%3Cstop offset='100%25' stop-color='%2306b6d4'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='24' fill='%230f172a'/%3E%3Crect x='22' y='32' width='56' height='42' rx='12' fill='url(%23b)' stroke='%236ee7b7' stroke-width='3'/%3E%3Ccircle cx='38' cy='52' r='6' fill='%230f172a'/%3E%3Ccircle cx='62' cy='52' r='6' fill='%230f172a'/%3E%3Cline x1='50' y1='18' x2='50' y2='32' stroke='%236ee7b7' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='50' cy='16' r='4' fill='%2334d399'/%3E%3C/svg%3E",
+    zap: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='z' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23eab308'/%3E%3Cstop offset='100%25' stop-color='%23f97316'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='24' fill='%230f172a'/%3E%3Cpolygon points='56,15 26,52 48,52 42,85 74,45 52,45' fill='url(%23z)' stroke='%23fde047' stroke-width='2'/%3E%3C/svg%3E"
+};
+
+function handleTokenLogoUpload(event) {
+    const file = event?.target?.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+        showToast('Invalid File', 'Please select a valid image file (PNG, JPG, SVG, WebP).', 'error');
+        return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+        showToast('File Too Large', 'Token logo image should be under 2MB.', 'warning');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const input = document.getElementById('newTokenImageUrl');
+        if (input) {
+            input.value = e.target.result;
+            updateTokenPreview();
+            showToast('Logo Uploaded', 'Token image set successfully.', 'success');
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+function clearTokenLogo() {
+    const input = document.getElementById('newTokenImageUrl');
+    const fileInput = document.getElementById('tokenLogoFileInput');
+    if (input) input.value = '';
+    if (fileInput) fileInput.value = '';
+    updateTokenPreview();
+}
+
+function setTokenLogoPreset(presetKey) {
+    const presetSvg = TOKEN_LOGO_PRESETS[presetKey];
+    if (!presetSvg) return;
+    const input = document.getElementById('newTokenImageUrl');
+    if (input) {
+        input.value = presetSvg;
+        updateTokenPreview();
+        showToast('Preset Selected', `Applied ${presetKey} token icon.`, 'info');
+    }
+}
+
 function updateTokenPreview() {
     const nameInput = document.getElementById('newTokenName');
     const symbolInput = document.getElementById('newTokenSymbol');
     const supplyInput = document.getElementById('newTokenSupply');
     const decimalsInput = document.getElementById('newTokenDecimals');
     const categorySelect = document.getElementById('newTokenCategory');
+    const imageUrlInput = document.getElementById('newTokenImageUrl');
 
     const name = nameInput?.value.trim() || 'My Awesome Token';
     const symbol = symbolInput?.value.trim().toUpperCase() || 'MAT';
     const supply = parseFloat(supplyInput?.value || 1000000);
     const decimals = parseInt(decimalsInput?.value || 18, 10);
     const category = categorySelect?.value || 'DeFi';
+    const imageUrl = imageUrlInput?.value.trim() || '';
 
     safeSetText('previewTokenName', name);
     safeSetText('previewTokenSymbol', `$${symbol}`);
@@ -5071,9 +5127,28 @@ function updateTokenPreview() {
     safeSetText('previewTokenCategoryBadge', category);
 
     const avatar = document.getElementById('previewTokenAvatar');
-    if (avatar) {
-        const firstLetter = (symbol || name).charAt(0).toUpperCase() || 'T';
-        avatar.textContent = firstLetter;
+    const img = document.getElementById('previewTokenImg');
+
+    if (imageUrl) {
+        if (img) {
+            img.src = imageUrl;
+            img.classList.remove('hidden');
+            img.onerror = () => {
+                img.classList.add('hidden');
+                if (avatar) avatar.classList.remove('hidden');
+            };
+        }
+        if (avatar) avatar.classList.add('hidden');
+    } else {
+        if (img) {
+            img.src = '';
+            img.classList.add('hidden');
+        }
+        if (avatar) {
+            avatar.classList.remove('hidden');
+            const firstLetter = (symbol || name).charAt(0).toUpperCase() || 'T';
+            avatar.textContent = firstLetter;
+        }
     }
 }
 
@@ -5095,7 +5170,7 @@ function setTokenDecimalsPill(decimals) {
 
 async function deployArcToken() {
     if (!currentAccount) {
-        showToast('Connect Wallet Required 👛', 'Please connect your Arc Testnet wallet first.', 'warning');
+        showToast('Connect Wallet Required', 'Please connect your Arc Testnet wallet first.', 'warning');
         if (typeof handleWalletClick === 'function') handleWalletClick();
         return;
     }
@@ -5105,12 +5180,14 @@ async function deployArcToken() {
     const supplyInput = document.getElementById('newTokenSupply');
     const decimalsInput = document.getElementById('newTokenDecimals');
     const categorySelect = document.getElementById('newTokenCategory');
+    const imageUrlInput = document.getElementById('newTokenImageUrl');
 
     const name = nameInput ? nameInput.value.trim() : '';
     const symbol = symbolInput ? symbolInput.value.trim().toUpperCase() : '';
     const supply = parseFloat(supplyInput ? supplyInput.value : '0');
     const decimals = parseInt(decimalsInput ? decimalsInput.value : '18', 10);
     const category = categorySelect ? categorySelect.value : 'DeFi';
+    const imageUrl = imageUrlInput ? imageUrlInput.value.trim() : '';
 
     if (!name || name.length < 2) {
         showToast('Invalid Token Name', 'Token name must be at least 2 characters.', 'error');
@@ -5159,7 +5236,7 @@ async function deployArcToken() {
 
         // 1. Primary: Deploy via ArcTokenFactory contract
         try {
-            showToast('MetaMask Popup ↗', `Confirm deploying token ${symbol} via ArcTokenFactory...`, 'info');
+            showToast('MetaMask Request', `Confirm deploying token ${symbol} via ArcTokenFactory...`, 'info');
             const factoryContract = new ethers.Contract(ARC_TOKEN_FACTORY_ADDRESS, ARC_TOKEN_FACTORY_ABI, signer);
             
             const initialSupplyUnits = ethers.BigNumber.from(Math.floor(supply).toString());
@@ -5170,7 +5247,7 @@ async function deployArcToken() {
                 decimals
             );
 
-            showToast('Broadcasting to Arc L1...', 'Waiting for institutional block confirmation (<450ms)...', 'info');
+            showToast('Broadcasting to Arc L1', 'Waiting for institutional block confirmation (<450ms)...', 'info');
 
             if (btn) {
                 btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Verifying on Arc L1...</span>`;
@@ -5241,6 +5318,7 @@ async function deployArcToken() {
             supply,
             decimals,
             category,
+            image: imageUrl,
             txHash: txHash || '',
             creator: currentAccount,
             createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -5262,7 +5340,7 @@ async function deployArcToken() {
             successCard.classList.remove('hidden');
         }
 
-        showToast('Token Deployed on Arc L1! 🚀', `Successfully created ${symbol} (${tokenAddress.substring(0, 8)}...)!`, 'success');
+        showToast('Token Deployed on Arc L1', `Successfully created ${symbol} (${tokenAddress.substring(0, 8)}...)!`, 'success');
 
         // Update user tokens list & quick transfer dropdown
         renderUserCreatedTokens();
@@ -5308,7 +5386,7 @@ function copyDeployedTokenAddress() {
     const addr = lastDeployedTokenMeta ? lastDeployedTokenMeta.address : document.getElementById('successTokenAddress')?.textContent;
     if (addr && addr.startsWith('0x')) {
         navigator.clipboard.writeText(addr).then(() => {
-            showToast('Copied! 📋', 'Token contract address copied to clipboard.', 'success');
+            showToast('Copied', 'Token contract address copied to clipboard.', 'success');
         });
     }
 }
@@ -5318,17 +5396,22 @@ async function addCurrentTokenToMetaMask() {
     await addTokenToMetaMask(
         lastDeployedTokenMeta.address,
         lastDeployedTokenMeta.symbol,
-        lastDeployedTokenMeta.decimals
+        lastDeployedTokenMeta.decimals,
+        lastDeployedTokenMeta.image
     );
 }
 
-async function addTokenToMetaMask(tokenAddress, symbol, decimals = 18) {
+async function addTokenToMetaMask(tokenAddress, symbol, decimals = 18, tokenImage = '') {
     if (!window.ethereum || typeof window.ethereum.request !== 'function') {
         showToast('MetaMask Required', 'Please open MetaMask to import this token.', 'warning');
         return;
     }
 
     try {
+        const imageToUse = (tokenImage && (tokenImage.startsWith('http://') || tokenImage.startsWith('https://')))
+            ? tokenImage
+            : 'https://assets.coingecko.com/coins/images/6319/small/usdc.png';
+
         const wasAdded = await window.ethereum.request({
             method: 'wallet_watchAsset',
             params: {
@@ -5337,13 +5420,13 @@ async function addTokenToMetaMask(tokenAddress, symbol, decimals = 18) {
                     address: tokenAddress,
                     symbol: symbol,
                     decimals: Number(decimals),
-                    image: 'https://assets.coingecko.com/coins/images/6319/small/usdc.png'
+                    image: imageToUse
                 }
             }
         });
 
         if (wasAdded) {
-            showToast('Added to MetaMask! 🦊', `${symbol} token is now visible in your MetaMask wallet.`, 'success');
+            showToast('Added to MetaMask', `${symbol} token is now visible in your MetaMask wallet.`, 'success');
         }
     } catch (error) {
         console.error("wallet_watchAsset error:", error);
@@ -5377,6 +5460,7 @@ async function syncOnChainTokensFromFactory() {
                             supply: Number(ot.initialSupply),
                             decimals: Number(ot.decimals),
                             category: 'DeFi',
+                            image: '',
                             creator: ot.creator,
                             createdAt: new Date(Number(ot.createdAt) * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                         });
@@ -5437,13 +5521,15 @@ function renderUserCreatedTokens(shouldSync = true) {
         const shortAddr = `${t.address.substring(0, 6)}...${t.address.substring(t.address.length - 4)}`;
         const firstLetter = (t.symbol || 'T').charAt(0).toUpperCase();
 
+        const tokenLogoHtml = t.image 
+            ? `<img src="${t.image}" alt="${escapeHtml(t.symbol)}" class="w-8 h-8 rounded-lg object-cover border border-slate-950/20 shadow-sm" onerror="this.outerHTML='<div class=\\'w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-600 to-pink-500 text-white font-pixel flex items-center justify-center font-bold text-sm shadow-sm\\'>${firstLetter}</div>'">`
+            : `<div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-600 to-pink-500 text-white font-pixel flex items-center justify-center font-bold text-sm shadow-sm">${firstLetter}</div>`;
+
         html += `
             <div class="p-4 rounded-xl bg-slate-50 hover:bg-purple-50/50 border-2 border-slate-950 transition-colors space-y-3 font-mono text-xs">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-600 to-pink-500 text-white font-pixel flex items-center justify-center font-bold text-sm shadow-sm">
-                            ${firstLetter}
-                        </div>
+                        ${tokenLogoHtml}
                         <div>
                             <div class="font-bold text-slate-950 font-sans text-xs flex items-center gap-1.5">
                                 <span>${escapeHtml(t.name)}</span>
@@ -5459,17 +5545,19 @@ function renderUserCreatedTokens(shouldSync = true) {
                     <div class="flex items-center gap-1 text-slate-600">
                         <span>Contract:</span>
                         <code class="font-bold text-purple-700 bg-white px-1.5 py-0.5 rounded border border-slate-200">${shortAddr}</code>
-                        <button onclick="navigator.clipboard.writeText('${t.address}').then(() => showToast('Copied! 📋', 'Address copied', 'info'))" class="p-1 hover:text-purple-700" title="Copy Address">
+                        <button onclick="navigator.clipboard.writeText('${t.address}').then(() => showToast('Copied', 'Address copied to clipboard', 'info'))" class="p-1 hover:text-purple-700" title="Copy Address">
                             <i data-lucide="copy" class="w-3 h-3"></i>
                         </button>
                     </div>
 
                     <div class="flex items-center gap-2">
-                        <button onclick="addTokenToMetaMask('${t.address}', '${t.symbol}', ${t.decimals})" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-colors">
-                            <span>🦊 Add</span>
+                        <button onclick="addTokenToMetaMask('${t.address}', '${t.symbol}', ${t.decimals}, '${t.image || ''}')" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-colors">
+                            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                            <span>Add</span>
                         </button>
-                        <a href="https://explorer.testnet.arc.network/address/${t.address}" target="_blank" class="px-2 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 transition-colors">
-                            <span>Explorer ↗</span>
+                        <a href="https://explorer.testnet.arc.network/address/${t.address}" target="_blank" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 transition-colors">
+                            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                            <span>Explorer</span>
                         </a>
                     </div>
                 </div>
@@ -5534,13 +5622,13 @@ async function executeCustomTokenTransfer() {
         const decimals = await tokenContract.decimals();
         const amountUnits = ethers.utils.parseUnits(amount.toString(), decimals);
 
-        showToast('MetaMask Popup ↗', `Confirm transfer of ${amount} tokens to ${recipient.substring(0, 8)}...`, 'info');
+        showToast('MetaMask Request', `Confirm transfer of ${amount} tokens to ${recipient.substring(0, 8)}...`, 'info');
         const tx = await tokenContract.transfer(recipient, amountUnits);
 
-        showToast('Broadcasting Transfer...', 'Waiting for Arc Testnet block confirmation (<450ms)...', 'info');
+        showToast('Broadcasting Transfer', 'Waiting for Arc Testnet block confirmation (<450ms)...', 'info');
         const receipt = await tx.wait();
 
-        showToast('Transfer Confirmed! 💸', `Successfully sent ${amount} tokens to ${recipient.substring(0, 8)}... on Arc L1!`, 'success');
+        showToast('Transfer Confirmed', `Successfully sent ${amount} tokens to ${recipient.substring(0, 8)}... on Arc L1!`, 'success');
 
         if (amountInput) amountInput.value = '';
         if (recipientInput) recipientInput.value = '';

@@ -3203,6 +3203,13 @@ function saveX402Rules() {
 }
 
 async function runX402AutoPayDemo() {
+    // 0. Ensure wallet is connected first
+    if (!currentAccount) {
+        showToast('Connect Wallet Required 👛', 'Please connect your Arc Testnet wallet to authorize AI Agent Auto-Pay!', 'warning');
+        if (typeof handleWalletClick === 'function') handleWalletClick();
+        return;
+    }
+
     // Switch to Assistant tab if not active
     if (typeof switchPage === 'function') {
         switchPage('assistant');
@@ -3213,6 +3220,8 @@ async function runX402AutoPayDemo() {
 
     showToast('x402 Agent Triggered ⚡', 'Requesting restricted Arc L1 Institutional Intelligence...', 'info');
 
+    const shortOwner = `${currentAccount.substring(0, 6)}...${currentAccount.substring(currentAccount.length - 4)}`;
+
     // 1. Simulate the HTTP 402 Request Bubble
     const requestBubble = document.createElement('div');
     requestBubble.className = 'flex gap-3 justify-end';
@@ -3222,7 +3231,7 @@ async function runX402AutoPayDemo() {
                 <i data-lucide="cpu" class="w-4 h-4"></i>
                 <span>GET /api/v1/arc-institutional-alpha</span>
             </div>
-            <div class="text-[11px] text-purple-200">Target Contract: <span class="font-bold text-white font-mono">0xA617...6617</span> (ArcAgentPay)</div>
+            <div class="text-[11px] text-purple-200">Owner: <span class="font-bold text-white font-mono">${shortOwner}</span> • Target: <span class="font-bold text-white font-mono">0xA617...6617</span></div>
         </div>
     `;
     box.appendChild(requestBubble);
@@ -3260,7 +3269,7 @@ async function runX402AutoPayDemo() {
                 
                 <div class="text-slate-300 space-y-1 text-[11px]">
                     <div>⚡ <strong>Smart Contract:</strong> <a href="https://explorer.testnet.arc.network/address/0xA617282f90DACd860099Fad170bF651B13746617" target="_blank" class="text-purple-400 font-bold underline hover:text-purple-300">0xA617...6617</a> (ArcAgentPay.sol)</div>
-                    <div>⚡ <strong>Rule Check:</strong> Pre-authorized limit ($0.001 &le; $${agentDailySpendLimit.toFixed(2)} USDC) matched.</div>
+                    <div>⚡ <strong>Rule Check:</strong> Pre-authorized limit ($0.001 &le; $${agentDailySpendLimit.toFixed(2)} USDC) matched for <span class="text-purple-300 font-bold">${shortOwner}</span>.</div>
                     <div>⚡ <strong>Action:</strong> Autonomous ERC-4337 session settlement executed with zero signing delay.</div>
                     <div>⚡ <strong>Arc L1 Tx:</strong> <span class="text-purple-400 font-bold">${shortTx}</span> (<span class="text-emerald-400 font-bold">${executionMs}ms finality</span>)</div>
                 </div>

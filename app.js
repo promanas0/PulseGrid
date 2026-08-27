@@ -2917,10 +2917,16 @@ async function handleAiChatSend() {
 
         let aiReplyText = "";
 
-        // --- LAYER 1: Google Gemini High-Speed Engine (Built-in Active) ---
+        // --- LAYER 1: Full Google Gemini AI Engine (General Intelligence & Multi-Turn) ---
         const BUILTIN_GEMINI_KEY = atob('QVEuQWI4Uk42S0t1SlAtMHZ2RVdOUjlXMS1RT19BUnhqQmdPTi1abGV1RlpxRlhrT3FqOEE=');
         const customGeminiKey = (localStorage.getItem('PulseGrid_gemini_api_key') || '').trim();
-        const activeGeminiKey = (customGeminiKey.length > 20) ? customGeminiKey : BUILTIN_GEMINI_KEY;
+        
+        // Always ensure reliable key: try custom key first, fallback to builtin key
+        const keysToTry = [];
+        if (customGeminiKey && customGeminiKey.length > 20 && customGeminiKey !== BUILTIN_GEMINI_KEY) {
+            keysToTry.push(customGeminiKey);
+        }
+        keysToTry.push(BUILTIN_GEMINI_KEY);
 
         const fastGeminiModels = [
             'gemini-flash-lite-latest',
@@ -2933,47 +2939,83 @@ async function handleAiChatSend() {
             window.proAiMemory = [];
         }
 
-        for (const model of fastGeminiModels) {
+        const systemInstruction = {
+            parts: [{
+                text: "You are Gemini, a helpful, intelligent, and super-fast AI assistant created by Google, powering Pro AI on PulseGrid (Arc L1). " +
+                      "You can answer ANY question about anything: general knowledge, coding, Web3, Arc L1 blockchain, Circle USDC/EURC, math, creative writing, science, philosophy, life advice, or casual conversation. " +
+                      "Always reply naturally, directly, and accurately in the user's language (Hindi, Hinglish, English, etc.). " +
+                      "Be friendly, conversational, and comprehensive like Google Gemini."
+            }]
+        };
+
+        for (const apiKey of keysToTry) {
             if (aiReplyText) break;
-            try {
-                const ctrl = new AbortController();
-                const tid = setTimeout(() => ctrl.abort(), 6500);
 
-                const contentsPayload = [
-                    ...window.proAiMemory,
-                    { role: 'user', parts: [{ text: userMsg }] }
-                ];
+            for (const model of fastGeminiModels) {
+                if (aiReplyText) break;
+                try {
+                    const ctrl = new AbortController();
+                    const tid = setTimeout(() => ctrl.abort(), 6500);
 
-                const res = await fetch(
-                    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${activeGeminiKey}`,
-                    {
-                        method: 'POST',
-                        signal: ctrl.signal,
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: contentsPayload,
-                            generationConfig: { temperature: 0.75, maxOutputTokens: 1200 }
-                        })
-                    }
-                );
-                clearTimeout(tid);
+                    // Build contents payload with memory
+                    let contentsPayload = [
+                        ...window.proAiMemory,
+                        { role: 'user', parts: [{ text: userMsg }] }
+                    ];
 
-                if (res.ok) {
-                    const data = await res.json();
-                    const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-                    if (candidateText && candidateText.trim().length > 0) {
-                        aiReplyText = candidateText.trim();
-                        // Save to multi-turn conversation memory
-                        window.proAiMemory.push({ role: 'user', parts: [{ text: userMsg }] });
-                        window.proAiMemory.push({ role: 'model', parts: [{ text: aiReplyText }] });
-                        if (window.proAiMemory.length > 10) {
-                            window.proAiMemory = window.proAiMemory.slice(-8);
+                    let res = await fetch(
+                        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+                        {
+                            method: 'POST',
+                            signal: ctrl.signal,
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                system_instruction: systemInstruction,
+                                contents: contentsPayload,
+                                generationConfig: { temperature: 0.75, maxOutputTokens: 1500 }
+                            })
                         }
-                        break;
+                    ).catch(() => null);
+
+                    // If multi-turn failed or rejected, retry as clean single-turn
+                    if (!res || !res.ok) {
+                        res = await fetch(
+                            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+                            {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    system_instruction: systemInstruction,
+                                    contents: [{ role: 'user', parts: [{ text: userMsg }] }],
+                                    generationConfig: { temperature: 0.75, maxOutputTokens: 1500 }
+                                })
+                            }
+                        ).catch(() => null);
+
+                        if (res && res.ok) {
+                            window.proAiMemory = []; // Reset corrupted memory
+                        }
                     }
+
+                    clearTimeout(tid);
+
+                    if (res && res.ok) {
+                        const data = await res.json();
+                        const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (candidateText && candidateText.trim().length > 0) {
+                            aiReplyText = candidateText.trim();
+                            // Save to multi-turn conversation memory
+                            window.proAiMemory.push({ role: 'user', parts: [{ text: userMsg }] });
+                            window.proAiMemory.push({ role: 'model', parts: [{ text: aiReplyText }] });
+                            if (window.proAiMemory.length > 10) {
+                                window.proAiMemory = window.proAiMemory.slice(-8);
+                            }
+                            break;
+                        }
+                    }
+                } catch (fetchErr) {
+                    // Try next model
                 }
-            } catch (fetchErr) {
-                // Silently fallback to next model
             }
         }
 

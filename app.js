@@ -3189,7 +3189,7 @@ async function handleAiChatSend() {
         let feeFooterHtml = '';
         if (vaultAutoPaid) {
             feeFooterHtml = `
-                <div class="mt-3 pt-2.5 border-t border-slate-700/80 flex items-center justify-between text-[11px] font-mono">
+<div class="mt-3 pt-2.5 border-t border-slate-700/80 flex items-center justify-between text-[11px] font-mono">
                     <div class="flex items-center gap-1.5 text-emerald-400 font-bold">
                         <i data-lucide="zap" class="w-3.5 h-3.5"></i>
                         <span>x402 Auto-Paid: 0.001 USDC</span>
@@ -3231,7 +3231,14 @@ async function handleAiChatSend() {
 // ==========================================
 // x402 AUTONOMOUS AI AGENT PAYMENT ENGINE
 // ==========================================
-const ARC_AGENT_PAY_CONTRACT_ADDRESS = '0xA617282f90DACd860099Fad170bF651B13746617';
+const ARC_AGENT_PAY_CONTRACT_ADDRESS = '0x67623B1c2F27ae0B1ad5d19786474261b88cEd1D';
+const ARC_VAULT_PAY_ABI = [
+    "function deposit(uint256 _amount) external",
+    "function withdraw(uint256 _amount) external",
+    "function executeAutoPay(address _user, address _serviceProvider, uint256 _fee, string calldata _endpoint) external returns (bool)",
+    "function getUserVault(address _user) external view returns (uint256 balance, uint256 dailyLimit, uint256 spent, uint256 remaining)",
+    "function userBalances(address user) external view returns (uint256)"
+];
 let agentDailySpendLimit = 1.00;
 
 function openX402ConfigModal() {
@@ -3289,7 +3296,7 @@ async function runX402AutoPayDemo() {
                 <i data-lucide="cpu" class="w-4 h-4"></i>
                 <span>GET /api/v1/arc-institutional-alpha</span>
             </div>
-            <div class="text-[11px] text-purple-200">Owner: <span class="font-bold text-white font-mono">${shortOwner}</span> • Target: <span class="font-bold text-white font-mono">0xA617...6617</span></div>
+            <div class="text-[11px] text-purple-200">Owner: <span class="font-bold text-white font-mono">${shortOwner}</span> • Target: <span class="font-bold text-white font-mono">0x6762...Ed1D</span></div>
         </div>
     `;
     box.appendChild(requestBubble);
@@ -3301,22 +3308,21 @@ async function runX402AutoPayDemo() {
         const txHash = '0x' + Array.from({length: 40}, () => Math.floor(Math.random()*16).toString(16)).join('');
         const shortTx = `${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}`;
         const executionMs = Math.floor(380 + Math.random() * 60);
-        // Deduct 0.001 USDC from live user balance & update wallet UI
-        if (typeof TOKENS !== 'undefined' && TOKENS[0]) {
-            TOKENS[0].balance = Math.max(0, TOKENS[0].balance - 0.001);
-            if (typeof updateWalletUI === 'function') updateWalletUI();
-            safeSetText('sidebarUsdcBal', `${TOKENS[0].balance.toFixed(3)} USDC`);
+
+        // Deduct from live user vault balance
+        const currentBal = getUserVaultBalance();
+        if (currentBal >= 0.001) {
+            setUserVaultBalance(currentBal - 0.001);
+            addVaultLedgerEntry('Institutional Alpha Query', '-0.001 USDC', txHash, 'Auto-Paid (<450ms)');
         }
-        agentSpentToday = (typeof agentSpentToday === 'number' ? agentSpentToday : 0) + 0.001;
-        safeSetText('agentSpendLimitBadge', `${agentDailySpendLimit.toFixed(2)} USDC (Spent: $${agentSpentToday.toFixed(3)})`);
 
         const x402PipelineBubble = document.createElement('div');
         x402PipelineBubble.className = 'flex gap-3';
         x402PipelineBubble.innerHTML = `
-            <div class="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-400 flex items-center justify-center shrink-0">
-                <span class="text-amber-300 font-bold text-xs font-mono">402</span>
+            <div class="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-500 flex items-center justify-center shrink-0">
+                <i data-lucide="lock" class="w-4 h-4 text-amber-400"></i>
             </div>
-            <div class="bg-slate-950 border-2 border-amber-500/50 rounded-2xl p-4 text-slate-200 max-w-[90%] text-xs font-mono space-y-2.5 shadow-2xl">
+            <div class="bg-slate-900 border-2 border-amber-500/40 rounded-2xl p-4 text-slate-200 max-w-[85%] text-xs font-mono space-y-2.5 shadow-xl">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                     <span class="text-amber-400 font-bold flex items-center gap-1.5">
                         <i data-lucide="lock" class="w-3.5 h-3.5"></i>
@@ -3326,7 +3332,7 @@ async function runX402AutoPayDemo() {
                 </div>
                 
                 <div class="text-slate-300 space-y-1 text-[11px]">
-                    <div>⚡ <strong>Smart Contract:</strong> <a href="https://explorer.testnet.arc.network/address/0xA617282f90DACd860099Fad170bF651B13746617" target="_blank" class="text-purple-400 font-bold underline hover:text-purple-300">0xA617...6617</a> (ArcAgentPay.sol)</div>
+                    <div>⚡ <strong>Smart Contract:</strong> <a href="https://explorer.testnet.arc.network/address/0x67623B1c2F27ae0B1ad5d19786474261b88cEd1D" target="_blank" class="text-purple-400 font-bold underline hover:text-purple-300">0x6762...Ed1D</a> (ArcVaultPay.sol)</div>
                     <div>⚡ <strong>Rule Check:</strong> Pre-authorized limit ($0.001 &le; $${agentDailySpendLimit.toFixed(2)} USDC) matched for <span class="text-purple-300 font-bold">${shortOwner}</span>.</div>
                     <div>⚡ <strong>Action:</strong> Autonomous ERC-4337 session settlement executed with zero signing delay.</div>
                     <div>⚡ <strong>Arc L1 Tx:</strong> <span class="text-purple-400 font-bold">${shortTx}</span> (<span class="text-emerald-400 font-bold">${executionMs}ms finality</span>)</div>
@@ -3359,8 +3365,8 @@ async function runX402AutoPayDemo() {
                             <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
                             <span>Arc L1 Institutional Whale & Liquidity Alpha</span>
                         </div>
-                        <a href="https://explorer.testnet.arc.network/address/0xA617282f90DACd860099Fad170bF651B13746617" target="_blank" class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-mono font-bold hover:bg-emerald-500/30">
-                            Verified on ArcAgentPay ↗
+                        <a href="https://explorer.testnet.arc.network/address/0x67623B1c2F27ae0B1ad5d19786474261b88cEd1D" target="_blank" class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-mono font-bold hover:bg-emerald-500/30">
+                            Verified on ArcVaultPay ↗
                         </a>
                     </div>
 
@@ -3371,7 +3377,7 @@ async function runX402AutoPayDemo() {
                     </div>
 
                     <div class="p-3 bg-purple-950/50 rounded-xl border border-purple-500/30 text-[11px] font-mono text-purple-200">
-                        💡 <strong>Contract Verified:</strong> Settled via on-chain contract <strong class="text-white font-mono">0xA617282f90DACd860099Fad170bF651B13746617</strong> on Arc L1. Sub-second agent payments with zero human bottleneck.
+                        💡 <strong>Contract Verified:</strong> Settled via on-chain contract <strong class="text-white font-mono">0x67623B1c2F27ae0B1ad5d19786474261b88cEd1D</strong> on Arc L1. Sub-second agent payments with zero human bottleneck.
                     </div>
                 </div>
             `;
@@ -3379,7 +3385,7 @@ async function runX402AutoPayDemo() {
             box.scrollTop = box.scrollHeight;
             if (window.lucide) window.lucide.createIcons();
 
-            showToast('Alpha Report Unlocked! 🚀', 'x402 Autonomous settlement verified via ArcAgentPay contract', 'success');
+            showToast('Alpha Report Unlocked! 🚀', 'x402 Autonomous settlement verified via ArcVaultPay contract', 'success');
         }, 600);
 
     }, 550);
@@ -3408,7 +3414,7 @@ function setUserVaultBalance(amount) {
     updateVaultUI();
 }
 
-function updateVaultUI() {
+async function updateVaultUI() {
     const bal = getUserVaultBalance();
     safeSetText('userVaultBalDisplay', `${bal.toFixed(3)} USDC`);
     safeSetText('vaultAvailableToWithdraw', `${bal.toFixed(3)} USDC`);
@@ -3430,6 +3436,22 @@ function updateVaultUI() {
     safeSetText('userVaultLimitDisplay', `${agentDailySpendLimit.toFixed(3)} USDC`);
 
     renderVaultLedger();
+
+    // Silently sync real on-chain balance from contract
+    if (currentAccount && window.ethers && (activeWeb3Provider || window.ethereum)) {
+        try {
+            const provider = new ethers.providers.Web3Provider(activeWeb3Provider || window.ethereum);
+            const vaultContract = new ethers.Contract(ARC_AGENT_PAY_CONTRACT_ADDRESS, ARC_VAULT_PAY_ABI, provider);
+            const onChainRaw = await vaultContract.userBalances(currentAccount);
+            const onChainUsdc = Number(onChainRaw) / 1e6;
+            if (onChainUsdc > 0 || bal === 0) {
+                localStorage.setItem(getUserVaultKey(), onChainUsdc.toFixed(4));
+                safeSetText('userVaultBalDisplay', `${onChainUsdc.toFixed(3)} USDC`);
+                safeSetText('vaultAvailableToWithdraw', `${onChainUsdc.toFixed(3)} USDC`);
+                safeSetText('assistantVaultBadge', `${onChainUsdc.toFixed(3)} USDC`);
+            }
+        } catch (e) { }
+    }
 }
 
 function setVaultDepositPill(val) {
@@ -3479,48 +3501,40 @@ async function executeVaultDeposit() {
         const provider = new ethers.providers.Web3Provider(providerObj);
         const signer = provider.getSigner();
 
-        let tx;
         const amtUnits6 = ethers.utils.parseUnits(amt.toString(), 6);
 
-        // Check if user has ERC-20 USDC balance
-        let hasErc20Usdc = false;
+        // 1. Check ERC-20 USDC Allowance for ArcVaultPay contract
+        const usdcContract = new ethers.Contract(
+            ERC20_USDC_ADDRESS,
+            [
+                "function transfer(address to, uint256 amount) returns (bool)",
+                "function approve(address spender, uint256 amount) returns (bool)",
+                "function allowance(address owner, address spender) view returns (uint256)",
+                "function balanceOf(address account) view returns (uint256)"
+            ],
+            signer
+        );
+
+        let allowance = ethers.BigNumber.from(0);
         try {
-            const usdcCheck = new ethers.Contract(
-                ERC20_USDC_ADDRESS,
-                ["function balanceOf(address account) view returns (uint256)"],
-                signer
-            );
-            const bal = await usdcCheck.balanceOf(currentAccount);
-            if (bal.gte(amtUnits6)) {
-                hasErc20Usdc = true;
-            }
-        } catch (checkErr) {
-            console.warn("ERC20 balance check notice:", checkErr);
+            allowance = await usdcContract.allowance(currentAccount, ARC_AGENT_PAY_CONTRACT_ADDRESS);
+        } catch (e) { }
+
+        if (allowance.lt(amtUnits6)) {
+            showToast('Step 1/2: Approve USDC ⚙️', 'Please approve ArcVaultPay in MetaMask...', 'info');
+            const approveTx = await usdcContract.approve(ARC_AGENT_PAY_CONTRACT_ADDRESS, ethers.constants.MaxUint256);
+            await approveTx.wait();
+            showToast('USDC Approved ✅', 'Now confirming deposit in MetaMask...', 'info');
         }
 
-        if (hasErc20Usdc) {
-            // Flow A: Send real ERC-20 USDC tokens to ArcAgentPay contract
-            showToast('MetaMask Popup ↗', `Confirm transferring ${amt.toFixed(2)} USDC to ArcAgentPay in MetaMask...`, 'info');
-            const usdcContract = new ethers.Contract(
-                ERC20_USDC_ADDRESS,
-                ["function transfer(address to, uint256 amount) returns (bool)"],
-                signer
-            );
-            tx = await usdcContract.transfer(ARC_AGENT_PAY_CONTRACT_ADDRESS, amtUnits6);
-        } else {
-            // Flow B: Direct on-chain Agent Authorization call on ArcAgentPay contract
-            showToast('MetaMask Popup ↗', `Confirm on-chain Agent Vault authorization in MetaMask...`, 'info');
-            const agentPayContract = new ethers.Contract(
-                ARC_AGENT_PAY_CONTRACT_ADDRESS,
-                ["function registerAgent(address _agent, uint256 _dailyLimit) external"],
-                signer
-            );
-            tx = await agentPayContract.registerAgent(ARC_AGENT_PAY_CONTRACT_ADDRESS, amtUnits6);
-        }
+        // 2. Call on-chain deposit(uint256) on ArcVaultPay contract
+        showToast('Step 2/2: Confirm Deposit ↗', `Confirm depositing ${amt.toFixed(2)} USDC in MetaMask...`, 'info');
+        const vaultContract = new ethers.Contract(ARC_AGENT_PAY_CONTRACT_ADDRESS, ARC_VAULT_PAY_ABI, signer);
+        const depositTx = await vaultContract.deposit(amtUnits6);
 
-        showToast('Broadcasting Transaction...', 'Waiting for Arc Testnet block confirmation (<450ms)...', 'info');
-        const receipt = await tx.wait();
-        const confirmedHash = receipt.transactionHash || tx.hash;
+        showToast('Broadcasting Deposit...', 'Waiting for Arc Testnet block confirmation (<450ms)...', 'info');
+        const receipt = await depositTx.wait();
+        const confirmedHash = receipt.transactionHash || depositTx.hash;
 
         // Deduct from wallet balance in UI
         if (typeof TOKENS !== 'undefined' && TOKENS[0]) {
@@ -3534,6 +3548,10 @@ async function executeVaultDeposit() {
 
         addVaultLedgerEntry('Vault Deposit', `+${amt.toFixed(3)} USDC`, confirmedHash, 'Confirmed');
         showToast('Vault Funded On-Chain! 🚀', `Successfully deposited ${amt.toFixed(2)} USDC into your Agent Vault!`, 'success');
+
+        if (typeof fetchRealOnChainBalances === 'function') {
+            fetchRealOnChainBalances(currentAccount);
+        }
 
     } catch (err) {
         console.error("Deposit error:", err);
@@ -3575,49 +3593,47 @@ async function executeVaultWithdraw() {
     const btn = document.getElementById('btnVaultWithdraw');
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Processing Withdrawal...</span>`;
+        btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Confirming in MetaMask...</span>`;
         if (window.lucide) window.lucide.createIcons();
     }
 
-    let txHash = '0x' + Array.from({length: 40}, () => Math.floor(Math.random()*16).toString(16)).join('');
-
     try {
         const providerObj = activeWeb3Provider || window.ethereum;
-        if (providerObj && window.ethers) {
-            try {
-                const provider = new ethers.providers.Web3Provider(providerObj);
-                const signer = provider.getSigner();
-                const amtUnits6 = ethers.utils.parseUnits(amt.toString(), 6);
-                
-                // Attempt on-chain withdraw if contract implements it
-                const vaultContract = new ethers.Contract(
-                    ARC_AGENT_PAY_CONTRACT_ADDRESS,
-                    ["function withdraw(uint256 amount) external"],
-                    signer
-                );
-                const tx = await vaultContract.withdraw(amtUnits6);
-                const receipt = await tx.wait();
-                txHash = receipt.transactionHash || tx.hash;
-            } catch (contractErr) {
-                console.warn("Contract on-chain withdraw notice:", contractErr.message);
-            }
+        if (!providerObj || !window.ethers) {
+            throw new Error("MetaMask is required for on-chain withdrawal.");
         }
 
-        const newVaultBal = currentVaultBal - amt;
+        const provider = new ethers.providers.Web3Provider(providerObj);
+        const signer = provider.getSigner();
+        const amtUnits6 = ethers.utils.parseUnits(amt.toString(), 6);
+
+        // Call on-chain withdraw(uint256) on ArcVaultPay contract
+        showToast('MetaMask Popup ↗', `Confirm withdrawing ${amt.toFixed(3)} USDC in MetaMask...`, 'info');
+        const vaultContract = new ethers.Contract(ARC_AGENT_PAY_CONTRACT_ADDRESS, ARC_VAULT_PAY_ABI, signer);
+        const withdrawTx = await vaultContract.withdraw(amtUnits6);
+
+        showToast('Broadcasting Withdrawal...', 'Contract is transferring USDC back to your wallet...', 'info');
+        const receipt = await withdrawTx.wait();
+        const confirmedHash = receipt.transactionHash || withdrawTx.hash;
+
+        const newVaultBal = Math.max(0, currentVaultBal - amt);
         setUserVaultBalance(newVaultBal);
 
-        // Credit back to wallet balance
-        if (typeof TOKENS !== 'undefined' && TOKENS[0]) {
-            TOKENS[0].balance += amt;
-            if (typeof updateWalletUI === 'function') updateWalletUI();
+        // Fetch fresh real on-chain balance so wallet UI updates instantly
+        if (typeof fetchRealOnChainBalances === 'function') {
+            fetchRealOnChainBalances(currentAccount);
         }
 
-        addVaultLedgerEntry('Vault Withdrawal', `-${amt.toFixed(3)} USDC`, txHash, 'Confirmed');
-        showToast('Withdrawal Complete! 💸', `Transferred ${amt.toFixed(3)} USDC back to your wallet.`, 'success');
+        addVaultLedgerEntry('Vault Withdrawal', `-${amt.toFixed(3)} USDC`, confirmedHash, 'Transferred to Wallet');
+        showToast('USDC Received in Wallet! 💸', `Successfully withdrew ${amt.toFixed(3)} USDC back into your MetaMask wallet!`, 'success');
 
     } catch (err) {
         console.error("Withdrawal error:", err);
-        showToast('Withdrawal Error', err.message || 'Withdrawal failed', 'error');
+        if (err.code === 4001 || err.code === 'ACTION_REJECTED' || err.message?.includes('rejected') || err.message?.includes('denied')) {
+            showToast('Withdrawal Cancelled', 'Transaction was rejected in MetaMask.', 'error');
+        } else {
+            showToast('Withdrawal Error', err.reason || err.message || 'Withdrawal failed on-chain.', 'error');
+        }
     } finally {
         if (btn) {
             btn.disabled = false;

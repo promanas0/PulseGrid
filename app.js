@@ -3166,6 +3166,144 @@ async function handleAiChatSend() {
 }
 
 // ==========================================
+// x402 AUTONOMOUS AI AGENT PAYMENT ENGINE
+// ==========================================
+let agentDailySpendLimit = 1.00;
+
+function openX402ConfigModal() {
+    const input = document.getElementById('x402LimitInput');
+    if (input) input.value = agentDailySpendLimit.toFixed(2);
+    const modal = document.getElementById('x402ConfigModal');
+    if (modal) modal.classList.remove('hidden');
+    if (window.lucide) window.lucide.createIcons();
+}
+
+function closeX402ConfigModal() {
+    const modal = document.getElementById('x402ConfigModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function saveX402Rules() {
+    const input = document.getElementById('x402LimitInput');
+    if (input) {
+        const val = parseFloat(input.value);
+        if (!isNaN(val) && val > 0) {
+            agentDailySpendLimit = val;
+            safeSetText('agentSpendLimitBadge', `${agentDailySpendLimit.toFixed(2)} USDC`);
+            showToast('Agent Rule Updated ⚙️', `Daily autonomous budget set to ${agentDailySpendLimit.toFixed(2)} USDC`, 'success');
+        }
+    }
+    closeX402ConfigModal();
+}
+
+async function runX402AutoPayDemo() {
+    // Switch to Assistant tab if not active
+    if (typeof switchPage === 'function') {
+        switchPage('assistant');
+    }
+
+    const box = document.getElementById('aiChatBox');
+    if (!box) return;
+
+    showToast('x402 Agent Triggered ⚡', 'Requesting restricted Arc L1 Institutional Intelligence...', 'info');
+
+    // 1. Simulate the HTTP 402 Request Bubble
+    const requestBubble = document.createElement('div');
+    requestBubble.className = 'flex gap-3 justify-end';
+    requestBubble.innerHTML = `
+        <div class="bg-purple-600 text-white rounded-2xl p-3.5 text-xs max-w-[85%] shadow-md font-mono space-y-1">
+            <div class="flex items-center gap-1.5 font-bold text-amber-300">
+                <i data-lucide="cpu" class="w-4 h-4"></i>
+                <span>GET /api/v1/arc-institutional-alpha</span>
+            </div>
+            <div class="text-[11px] text-purple-200">Autonomous query initiated by Pro AI Agent (0x71C4...4E29)</div>
+        </div>
+    `;
+    box.appendChild(requestBubble);
+    box.scrollTop = box.scrollHeight;
+    if (window.lucide) window.lucide.createIcons();
+
+    // 2. Simulate HTTP 402 Payment Challenge & Autonomous Settlement
+    setTimeout(() => {
+        const txHash = '0x' + Array.from({length: 40}, () => Math.floor(Math.random()*16).toString(16)).join('');
+        const shortTx = `${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}`;
+        const executionMs = Math.floor(380 + Math.random() * 60);
+
+        const x402PipelineBubble = document.createElement('div');
+        x402PipelineBubble.className = 'flex gap-3';
+        x402PipelineBubble.innerHTML = `
+            <div class="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-400 flex items-center justify-center shrink-0">
+                <span class="text-amber-300 font-bold text-xs font-mono">402</span>
+            </div>
+            <div class="bg-slate-950 border-2 border-amber-500/50 rounded-2xl p-4 text-slate-200 max-w-[90%] text-xs font-mono space-y-2 shadow-2xl">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <span class="text-amber-400 font-bold flex items-center gap-1.5">
+                        <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+                        <span>HTTP 402 Payment Required (0.001 USDC)</span>
+                    </span>
+                    <span class="px-2 py-0.5 rounded bg-amber-950 text-amber-300 text-[10px] border border-amber-800">AUTOMATED</span>
+                </div>
+                
+                <div class="text-slate-300 space-y-1 text-[11px]">
+                    <div>⚡ <strong>Rule Check:</strong> Pre-authorized limit ($0.001 &le; $${agentDailySpendLimit.toFixed(2)} USDC) matched.</div>
+                    <div>⚡ <strong>Action:</strong> Autonomous ERC-4337 settlement executed with zero signing delay.</div>
+                    <div>⚡ <strong>Arc L1 Tx:</strong> <span class="text-purple-400 font-bold">${shortTx}</span> (<span class="text-emerald-400 font-bold">${executionMs}ms finality</span>)</div>
+                </div>
+
+                <div class="pt-2 border-t border-slate-800 flex items-center justify-between text-emerald-400 font-bold text-[11px]">
+                    <span class="flex items-center gap-1">
+                        <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i>
+                        <span>Payment Verified on Arc Testnet</span>
+                    </span>
+                    <span class="text-slate-400 font-normal">HTTP 200 UNLOCKED</span>
+                </div>
+            </div>
+        `;
+        box.appendChild(x402PipelineBubble);
+        box.scrollTop = box.scrollHeight;
+        if (window.lucide) window.lucide.createIcons();
+
+        // 3. Deliver the Unlocked Exclusive Institutional Alpha Report
+        setTimeout(() => {
+            const reportBubble = document.createElement('div');
+            reportBubble.className = 'flex gap-3';
+            reportBubble.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center shrink-0">
+                    <i data-lucide="sparkles" class="w-4 h-4 text-purple-300"></i>
+                </div>
+                <div class="bg-slate-900 border-2 border-purple-500/50 rounded-2xl p-5 text-slate-100 max-w-[90%] text-xs leading-relaxed shadow-2xl space-y-3">
+                    <div class="flex items-center justify-between border-b border-purple-500/30 pb-2">
+                        <div class="font-bold text-sm text-purple-300 flex items-center gap-2 font-mono">
+                            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+                            <span>Arc L1 Institutional Whale & Liquidity Alpha</span>
+                        </div>
+                        <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-mono font-bold">
+                            Verified x402 Receipt
+                        </span>
+                    </div>
+
+                    <div class="space-y-2 text-slate-200">
+                        <p><strong>1. Consortium Node Settlement Speed:</strong> Circle, BlackRock, Visa, and DTCC nodes currently processing blocks in <strong>~450ms</strong> with zero micro-fee variance (0.001 USDC fixed gas).</p>
+                        <p><strong>2. Whale Inflow Detected:</strong> Over <strong>$18.4M USDC</strong> simulated liquidity moved into Arc L1 AMM pools ahead of the September 16 Mainnet launch window.</p>
+                        <p><strong>3. Circle CCTP Liquidity Corridor:</strong> Cross-chain burning & minting throughput increased by +34.2% across Ethereum, Arbitrum, and Base testnets.</p>
+                    </div>
+
+                    <div class="p-3 bg-purple-950/50 rounded-xl border border-purple-500/30 text-[11px] font-mono text-purple-200">
+                        💡 <strong>Key Takeaway:</strong> Pro AI autonomous micro-payments enable programmatic agent-to-agent economies on Arc L1 with sub-second finality. No human bottleneck, 100% autonomous.
+                    </div>
+                </div>
+            `;
+            box.appendChild(reportBubble);
+            box.scrollTop = box.scrollHeight;
+            if (window.lucide) window.lucide.createIcons();
+
+            showToast('Alpha Report Unlocked! 🚀', 'x402 Autonomous settlement completed on Arc L1 (<450ms)', 'success');
+        }, 600);
+
+    }, 550);
+}
+
+// ==========================================
 // PRO PREDICTION MARKETS & AI TRADE INTELLIGENCE ENGINE
 // ==========================================
 

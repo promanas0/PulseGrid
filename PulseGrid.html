@@ -2089,15 +2089,35 @@
                 </div>
             </div>
 
-            <!-- Active AI Status Indicator Bar (Hidden as requested) -->
-            <div class="hidden px-5 py-3.5 bg-slate-900/90 border border-slate-800 rounded-2xl flex items-center justify-between gap-3 text-xs shadow-md backdrop-blur">
-                <div class="flex items-center gap-2.5 text-slate-300 font-mono">
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span>AI Engine Status: <strong class="text-purple-400 font-bold">Google Gemini 2.0 AI (Built-in Active)</strong></span>
+            <!-- x402 AUTONOMOUS AGENT PAYMENT BAR & LIVE DEMO -->
+            <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-purple-950/80 via-slate-900 to-indigo-950/80 border-2 border-purple-500/40 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-xl bg-purple-600/20 border border-purple-400 flex items-center justify-center shrink-0">
+                        <i data-lucide="cpu" class="w-6 h-6 text-purple-400"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-sm text-white">x402 Autonomous Agent Pay</span>
+                            <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-bold font-mono">
+                                HTTP 402 READY
+                            </span>
+                        </div>
+                        <p class="text-[11px] text-slate-300 mt-1 font-mono">
+                            Agent: <span class="text-purple-300 font-bold">0x71C4...4E29</span> • Spend Limit: <span id="agentSpendLimitBadge" class="text-emerald-400 font-bold">1.00 USDC</span> • Finality: <span class="text-teal-300 font-bold">&lt;450ms</span>
+                        </p>
+                    </div>
                 </div>
-                <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold">
-                    100% Operational
-                </span>
+
+                <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+                    <button onclick="runX402AutoPayDemo()" class="flex-1 md:flex-none px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold font-mono transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-emerald-500/25">
+                        <i data-lucide="zap" class="w-4 h-4"></i>
+                        <span>Run x402 Auto-Pay (0.001 USDC)</span>
+                    </button>
+                    <button onclick="openX402ConfigModal()" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition-all border border-slate-700 flex items-center justify-center gap-1.5" title="Configure Agent Rules">
+                        <i data-lucide="sliders" class="w-4 h-4 text-purple-400"></i>
+                        <span>Rules</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Full-Width Pro AI Workspace Container -->
@@ -2892,6 +2912,57 @@
             <button onclick="claimInAppFaucet()" class="btn-pixel w-full py-3 rounded-xl bg-emerald-600 text-white font-bold text-xs">
                 Claim +100 USDC Faucet Tokens
             </button>
+        </div>
+    </div>
+
+    <!-- x402 AGENT RULES & SPENDING LIMITS MODAL -->
+    <div id="x402ConfigModal" class="fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="pixel-card-purple w-full max-w-lg p-6 space-y-4 font-mono text-xs">
+            <div class="flex items-center justify-between pb-2 border-b-2 border-slate-950">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="cpu" class="w-5 h-5 text-purple-700"></i>
+                    <h3 class="font-pixel font-bold text-slate-950 text-base">x402 Agent Spending Rules</h3>
+                </div>
+                <button onclick="closeX402ConfigModal()" class="text-slate-500 hover:text-slate-950">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <p class="text-slate-600 font-sans text-xs">
+                Configure autonomous on-chain session rules for Pro AI. The agent pays HTTP 402 micro-fees automatically within your set budget without prompting MetaMask.
+            </p>
+
+            <div class="space-y-3 bg-slate-50 p-4 rounded-xl border-2 border-slate-950">
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-500">Autonomous Agent Address:</span>
+                    <span class="font-bold text-slate-900">0x71C4...4E29</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-500">Execution Settlement:</span>
+                    <span class="font-bold text-teal-600">Arc L1 (&lt;450ms Finality)</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-500">Payment Standard:</span>
+                    <span class="font-bold text-purple-700">ERC-4337 Session / HTTP 402</span>
+                </div>
+                <div class="flex justify-between items-center pt-2 border-t border-slate-200">
+                    <span class="text-slate-700 font-bold">Daily Auto-Spend Limit:</span>
+                    <div class="flex items-center gap-1.5">
+                        <input type="number" id="x402LimitInput" value="1.00" step="0.5" min="0.1" max="50" class="w-20 bg-white border border-slate-300 rounded-lg px-2 py-1 text-right font-bold text-slate-950 outline-none">
+                        <span class="font-bold text-purple-700">USDC</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-2.5 pt-2">
+                <button onclick="saveX402Rules()" class="btn-pixel flex-1 py-3 rounded-xl bg-purple-700 text-white font-bold text-xs flex items-center justify-center gap-2">
+                    <i data-lucide="check" class="w-4 h-4"></i>
+                    <span>Save Agent Rules</span>
+                </button>
+                <button onclick="closeX402ConfigModal()" class="px-4 py-3 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs">
+                    Cancel
+                </button>
+            </div>
         </div>
     </div>
 

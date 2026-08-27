@@ -5366,10 +5366,37 @@ function getUserCreatedTokensKey() {
     return `arc_user_tokens_${currentAccount.toLowerCase()}`;
 }
 
-function getUserCreatedTokens() {
-    const key = getUserCreatedTokensKey();
+function getDeletedTokensKey() {
+    if (!currentAccount) return 'arc_deleted_tokens_guest';
+    return `arc_deleted_tokens_${currentAccount.toLowerCase()}`;
+}
+
+function getDeletedTokens() {
+    const key = getDeletedTokensKey();
     try {
         return JSON.parse(localStorage.getItem(key)) || [];
+    } catch(e) {
+        return [];
+    }
+}
+
+function addDeletedToken(tokenAddress) {
+    if (!tokenAddress) return;
+    const key = getDeletedTokensKey();
+    const deleted = getDeletedTokens();
+    const lower = tokenAddress.toLowerCase();
+    if (!deleted.includes(lower)) {
+        deleted.push(lower);
+        localStorage.setItem(key, JSON.stringify(deleted));
+    }
+}
+
+function getUserCreatedTokens() {
+    const key = getUserCreatedTokensKey();
+    const deleted = getDeletedTokens();
+    try {
+        const list = JSON.parse(localStorage.getItem(key)) || [];
+        return list.filter(t => t && t.address && !deleted.includes(t.address.toLowerCase()));
     } catch(e) {
         return [];
     }
@@ -5434,6 +5461,116 @@ async function addTokenToMetaMask(tokenAddress, symbol, decimals = 18, tokenImag
     }
 }
 
+let tokenPendingDelete = null;
+
+function promptDeleteUserToken(tokenAddress) {
+    const tokens = getUserCreatedTokens();
+    const target = tokens.find(t => t.address.toLowerCase() === tokenAddress.toLowerCase());
+    if (!target) {
+        showToast('Token Not Found', 'Could not locate token in registry.', 'error');
+        return;
+    }
+
+    tokenPendingDelete = target;
+
+    safeSetText('deleteModalTokenName', target.name);
+    safeSetText('deleteModalTokenSymbol', `$${target.symbol}`);
+    safeSetText('deleteModalTokenSupply', `${Number(target.supply).toLocaleString()} Supply`);
+    safeSetText('deleteModalTokenAddr', `${target.address.substring(0, 8)}...${target.address.substring(target.address.length - 6)}`);
+
+    const avatarContainer = document.getElementById('deleteModalTokenAvatar');
+    if (avatarContainer) {
+        if (target.image) {
+            avatarContainer.innerHTML = `<img src="${target.image}" class="w-full h-full object-cover" onerror="this.outerHTML='<span class=\\'font-pixel\\'>${(target.symbol || 'T').charAt(0)}</span>'">`;
+        } else {
+            avatarContainer.innerHTML = `<span class="font-pixel">${(target.symbol || 'T').charAt(0).toUpperCase()}</span>`;
+        }
+    }
+
+    const checkbox = document.getElementById('deleteBurnTokensCheckbox');
+    if (checkbox) checkbox.checked = false;
+
+    const modal = document.getElementById('deleteTokenModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        if (window.lucide) window.lucide.createIcons();
+    }
+}
+
+function closeDeleteTokenModal() {
+    tokenPendingDelete = null;
+    const modal = document.getElementById('deleteTokenModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+async function confirmDeleteUserToken() {
+    if (!tokenPendingDelete) return;
+
+    const target = tokenPendingDelete;
+    const btn = document.getElementById('btnConfirmDeleteToken');
+    const burnCheckbox = document.getElementById('deleteBurnTokensCheckbox');
+    const shouldBurn = burnCheckbox ? burnCheckbox.checked : false;
+
+    try {
+        if (shouldBurn && currentAccount && window.ethers) {
+            const providerObj = activeWeb3Provider || window.ethereum;
+            if (providerObj) {
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Burning Tokens...</span>`;
+                    if (window.lucide) window.lucide.createIcons();
+                }
+
+                const provider = new ethers.providers.Web3Provider(providerObj);
+                const signer = provider.getSigner();
+                const tokenContract = new ethers.Contract(target.address, ARC_CUSTOM_TOKEN_ABI, signer);
+
+                const balance = await tokenContract.balanceOf(currentAccount);
+                if (balance.gt(0)) {
+                    showToast('MetaMask Request', 'Confirm burning your remaining tokens to 0x...dEaD...', 'info');
+                    const burnTx = await tokenContract.transfer('0x000000000000000000000000000000000000dEaD', balance);
+                    await burnTx.wait();
+                    showToast('Tokens Burned', 'Remaining supply permanently sent to dead address.', 'success');
+                }
+            }
+        }
+
+        // Add to permanent deleted blacklist for this account
+        addDeletedToken(target.address);
+
+        // Remove from current local storage list
+        const key = getUserCreatedTokensKey();
+        const existing = getUserCreatedTokens();
+        const updated = existing.filter(t => t.address.toLowerCase() !== target.address.toLowerCase());
+        localStorage.setItem(key, JSON.stringify(updated));
+
+        // If this was the last deployed token, clear it from success card
+        if (lastDeployedTokenMeta && lastDeployedTokenMeta.address.toLowerCase() === target.address.toLowerCase()) {
+            lastDeployedTokenMeta = null;
+            const successCard = document.getElementById('tokenDeploySuccessCard');
+            if (successCard) successCard.classList.add('hidden');
+        }
+
+        closeDeleteTokenModal();
+        renderUserCreatedTokens(false);
+        showToast('Token Removed', `${target.symbol} has been deleted from your ArcPulse dashboard.`, 'success');
+
+    } catch (err) {
+        console.error("Error during token delete/burn:", err);
+        if (err.code === 4001 || err.message?.includes('rejected') || err.message?.includes('denied')) {
+            showToast('Action Cancelled', 'Transaction was cancelled in MetaMask.', 'error');
+        } else {
+            showToast('Delete Notice', err.reason || err.message || 'Could not complete token removal.', 'error');
+        }
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="trash-2" class="w-4 h-4"></i><span>Confirm Delete</span>`;
+            if (window.lucide) window.lucide.createIcons();
+        }
+    }
+}
+
 async function syncOnChainTokensFromFactory() {
     if (!currentAccount || !window.ethers) return;
     const providerObj = activeWeb3Provider || window.ethereum;
@@ -5447,10 +5584,13 @@ async function syncOnChainTokensFromFactory() {
         if (onChainTokens && onChainTokens.length > 0) {
             const key = getUserCreatedTokensKey();
             const localTokens = getUserCreatedTokens();
+            const deletedTokens = getDeletedTokens();
             let changed = false;
 
             for (const ot of onChainTokens) {
                 if (ot.creator.toLowerCase() === currentAccount.toLowerCase()) {
+                    if (deletedTokens.includes(ot.tokenAddress.toLowerCase())) continue;
+
                     const exists = localTokens.some(lt => lt.address.toLowerCase() === ot.tokenAddress.toLowerCase());
                     if (!exists) {
                         localTokens.unshift({
@@ -5551,14 +5691,18 @@ function renderUserCreatedTokens(shouldSync = true) {
                     </div>
 
                     <div class="flex items-center gap-2">
-                        <button onclick="addTokenToMetaMask('${t.address}', '${t.symbol}', ${t.decimals}, '${t.image || ''}')" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-colors">
+                        <button onclick="addTokenToMetaMask('${t.address}', '${t.symbol}', ${t.decimals}, '${t.image || ''}')" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-colors" title="Import into MetaMask">
                             <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
                             <span>Add</span>
                         </button>
-                        <a href="https://explorer.testnet.arc.network/address/${t.address}" target="_blank" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 transition-colors">
+                        <a href="https://explorer.testnet.arc.network/address/${t.address}" target="_blank" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 transition-colors" title="View in Arc Explorer">
                             <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
                             <span>Explorer</span>
                         </a>
+                        <button onclick="promptDeleteUserToken('${t.address}')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-colors" title="Remove token from dApp">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            <span>Delete</span>
+                        </button>
                     </div>
                 </div>
             </div>

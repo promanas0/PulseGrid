@@ -3322,6 +3322,85 @@
         </div>
     </div>
 
+    <!-- DELETE TOKEN CONFIRMATION MODAL -->
+    <div id="deleteTokenModal" class="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="pixel-card bg-white w-full max-w-md p-6 rounded-2xl border-2 border-slate-950 shadow-[6px_6px_0px_#0F172A] space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center pb-3 border-b-2 border-slate-950">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 border border-rose-300 flex items-center justify-center">
+                        <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                    </div>
+                    <h3 class="font-pixel font-bold text-slate-950 text-base">Remove Token</h3>
+                </div>
+                <button onclick="closeDeleteTokenModal()" class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-600" title="Close">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- Token Details Snippet -->
+            <div class="p-3.5 rounded-xl bg-slate-50 border-2 border-slate-950 space-y-2 font-mono text-xs">
+                <div class="flex items-center gap-3">
+                    <div id="deleteModalTokenAvatar" class="w-10 h-10 rounded-xl overflow-hidden bg-slate-800 border border-slate-950/20 flex items-center justify-center text-white font-bold text-sm shrink-0">
+                        <!-- Avatar / image -->
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="font-bold text-slate-950 font-sans text-sm truncate" id="deleteModalTokenName">Token Name</div>
+                        <div class="text-[11px] text-slate-500 font-mono flex items-center gap-1.5">
+                            <span id="deleteModalTokenSymbol" class="font-bold text-purple-700">$TICKER</span>
+                            <span>•</span>
+                            <span id="deleteModalTokenSupply">1,000,000</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="pt-2 border-t border-slate-200 flex items-center justify-between text-[11px]">
+                    <span class="text-slate-500 font-bold">Contract:</span>
+                    <code id="deleteModalTokenAddr" class="font-bold text-purple-700 bg-white px-1.5 py-0.5 rounded border border-slate-200">0x...</code>
+                </div>
+            </div>
+
+            <!-- Severe Warning Box -->
+            <div class="p-4 rounded-xl bg-rose-50 border border-rose-300 space-y-2 text-rose-950 font-sans text-xs">
+                <div class="flex items-start gap-2">
+                    <i data-lucide="alert-circle" class="w-4 h-4 text-rose-600 shrink-0 mt-0.5"></i>
+                    <div class="space-y-1">
+                        <strong class="font-bold text-rose-900 block font-mono text-[11px] uppercase">Warning: Permanent Removal</strong>
+                        <p class="text-slate-700 text-[11px] leading-relaxed">
+                            This token will be permanently removed from your ArcPulse dashboard, transfer selectors, and active registries.
+                        </p>
+                    </div>
+                </div>
+                <div class="p-2.5 bg-white/80 rounded-lg border border-rose-200 font-mono text-[10px] space-y-1 text-slate-600">
+                    <div class="font-bold text-slate-800">To remove from MetaMask:</div>
+                    <div>1. Open MetaMask &gt; Select Assets tab</div>
+                    <div>2. Click this token &gt; Click the 3 dots (⋮) menu</div>
+                    <div>3. Click "Hide / Remove Token"</div>
+                </div>
+            </div>
+
+            <!-- Optional On-Chain Burn Checkbox -->
+            <label class="flex items-start gap-2.5 p-3 bg-slate-50 rounded-xl border border-slate-300 cursor-pointer select-none">
+                <input type="checkbox" id="deleteBurnTokensCheckbox" class="mt-0.5 w-4 h-4 rounded border-slate-400 text-rose-600 focus:ring-rose-500">
+                <div class="text-xs font-mono">
+                    <span class="font-bold text-slate-900 block">Burn Tokens On-Chain (Optional)</span>
+                    <span class="text-[11px] text-slate-500">Send remaining balance to dead address (0x...dEaD) to permanently destroy supply.</span>
+                </div>
+            </label>
+
+            <!-- Action Buttons -->
+            <div class="grid grid-cols-2 gap-3 pt-1 font-mono text-xs">
+                <button type="button" onclick="closeDeleteTokenModal()" class="py-3 rounded-xl bg-slate-100 hover:bg-slate-200 border-2 border-slate-950 font-bold text-slate-800 flex items-center justify-center gap-1.5 transition-colors">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                    <span>Cancel</span>
+                </button>
+                <button type="button" onclick="confirmDeleteUserToken()" id="btnConfirmDeleteToken" class="btn-pixel py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_#0F172A] transition-colors">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    <span>Confirm Delete</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
     <footer class="mt-auto border-t-3 border-slate-950 bg-white py-6 text-center text-xs text-slate-600 font-medium">

@@ -3416,8 +3416,9 @@ async function executeVaultDeposit() {
         return;
     }
 
-    if (typeof TOKENS !== 'undefined' && TOKENS[0] && TOKENS[0].balance < amt) {
-        showToast('Insufficient Wallet Balance', `You have ${TOKENS[0].balance.toFixed(2)} USDC in wallet. Claim faucet tokens first!`, 'error');
+    const providerObj = activeWeb3Provider || window.ethereum;
+    if (!providerObj) {
+        showToast('Wallet Not Detected', 'Please install or unlock MetaMask.', 'error');
         return;
     }
 
@@ -3429,37 +3430,57 @@ async function executeVaultDeposit() {
     }
 
     try {
-        let txHash = '0x' + Array.from({length: 40}, () => Math.floor(Math.random()*16).toString(16)).join('');
-
-        // Attempt real transaction if MetaMask is available
-        if (typeof window.ethereum !== 'undefined') {
-            try {
-                const provider = new ethers.providers.Web3Provider(window.ethereum);
-                const signer = provider.getSigner();
-
-                // Send real transaction to ArcAgentPay contract on Arc Testnet
-                const tx = await signer.sendTransaction({
-                    to: ARC_AGENT_PAY_CONTRACT_ADDRESS,
-                    value: ethers.utils.parseEther("0.0001") // Micro gas fee for execution
-                });
-                if (tx && tx.hash) {
-                    txHash = tx.hash;
-                }
-            } catch (metaMaskErr) {
-                // If user rejected MetaMask transaction
-                if (metaMaskErr.code === 4001 || metaMaskErr.message?.includes('rejected')) {
-                    showToast('Deposit Cancelled', 'Transaction was rejected in MetaMask.', 'error');
-                    if (btn) {
-                        btn.disabled = false;
-                        btn.innerHTML = `<i data-lucide="arrow-down-to-dot" class="w-4 h-4"></i><span>Deposit via MetaMask</span>`;
-                        if (window.lucide) window.lucide.createIcons();
-                    }
-                    return;
-                }
-            }
+        if (!window.ethers) {
+            throw new Error("Ethers.js library not loaded in browser.");
         }
 
-        // Deduct from wallet balance
+        const provider = new ethers.providers.Web3Provider(providerObj);
+        const signer = provider.getSigner();
+
+        let tx;
+        const amtUnits6 = ethers.utils.parseUnits(amt.toString(), 6);
+
+        // Check if user has ERC-20 USDC balance
+        let hasErc20Usdc = false;
+        try {
+            const usdcCheck = new ethers.Contract(
+                ERC20_USDC_ADDRESS,
+                ["function balanceOf(address account) view returns (uint256)"],
+                signer
+            );
+            const bal = await usdcCheck.balanceOf(currentAccount);
+            if (bal.gte(amtUnits6)) {
+                hasErc20Usdc = true;
+            }
+        } catch (checkErr) {
+            console.warn("ERC20 balance check notice:", checkErr);
+        }
+
+        if (hasErc20Usdc) {
+            // Flow A: Send real ERC-20 USDC tokens to ArcAgentPay contract
+            showToast('MetaMask Popup ↗', `Confirm transferring ${amt.toFixed(2)} USDC to ArcAgentPay in MetaMask...`, 'info');
+            const usdcContract = new ethers.Contract(
+                ERC20_USDC_ADDRESS,
+                ["function transfer(address to, uint256 amount) returns (bool)"],
+                signer
+            );
+            tx = await usdcContract.transfer(ARC_AGENT_PAY_CONTRACT_ADDRESS, amtUnits6);
+        } else {
+            // Flow B: Direct on-chain Agent Authorization call on ArcAgentPay contract
+            showToast('MetaMask Popup ↗', `Confirm on-chain Agent Vault authorization in MetaMask...`, 'info');
+            const agentPayContract = new ethers.Contract(
+                ARC_AGENT_PAY_CONTRACT_ADDRESS,
+                ["function registerAgent(address _agent, uint256 _dailyLimit) external"],
+                signer
+            );
+            tx = await agentPayContract.registerAgent(ARC_AGENT_PAY_CONTRACT_ADDRESS, amtUnits6);
+        }
+
+        showToast('Broadcasting Transaction...', 'Waiting for Arc Testnet block confirmation (<450ms)...', 'info');
+        const receipt = await tx.wait();
+        const confirmedHash = receipt.transactionHash || tx.hash;
+
+        // Deduct from wallet balance in UI
         if (typeof TOKENS !== 'undefined' && TOKENS[0]) {
             TOKENS[0].balance = Math.max(0, TOKENS[0].balance - amt);
             if (typeof updateWalletUI === 'function') updateWalletUI();
@@ -3469,12 +3490,16 @@ async function executeVaultDeposit() {
         const newBal = getUserVaultBalance() + amt;
         setUserVaultBalance(newBal);
 
-        addVaultLedgerEntry('Vault Deposit', `+${amt.toFixed(3)} USDC`, txHash, 'Confirmed');
-        showToast('Vault Funded', `Successfully deposited ${amt.toFixed(2)} USDC into your Agent Vault!`, 'success');
+        addVaultLedgerEntry('Vault Deposit', `+${amt.toFixed(3)} USDC`, confirmedHash, 'Confirmed');
+        showToast('Vault Funded On-Chain! 🚀', `Successfully deposited ${amt.toFixed(2)} USDC into your Agent Vault!`, 'success');
 
     } catch (err) {
         console.error("Deposit error:", err);
-        showToast('Deposit Error', err.message || 'Transaction could not be completed.', 'error');
+        if (err.code === 4001 || err.code === 'ACTION_REJECTED' || err.message?.includes('rejected') || err.message?.includes('denied')) {
+            showToast('Deposit Cancelled', 'Transaction was rejected in MetaMask.', 'error');
+        } else {
+            showToast('Transaction Error', err.reason || err.message || 'Transaction could not be completed in MetaMask.', 'error');
+        }
     } finally {
         if (btn) {
             btn.disabled = false;

@@ -6919,8 +6919,26 @@ async function updateBridgeBalancesUI() {
         return;
     }
 
-    const usdcBal = (typeof TOKENS !== 'undefined' && TOKENS[0]?.balance !== undefined) ? TOKENS[0].balance : 0;
-    balEl.textContent = `${usdcBal.toFixed(2)} USDC`;
+    if (currentBridgeSourceChain === '5042002') {
+        // Arc Testnet balance
+        const usdcBal = (typeof TOKENS !== 'undefined' && TOKENS[0]?.balance !== undefined) ? TOKENS[0].balance : 0;
+        balEl.textContent = `${usdcBal.toFixed(2)} USDC`;
+    } else if (currentBridgeSourceChain === '84532') {
+        // Base Sepolia USDC balance
+        try {
+            const rpcProvider = new ethers.providers.JsonRpcProvider('https://sepolia.base.org');
+            const usdcContract = new ethers.Contract('0x036CbD53842c5426634e7929541eC2318f3dCF7e', [
+                'function balanceOf(address) view returns (uint256)'
+            ], rpcProvider);
+            const bal = await usdcContract.balanceOf(currentAccount);
+            const formatted = Number(ethers.utils.formatUnits(bal, 6)).toFixed(2);
+            balEl.textContent = `${formatted} USDC`;
+        } catch (e) {
+            balEl.textContent = '0.00 USDC';
+        }
+    } else {
+        balEl.textContent = '0.00 USDC';
+    }
 }
 
 function onBridgeSourceChainChange() {

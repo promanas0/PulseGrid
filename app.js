@@ -6835,8 +6835,8 @@ const SUPPORTED_BRIDGE_NETWORKS = {
     }
 };
 
-let currentBridgeSourceChain = '84532'; // Default: Base Sepolia
-let currentBridgeTargetChain = '5042002'; // Default: Arc Testnet
+let currentBridgeSourceChain = '5042002'; // Default: Arc Testnet (Circle L1)
+let currentBridgeTargetChain = '84532'; // Default: Base Sepolia
 let currentBridgeToken = 'USDC';
 
 function getBridgeHistoryStorageKey() {
@@ -6910,30 +6910,33 @@ async function updateBridgeBalancesUI() {
     }
 
     if (currentBridgeSourceChain === '5042002') {
+        // Arc Testnet
         if (currentBridgeToken === 'USDC') {
-            balEl.textContent = `${(userBalances?.nativeUsdc || 0).toFixed(2)} USDC`;
+            balEl.textContent = `${(userBalances?.nativeUsdc !== undefined ? userBalances.nativeUsdc : 0).toFixed(2)} USDC`;
         } else if (currentBridgeToken === 'EURC') {
-            balEl.textContent = `${(userBalances?.eurc || 0).toFixed(2)} EURC`;
+            balEl.textContent = `${(userBalances?.eurc !== undefined ? userBalances.eurc : 0).toFixed(2)} EURC`;
         } else {
             balEl.textContent = '0.00 ETH';
         }
     } else {
+        // Remote EVM chain
         try {
             const src = SUPPORTED_BRIDGE_NETWORKS[currentBridgeSourceChain];
-            if (window.ethereum && src?.rpcUrl) {
-                const provider = new ethers.providers.JsonRpcProvider(src.rpcUrl);
-                const ethBal = await provider.getBalance(currentAccount);
-                const formatted = Number(ethers.utils.formatEther(ethBal)).toFixed(4);
+            if (src?.rpcUrl) {
+                const rpcProvider = new ethers.providers.JsonRpcProvider(src.rpcUrl);
+                const ethBal = await rpcProvider.getBalance(currentAccount);
+                const formattedEth = Number(ethers.utils.formatEther(ethBal)).toFixed(4);
                 if (currentBridgeToken === 'ETH') {
-                    balEl.textContent = `${formatted} ETH`;
+                    balEl.textContent = `${formattedEth} ETH`;
                 } else {
-                    balEl.textContent = `50.00 ${currentBridgeToken}`;
+                    balEl.textContent = `${formattedEth} ETH (Gas)`;
                 }
             } else {
-                balEl.textContent = `50.00 ${currentBridgeToken}`;
+                balEl.textContent = '0.00';
             }
         } catch (e) {
-            balEl.textContent = `25.00 ${currentBridgeToken}`;
+            console.warn("Remote chain balance check notice:", e);
+            balEl.textContent = '0.00';
         }
     }
 }
@@ -6999,12 +7002,15 @@ function setBridgePercent(pct) {
     const input = document.getElementById('bridgeAmountInput');
     if (!input) return;
 
-    let bal = 25.0;
+    let bal = 0;
     if (currentBridgeSourceChain === '5042002') {
-        bal = (currentBridgeToken === 'USDC') ? (userBalances?.nativeUsdc || 25.0) : (userBalances?.eurc || 25.0);
+        bal = (currentBridgeToken === 'USDC') ? (userBalances?.nativeUsdc || 0) : (userBalances?.eurc || 0);
+    } else {
+        const balEl = document.getElementById('bridgeAssetBalance');
+        bal = balEl ? parseFloat(balEl.textContent) || 0 : 0;
     }
     const amt = (bal * pct).toFixed(2);
-    input.value = (amt > 0) ? amt : '1.00';
+    input.value = (parseFloat(amt) > 0) ? amt : (bal > 0 ? bal.toFixed(2) : '1.00');
     calculateBridgeRoute();
 }
 
@@ -7132,7 +7138,7 @@ async function executeBridgeTransfer() {
             
             let tx;
             if (sourceNet.chainIdDec === 5042002 && currentBridgeToken === 'USDC') {
-                const depositUnits = ethers.utils.parseUnits(Math.min(amt, 0.001).toString(), 6);
+                const depositUnits = ethers.utils.parseUnits(amt.toString(), 6);
                 const bridgeContract = new ethers.Contract(PULSEBRIDGE_ROUTER_ADDRESS, PULSEBRIDGE_ROUTER_ABI, signer);
                 tx = await bridgeContract.bridgeDeposit(
                     '0x0000000000000000000000000000000000000000',

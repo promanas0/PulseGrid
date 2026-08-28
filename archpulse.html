@@ -1270,10 +1270,10 @@
                         </div>
                         <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
                             <select id="bridgeSourceChainSelect" onchange="onBridgeSourceChainChange()" class="flex-1 bg-white border-2 border-slate-950 rounded-xl px-4 py-3 font-bold text-sm text-slate-950 outline-none focus:border-purple-700">
+                                <option value="5042002" selected>Arc Testnet (Circle L1 - 5042002)</option>
                                 <option value="84532">Base Sepolia (Chain ID: 84532)</option>
                                 <option value="11155111">Ethereum Sepolia (Chain ID: 11155111)</option>
                                 <option value="421614">Arbitrum Sepolia (Chain ID: 421614)</option>
-                                <option value="5042002">Arc Testnet (Circle L1 - 5042002)</option>
                             </select>
                             <button onclick="switchWalletToBridgeSourceChain()" id="bridgeSwitchNetworkBtn" class="btn-pixel-sm px-4 py-3 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shrink-0">
                                 <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Switch Network
@@ -1296,8 +1296,8 @@
                         </div>
                         <div class="pt-1">
                             <select id="bridgeTargetChainSelect" onchange="onBridgeTargetChainChange()" class="w-full bg-white border-2 border-slate-950 rounded-xl px-4 py-3 font-bold text-sm text-slate-950 outline-none focus:border-purple-700">
-                                <option value="5042002" selected>Arc Testnet (Circle L1 - 5042002)</option>
-                                <option value="84532">Base Sepolia (Chain ID: 84532)</option>
+                                <option value="84532" selected>Base Sepolia (Chain ID: 84532)</option>
+                                <option value="5042002">Arc Testnet (Circle L1 - 5042002)</option>
                                 <option value="11155111">Ethereum Sepolia (Chain ID: 11155111)</option>
                                 <option value="421614">Arbitrum Sepolia (Chain ID: 421614)</option>
                             </select>

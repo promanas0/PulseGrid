@@ -169,7 +169,88 @@ let receiveToken = TOKENS[1];
 startLiveCountdown();
 startLiveTelemetryTicker();
 
-// MULTI-TOKEN REGISTRY & SELECTION (SUPPORTS NATIVE + CUSTOM L1 TOKENS)
+// MULTI-TOKEN REGISTRY & LIVE BALANCE SYNC (SUPPORTS NATIVE + CUSTOM L1 TOKENS)
+const customTokenBalances = {};
+
+function formatTokenBalance(bal) {
+    if (bal === undefined || bal === null || isNaN(bal)) return '0.00';
+    if (bal === 0) return '0.00';
+    if (bal >= 1000000) return (bal / 1000000).toLocaleString(undefined, { maximumFractionDigits: 2 }) + 'M';
+    if (bal >= 10000) return bal.toLocaleString(undefined, { maximumFractionDigits: 2 });
+    if (bal >= 1) return bal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+    if (bal > 0) return bal.toFixed(4);
+    return '0.00';
+}
+
+async function fetchCustomTokenBalance(tokenAddr, accountAddress = currentAccount) {
+    if (!tokenAddr || !accountAddress || !tokenAddr.startsWith('0x') || tokenAddr.length !== 42) return 0;
+    try {
+        const key = tokenAddr.toLowerCase();
+        const cleanAccount = accountAddress.startsWith('0x') ? accountAddress.substring(2) : accountAddress;
+        const balanceOfData = '0x70a08231' + cleanAccount.toLowerCase().padStart(64, '0');
+        const decimalsData = '0x313ce567';
+
+        const [balRes, decRes] = await Promise.all([
+            fetch(ARC_RPC_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_call', params: [{ to: tokenAddr, data: balanceOfData }, 'latest'], id: 101 })
+            }).then(r => r.json()).catch(() => null),
+            fetch(ARC_RPC_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_call', params: [{ to: tokenAddr, data: decimalsData }, 'latest'], id: 102 })
+            }).then(r => r.json()).catch(() => null)
+        ]);
+
+        let decimals = 18;
+        if (decRes?.result && decRes.result !== '0x') {
+            decimals = Number(BigInt(decRes.result)) || 18;
+        }
+
+        let balance = 0;
+        if (balRes?.result && balRes.result !== '0x') {
+            const raw = BigInt(balRes.result);
+            balance = Number(raw) / Math.pow(10, decimals);
+            if (raw > 0n && balance === 0) {
+                balance = Number(raw / BigInt(Math.pow(10, Math.max(0, decimals - 6)))) / 1e6;
+            }
+        }
+
+        customTokenBalances[key] = balance;
+
+        if (payToken && payToken.address && payToken.address.toLowerCase() === key) {
+            payToken.balance = balance;
+            safeSetText('payTokenBalance', formatTokenBalance(balance));
+        }
+        if (receiveToken && receiveToken.address && receiveToken.address.toLowerCase() === key) {
+            receiveToken.balance = balance;
+            safeSetText('receiveTokenBalance', formatTokenBalance(balance));
+        }
+
+        return balance;
+    } catch (e) {
+        console.warn("fetchCustomTokenBalance notice for", tokenAddr, e);
+        return 0;
+    }
+}
+
+async function fetchAllCustomTokenBalances(accountAddress = currentAccount) {
+    if (!accountAddress) return;
+    try {
+        const userTokens = getUserCreatedTokens();
+        const activePools = getStoredActivePools();
+        const addrs = new Set();
+        userTokens.forEach(t => { if (t && t.address && t.address.startsWith('0x')) addrs.add(t.address.toLowerCase()); });
+        activePools.forEach(p => { if (p && p.tokenAddress && p.tokenAddress.startsWith('0x')) addrs.add(p.tokenAddress.toLowerCase()); });
+
+        const promises = Array.from(addrs).map(addr => fetchCustomTokenBalance(addr, accountAddress));
+        await Promise.all(promises);
+    } catch (e) {
+        console.warn("fetchAllCustomTokenBalances notice:", e);
+    }
+}
+
 function getAllAvailableTokens() {
     const list = [...TOKENS];
     const userTokens = getUserCreatedTokens();
@@ -181,11 +262,13 @@ function getAllAvailableTokens() {
     userTokens.forEach(ut => {
         if (ut && ut.address && !seen.has(ut.address.toLowerCase())) {
             seen.add(ut.address.toLowerCase());
+            const addrLower = ut.address.toLowerCase();
+            const bal = customTokenBalances[addrLower] !== undefined ? customTokenBalances[addrLower] : 0.00;
             list.push({
-                id: 'custom_' + ut.address.toLowerCase(),
+                id: 'custom_' + addrLower,
                 symbol: ut.symbol,
                 name: ut.name,
-                balance: 0.00,
+                balance: bal,
                 usdRate: 1.00,
                 icon: ut.symbol ? ut.symbol.charAt(0).toUpperCase() : 'T',
                 image: ut.image || '',
@@ -200,11 +283,13 @@ function getAllAvailableTokens() {
     activePools.forEach(ap => {
         if (ap && ap.tokenAddress && !seen.has(ap.tokenAddress.toLowerCase())) {
             seen.add(ap.tokenAddress.toLowerCase());
+            const addrLower = ap.tokenAddress.toLowerCase();
+            const bal = customTokenBalances[addrLower] !== undefined ? customTokenBalances[addrLower] : 0.00;
             list.push({
-                id: 'custom_' + ap.tokenAddress.toLowerCase(),
+                id: 'custom_' + addrLower,
                 symbol: ap.tokenSymbol,
                 name: ap.tokenName,
-                balance: 0.00,
+                balance: bal,
                 usdRate: ap.priceUsdc || 1.00,
                 icon: ap.tokenSymbol ? ap.tokenSymbol.charAt(0).toUpperCase() : 'T',
                 image: ap.tokenImage || '',
@@ -219,12 +304,26 @@ function getAllAvailableTokens() {
     return list;
 }
 
-function openTokenModal(target) {
+async function openTokenModal(target) {
     tokenModalTarget = target;
     const tokens = getAllAvailableTokens();
     renderTokenList(tokens);
     const modal = document.getElementById('tokenModal');
     if (modal) modal.classList.remove('hidden');
+
+    // Live refresh balances for all custom tokens in parallel
+    if (currentAccount) {
+        fetchAllCustomTokenBalances(currentAccount).then(() => {
+            if (modal && !modal.classList.contains('hidden')) {
+                const searchVal = document.getElementById('tokenSearchInput')?.value?.toLowerCase() || '';
+                if (searchVal) {
+                    filterTokens();
+                } else {
+                    renderTokenList(getAllAvailableTokens());
+                }
+            }
+        });
+    }
 }
 
 function closeTokenModal() {
@@ -263,7 +362,7 @@ function renderTokenList(tokensToRender) {
                 </div>
             </div>
             <div class="text-right">
-                <div class="font-bold text-slate-950 text-xs">${t.balance ? t.balance.toFixed(2) : '0.00'}</div>
+                <div class="font-bold text-slate-950 text-xs">${formatTokenBalance(t.balance)}</div>
                 <div class="text-[10px] text-slate-400">${t.isComingSoon ? 'Soon' : (t.isCustom ? 'AMM Pool' : '$' + t.usdRate.toLocaleString())}</div>
             </div>
         `;
@@ -298,6 +397,13 @@ function selectToken(token) {
         receiveToken = token;
     }
 
+    if (payToken.address && customTokenBalances[payToken.address.toLowerCase()] !== undefined) {
+        payToken.balance = customTokenBalances[payToken.address.toLowerCase()];
+    }
+    if (receiveToken.address && customTokenBalances[receiveToken.address.toLowerCase()] !== undefined) {
+        receiveToken.balance = customTokenBalances[receiveToken.address.toLowerCase()];
+    }
+
     safeSetText('payTokenSymbol', payToken.symbol);
     safeSetText('receiveTokenSymbol', receiveToken.symbol);
 
@@ -324,6 +430,14 @@ function selectToken(token) {
 
     calculateSwap();
     updateTokenBalancesUI();
+
+    // Query live balance in background to keep always fresh
+    if (payToken.isCustom && payToken.address && currentAccount) {
+        fetchCustomTokenBalance(payToken.address, currentAccount);
+    }
+    if (receiveToken.isCustom && receiveToken.address && currentAccount) {
+        fetchCustomTokenBalance(receiveToken.address, currentAccount);
+    }
 }
 
 // WALLETCONNECT V2 INITIALIZATION
@@ -672,6 +786,16 @@ async function fetchRealOnChainBalances(account) {
             const eurcRaw = BigInt(eurcData.result);
             TOKENS[1].balance = Number(eurcRaw) / 1e6; // 6 decimals for EURC
         }
+
+        // 3. FETCH ALL CUSTOM L1 TOKENS BALANCES
+        await fetchAllCustomTokenBalances(account);
+
+        if (payToken.address && customTokenBalances[payToken.address.toLowerCase()] !== undefined) {
+            payToken.balance = customTokenBalances[payToken.address.toLowerCase()];
+        }
+        if (receiveToken.address && customTokenBalances[receiveToken.address.toLowerCase()] !== undefined) {
+            receiveToken.balance = customTokenBalances[receiveToken.address.toLowerCase()];
+        }
     } catch (e) {
         console.warn("RPC real balance fetch notice:", e);
     }
@@ -720,6 +844,7 @@ async function disconnectWallet() {
     currentAccount = null;
     activeWeb3Provider = null;
     TOKENS.forEach(t => t.balance = 0.00);
+    Object.keys(customTokenBalances).forEach(k => delete customTokenBalances[k]);
     updateTokenBalancesUI();
     updateWalletUI();
     renderWalletView();
@@ -795,25 +920,25 @@ async function fetchBalances(accountAddress = currentAccount) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_getBalance', params: [accountAddress, 'latest'], id: 1 })
-        }).then(r => r.json());
+        }).then(r => r.json()).catch(() => null);
 
         // 2. ERC-20 USDC (0x3600..., 6 decimals)
         const usdcContract = '0x3600000000000000000000000000000000000000';
-        const balanceOfDataUSDC = '0x70a08231' + accountAddress.substring(2).padStart(64, '0');
+        const balanceOfDataUSDC = '0x70a08231' + accountAddress.substring(2).toLowerCase().padStart(64, '0');
         const usdcErc20Res = await fetch(ARC_RPC_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_call', params: [{ to: usdcContract, data: balanceOfDataUSDC }, 'latest'], id: 2 })
-        }).then(r => r.json());
+        }).then(r => r.json()).catch(() => null);
 
         // 3. ERC-20 EURC (0x89B5..., 6 decimals)
         const eurcContract = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a';
-        const balanceOfDataEURC = '0x70a08231' + accountAddress.substring(2).padStart(64, '0');
+        const balanceOfDataEURC = '0x70a08231' + accountAddress.substring(2).toLowerCase().padStart(64, '0');
         const eurcRes = await fetch(ARC_RPC_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_call', params: [{ to: eurcContract, data: balanceOfDataEURC }, 'latest'], id: 3 })
-        }).then(r => r.json());
+        }).then(r => r.json()).catch(() => null);
 
         let nativeUsdc = 0;
         let erc20Usdc = 0;
@@ -832,6 +957,16 @@ async function fetchBalances(accountAddress = currentAccount) {
         TOKENS[0].balance = nativeUsdc;
         TOKENS[1].balance = erc20Eurc;
 
+        // 4. Custom L1 Tokens
+        await fetchAllCustomTokenBalances(accountAddress);
+
+        if (payToken.address && customTokenBalances[payToken.address.toLowerCase()] !== undefined) {
+            payToken.balance = customTokenBalances[payToken.address.toLowerCase()];
+        }
+        if (receiveToken.address && customTokenBalances[receiveToken.address.toLowerCase()] !== undefined) {
+            receiveToken.balance = customTokenBalances[receiveToken.address.toLowerCase()];
+        }
+
         updateTokenBalancesUI();
         renderWalletView();
         renderPortfolioView();
@@ -841,8 +976,14 @@ async function fetchBalances(accountAddress = currentAccount) {
 }
 
 function updateTokenBalancesUI() {
-    safeSetText('payTokenBalance', payToken.balance.toFixed(2));
-    safeSetText('receiveTokenBalance', receiveToken.balance.toFixed(2));
+    if (payToken.address && customTokenBalances[payToken.address.toLowerCase()] !== undefined) {
+        payToken.balance = customTokenBalances[payToken.address.toLowerCase()];
+    }
+    if (receiveToken.address && customTokenBalances[receiveToken.address.toLowerCase()] !== undefined) {
+        receiveToken.balance = customTokenBalances[receiveToken.address.toLowerCase()];
+    }
+    safeSetText('payTokenBalance', formatTokenBalance(payToken.balance));
+    safeSetText('receiveTokenBalance', formatTokenBalance(receiveToken.balance));
     updateWalletUI();
 }
 
@@ -1559,6 +1700,13 @@ function switchSwapTokens() {
     payToken = receiveToken;
     receiveToken = temp;
 
+    if (payToken.address && customTokenBalances[payToken.address.toLowerCase()] !== undefined) {
+        payToken.balance = customTokenBalances[payToken.address.toLowerCase()];
+    }
+    if (receiveToken.address && customTokenBalances[receiveToken.address.toLowerCase()] !== undefined) {
+        receiveToken.balance = customTokenBalances[receiveToken.address.toLowerCase()];
+    }
+
     safeSetText('payTokenSymbol', payToken.symbol);
     safeSetText('receiveTokenSymbol', receiveToken.symbol);
 
@@ -1568,16 +1716,33 @@ function switchSwapTokens() {
     const payIconContainer = document.getElementById('payTokenIconContainer');
     const recIconContainer = document.getElementById('receiveTokenIconContainer');
     if (payIconContainer) {
-        payIconContainer.className = `w-7 h-7 rounded-full ${payToken.bg} flex items-center justify-center font-black text-white text-xs`;
-        payIconContainer.innerText = payToken.icon;
+        if (payToken.image) {
+            payIconContainer.className = 'w-7 h-7 rounded-full overflow-hidden border border-slate-950/20 shadow-sm shrink-0 flex items-center justify-center';
+            payIconContainer.innerHTML = `<img src="${payToken.image}" class="w-full h-full object-cover">`;
+        } else {
+            payIconContainer.className = `w-7 h-7 rounded-full ${payToken.bg || 'bg-purple-600'} flex items-center justify-center font-black text-white text-xs shrink-0`;
+            payIconContainer.innerText = payToken.icon || 'T';
+        }
     }
     if (recIconContainer) {
-        recIconContainer.className = `w-7 h-7 rounded-full ${receiveToken.bg} flex items-center justify-center font-black text-white text-xs`;
-        recIconContainer.innerText = receiveToken.icon;
+        if (receiveToken.image) {
+            recIconContainer.className = 'w-7 h-7 rounded-full overflow-hidden border border-slate-950/20 shadow-sm shrink-0 flex items-center justify-center';
+            recIconContainer.innerHTML = `<img src="${receiveToken.image}" class="w-full h-full object-cover">`;
+        } else {
+            recIconContainer.className = `w-7 h-7 rounded-full ${receiveToken.bg || 'bg-amber-500'} flex items-center justify-center font-black text-white text-xs shrink-0`;
+            recIconContainer.innerText = receiveToken.icon || 'T';
+        }
     }
 
     calculateSwap();
     updateTokenBalancesUI();
+
+    if (payToken.isCustom && payToken.address && currentAccount) {
+        fetchCustomTokenBalance(payToken.address, currentAccount);
+    }
+    if (receiveToken.isCustom && receiveToken.address && currentAccount) {
+        fetchCustomTokenBalance(receiveToken.address, currentAccount);
+    }
 }
 
 // REAL WEB3 SPENDER ROUTER SWAP EXECUTION (SUPPORTING NATIVE USDC & ERC-20 TOKENS)
@@ -1595,8 +1760,8 @@ async function executeRealSwap() {
         return;
     }
 
-    if (payToken.balance > 0 && payToken.balance < amt) {
-        showToast('Insufficient Balance', `You need ${amt} ${payToken.symbol} to swap`, 'error');
+    if (payToken.balance !== undefined && payToken.balance < amt) {
+        showToast('Insufficient Balance', `You have ${formatTokenBalance(payToken.balance)} ${payToken.symbol}. Need ${amt} to swap.`, 'error');
         return;
     }
 

@@ -90,8 +90,8 @@ const PREDICTION_MARKET_ADDRESS = '0x14519dB645becb71867A657b0b461E301954800F';
 const ERC20_USDC_ADDRESS = '0x3600000000000000000000000000000000000000';
 const ERC20_EURC_ADDRESS = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a';
 
-// Official PulseSwap AMM Multi-Token Liquidity Router for Arc Testnet
-let PULSESWAP_ROUTER_ADDRESS = localStorage.getItem('arc_pulseswap_router_addr') || '0x62B28B8233C2932B39589d81d2fD0c4cf19D1C27';
+// Official PulseSwap AMM Multi-Token Liquidity Router deployed on Arc Testnet (Chain ID 5042002)
+const PULSESWAP_ROUTER_ADDRESS = '0x2f9C432e1064D3b78A6e943454dAa7e0511d834B';
 
 const PULSESWAP_ROUTER_ABI = [
     "function createPool(address token, uint256 tokenAmount) external payable returns (uint256 lpShares)",

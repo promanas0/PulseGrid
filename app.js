@@ -998,6 +998,7 @@ function switchSwapMode(mode) {
         if (btnPool) btnPool.className = 'flex-1 py-2.5 rounded-xl font-pixel font-bold text-xs text-slate-700 hover:text-slate-950 flex items-center justify-center gap-2';
         if (swapContainer) swapContainer.classList.remove('hidden');
         if (poolContainer) poolContainer.classList.add('hidden');
+        renderQuickPairBadges();
     } else {
         if (btnPool) btnPool.className = 'btn-pixel flex-1 py-2.5 rounded-xl font-bold text-xs text-white bg-purple-700 border-2 border-slate-950 flex items-center justify-center gap-2';
         if (btnSwap) btnSwap.className = 'flex-1 py-2.5 rounded-xl font-pixel font-bold text-xs text-slate-700 hover:text-slate-950 flex items-center justify-center gap-2';
@@ -1507,6 +1508,29 @@ function refreshActivePoolsUI() {
 
     container.innerHTML = html;
     safeInitIcons();
+    renderQuickPairBadges();
+}
+
+function renderQuickPairBadges() {
+    const container = document.getElementById('quickPairBadgesContainer');
+    if (!container) return;
+    const pools = getStoredActivePools();
+    if (pools.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+    let html = '<span class="text-[10px] text-slate-500 font-bold font-mono uppercase tracking-wider flex items-center gap-1"><i data-lucide="sparkles" class="w-3 h-3 text-purple-600"></i> Active Pools:</span>';
+    pools.forEach(p => {
+        const isSelected = (receiveToken && receiveToken.address && receiveToken.address.toLowerCase() === p.tokenAddress.toLowerCase()) || (payToken && payToken.address && payToken.address.toLowerCase() === p.tokenAddress.toLowerCase());
+        html += `
+            <button onclick="loadTokenPairForSwap('${p.tokenAddress}')" class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold border transition-all flex items-center gap-1.5 shadow-sm ${isSelected ? 'bg-purple-700 text-white border-slate-950 shadow-[1px_1px_0px_#0F172A]' : 'bg-white text-slate-900 border-slate-300 hover:border-purple-600 hover:bg-purple-50'}">
+                <span class="w-2 h-2 rounded-full ${isSelected ? 'bg-emerald-300' : 'bg-emerald-500'} animate-pulse"></span>
+                <span>$${escapeHtml(p.tokenSymbol)} / USDC</span>
+            </button>
+        `;
+    });
+    container.innerHTML = html;
+    safeInitIcons();
 }
 
 function initiatePoolCreation(tokenAddress) {
@@ -1561,6 +1585,7 @@ function loadTokenPairForSwap(tokenAddress) {
 
         calculateSwap();
         updateTokenBalancesUI();
+        renderQuickPairBadges();
         if (currentAccount && receiveToken.address) {
             fetchCustomTokenBalance(receiveToken.address, currentAccount);
         }

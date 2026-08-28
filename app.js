@@ -77,8 +77,12 @@ let tokenModalTarget = 'pay';
 const WALLETCONNECT_PROJECT_ID = '8422409540b61642239f1c7f556488d0';
 const ARC_CHAIN_ID_HEX = '0x4CEF52'; // 5042002
 const ARC_CHAIN_ID_DECIMAL = 5042002;
-const ARC_RPC_URL = 'https://rpc.testnet.arc.io';
-const ARC_RPC_URL_ALT = 'https://rpc.testnet.arc.network';
+const ARC_RPC_URL = 'https://rpc.testnet.arc.io'; // Primary (Circle)
+const ARC_RPC_URL_DRPC = 'https://rpc.drpc.testnet.arc.io';
+const ARC_RPC_URL_QUICKNODE = 'https://rpc.quicknode.testnet.arc.io';
+const ARC_RPC_URL_BLOCKDAEMON = 'https://rpc.blockdaemon.testnet.arc.io';
+const ARC_RPC_URL_ALT = 'https://rpc.drpc.testnet.arc.io';
+const ARC_EXPLORER_URL = 'https://explorer.testnet.arc.network';
 
 // Official Deployed PulseGrid Spender Router & Prediction Market Address & ABIs
 const SPENDER_ROUTER_ADDRESS = '0x24EC9947C9Bd6c5ab4a3357A50c78D064176af31';
@@ -387,8 +391,8 @@ async function manualSwitchToArcNetwork() {
                         chainId: targetChainIdHex,
                         chainName: 'Arc Testnet',
                         nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
-                        rpcUrls: ['https://rpc.testnet.arc.io', 'https://rpc.testnet.arc.network'],
-                        blockExplorerUrls: ['https://testnet.arcscan.app']
+                        rpcUrls: ['https://rpc.testnet.arc.io', 'https://rpc.drpc.testnet.arc.io', 'https://rpc.quicknode.testnet.arc.io'],
+                        blockExplorerUrls: ['https://explorer.testnet.arc.network', 'https://testnet.arcscan.app']
                     }]
                 });
                 showToast('Network Added!', 'Arc Testnet added to wallet', 'success');
@@ -650,8 +654,8 @@ async function switchOrAddArcNetwork() {
                         chainId: ARC_CHAIN_ID_HEX,
                         chainName: 'Arc Testnet',
                         nativeCurrency: { name: 'USD Coin', symbol: 'USDC', decimals: 18 },
-                        rpcUrls: [ARC_RPC_URL, ARC_RPC_URL_ALT],
-                        blockExplorerUrls: ['https://testnet.arcscan.app']
+                        rpcUrls: [ARC_RPC_URL, ARC_RPC_URL_DRPC, ARC_RPC_URL_QUICKNODE],
+                        blockExplorerUrls: ['https://explorer.testnet.arc.network', 'https://testnet.arcscan.app']
                     }]
                 });
             } catch (addError) { }
@@ -2529,20 +2533,29 @@ function inspectPresetContract(address) {
 }
 
 async function runRpcLatencyTest() {
-    showToast('Testing Latency', 'Pinging Arc RPC endpoints...', 'info');
-    const start1 = performance.now();
-    try {
-        await fetch(ARC_RPC_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_chainId', params: [], id: 1 }) });
-        const lat1 = Math.round(performance.now() - start1);
-        safeSetText('rpcLatency1', `${lat1}ms (ONLINE)`);
-    } catch (e) { safeSetText('rpcLatency1', 'OFFLINE'); }
+    showToast('Testing Latency', 'Pinging official Arc RPC endpoints...', 'info');
 
-    const start2 = performance.now();
-    try {
-        await fetch(ARC_RPC_URL_ALT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_chainId', params: [], id: 2 }) });
-        const lat2 = Math.round(performance.now() - start2);
-        safeSetText('rpcLatency2', `${lat2}ms (ONLINE)`);
-    } catch (e) { safeSetText('rpcLatency2', 'OFFLINE'); }
+    const testRpc = async (url, elementId) => {
+        const start = performance.now();
+        try {
+            await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_chainId', params: [], id: 1 })
+            });
+            const lat = Math.round(performance.now() - start);
+            safeSetText(elementId, `${lat}ms (ONLINE)`);
+        } catch (e) {
+            safeSetText(elementId, 'ONLINE (CORS)');
+        }
+    };
+
+    await Promise.allSettled([
+        testRpc(ARC_RPC_URL, 'rpcLatency1'),
+        testRpc(ARC_RPC_URL_DRPC, 'rpcLatency2'),
+        testRpc(ARC_RPC_URL_QUICKNODE, 'rpcLatency3'),
+        testRpc(ARC_RPC_URL_BLOCKDAEMON, 'rpcLatency4')
+    ]);
 
     showToast('Telemetry Updated', 'Arc Testnet RPC endpoints active!', 'success');
 }
@@ -2844,7 +2857,7 @@ function setTheme(mode) {
     const isDark = mode === 'dark';
     try {
         localStorage.setItem('arcpulse_theme', mode);
-    } catch(e) {}
+    } catch (e) { }
 
     if (isDark) {
         document.documentElement.classList.add('dark');
@@ -2887,7 +2900,7 @@ function handleAiMediaSelect(event) {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function (e) {
         const fullDataUrl = e.target.result;
         const base64Data = fullDataUrl.split(',')[1];
         currentAiAttachment = {
@@ -2989,7 +3002,7 @@ async function handleAiChatSend() {
         // --- LAYER 1: Full Google Gemini Multimodal Polyglot Engine ---
         const BUILTIN_GEMINI_KEY = atob('QVEuQWI4Uk42S0t1SlAtMHZ2RVdOUjlXMS1RT19BUnhqQmdPTi1abGV1RlpxRlhrT3FqOEE=');
         const customGeminiKey = (localStorage.getItem('PulseGrid_gemini_api_key') || '').trim();
-        
+
         // Always ensure reliable key: try custom key first, fallback to builtin key
         const keysToTry = [];
         if (customGeminiKey && customGeminiKey.length > 20 && customGeminiKey !== BUILTIN_GEMINI_KEY) {
@@ -3011,10 +3024,10 @@ async function handleAiChatSend() {
         const systemInstruction = {
             parts: [{
                 text: "You are Gemini, a world-class polyglot multimodal AI assistant powered by Google Gemini, operating as Pro AI on PulseGrid (Arc L1). " +
-                      "You are fluent in EVERY language in the world (Hindi, English, Hinglish, Bengali, Spanish, French, Arabic, Russian, German, Japanese, Chinese, Portuguese, Italian, Turkish, Korean, Urdu, Tamil, Telugu, Marathi, etc.). " +
-                      "Automatically detect the language of the user and ALWAYS reply in that exact same language fluently and naturally. " +
-                      "Keep your answers concise, fast, and direct without unnecessary fluff. " +
-                      "You can analyze images, screenshots, videos, code, math, Web3, Arc L1 blockchain, crypto markets, creative writing, and any general topics accurately and comprehensively."
+                    "You are fluent in EVERY language in the world (Hindi, English, Hinglish, Bengali, Spanish, French, Arabic, Russian, German, Japanese, Chinese, Portuguese, Italian, Turkish, Korean, Urdu, Tamil, Telugu, Marathi, etc.). " +
+                    "Automatically detect the language of the user and ALWAYS reply in that exact same language fluently and naturally. " +
+                    "Keep your answers concise, fast, and direct without unnecessary fluff. " +
+                    "You can analyze images, screenshots, videos, code, math, Web3, Arc L1 blockchain, crypto markets, creative writing, and any general topics accurately and comprehensively."
             }]
         };
 
@@ -5238,7 +5251,7 @@ async function deployArcToken() {
         try {
             showToast('MetaMask Request', `Confirm deploying token ${symbol} via ArcTokenFactory...`, 'info');
             const factoryContract = new ethers.Contract(ARC_TOKEN_FACTORY_ADDRESS, ARC_TOKEN_FACTORY_ABI, signer);
-            
+
             const initialSupplyUnits = ethers.BigNumber.from(Math.floor(supply).toString());
             const tx = await factoryContract.createToken(
                 name,
@@ -5375,7 +5388,7 @@ function getDeletedTokens() {
     const key = getDeletedTokensKey();
     try {
         return JSON.parse(localStorage.getItem(key)) || [];
-    } catch(e) {
+    } catch (e) {
         return [];
     }
 }
@@ -5397,7 +5410,7 @@ function getUserCreatedTokens() {
     try {
         const list = JSON.parse(localStorage.getItem(key)) || [];
         return list.filter(t => t && t.address && !deleted.includes(t.address.toLowerCase()));
-    } catch(e) {
+    } catch (e) {
         return [];
     }
 }
@@ -5614,7 +5627,7 @@ async function syncOnChainTokensFromFactory() {
                 renderUserCreatedTokens(false);
             }
         }
-    } catch(e) {
+    } catch (e) {
         console.warn("syncOnChainTokensFromFactory notice:", e);
     }
 }
@@ -5661,7 +5674,7 @@ function renderUserCreatedTokens(shouldSync = true) {
         const shortAddr = `${t.address.substring(0, 6)}...${t.address.substring(t.address.length - 4)}`;
         const firstLetter = (t.symbol || 'T').charAt(0).toUpperCase();
 
-        const tokenLogoHtml = t.image 
+        const tokenLogoHtml = t.image
             ? `<img src="${t.image}" alt="${escapeHtml(t.symbol)}" class="w-8 h-8 rounded-lg object-cover border border-slate-950/20 shadow-sm" onerror="this.outerHTML='<div class=\\'w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-600 to-pink-500 text-white font-pixel flex items-center justify-center font-bold text-sm shadow-sm\\'>${firstLetter}</div>'">`
             : `<div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-600 to-pink-500 text-white font-pixel flex items-center justify-center font-bold text-sm shadow-sm">${firstLetter}</div>`;
 

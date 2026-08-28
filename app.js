@@ -6877,7 +6877,7 @@ async function renderBridgeView() {
     updateBridgeStatusIndicator();
 }
 
-function updateBridgeStatusIndicator() {
+async function updateBridgeStatusIndicator() {
     const statusLabel = document.getElementById('bridgeSourceNetworkStatus');
     const switchBtn = document.getElementById('bridgeSwitchNetworkBtn');
     const actionBtnLabel = document.getElementById('bridgeBtnLabel');
@@ -6890,7 +6890,13 @@ function updateBridgeStatusIndicator() {
         return;
     }
 
-    const currentChainId = parseInt(provider.chainId || '0x0', 16);
+    let hexChain = window.ethereum?.chainId;
+    if (!hexChain && provider.request) {
+        try {
+            hexChain = await provider.request({ method: 'eth_chainId' });
+        } catch (e) {}
+    }
+    const currentChainId = parseInt(hexChain || '0x0', 16);
     const sourceChain = SUPPORTED_BRIDGE_NETWORKS[currentBridgeSourceChain];
 
     if (currentChainId === sourceChain?.chainIdDec) {

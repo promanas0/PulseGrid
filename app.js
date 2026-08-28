@@ -74,7 +74,7 @@ let activeWeb3Provider = null;
 let userPoints = 0;
 let tokenModalTarget = 'pay';
 
-const WALLETCONNECT_PROJECT_ID = '8422409540b61642239f1c7f556488d0';
+const WALLETCONNECT_PROJECT_ID = 'aed09fc7bcbfbe5615fa2f991b92e8b3';
 const ARC_CHAIN_ID_HEX = '0x4CEF52'; // 5042002
 const ARC_CHAIN_ID_DECIMAL = 5042002;
 const ARC_RPC_URL = 'https://rpc.testnet.arc.io'; // Primary (Circle)
@@ -242,10 +242,10 @@ async function initWalletConnectProvider() {
                     5042002: 'https://rpc.testnet.arc.io'
                 },
                 metadata: {
-                    name: 'PulseGrid DApp',
-                    description: 'Circle Arc L1 Ecosystem DApp',
-                    url: window.location.origin || 'https://PulseGrid.vercel.app',
-                    icons: ['https://raw.githubusercontent.com/promanas0/PulseGrid/main/logo.png']
+                    name: 'PulseGrid',
+                    description: 'PulseGrid Web3 Ecosystem & Token Suite on Circle Arc L1 Testnet',
+                    url: window.location.origin || 'https://pulsegrid-hub.vercel.app',
+                    icons: ['https://pulsegrid-hub.vercel.app/logo.png']
                 },
                 showQrModal: true
             });

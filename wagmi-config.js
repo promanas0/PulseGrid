@@ -13,8 +13,8 @@ const config = createConfig(
       [arcTestnet.id]: http("https://rpc.testnet.arc.io"),
       [mainnet.id]: http("https://cloudflare-eth.com"),
     },
-    walletConnectProjectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || process.env.WALLETCONNECT_PROJECT_ID || "demo-project-id",
-    appName: "ArchPulse DEX",
+    walletConnectProjectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || process.env.WALLETCONNECT_PROJECT_ID || "aed09fc7bcbfbe5615fa2f991b92e8b3",
+    appName: "PulseGrid",
   }),
 );
 

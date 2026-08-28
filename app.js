@@ -110,6 +110,21 @@ const PULSESWAP_ROUTER_ABI = [
     "event TokenSwap(address indexed token, address indexed trader, bool isBuy, uint256 usdcAmount, uint256 tokenAmount, uint256 timestamp)"
 ];
 
+const ARC_CUSTOM_TOKEN_ABI = [
+    "constructor(string memory _name, string memory _symbol, uint256 _initialSupply, uint8 _decimals, address _recipient)",
+    "function name() external view returns (string memory)",
+    "function symbol() external view returns (string memory)",
+    "function decimals() external view returns (uint8)",
+    "function totalSupply() external view returns (uint256)",
+    "function balanceOf(address account) external view returns (uint256)",
+    "function transfer(address to, uint256 value) external returns (bool)",
+    "function approve(address spender, uint256 value) external returns (bool)",
+    "function allowance(address owner, address spender) external view returns (uint256)",
+    "function transferFrom(address from, address to, uint256 value) external returns (bool)",
+    "event Transfer(address indexed from, address indexed to, uint256 value)",
+    "event Approval(address indexed owner, address indexed spender, uint256 value)"
+];
+
 const PREDICTION_MARKET_ABI = [
     "function buyShares(uint256 marketId, bool isYes, uint256 usdcAmount) external",
     "function claimWinnings(uint256 marketId) external returns (uint256 payout)",
@@ -864,6 +879,7 @@ function switchPoolSubTab(tab) {
         if (btnExplore) btnExplore.className = 'btn-pixel-sm px-3.5 py-2 rounded-xl bg-white text-slate-950 hover:bg-purple-50 font-bold text-xs flex items-center gap-1.5 shadow-sm border border-slate-300';
         if (viewCreate) viewCreate.classList.remove('hidden');
         if (viewExplore) viewExplore.classList.add('hidden');
+        populatePoolTokenSelect();
     } else {
         if (btnExplore) btnExplore.className = 'btn-pixel-sm px-3.5 py-2 rounded-xl bg-purple-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm';
         if (btnCreate) btnCreate.className = 'btn-pixel-sm px-3.5 py-2 rounded-xl bg-white text-slate-950 hover:bg-purple-50 font-bold text-xs flex items-center gap-1.5 shadow-sm border border-slate-300';
@@ -902,7 +918,7 @@ function populatePoolTokenSelect() {
 
     const userTokens = getUserCreatedTokens();
     if (userTokens.length === 0) {
-        select.innerHTML = '<option value="">-- No Deployed Tokens (Deploy in Token Forge first) --</option>';
+        select.innerHTML = '<option value="">-- No Deployed Tokens (Paste address below or deploy in Token Forge) --</option>';
         return;
     }
 
@@ -911,6 +927,12 @@ function populatePoolTokenSelect() {
         opts += `<option value="${t.address}">${escapeHtml(t.name)} ($${escapeHtml(t.symbol)}) - ${t.address.substring(0, 8)}...</option>`;
     });
     select.innerHTML = opts;
+
+    // Automatically pre-select the first token if user has tokens
+    if (userTokens.length > 0 && userTokens[0].address) {
+        select.value = userTokens[0].address;
+        onPoolTokenSelected();
+    }
 }
 
 async function onPoolTokenSelected() {
@@ -918,7 +940,12 @@ async function onPoolTokenSelected() {
     const customInput = document.getElementById('poolCustomTokenInput');
     const tokenAddr = select?.value;
 
-    if (!tokenAddr) return;
+    if (!tokenAddr) {
+        safeSetText('poolTokenSelectedSymbol', 'TOKEN');
+        safeSetText('poolTokenBalanceLabel', 'Balance: 0.00');
+        updatePoolPricePreview();
+        return;
+    }
     if (customInput) customInput.value = tokenAddr;
 
     const userTokens = getUserCreatedTokens();
@@ -933,7 +960,11 @@ async function onPoolTokenSelected() {
 async function onCustomTokenAddressInput() {
     const customInput = document.getElementById('poolCustomTokenInput');
     const addr = customInput?.value.trim();
-    if (!addr || !addr.startsWith('0x') || addr.length !== 42) return;
+    if (!addr || !addr.startsWith('0x') || addr.length !== 42) {
+        safeSetText('poolTokenSelectedSymbol', 'TOKEN');
+        safeSetText('poolTokenBalanceLabel', 'Enter full 0x contract address');
+        return;
+    }
 
     const select = document.getElementById('poolTokenSelect');
     if (select) select.value = '';
@@ -947,13 +978,17 @@ async function updatePoolTokenBalance(tokenAddr) {
     if (!balLabel) return;
 
     if (!currentAccount || !window.ethers) {
-        balLabel.textContent = 'Balance: 0.00';
+        balLabel.textContent = 'Balance: Connect Wallet';
         return;
     }
 
     try {
+        balLabel.textContent = 'Checking balance...';
         const providerObj = activeWeb3Provider || window.ethereum;
-        if (!providerObj) return;
+        if (!providerObj) {
+            balLabel.textContent = 'Balance: Connect Wallet';
+            return;
+        }
         const provider = new ethers.providers.Web3Provider(providerObj);
         const contract = new ethers.Contract(tokenAddr, ARC_CUSTOM_TOKEN_ABI, provider);
         const [bal, dec, sym] = await Promise.all([
@@ -965,6 +1000,7 @@ async function updatePoolTokenBalance(tokenAddr) {
         balLabel.textContent = `Balance: ${parseFloat(fmt).toLocaleString()} $${sym}`;
         safeSetText('poolTokenSelectedSymbol', sym);
     } catch (e) {
+        console.warn("updatePoolTokenBalance error:", e);
         balLabel.textContent = 'Balance: Available on Arc';
     }
 }
@@ -1014,36 +1050,73 @@ function updatePoolPricePreview() {
 }
 
 async function handleCreateOrAddPool() {
+    console.log('[PulseSwap] handleCreateOrAddPool initiated');
+
+    const statusBox = document.getElementById('poolActionStatusBox');
+    const setStatus = (msg, isErr = true) => {
+        if (statusBox) {
+            statusBox.className = `p-3.5 rounded-xl text-xs font-mono font-bold flex items-center gap-2.5 border shadow-sm ${isErr ? 'bg-rose-50 text-rose-800 border-rose-300' : 'bg-emerald-50 text-emerald-900 border-emerald-300'}`;
+            statusBox.innerHTML = `<i data-lucide="${isErr ? 'alert-triangle' : 'check-circle-2'}" class="w-5 h-5 shrink-0 ${isErr ? 'text-rose-600' : 'text-emerald-600'}"></i><span>${msg}</span>`;
+            statusBox.classList.remove('hidden');
+            safeInitIcons();
+        }
+    };
+    const clearStatus = () => {
+        if (statusBox) statusBox.classList.add('hidden');
+    };
+
+    clearStatus();
+
+    // 1. Check wallet connection
     if (!currentAccount) {
+        setStatus('Wallet not connected! Opening wallet connection modal...');
+        showToast('Connect Wallet', 'Please connect your Web3 wallet first.', 'warning');
         handleWalletClick();
         return;
     }
 
+    // 2. Check token selection
     const select = document.getElementById('poolTokenSelect');
     const customAddrInput = document.getElementById('poolCustomTokenInput');
     const tokenAddr = (select?.value || customAddrInput?.value || '').trim();
 
     if (!tokenAddr || !tokenAddr.startsWith('0x') || tokenAddr.length !== 42) {
-        showToast('Invalid Token', 'Please select or enter a valid ERC-20 token address.', 'warning');
+        setStatus('Please select a token from the dropdown or paste your token contract address (0x...) above.');
+        showToast('Select Token', 'Please choose a token to pair with USDC.', 'warning');
+        if (select && select.options.length > 1) {
+            select.focus();
+        } else if (customAddrInput) {
+            customAddrInput.focus();
+        }
         return;
     }
 
-    const tokenAmtVal = parseFloat(document.getElementById('poolTokenAmountInput')?.value || 0);
-    const usdcAmtVal = parseFloat(document.getElementById('poolUsdcAmountInput')?.value || 0);
+    // 3. Check token deposit amount
+    const tokenInput = document.getElementById('poolTokenAmountInput');
+    const usdcInput = document.getElementById('poolUsdcAmountInput');
+    const tokenAmtVal = parseFloat(tokenInput?.value || 0);
+    const usdcAmtVal = parseFloat(usdcInput?.value || 0);
 
     if (isNaN(tokenAmtVal) || tokenAmtVal <= 0) {
-        showToast('Invalid Token Amount', 'Please enter a valid token deposit amount.', 'warning');
+        setStatus('Please enter the amount of tokens to seed into the pool (e.g. 10000 or click MAX).');
+        showToast('Token Amount Required', 'Enter deposit amount for custom token.', 'warning');
+        if (tokenInput) tokenInput.focus();
         return;
     }
 
+    // 4. Check USDC deposit amount
     if (isNaN(usdcAmtVal) || usdcAmtVal <= 0) {
-        showToast('Invalid USDC Amount', 'Please enter a valid native USDC amount (e.g. 1.0 or 5.0).', 'warning');
+        setStatus('Please enter the amount of native USDC to deposit (e.g. 1.0 or 5.0).');
+        showToast('USDC Amount Required', 'Enter deposit amount for native USDC.', 'warning');
+        if (usdcInput) usdcInput.focus();
         return;
     }
 
+    // 5. Check Web3 provider
     const providerObj = activeWeb3Provider || window.ethereum;
-    if (!providerObj || !window.ethers) {
-        showToast('Wallet Error', 'Please connect your Web3 wallet.', 'error');
+    if (!providerObj) {
+        setStatus('No Web3 wallet provider detected in browser. Please install or unlock MetaMask.');
+        showToast('Wallet Error', 'Please connect MetaMask or WalletConnect.', 'error');
         return;
     }
 
@@ -1051,6 +1124,10 @@ async function handleCreateOrAddPool() {
     const originalText = document.getElementById('btnCreatePoolText')?.textContent;
 
     try {
+        if (!window.ethers) {
+            throw new Error("Ethers.js library not loaded in browser.");
+        }
+
         const provider = new ethers.providers.Web3Provider(providerObj);
         const signer = provider.getSigner();
         const tokenContract = new ethers.Contract(tokenAddr, ARC_CUSTOM_TOKEN_ABI, signer);
@@ -1059,40 +1136,75 @@ async function handleCreateOrAddPool() {
         let tokenSymbol = 'TOKEN';
         let tokenName = 'Custom Token';
         try {
-            tokenDecimals = await tokenContract.decimals();
-            tokenSymbol = await tokenContract.symbol();
-            tokenName = await tokenContract.name();
-        } catch (e) { }
+            const [dec, sym, nm] = await Promise.all([
+                tokenContract.decimals().catch(() => 18),
+                tokenContract.symbol().catch(() => 'TOKEN'),
+                tokenContract.name().catch(() => 'Custom Token')
+            ]);
+            tokenDecimals = Number(dec) || 18;
+            tokenSymbol = sym;
+            tokenName = nm;
+        } catch (e) {
+            console.warn("Could not read token details:", e);
+        }
 
         const tokenAmountUnits = ethers.utils.parseUnits(tokenAmtVal.toString(), tokenDecimals);
         const usdcWei = ethers.utils.parseEther(usdcAmtVal.toString());
 
         // Check user token balance
-        const userBal = await tokenContract.balanceOf(currentAccount);
+        let userBal = ethers.BigNumber.from(0);
+        try {
+            userBal = await tokenContract.balanceOf(currentAccount);
+        } catch (balErr) {
+            console.warn("balanceOf check error:", balErr);
+        }
+
         if (userBal.lt(tokenAmountUnits)) {
-            showToast('Insufficient Balance', `You have ${ethers.utils.formatUnits(userBal, tokenDecimals)} ${tokenSymbol}. Need ${tokenAmtVal}.`, 'error');
+            const humanBal = ethers.utils.formatUnits(userBal, tokenDecimals);
+            const msg = `Insufficient $${tokenSymbol} balance. You have ${parseFloat(humanBal).toLocaleString()} $${tokenSymbol}, but tried to deposit ${tokenAmtVal.toLocaleString()}. Click MAX to use your available balance.`;
+            setStatus(msg);
+            showToast('Insufficient Token Balance', msg, 'error');
+            return;
+        }
+
+        // Check user USDC balance
+        const currentUsdcBal = TOKENS[0]?.balance || 0;
+        if (currentUsdcBal < usdcAmtVal) {
+            const msg = `Insufficient native USDC balance. You have ${currentUsdcBal.toFixed(4)} USDC, but tried to deposit ${usdcAmtVal} USDC. Click MAX to use your available balance.`;
+            setStatus(msg);
+            showToast('Insufficient USDC Balance', msg, 'error');
             return;
         }
 
         // Step 1: Approve PulseSwap Router
-        if (btn) {
-            btn.disabled = true;
-            btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Approving $${tokenSymbol}...</span>`;
-            if (window.lucide) window.lucide.createIcons();
+        let allowance = ethers.BigNumber.from(0);
+        try {
+            allowance = await tokenContract.allowance(currentAccount, PULSESWAP_ROUTER_ADDRESS);
+        } catch (e) {
+            console.warn("allowance check error:", e);
         }
 
-        const allowance = await tokenContract.allowance(currentAccount, PULSESWAP_ROUTER_ADDRESS);
         if (allowance.lt(tokenAmountUnits)) {
-            showToast('Step 1/2: Approve Router', `Approving PulseSwap Router (${PULSESWAP_ROUTER_ADDRESS.substring(0, 6)}...) to take tokens...`, 'info');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Step 1/2: Please Confirm Approval in MetaMask...</span>`;
+                safeInitIcons();
+            }
+            setStatus(`Step 1/2: Please confirm the $${tokenSymbol} allowance approval in MetaMask popup...`, false);
+            showToast('Step 1/2: Approve Token', `Confirm allowance for PulseSwap Router in MetaMask...`, 'info');
+
             const appTx = await tokenContract.approve(PULSESWAP_ROUTER_ADDRESS, tokenAmountUnits);
+            setStatus(`Step 1/2: Approval broadcasted (Tx: ${appTx.hash.substring(0, 10)}...). Waiting for block confirmation...`, false);
+            showToast('Approval Broadcasted', `Tx: ${appTx.hash.substring(0, 10)}... Confirming on Arc L1`, 'info');
+
             await appTx.wait();
-            showToast('Approval Confirmed', 'Step 1 complete! Now seeding liquidity in pool...', 'success');
+            showToast('Approval Confirmed', 'Step 1 complete! Now seeding liquidity in pool (Step 2/2)...', 'success');
         }
 
         // Step 2: Seed Pool
         if (btn) {
-            btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Seeding Liquidity on Arc L1...</span>`;
-            if (window.lucide) window.lucide.createIcons();
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Step 2/2: Confirming Pool Seed in MetaMask...</span>`;
+            safeInitIcons();
         }
 
         const routerContract = new ethers.Contract(PULSESWAP_ROUTER_ADDRESS, PULSESWAP_ROUTER_ABI, signer);
@@ -1101,17 +1213,23 @@ async function handleCreateOrAddPool() {
         try {
             const existingPool = await routerContract.getPool(tokenAddr);
             poolExists = existingPool.exists;
-        } catch (e) { }
+        } catch (e) {
+            console.warn("getPool check error:", e);
+        }
 
         let poolTx;
         if (poolExists) {
-            showToast('Adding Liquidity', `Adding ${tokenAmtVal} $${tokenSymbol} and ${usdcAmtVal} USDC to pool...`, 'info');
+            setStatus(`Step 2/2: Please confirm adding ${tokenAmtVal.toLocaleString()} $${tokenSymbol} and ${usdcAmtVal} USDC to pool in MetaMask...`, false);
+            showToast('Adding Liquidity', `Confirm adding liquidity in MetaMask...`, 'info');
             poolTx = await routerContract.addLiquidity(tokenAddr, tokenAmountUnits, { value: usdcWei });
         } else {
-            showToast('Creating Pool', `Creating initial AMM pool with ${tokenAmtVal} $${tokenSymbol} and ${usdcAmtVal} USDC...`, 'info');
+            setStatus(`Step 2/2: Please confirm creating initial pool with ${tokenAmtVal.toLocaleString()} $${tokenSymbol} and ${usdcAmtVal} USDC in MetaMask...`, false);
+            showToast('Creating Pool', `Confirm pool creation in MetaMask...`, 'info');
             poolTx = await routerContract.createPool(tokenAddr, tokenAmountUnits, { value: usdcWei });
         }
 
+        setStatus(`Transaction broadcasted (Tx: ${poolTx.hash.substring(0, 10)}...). Confirming on Arc L1 with sub-second finality...`, false);
+        showToast('Transaction Broadcasted', `Tx: ${poolTx.hash.substring(0, 10)}... Confirming block on Arc Testnet`, 'info');
         await poolTx.wait();
 
         const userCreated = getUserCreatedTokens().find(t => t.address.toLowerCase() === tokenAddr.toLowerCase());
@@ -1129,6 +1247,7 @@ async function handleCreateOrAddPool() {
         };
         saveActivePool(poolRecord);
 
+        setStatus(`Liquidity Pool is Live on Arc L1! Seeded ${usdcAmtVal} USDC + ${tokenAmtVal.toLocaleString()} $${tokenSymbol}.`, false);
         showToast('Pool Created! 🚀', `Liquidity pool for $${tokenSymbol}/USDC is now live on Arc Testnet!`, 'success');
 
         saveTxRecord(currentAccount, {
@@ -1139,20 +1258,28 @@ async function handleCreateOrAddPool() {
         });
 
         // Reset inputs
-        if (document.getElementById('poolTokenAmountInput')) document.getElementById('poolTokenAmountInput').value = '';
-        if (document.getElementById('poolUsdcAmountInput')) document.getElementById('poolUsdcAmountInput').value = '';
+        if (tokenInput) tokenInput.value = '';
+        if (usdcInput) usdcInput.value = '';
 
+        await fetchBalances();
         switchPoolSubTab('explore');
         refreshActivePoolsUI();
 
     } catch (err) {
         console.error("Pool creation error:", err);
-        showToast('Transaction Failed', err.reason || err.message || 'Could not create pool on Arc Testnet.', 'error');
+        const errMsg = err.reason || err.data?.message || err.message || 'Could not create pool on Arc Testnet.';
+        if (err.code === 4001 || err.code === 'ACTION_REJECTED' || errMsg.includes('rejected') || errMsg.includes('denied')) {
+            setStatus('MetaMask transaction was cancelled by user.');
+            showToast('Transaction Cancelled', 'You rejected the transaction in MetaMask.', 'error');
+        } else {
+            setStatus(`Transaction Failed: ${errMsg}`);
+            showToast('Transaction Failed', errMsg, 'error');
+        }
     } finally {
         if (btn) {
             btn.disabled = false;
             btn.innerHTML = `<i data-lucide="plus-circle" class="w-5 h-5"></i><span id="btnCreatePoolText">${originalText || 'Create Liquidity Pool (1-Click)'}</span>`;
-            if (window.lucide) window.lucide.createIcons();
+            safeInitIcons();
         }
     }
 }
@@ -5645,21 +5772,6 @@ const ARC_TOKEN_FACTORY_ABI = [
     "event TokenCreated(address indexed tokenAddress, string name, string symbol, uint256 initialSupply, uint8 decimals, address indexed creator, uint256 createdAt)"
 ];
 
-const ARC_CUSTOM_TOKEN_ABI = [
-    "constructor(string memory _name, string memory _symbol, uint256 _initialSupply, uint8 _decimals, address _recipient)",
-    "function name() external view returns (string memory)",
-    "function symbol() external view returns (string memory)",
-    "function decimals() external view returns (uint8)",
-    "function totalSupply() external view returns (uint256)",
-    "function balanceOf(address account) external view returns (uint256)",
-    "function transfer(address to, uint256 value) external returns (bool)",
-    "function approve(address spender, uint256 value) external returns (bool)",
-    "function allowance(address owner, address spender) external view returns (uint256)",
-    "function transferFrom(address from, address to, uint256 value) external returns (bool)",
-    "event Transfer(address indexed from, address indexed to, uint256 value)",
-    "event Approval(address indexed owner, address indexed spender, uint256 value)"
-];
-
 // Compiled EVM bytecode for ArcCustomToken (solc 0.8.20)
 const ARC_CUSTOM_TOKEN_BYTECODE = "60c060405234801562000010575f80fd5b5060405162001c3338038062001c338339818101604052810190620000369190620004ec565b5f8551116200007c576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040162000073906200060c565b60405180910390fd5b5f845111620000c2576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401620000b9906200067a565b60405180910390fd5b60128260ff1611156200010c576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016200010390620006e8565b60405180910390fd5b5f831162000151576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401620001489062000756565b60405180910390fd5b845f9081620001619190620009a4565b508360019081620001739190620009a4565b508160ff1660808160ff16815250508073ffffffffffffffffffffffffffffffffffffffff1660a08173ffffffffffffffffffffffffffffffffffffffff16815250508160ff16600a620001c8919062000c05565b83620001d5919062000c55565b60028190555060025460035f8373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020015f20819055508073ffffffffffffffffffffffffffffffffffffffff165f73ffffffffffffffffffffffffffffffffffffffff167fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef60025460405162000280919062000cb0565b60405180910390a3505050505062000ccb565b5f604051905090565b5f80fd5b5f80fd5b5f80fd5b5f80fd5b5f601f19601f8301169050919050565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52604160045260245ffd5b620002f482620002ac565b810181811067ffffffffffffffff82111715620003165762000315620002bc565b5b80604052505050565b5f6200032a62000293565b9050620003388282620002e9565b919050565b5f67ffffffffffffffff8211156200035a5762000359620002bc565b5b6200036582620002ac565b9050602081019050919050565b5f5b838110156200039157808201518184015260208101905062000374565b5f8484015250505050565b5f620003b2620003ac846200033d565b6200031f565b905082815260208101848484011115620003d157620003d0620002a8565b5b620003de84828562000372565b509392505050565b5f82601f830112620003fd57620003fc620002a4565b5b81516200040f8482602086016200039c565b91505092915050565b5f819050919050565b6200042c8162000418565b811462000437575f80fd5b50565b5f815190506200044a8162000421565b92915050565b5f60ff82169050919050565b620004678162000450565b811462000472575f80fd5b50565b5f8151905062000485816200045c565b92915050565b5f73ffffffffffffffffffffffffffffffffffffffff82169050919050565b5f620004b6826200048b565b9050919050565b620004c881620004aa565b8114620004d3575f80fd5b50565b5f81519050620004e681620004bd565b92915050565b5f805f805f60a086880312156200050857620005076200029c565b5b5f86015167ffffffffffffffff811115620005285762000527620002a0565b5b6200053688828901620003e6565b955050602086015167ffffffffffffffff8111156200055a5762000559620002a0565b5b6200056888828901620003e6565b94505060406200057b888289016200043a565b93505060606200058e8882890162000475565b9250506080620005a188828901620004d6565b9150509295509295909350565b5f82825260208201905092915050565b7f4e616d65207265717569726564000000000000000000000000000000000000005f82015250565b5f620005f4600d83620005ae565b91506200060182620005be565b602082019050919050565b5f6020820190508181035f8301526200062581620005e6565b9050919050565b7f53796d626f6c20726571756972656400000000000000000000000000000000005f82015250565b5f62000662600f83620005ae565b91506200066f826200062c565b602082019050919050565b5f6020820190508181035f830152620006938162000654565b9050919050565b7f446563696d616c73203c3d2031380000000000000000000000000000000000005f82015250565b5f620006d0600e83620005ae565b9150620006dd826200069a565b602082019050919050565b5f6020820190508181035f8301526200070181620006c2565b9050919050565b7f537570706c79203e2030000000000000000000000000000000000000000000005f82015250565b5f6200073e600a83620005ae565b91506200074b8262000708565b602082019050919050565b5f6020820190508181035f8301526200076f8162000730565b9050919050565b5f81519050919050565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52602260045260245ffd5b5f6002820490506001821680620007c557607f821691505b602082108103620007db57620007da62000780565b5b50919050565b5f819050815f5260205f209050919050565b5f6020601f8301049050919050565b5f82821b905092915050565b5f600883026200083f7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8262000802565b6200084b868362000802565b95508019841693508086168417925050509392505050565b5f819050919050565b5f6200088c62000886620008808462000418565b62000863565b62000418565b9050919050565b5f819050919050565b620008a7836200086c565b620008bf620008b68262000893565b8484546200080e565b825550505050565b5f90565b620008d5620008c7565b620008e28184846200089c565b505050565b5b818110156200090957620008fd5f82620008cb565b600181019050620008e8565b5050565b601f82111562000958576200092281620007e1565b6200092d84620007f3565b810160208510156200093d578190505b620009556200094c85620007f3565b830182620008e7565b50505b505050565b5f82821c905092915050565b5f6200097a5f19846008026200095d565b1980831691505092915050565b5f62000994838362000969565b9150826002028217905092915050565b620009af8262000776565b67ffffffffffffffff811115620009cb57620009ca620002bc565b5b620009d78254620007ad565b620009e48282856200090d565b5f60209050601f83116001811462000a1a575f841562000a05578287015190505b62000a11858262000987565b86555062000a80565b601f19841662000a2a86620007e1565b5f5b8281101562000a535784890151825560018201915060208501945060208101905062000a2c565b8683101562000a73578489015162000a6f601f89168262000969565b8355505b6001600288020188555050505b505050505050565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52601160045260245ffd5b5f8160011c9050919050565b5f808291508390505b600185111562000b125780860481111562000aea5762000ae962000a88565b5b600185161562000afa5780820291505b808102905062000b0a8562000ab5565b945062000aca565b94509492505050565b5f8262000b2c576001905062000bfe565b8162000b3b575f905062000bfe565b816001811462000b54576002811462000b5f5762000b95565b600191505062000bfe565b60ff84111562000b745762000b7362000a88565b5b8360020a91508482111562000b8e5762000b8d62000a88565b5b5062000bfe565b5060208310610133831016604e8410600b841016171562000bcf5782820a90508381111562000bc95762000bc862000a88565b5b62000bfe565b62000bde848484600162000ac1565b9250905081840481111562000bf85762000bf762000a88565b5b81810290505b9392505050565b5f62000c118262000418565b915062000c1e8362000418565b925062000c4d7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff848462000b1b565b905092915050565b5f62000c618262000418565b915062000c6e8362000418565b925082820262000c7e8162000418565b9150828204841483151762000c985762000c9762000a88565b5b5092915050565b62000caa8162000418565b82525050565b5f60208201905062000cc55f83018462000c9f565b92915050565b60805160a051610f4662000ced5f395f61072d01525f6106f40152610f465ff3fe608060405234801561000f575f80fd5b506004361061009c575f3560e01c806370a082311161006457806370a082311461015a5780638da5cb5b1461018a57806395d89b41146101a8578063a9059cbb146101c6578063dd62ed3e146101f65761009c565b806306fdde03146100a0578063095ea7b3146100be57806318160ddd146100ee57806323b872dd1461010c578063313ce5671461013c575b5f80fd5b6100a8610226565b6040516100b59190610a89565b60405180910390f35b6100d860048036038101906100d39190610b3a565b6102b1565b6040516100e59190610b92565b60405180910390f35b6100f661039e565b6040516101039190610bba565b60405180910390f35b61012660048036038101906101219190610bd3565b6103a4565b6040516101339190610b92565b60405180910390f35b6101446106f2565b6040516101519190610c3e565b60405180910390f35b610174600480360381019061016f9190610c57565b610716565b6040516101819190610bba565b60405180910390f35b61019261072b565b60405161019f9190610c91565b60405180910390f35b6101b061074f565b6040516101bd9190610a89565b60405180910390f35b6101e060048036038101906101db9190610b3a565b6107db565b6040516101ed9190610b92565b60405180910390f35b610210600480360381019061020b9190610caa565b6109df565b60405161021d9190610bba565b60405180910390f35b5f805461023290610d15565b80601f016020809104026020016040519081016040528092919081815260200182805461025e90610d15565b80156102a95780601f10610280576101008083540402835291602001916102a9565b820191905f5260205f20905b81548152906001019060200180831161028c57829003601f168201915b505050505081565b5f8160045f3373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020015f205f8573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020015f20819055508273ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff167f8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b9258460405161038c9190610bba565b60405180910390a36001905092915050565b60025481565b5f8073ffffffffffffffffffffffffffffffffffffffff168373ffffffffffffffffffffffffffffffffffffffff1603610413576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161040a90610d8f565b60405180910390fd5b8160035f8673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020015f20541015610493576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161048a90610df7565b60405180910390fd5b8160045f8673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020015f205f3373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020015f2054101561054e576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161054590610e5f565b60405180910390fd5b8160035f8673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020015f205f82825461059a9190610eaa565b925050819055508160045f8673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020015f205f3373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020015f205f8282546106289190610eaa565b925050819055508160035f8573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020015f205f82825461067b9190610edd565b925050819055508273ffffffffffffffffffffffffffffffffffffffff168473ffffffffffffffffffffffffffffffffffffffff167fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef846040516106df9190610bba565b60405180910390a3600190509392505050565b7f000000000000000000000000000000000000000000000000000000000000000081565b6003602052805f5260405f205f915090505481565b7f000000000000000000000000000000000000000000000000000000000000000081565b6001805461075c90610d15565b80601f016020809104026020016040519081016040528092919081815260200182805461078890610d15565b80156107d35780601f106107aa576101008083540402835291602001916107d3565b820191905f5260205f20905b8154815290600101906020018083116107b657829003601f168201915b505050505081565b5f8073ffffffffffffffffffffffffffffffffffffffff168373ffffffffffffffffffffffffffffffffffffffff160361084a576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161084190610d8f565b60405180910390fd5b8160035f3373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020015f205410156108ca576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016108c190610df7565b60405180910390fd5b8160035f3373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020015f205f8282546109169190610eaa565b925050819055508160035f8573ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020015f205f8282546109699190610edd565b925050819055508273ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff167fddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef846040516109cd9190610bba565b60405180910390a36001905092915050565b6004602052815f5260405f20602052805f5260405f205f91509150505481565b5f81519050919050565b5f82825260208201905092915050565b5f5b83811015610a36578082015181840152602081019050610a1b565b5f8484015250505050565b5f601f19601f8301169050919050565b5f610a5b826109ff565b610a658185610a09565b9350610a75818560208601610a19565b610a7e81610a41565b840191505092915050565b5f6020820190508181035f830152610aa18184610a51565b905092915050565b5f80fd5b5f73ffffffffffffffffffffffffffffffffffffffff82169050919050565b5f610ad682610aad565b9050919050565b610ae681610acc565b8114610af0575f80fd5b50565b5f81359050610b0181610add565b92915050565b5f819050919050565b610b1981610b07565b8114610b23575f80fd5b50565b5f81359050610b3481610b10565b92915050565b5f8060408385031215610b5057610b4f610aa9565b5b5f610b5d85828601610af3565b9250506020610b6e85828601610b26565b9150509250929050565b5f8115159050919050565b610b8c81610b78565b82525050565b5f602082019050610ba55f830184610b83565b92915050565b610bb481610b07565b82525050565b5f602082019050610bcd5f830184610bab565b92915050565b5f805f60608486031215610bea57610be9610aa9565b5b5f610bf786828701610af3565b9350506020610c0886828701610af3565b9250506040610c1986828701610b26565b9150509250925092565b5f60ff82169050919050565b610c3881610c23565b82525050565b5f602082019050610c515f830184610c2f565b92915050565b5f60208284031215610c6c57610c6b610aa9565b5b5f610c7984828501610af3565b91505092915050565b610c8b81610acc565b82525050565b5f602082019050610ca45f830184610c82565b92915050565b5f8060408385031215610cc057610cbf610aa9565b5b5f610ccd85828601610af3565b9250506020610cde85828601610af3565b9150509250929050565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52602260045260245ffd5b5f6002820490506001821680610d2c57607f821691505b602082108103610d3f57610d3e610ce8565b5b50919050565b7f496e76616c696420726563697069656e740000000000000000000000000000005f82015250565b5f610d79601183610a09565b9150610d8482610d45565b602082019050919050565b5f6020820190508181035f830152610da681610d6d565b9050919050565b7f496e73756666696369656e742062616c616e63650000000000000000000000005f82015250565b5f610de1601483610a09565b9150610dec82610dad565b602082019050919050565b5f6020820190508181035f830152610e0e81610dd5565b9050919050565b7f496e73756666696369656e7420616c6c6f77616e6365000000000000000000005f82015250565b5f610e49601683610a09565b9150610e5482610e15565b602082019050919050565b5f6020820190508181035f830152610e7681610e3d565b9050919050565b7f4e487b71000000000000000000000000000000000000000000000000000000005f52601160045260245ffd5b5f610eb482610b07565b9150610ebf83610b07565b9250828203905081811115610ed757610ed6610e7d565b5b92915050565b5f610ee782610b07565b9150610ef283610b07565b9250828201905080821115610f0a57610f09610e7d565b5b9291505056fea2646970667358221220581de9d5295e18a2098686741aa99eb03b1b04bf315dc67a2dd43a36d617fa4164736f6c63430008140033";
 
@@ -6019,8 +6131,12 @@ function getUserCreatedTokens() {
 function saveUserCreatedToken(tokenMeta) {
     const key = getUserCreatedTokensKey();
     const tokens = getUserCreatedTokens();
-    tokens.unshift(tokenMeta);
-    localStorage.setItem(key, JSON.stringify(tokens));
+    const filtered = tokens.filter(t => t.address.toLowerCase() !== tokenMeta.address.toLowerCase());
+    filtered.unshift(tokenMeta);
+    localStorage.setItem(key, JSON.stringify(filtered));
+    try {
+        populatePoolTokenSelect();
+    } catch (e) {}
 }
 
 function copyDeployedTokenAddress() {

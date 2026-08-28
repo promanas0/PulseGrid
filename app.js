@@ -1536,6 +1536,10 @@ function loadTokenPairForSwap(tokenAddress) {
         payToken = TOKENS[0]; // USDC
         receiveToken = target;
 
+        if (receiveToken.address && customTokenBalances[receiveToken.address.toLowerCase()] !== undefined) {
+            receiveToken.balance = customTokenBalances[receiveToken.address.toLowerCase()];
+        }
+
         safeSetText('payTokenSymbol', payToken.symbol);
         safeSetText('receiveTokenSymbol', receiveToken.symbol);
 
@@ -1556,6 +1560,10 @@ function loadTokenPairForSwap(tokenAddress) {
         }
 
         calculateSwap();
+        updateTokenBalancesUI();
+        if (currentAccount && receiveToken.address) {
+            fetchCustomTokenBalance(receiveToken.address, currentAccount);
+        }
         showToast('Pair Loaded', `Ready to trade USDC for $${receiveToken.symbol}!`, 'info');
     }
 }

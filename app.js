@@ -7138,36 +7138,53 @@ async function executeBridgeTransfer() {
         // STEP 1: SOURCE CHAIN TRANSACTION
         showToast('MetaMask Request', `Confirm ${amt} ${currentBridgeToken} Bridge deposit on ${sourceNet.shortName}...`, 'info');
         
-        try {
-            const web3Provider = new ethers.providers.Web3Provider(provider);
-            const signer = web3Provider.getSigner();
-            
-            let tx;
-            if (sourceNet.chainIdDec === 5042002 && currentBridgeToken === 'USDC') {
-                const depositUnits = ethers.utils.parseUnits(amt.toString(), 6);
-                const bridgeContract = new ethers.Contract(PULSEBRIDGE_ROUTER_ADDRESS, PULSEBRIDGE_ROUTER_ABI, signer);
-                tx = await bridgeContract.bridgeDeposit(
-                    '0x0000000000000000000000000000000000000000',
-                    depositUnits,
-                    targetNet.chainIdDec,
-                    currentAccount,
-                    { value: depositUnits }
-                );
-            } else {
-                tx = await signer.sendTransaction({
-                    to: PULSEBRIDGE_ROUTER_ADDRESS,
-                    value: ethers.utils.parseEther('0.0001')
-                });
+        const web3Provider = new ethers.providers.Web3Provider(provider);
+        const signer = web3Provider.getSigner();
+        
+        let tx;
+        if (sourceNet.chainIdDec === 5042002 && currentBridgeToken === 'USDC') {
+            // Native USDC on Arc Testnet (18 decimals for EVM msg.value)
+            const depositUnits = ethers.utils.parseEther(amt.toString());
+            const bridgeContract = new ethers.Contract(PULSEBRIDGE_ROUTER_ADDRESS, PULSEBRIDGE_ROUTER_ABI, signer);
+            tx = await bridgeContract.bridgeDeposit(
+                '0x0000000000000000000000000000000000000000',
+                depositUnits,
+                targetNet.chainIdDec,
+                currentAccount,
+                { value: depositUnits }
+            );
+        } else if (sourceNet.chainIdDec === 5042002 && currentBridgeToken === 'EURC') {
+            // ERC-20 EURC on Arc Testnet (6 decimals)
+            const depositUnits = ethers.utils.parseUnits(amt.toString(), 6);
+            const tokenContract = new ethers.Contract(ERC20_EURC_ADDRESS, ERC20_ABI, signer);
+            const allowance = await tokenContract.allowance(currentAccount, PULSEBRIDGE_ROUTER_ADDRESS);
+            if (allowance.lt(depositUnits)) {
+                showToast('Token Approval', 'Approve EURC spending for Bridge...', 'info');
+                const appTx = await tokenContract.approve(PULSEBRIDGE_ROUTER_ADDRESS, ethers.constants.MaxUint256);
+                await appTx.wait();
             }
-            txHash = tx.hash;
-            if (step1Status) step1Status.textContent = `Tx: ${tx.hash.substring(0, 10)}... Source block confirmed!`;
-        } catch (txErr) {
-            console.warn("Bridge tx on-chain notice:", txErr);
-            if (txErr.code === 4001 || txErr.code === 'ACTION_REJECTED' || txErr.message?.includes('rejected') || txErr.message?.includes('denied')) {
-                throw new Error("Transaction rejected in MetaMask");
-            }
-            if (step1Status) step1Status.textContent = `Source deposit verified on ${sourceNet.shortName}!`;
+            const bridgeContract = new ethers.Contract(PULSEBRIDGE_ROUTER_ADDRESS, PULSEBRIDGE_ROUTER_ABI, signer);
+            tx = await bridgeContract.bridgeDeposit(
+                ERC20_EURC_ADDRESS,
+                depositUnits,
+                targetNet.chainIdDec,
+                currentAccount,
+                { value: 0 }
+            );
+        } else {
+            // Remote EVM chain (Base Sepolia / Sepolia)
+            tx = await signer.sendTransaction({
+                to: PULSEBRIDGE_ROUTER_ADDRESS,
+                value: ethers.utils.parseEther(Math.min(amt, 0.001).toString())
+            });
         }
+        
+        txHash = tx.hash;
+        if (step1Status) step1Status.textContent = `Tx: ${tx.hash.substring(0, 10)}... Confirming on ${sourceNet.shortName}...`;
+        
+        // Wait for real on-chain confirmation
+        await tx.wait();
+        if (step1Status) step1Status.textContent = `Tx: ${tx.hash.substring(0, 10)}... Source block confirmed!`;
 
         if (step1) step1.className = 'p-3 rounded-xl bg-emerald-50 border border-emerald-300 flex items-center gap-3';
         if (step1Status) step1Status.innerHTML = `<span class="text-emerald-700 font-bold flex items-center gap-1"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Confirmed on ${sourceNet.shortName}</span>`;

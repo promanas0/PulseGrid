@@ -2658,14 +2658,13 @@
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2.5">
-                    <div class="px-3.5 py-2 bg-purple-950/60 border border-purple-500/30 rounded-xl text-xs font-mono font-bold text-purple-200 flex items-center gap-2 shadow-sm">
-                        <i data-lucide="sparkles" class="w-3.5 h-3.5 text-emerald-400"></i>
-                        <span>Arc Intelligence Engine</span>
-                    </div>
+                <div class="flex items-center gap-2">
                     <button onclick="startNewProAiChat()" class="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md">
                         <i data-lucide="plus" class="w-4 h-4"></i>
                         <span>New Chat</span>
+                    </button>
+                    <button onclick="toggleAiHistoryDrawer()" id="aiHistoryMenuBtn" title="Chat History" class="p-2.5 bg-slate-800 hover:bg-purple-900/50 text-slate-300 hover:text-white border border-slate-700 rounded-xl text-xs font-bold transition-all flex items-center justify-center shadow-md">
+                        <i data-lucide="more-vertical" class="w-4 h-4"></i>
                     </button>
                 </div>
             </div>
@@ -2673,14 +2672,7 @@
             <!-- Full-Width Pro AI Workspace Container -->
             <div class="w-full bg-slate-900 border border-slate-800 rounded-2xl flex flex-col h-[560px] shadow-xl">
                 <div id="aiChatBox" class="flex-1 p-5 overflow-y-auto space-y-4 font-sans text-sm">
-                    <div class="flex gap-3">
-                        <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center shrink-0">
-                            <i data-lucide="bot" class="w-4 h-4 text-purple-300"></i>
-                        </div>
-                        <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-4 text-slate-200 max-w-[85%] text-xs leading-relaxed">
-                            Hello! I am <strong>Pro AI</strong>, your Google Gemini-powered multimodal assistant. I speak <strong>every language in the world</strong> fluently! You can ask me anything, attach screenshots, images, or videos, and I will analyze them for you!
-                        </div>
-                    </div>
+                    <!-- Clean fresh chat workspace (dynamically populated or loaded from wallet history) -->
                 </div>
 
                 <!-- Attachment Preview Bar (Hidden by default) -->
@@ -2715,6 +2707,46 @@
                         <span>Send</span>
                         <i data-lucide="send" class="w-4 h-4"></i>
                     </button>
+                </div>
+            </div>
+
+            <!-- AI CHAT HISTORY MODAL / DRAWER -->
+            <div id="aiHistoryDrawerModal" class="hidden fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+                <div class="w-full max-w-lg bg-slate-900 border-2 border-purple-700/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] font-sans">
+                    <div class="p-5 bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 border-b border-slate-800 flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="p-2 rounded-xl bg-purple-600/30 border border-purple-500/50 text-purple-300">
+                                <i data-lucide="clock" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-white text-base">Chat History</h3>
+                                <p class="text-[11px] text-slate-400 font-mono">Saved per Connected Wallet</p>
+                            </div>
+                        </div>
+                        <button onclick="toggleAiHistoryDrawer()" class="p-2 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-all">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                    <!-- Wallet context badge -->
+                    <div class="px-5 py-2.5 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between text-xs font-mono">
+                        <span class="text-slate-400">Wallet: <span id="aiHistoryWalletLabel" class="text-purple-300 font-bold">0x...</span></span>
+                        <button onclick="clearAllAiHistory()" class="text-rose-400 hover:text-rose-300 text-[11px] font-bold flex items-center gap-1">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Clear History
+                        </button>
+                    </div>
+
+                    <!-- History Sessions List -->
+                    <div id="aiHistoryListContainer" class="flex-1 overflow-y-auto p-4 space-y-2.5 text-xs">
+                        <!-- Injected via JS -->
+                    </div>
+
+                    <div class="p-4 bg-slate-950/80 border-t border-slate-800 flex justify-between items-center">
+                        <button onclick="startNewProAiChat(); toggleAiHistoryDrawer();" class="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            <span>Start Fresh Chat</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </section>

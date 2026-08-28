@@ -3937,6 +3937,269 @@ function clearAiAttachment() {
     if (previewContainer) previewContainer.classList.add('hidden');
 }
 
+// ==========================================
+// PRO AI WALLET-LINKED CHAT HISTORY SYSTEM
+// ==========================================
+
+let currentAiSessionId = null;
+
+function getAiHistoryStorageKey() {
+    return currentAccount
+        ? `archpulse_ai_history_${currentAccount.toLowerCase()}`
+        : 'archpulse_ai_history_guest';
+}
+
+function getStoredAiSessions() {
+    try {
+        const raw = localStorage.getItem(getAiHistoryStorageKey());
+        return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveAiSessionsToStorage(sessions) {
+    try {
+        localStorage.setItem(getAiHistoryStorageKey(), JSON.stringify(sessions));
+    } catch (e) {
+        console.warn("Save AI sessions error:", e);
+    }
+}
+
+function startNewProAiChat() {
+    currentAiSessionId = 'sess_' + Date.now();
+    window.proAiMemory = [];
+    currentAiAttachment = null;
+    clearAiAttachment();
+
+    const chatBox = document.getElementById('aiChatBox');
+    if (chatBox) {
+        chatBox.innerHTML = '';
+    }
+    const input = document.getElementById('aiChatInput');
+    if (input) {
+        input.value = '';
+        input.focus();
+    }
+    showToast('New Chat Started 💬', 'Ask anything or attach screenshots to analyze!', 'info');
+}
+
+function saveAiTurnToHistory(userMsg, attachedMedia, aiReplyText) {
+    if (!userMsg && !attachedMedia) return;
+    
+    if (!currentAiSessionId) {
+        currentAiSessionId = 'sess_' + Date.now();
+    }
+
+    const sessions = getStoredAiSessions();
+    let session = sessions.find(s => s.id === currentAiSessionId);
+
+    const firstMsgText = userMsg || (attachedMedia ? `Attachment: ${attachedMedia.name}` : 'New Conversation');
+    const autoTitle = firstMsgText.length > 40 ? firstMsgText.substring(0, 40) + '...' : firstMsgText;
+
+    if (!session) {
+        session = {
+            id: currentAiSessionId,
+            title: autoTitle,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            messages: []
+        };
+        sessions.unshift(session);
+    } else {
+        session.updatedAt = Date.now();
+        const idx = sessions.indexOf(session);
+        if (idx > 0) {
+            sessions.splice(idx, 1);
+            sessions.unshift(session);
+        }
+    }
+
+    session.messages.push({
+        role: 'user',
+        content: userMsg,
+        media: attachedMedia ? {
+            name: attachedMedia.name,
+            mimeType: attachedMedia.mimeType,
+            fullDataUrl: attachedMedia.fullDataUrl
+        } : null,
+        timestamp: Date.now()
+    });
+
+    session.messages.push({
+        role: 'assistant',
+        content: aiReplyText,
+        timestamp: Date.now()
+    });
+
+    saveAiSessionsToStorage(sessions);
+}
+
+function toggleAiHistoryDrawer() {
+    const modal = document.getElementById('aiHistoryDrawerModal');
+    if (!modal) return;
+
+    if (modal.classList.contains('hidden')) {
+        modal.classList.remove('hidden');
+        renderAiHistoryList();
+    } else {
+        modal.classList.add('hidden');
+    }
+}
+
+function renderAiHistoryList() {
+    const container = document.getElementById('aiHistoryListContainer');
+    const walletLabel = document.getElementById('aiHistoryWalletLabel');
+    if (walletLabel) {
+        walletLabel.textContent = currentAccount
+            ? `${currentAccount.substring(0, 6)}...${currentAccount.substring(currentAccount.length - 4)}`
+            : 'Guest / Disconnected';
+    }
+
+    if (!container) return;
+
+    const sessions = getStoredAiSessions();
+
+    if (sessions.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-12 text-slate-400 space-y-2 font-sans">
+                <i data-lucide="message-square" class="w-8 h-8 mx-auto text-slate-500"></i>
+                <div class="font-bold text-slate-300">No Chat History Found</div>
+                <p class="text-[11px] text-slate-500">Conversations for this connected wallet will appear here automatically.</p>
+            </div>
+        `;
+        if (window.lucide) window.lucide.createIcons();
+        return;
+    }
+
+    let html = '';
+    sessions.forEach(sess => {
+        const isActive = sess.id === currentAiSessionId;
+        const count = sess.messages ? sess.messages.length : 0;
+        const dateStr = new Date(sess.updatedAt || sess.createdAt).toLocaleDateString([], {
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        html += `
+            <div onclick="loadAiChatSession('${sess.id}')" class="p-3.5 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                isActive 
+                    ? 'bg-purple-950/80 border-purple-500 shadow-md' 
+                    : 'bg-slate-800/80 hover:bg-slate-800 border-slate-700 hover:border-slate-600'
+            }">
+                <div class="flex items-center gap-3 overflow-hidden">
+                    <div class="p-2 rounded-lg ${isActive ? 'bg-purple-600 text-white' : 'bg-slate-700 text-slate-300'} shrink-0">
+                        <i data-lucide="message-circle" class="w-4 h-4"></i>
+                    </div>
+                    <div class="truncate">
+                        <div class="font-bold text-white text-xs truncate max-w-[220px] sm:max-w-xs">${escapeHtml(sess.title || 'Conversation')}</div>
+                        <div class="text-[10px] text-slate-400 font-mono mt-0.5 flex items-center gap-2">
+                            <span>${dateStr}</span>
+                            <span>•</span>
+                            <span class="text-purple-300 font-bold">${count} msgs</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-1.5 shrink-0" onclick="event.stopPropagation()">
+                    <button onclick="deleteAiChatSession('${sess.id}', event)" class="p-1.5 rounded-lg hover:bg-rose-900/40 text-slate-400 hover:text-rose-400 transition-colors" title="Delete chat">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+    if (window.lucide) window.lucide.createIcons();
+}
+
+function loadAiChatSession(sessionId) {
+    const sessions = getStoredAiSessions();
+    const session = sessions.find(s => s.id === sessionId);
+    if (!session) return;
+
+    currentAiSessionId = sessionId;
+    window.proAiMemory = [];
+
+    const chatBox = document.getElementById('aiChatBox');
+    if (!chatBox) return;
+
+    chatBox.innerHTML = '';
+
+    if (session.messages && session.messages.length > 0) {
+        session.messages.forEach(msg => {
+            if (msg.role === 'user') {
+                const userBubble = document.createElement('div');
+                userBubble.className = 'flex gap-3 justify-end';
+                let userBubbleHtml = `<div class="bg-purple-600 text-white rounded-2xl p-3.5 text-xs max-w-[80%] shadow-md space-y-2">`;
+                if (msg.media && msg.media.fullDataUrl) {
+                    if (msg.media.mimeType && msg.media.mimeType.startsWith('image/')) {
+                        userBubbleHtml += `<img src="${msg.media.fullDataUrl}" class="rounded-xl max-h-48 w-auto object-contain border border-white/20 mb-2">`;
+                    } else {
+                        userBubbleHtml += `<div class="p-2 rounded-xl bg-purple-800/80 border border-white/20 flex items-center gap-2 text-xs"><i data-lucide="video" class="w-4 h-4"></i><span>${escapeHtml(msg.media.name || 'Video')}</span></div>`;
+                    }
+                }
+                if (msg.content) {
+                    userBubbleHtml += `<div>${escapeHtml(msg.content)}</div>`;
+                }
+                userBubbleHtml += `</div>`;
+                userBubble.innerHTML = userBubbleHtml;
+                chatBox.appendChild(userBubble);
+            } else {
+                const aiBubble = document.createElement('div');
+                aiBubble.className = 'flex gap-3';
+                let formatted = escapeHtml(msg.content)
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/```([\s\S]*?)```/g, '<pre class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-purple-300 font-mono text-xs overflow-x-auto my-2"><code>$1</code></pre>')
+                    .replace(/`([^`]+)`/g, '<code class="bg-slate-950 px-1.5 py-0.5 rounded text-purple-300 font-mono text-[11px] border border-slate-800">$1</code>')
+                    .replace(/\n/g, '<br>');
+
+                aiBubble.innerHTML = `
+                    <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center shrink-0">
+                        <i data-lucide="bot" class="w-4 h-4 text-purple-300"></i>
+                    </div>
+                    <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 text-slate-200 max-w-[85%] text-xs leading-relaxed shadow-lg whitespace-pre-line">
+                        ${formatted}
+                    </div>
+                `;
+                chatBox.appendChild(aiBubble);
+            }
+        });
+    }
+
+    if (window.lucide) window.lucide.createIcons();
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    const modal = document.getElementById('aiHistoryDrawerModal');
+    if (modal) modal.classList.add('hidden');
+    showToast('Conversation Restored 💬', `Loaded "${session.title || 'Chat'}"`, 'info');
+}
+
+function deleteAiChatSession(sessionId, event) {
+    if (event) event.stopPropagation();
+    let sessions = getStoredAiSessions();
+    sessions = sessions.filter(s => s.id !== sessionId);
+    saveAiSessionsToStorage(sessions);
+
+    if (currentAiSessionId === sessionId) {
+        startNewProAiChat();
+    }
+    renderAiHistoryList();
+    showToast('Chat Deleted', 'Conversation removed from history.', 'info');
+}
+
+function clearAllAiHistory() {
+    if (!confirm("Are you sure you want to delete all saved chat sessions for this wallet?")) return;
+    saveAiSessionsToStorage([]);
+    startNewProAiChat();
+    renderAiHistoryList();
+    showToast('History Cleared', 'All saved chats have been cleared.', 'info');
+}
+
 // REAL GEMINI-STYLE AI ASSISTANT (MULTIMODAL & POLYGLOT ALL-LANGUAGE)
 async function handleAiChatSend() {
     try {
@@ -4043,7 +4306,6 @@ async function handleAiChatSend() {
                     const ctrl = new AbortController();
                     const tid = setTimeout(() => ctrl.abort(), 4500);
 
-                    // If media is attached, single turn is cleanest for vision; else use multi-turn
                     let contentsPayload = [];
                     if (attachedMedia && attachedMedia.base64Data) {
                         contentsPayload = [{ role: 'user', parts: currentTurnParts }];
@@ -4068,7 +4330,6 @@ async function handleAiChatSend() {
                         }
                     ).catch(() => null);
 
-                    // If multi-turn failed or rejected, retry as clean single-turn
                     if (!res || !res.ok) {
                         const ctrlRetry = new AbortController();
                         const tidRetry = setTimeout(() => ctrlRetry.abort(), 3500);
@@ -4088,7 +4349,7 @@ async function handleAiChatSend() {
                         clearTimeout(tidRetry);
 
                         if (res && res.ok && !attachedMedia) {
-                            window.proAiMemory = []; // Reset corrupted memory
+                            window.proAiMemory = [];
                         }
                     }
 
@@ -4099,7 +4360,6 @@ async function handleAiChatSend() {
                         const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
                         if (candidateText && candidateText.trim().length > 0) {
                             aiReplyText = candidateText.trim();
-                            // Save to multi-turn conversation memory only for text turns
                             if (!attachedMedia) {
                                 window.proAiMemory.push({ role: 'user', parts: [{ text: userMsg }] });
                                 window.proAiMemory.push({ role: 'model', parts: [{ text: aiReplyText }] });
@@ -4140,6 +4400,8 @@ async function handleAiChatSend() {
 
         // Remove Typing Indicator
         const indicator = document.getElementById('aiTypingIndicator');
+        if (indicator) indicator.remove();
+
         // Render AI Reply
         const aiBubble = document.createElement('div');
         aiBubble.className = 'flex gap-3';
@@ -4162,6 +4424,10 @@ async function handleAiChatSend() {
         chatBox.appendChild(aiBubble);
         if (window.lucide) window.lucide.createIcons();
         chatBox.scrollTop = chatBox.scrollHeight;
+
+        // Auto-save turn to current wallet session
+        saveAiTurnToHistory(userMsg, attachedMedia, aiReplyText);
+
     } catch (chatErr) {
         console.error("handleAiChatSend error:", chatErr);
     }
@@ -7328,4 +7594,18 @@ function refreshBridgeState() {
     renderBridgeHistory();
     showToast('Bridge Synced', 'Live balances updated.', 'info');
 }
+
+// Global exports for AI Assistant & History
+if (typeof window !== 'undefined') {
+    window.startNewProAiChat = startNewProAiChat;
+    window.toggleAiHistoryDrawer = toggleAiHistoryDrawer;
+    window.renderAiHistoryList = renderAiHistoryList;
+    window.loadAiChatSession = loadAiChatSession;
+    window.deleteAiChatSession = deleteAiChatSession;
+    window.clearAllAiHistory = clearAllAiHistory;
+    window.handleAiChatSend = handleAiChatSend;
+    window.handleAiMediaSelect = handleAiMediaSelect;
+    window.clearAiAttachment = clearAiAttachment;
+}
+
 

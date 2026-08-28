@@ -1307,7 +1307,11 @@
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <div class="sm:col-span-2 flex items-center bg-white border-2 border-purple-700 rounded-xl px-4 py-2">
                                 <input type="text" id="bridgeReceiveAmountInput" readonly placeholder="0.00" value="0.00" class="w-full bg-transparent text-2xl sm:text-3xl font-black font-mono text-purple-950 outline-none cursor-default">
-                                <span id="bridgeReceiveTokenLabel" class="font-bold text-sm text-purple-950 shrink-0 pl-2">USDC</span>
+                                <select id="bridgeReceiveTokenSelect" onchange="onBridgeReceiveTokenChange()" class="font-bold text-sm text-purple-950 outline-none bg-transparent shrink-0 pl-2 cursor-pointer">
+                                    <option value="ETH" selected>ETH (Native)</option>
+                                    <option value="USDC">USDC (Circle)</option>
+                                    <option value="EURC">EURC (Euro)</option>
+                                </select>
                             </div>
                             <div class="sm:col-span-1">
                                 <select id="bridgeTargetChainSelect" onchange="onBridgeTargetChainChange()" class="w-full h-full bg-white border-2 border-purple-700 rounded-xl px-3 py-3 font-bold text-xs text-slate-950 outline-none focus:border-purple-900">

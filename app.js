@@ -6858,7 +6858,7 @@ function saveBridgeTxRecord(record) {
     renderBridgeHistory();
 }
 
-function renderBridgeView() {
+async function renderBridgeView() {
     const srcSelect = document.getElementById('bridgeSourceChainSelect');
     const tgtSelect = document.getElementById('bridgeTargetChainSelect');
     const tokSelect = document.getElementById('bridgeTokenSelect');
@@ -6866,6 +6866,10 @@ function renderBridgeView() {
     if (srcSelect) srcSelect.value = currentBridgeSourceChain;
     if (tgtSelect) tgtSelect.value = currentBridgeTargetChain;
     if (tokSelect) tokSelect.value = currentBridgeToken;
+
+    if (currentAccount && typeof fetchRealOnChainBalances === 'function') {
+        await fetchRealOnChainBalances(currentAccount);
+    }
 
     updateBridgeBalancesUI();
     calculateBridgeRoute();
@@ -6892,7 +6896,7 @@ function updateBridgeStatusIndicator() {
     if (currentChainId === sourceChain?.chainIdDec) {
         if (statusLabel) statusLabel.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Connected to ${sourceChain.shortName}`;
         if (switchBtn) switchBtn.classList.add('hidden');
-        if (actionBtnLabel) actionBtnLabel.textContent = `Initiate CCTP Bridge to ${SUPPORTED_BRIDGE_NETWORKS[currentBridgeTargetChain]?.shortName || 'Target'}`;
+        if (actionBtnLabel) actionBtnLabel.textContent = `Initiate Bridge to ${SUPPORTED_BRIDGE_NETWORKS[currentBridgeTargetChain]?.shortName || 'Target'}`;
     } else {
         if (statusLabel) statusLabel.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500"></span> Switch to ${sourceChain?.shortName || 'Source Network'}`;
         if (switchBtn) switchBtn.classList.remove('hidden');
@@ -6912,9 +6916,11 @@ async function updateBridgeBalancesUI() {
     if (currentBridgeSourceChain === '5042002') {
         // Arc Testnet
         if (currentBridgeToken === 'USDC') {
-            balEl.textContent = `${(userBalances?.nativeUsdc !== undefined ? userBalances.nativeUsdc : 0).toFixed(2)} USDC`;
+            const usdcBal = (typeof TOKENS !== 'undefined' && TOKENS[0]?.balance !== undefined) ? TOKENS[0].balance : 0;
+            balEl.textContent = `${usdcBal.toFixed(2)} USDC`;
         } else if (currentBridgeToken === 'EURC') {
-            balEl.textContent = `${(userBalances?.eurc !== undefined ? userBalances.eurc : 0).toFixed(2)} EURC`;
+            const eurcBal = (typeof TOKENS !== 'undefined' && TOKENS[1]?.balance !== undefined) ? TOKENS[1].balance : 0;
+            balEl.textContent = `${eurcBal.toFixed(2)} EURC`;
         } else {
             balEl.textContent = '0.00 ETH';
         }
@@ -7004,7 +7010,7 @@ function setBridgePercent(pct) {
 
     let bal = 0;
     if (currentBridgeSourceChain === '5042002') {
-        bal = (currentBridgeToken === 'USDC') ? (userBalances?.nativeUsdc || 0) : (userBalances?.eurc || 0);
+        bal = (currentBridgeToken === 'USDC') ? (TOKENS[0]?.balance || 0) : (TOKENS[1]?.balance || 0);
     } else {
         const balEl = document.getElementById('bridgeAssetBalance');
         bal = balEl ? parseFloat(balEl.textContent) || 0 : 0;
@@ -7130,7 +7136,7 @@ async function executeBridgeTransfer() {
 
     try {
         // STEP 1: SOURCE CHAIN TRANSACTION
-        showToast('MetaMask Request', `Confirm ${amt} ${currentBridgeToken} CCTP Bridge deposit on ${sourceNet.shortName}...`, 'info');
+        showToast('MetaMask Request', `Confirm ${amt} ${currentBridgeToken} Bridge deposit on ${sourceNet.shortName}...`, 'info');
         
         try {
             const web3Provider = new ethers.providers.Web3Provider(provider);
@@ -7168,7 +7174,7 @@ async function executeBridgeTransfer() {
 
         // STEP 2: CIRCLE CCTP ATTESTATION RELAY (~8 seconds countdown)
         if (step2) step2.className = 'p-3 rounded-xl bg-purple-50 border border-purple-300 flex items-center gap-3 animate-pulse opacity-100';
-        if (step2Status) step2Status.textContent = 'Circle CCTP Oracle verifying burn message... (8s)';
+        if (step2Status) step2Status.textContent = 'Verifying burn message & relaying... (8s)';
         safeInitIcons();
 
         let countdown = 8;
@@ -7176,7 +7182,7 @@ async function executeBridgeTransfer() {
             const interval = setInterval(() => {
                 countdown--;
                 if (timerEl) timerEl.textContent = `Relay ~${countdown}s remaining`;
-                if (step2Status) step2Status.textContent = `Circle CCTP Attestation in progress... (${countdown}s)`;
+                if (step2Status) step2Status.textContent = `Attestation relay in progress... (${countdown}s)`;
                 if (countdown <= 0) {
                     clearInterval(interval);
                     resolve();
@@ -7185,7 +7191,7 @@ async function executeBridgeTransfer() {
         });
 
         if (step2) step2.className = 'p-3 rounded-xl bg-emerald-50 border border-emerald-300 flex items-center gap-3';
-        if (step2Status) step2Status.innerHTML = `<span class="text-emerald-700 font-bold flex items-center gap-1"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> CCTP Attestation Signed & Relayed</span>`;
+        if (step2Status) step2Status.innerHTML = `<span class="text-emerald-700 font-bold flex items-center gap-1"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Attestation Signed & Relayed</span>`;
 
         // STEP 3: DESTINATION DELIVERY & MINT
         if (step3) step3.className = 'p-3 rounded-xl bg-purple-50 border border-purple-300 flex items-center gap-3 animate-pulse opacity-100';
@@ -7213,7 +7219,10 @@ async function executeBridgeTransfer() {
 
         if (input) input.value = '';
         calculateBridgeRoute();
-        await fetchBalances();
+        if (currentAccount && typeof fetchRealOnChainBalances === 'function') {
+            await fetchRealOnChainBalances(currentAccount);
+        }
+        updateBridgeBalancesUI();
 
     } catch (err) {
         console.error("Bridge transfer error:", err);
@@ -7257,7 +7266,7 @@ function renderBridgeHistory() {
                         <div class="font-bold text-slate-950 flex items-center gap-1.5">
                             <span>${item.amount} ${item.token}</span>
                             <span class="text-slate-400">➔</span>
-                            <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-bold">Delivered</span>
+                            <span class="text-emerald-700 text-xs font-bold font-mono">Delivered</span>
                         </div>
                         <div class="text-[11px] text-slate-500 mt-0.5">
                             <span>${item.fromChain}</span> ➔ <span>${item.toChain}</span> &bull; <span>${item.time}</span>
@@ -7277,10 +7286,15 @@ function renderBridgeHistory() {
 }
 
 function refreshBridgeState() {
+    if (currentAccount && typeof fetchRealOnChainBalances === 'function') {
+        fetchRealOnChainBalances(currentAccount).then(() => {
+            updateBridgeBalancesUI();
+        });
+    }
     updateBridgeBalancesUI();
     updateBridgeStatusIndicator();
     calculateBridgeRoute();
     renderBridgeHistory();
-    showToast('Bridge Synced', 'Live balances and CCTP relays updated.', 'info');
+    showToast('Bridge Synced', 'Live balances updated.', 'info');
 }
 

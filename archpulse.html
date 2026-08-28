@@ -372,7 +372,6 @@
                 <button onclick="switchPage('bridge')" id="nav-btn-bridge" class="sidebar-link w-full">
                     <i data-lucide="network" class="w-4 h-4 shrink-0"></i>
                     <span>Bridge</span>
-                    <span class="ml-auto px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-100 text-purple-900 border border-purple-300">CCTP</span>
                 </button>
 
                 <button onclick="switchPage('wallet')" id="nav-btn-wallet" class="sidebar-link w-full">
@@ -582,7 +581,7 @@
                     <div class="grid grid-cols-2 gap-2">
                         <button onclick="switchPageAndCloseDrawer('bridge')" id="mobile-more-btn-bridge" class="p-3 rounded-xl bg-slate-50 hover:bg-purple-50 border-2 border-slate-950 flex items-center gap-2 font-bold text-slate-800 text-left transition-colors">
                             <i data-lucide="network" class="w-4 h-4 text-purple-700 shrink-0"></i>
-                            <span>Bridge (CCTP)</span>
+                            <span>Bridge</span>
                         </button>
                         <button onclick="switchPageAndCloseDrawer('validators')" id="mobile-more-btn-validators" class="p-3 rounded-xl bg-slate-50 hover:bg-purple-50 border-2 border-slate-950 flex items-center gap-2 font-bold text-slate-800 text-left transition-colors">
                             <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600 shrink-0"></i>
@@ -1233,22 +1232,8 @@
                 <!-- HERO PROTOCOL BANNER -->
                 <div class="pixel-card p-5 bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-950 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div class="space-y-1">
-                        <div class="flex items-center gap-2">
-                            <span class="px-2.5 py-0.5 rounded-full bg-purple-500/20 border border-purple-400/40 text-[10px] font-mono font-bold text-purple-300 flex items-center gap-1">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                                Circle CCTP V2 Express Relay
-                            </span>
-                            <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-mono font-bold">0% Bridge Fee</span>
-                        </div>
                         <h2 class="font-pixel text-2xl font-black tracking-wide text-white">PulseBridge Portal</h2>
                         <p class="text-xs text-slate-300 font-medium">1:1 Pegged Token Transfers between Arc L1 and connected EVM Testnets with sub-second finality.</p>
-                        <div class="flex flex-wrap items-center gap-2 pt-1 text-[11px] font-mono">
-                            <span class="text-slate-400">Router:</span>
-                            <a href="https://explorer.testnet.arc.network/address/0x6a15E3D63F94F6877153515d663074a739F63db9" target="_blank" class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-400/30 hover:bg-purple-500/30 flex items-center gap-1 font-bold">
-                                <span>0x6a15E3...3db9</span>
-                                <i data-lucide="external-link" class="w-3 h-3"></i>
-                            </a>
-                        </div>
                     </div>
                     <div class="flex items-center gap-2 shrink-0">
                         <button onclick="refreshBridgeState()" class="btn-pixel-sm px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 flex items-center gap-1.5">
@@ -1292,7 +1277,6 @@
                     <div class="p-4 sm:p-5 rounded-2xl bg-slate-50 border-2 border-slate-950 space-y-2">
                         <div class="flex justify-between items-center text-xs text-slate-500 font-mono">
                             <span class="font-bold font-silkscreen text-slate-700 uppercase tracking-wider">TO NETWORK (DESTINATION)</span>
-                            <span class="text-[11px] font-bold text-emerald-700 font-mono">Sub-second Finality</span>
                         </div>
                         <div class="pt-1">
                             <select id="bridgeTargetChainSelect" onchange="onBridgeTargetChainChange()" class="w-full bg-white border-2 border-slate-950 rounded-xl px-4 py-3 font-bold text-sm text-slate-950 outline-none focus:border-purple-700">

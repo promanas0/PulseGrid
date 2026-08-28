@@ -6915,42 +6915,12 @@ async function updateBridgeBalancesUI() {
     if (!balEl) return;
 
     if (!currentAccount) {
-        balEl.textContent = '0.00';
+        balEl.textContent = '0.00 USDC';
         return;
     }
 
-    if (currentBridgeSourceChain === '5042002') {
-        // Arc Testnet
-        if (currentBridgeToken === 'USDC') {
-            const usdcBal = (typeof TOKENS !== 'undefined' && TOKENS[0]?.balance !== undefined) ? TOKENS[0].balance : 0;
-            balEl.textContent = `${usdcBal.toFixed(2)} USDC`;
-        } else if (currentBridgeToken === 'EURC') {
-            const eurcBal = (typeof TOKENS !== 'undefined' && TOKENS[1]?.balance !== undefined) ? TOKENS[1].balance : 0;
-            balEl.textContent = `${eurcBal.toFixed(2)} EURC`;
-        } else {
-            balEl.textContent = '0.00 ETH';
-        }
-    } else {
-        // Remote EVM chain
-        try {
-            const src = SUPPORTED_BRIDGE_NETWORKS[currentBridgeSourceChain];
-            if (src?.rpcUrl) {
-                const rpcProvider = new ethers.providers.JsonRpcProvider(src.rpcUrl);
-                const ethBal = await rpcProvider.getBalance(currentAccount);
-                const formattedEth = Number(ethers.utils.formatEther(ethBal)).toFixed(4);
-                if (currentBridgeToken === 'ETH') {
-                    balEl.textContent = `${formattedEth} ETH`;
-                } else {
-                    balEl.textContent = `${formattedEth} ETH (Gas)`;
-                }
-            } else {
-                balEl.textContent = '0.00';
-            }
-        } catch (e) {
-            console.warn("Remote chain balance check notice:", e);
-            balEl.textContent = '0.00';
-        }
-    }
+    const usdcBal = (typeof TOKENS !== 'undefined' && TOKENS[0]?.balance !== undefined) ? TOKENS[0].balance : 0;
+    balEl.textContent = `${usdcBal.toFixed(2)} USDC`;
 }
 
 function onBridgeSourceChainChange() {
@@ -6965,7 +6935,6 @@ function onBridgeSourceChainChange() {
         if (tgtSelect) tgtSelect.value = currentBridgeTargetChain;
     }
 
-    syncBridgeTokenOptions();
     updateBridgeBalancesUI();
     updateBridgeStatusIndicator();
     calculateBridgeRoute();
@@ -6978,39 +6947,14 @@ function onBridgeTargetChainChange() {
 
     if (currentBridgeTargetChain === currentBridgeSourceChain) {
         const others = Object.keys(SUPPORTED_BRIDGE_NETWORKS).filter(k => k !== currentBridgeTargetChain);
-        currentBridgeSourceChain = others[0] || '84532';
+        currentBridgeSourceChain = others[0] || '5042002';
         const srcSelect = document.getElementById('bridgeSourceChainSelect');
         if (srcSelect) srcSelect.value = currentBridgeSourceChain;
     }
 
-    syncBridgeTokenOptions();
     updateBridgeBalancesUI();
     updateBridgeStatusIndicator();
     calculateBridgeRoute();
-}
-
-function syncBridgeTokenOptions() {
-    const receiveSelect = document.getElementById('bridgeReceiveTokenSelect');
-    if (!receiveSelect) return;
-
-    if (currentBridgeTargetChain === '5042002') {
-        // Arc Testnet destination: Native USDC, EURC
-        receiveSelect.innerHTML = `
-            <option value="USDC" selected>USDC (Native Arc)</option>
-            <option value="EURC">EURC (Euro)</option>
-        `;
-        currentBridgeReceiveToken = 'USDC';
-    } else {
-        // EVM testnet destination (Base / Sepolia / Arbitrum): ETH, USDC, EURC
-        receiveSelect.innerHTML = `
-            <option value="ETH" ${currentBridgeReceiveToken === 'ETH' ? 'selected' : ''}>ETH (Native Gas)</option>
-            <option value="USDC" ${currentBridgeReceiveToken === 'USDC' ? 'selected' : ''}>USDC (Circle ERC-20)</option>
-            <option value="EURC" ${currentBridgeReceiveToken === 'EURC' ? 'selected' : ''}>EURC (Euro)</option>
-        `;
-        if (currentBridgeReceiveToken !== 'ETH' && currentBridgeReceiveToken !== 'USDC' && currentBridgeReceiveToken !== 'EURC') {
-            currentBridgeReceiveToken = 'ETH';
-        }
-    }
 }
 
 function invertBridgeNetworks() {
@@ -7023,39 +6967,19 @@ function invertBridgeNetworks() {
     if (srcSelect) srcSelect.value = currentBridgeSourceChain;
     if (tgtSelect) tgtSelect.value = currentBridgeTargetChain;
 
-    syncBridgeTokenOptions();
     updateBridgeBalancesUI();
     updateBridgeStatusIndicator();
     calculateBridgeRoute();
     showToast('Direction Inverted', `Bridging from ${SUPPORTED_BRIDGE_NETWORKS[currentBridgeSourceChain]?.shortName} ➔ ${SUPPORTED_BRIDGE_NETWORKS[currentBridgeTargetChain]?.shortName}`, 'info');
 }
 
-function onBridgeTokenChange() {
-    const tokSelect = document.getElementById('bridgeTokenSelect');
-    if (tokSelect) currentBridgeToken = tokSelect.value;
-    updateBridgeBalancesUI();
-    calculateBridgeRoute();
-}
-
-function onBridgeReceiveTokenChange() {
-    const tokSelect = document.getElementById('bridgeReceiveTokenSelect');
-    if (tokSelect) currentBridgeReceiveToken = tokSelect.value;
-    calculateBridgeRoute();
-}
-
 function setBridgePercent(pct) {
     const input = document.getElementById('bridgeAmountInput');
     if (!input) return;
 
-    let bal = 0;
-    if (currentBridgeSourceChain === '5042002') {
-        bal = (currentBridgeToken === 'USDC') ? (TOKENS[0]?.balance || 0) : (TOKENS[1]?.balance || 0);
-    } else {
-        const balEl = document.getElementById('bridgeAssetBalance');
-        bal = balEl ? parseFloat(balEl.textContent) || 0 : 0;
-    }
-    const amt = (bal * pct).toFixed(2);
-    input.value = (parseFloat(amt) > 0) ? amt : (bal > 0 ? bal.toFixed(2) : '1.00');
+    const usdcBal = (typeof TOKENS !== 'undefined' && TOKENS[0]?.balance !== undefined) ? TOKENS[0].balance : 0;
+    const amt = (usdcBal * pct).toFixed(2);
+    input.value = (parseFloat(amt) > 0) ? amt : (usdcBal > 0 ? usdcBal.toFixed(2) : '1.00');
     calculateBridgeRoute();
 }
 
@@ -7071,42 +6995,19 @@ function calculateBridgeRoute() {
 
     const val = parseFloat(input ? input.value : 0);
     const hasVal = (!isNaN(val) && val > 0);
+    const outputAmt = hasVal ? val.toFixed(2) : '0.00';
 
-    const ethPriceInUsdc = 2600.00; // ~$2,600 / ETH
-    let outputAmt = '0.00';
-    let rateString = '';
-
-    if (currentBridgeToken === 'USDC' && currentBridgeReceiveToken === 'ETH') {
-        outputAmt = hasVal ? (val / ethPriceInUsdc).toFixed(6) : '0.000000';
-        rateString = `1 USDC = ${(1 / ethPriceInUsdc).toFixed(6)} ETH`;
-    } else if (currentBridgeToken === 'EURC' && currentBridgeReceiveToken === 'ETH') {
-        outputAmt = hasVal ? ((val * 1.08) / ethPriceInUsdc).toFixed(6) : '0.000000';
-        rateString = `1 EURC = ${(1.08 / ethPriceInUsdc).toFixed(6)} ETH`;
-    } else if (currentBridgeToken === 'ETH' && currentBridgeReceiveToken === 'USDC') {
-        outputAmt = hasVal ? (val * ethPriceInUsdc).toFixed(2) : '0.00';
-        rateString = `1 ETH = ${ethPriceInUsdc.toFixed(2)} USDC`;
-    } else if (currentBridgeToken === 'ETH' && currentBridgeReceiveToken === 'EURC') {
-        outputAmt = hasVal ? ((val * ethPriceInUsdc) / 1.08).toFixed(2) : '0.00';
-        rateString = `1 ETH = ${(ethPriceInUsdc / 1.08).toFixed(2)} EURC`;
-    } else if (currentBridgeToken === currentBridgeReceiveToken) {
-        outputAmt = hasVal ? val.toFixed(2) : '0.00';
-        rateString = `1 ${currentBridgeToken} = 1.00 ${currentBridgeReceiveToken} (1:1 Peg)`;
-    } else if (currentBridgeToken === 'USDC' && currentBridgeReceiveToken === 'EURC') {
-        outputAmt = hasVal ? (val / 1.08).toFixed(2) : '0.00';
-        rateString = `1 USDC = 0.925 EURC`;
-    } else if (currentBridgeToken === 'EURC' && currentBridgeReceiveToken === 'USDC') {
-        outputAmt = hasVal ? (val * 1.08).toFixed(2) : '0.00';
-        rateString = `1 EURC = 1.08 USDC`;
-    }
+    const srcName = SUPPORTED_BRIDGE_NETWORKS[currentBridgeSourceChain]?.shortName || 'Arc L1';
+    const tgtName = SUPPORTED_BRIDGE_NETWORKS[currentBridgeTargetChain]?.shortName || 'Destination';
 
     if (receiveInput) {
         receiveInput.value = outputAmt;
     }
     if (netReceivedEl) {
-        netReceivedEl.textContent = `${outputAmt} ${currentBridgeReceiveToken}`;
+        netReceivedEl.textContent = `${outputAmt} USDC`;
     }
     if (rateEl) {
-        rateEl.textContent = rateString;
+        rateEl.textContent = `1 USDC (${srcName}) = 1.00 USDC (${tgtName}) • 1:1 Peg`;
     }
 }
 

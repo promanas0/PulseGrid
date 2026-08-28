@@ -90,6 +90,26 @@ const PREDICTION_MARKET_ADDRESS = '0x14519dB645becb71867A657b0b461E301954800F';
 const ERC20_USDC_ADDRESS = '0x3600000000000000000000000000000000000000';
 const ERC20_EURC_ADDRESS = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a';
 
+// Official PulseSwap AMM Multi-Token Liquidity Router for Arc Testnet
+let PULSESWAP_ROUTER_ADDRESS = localStorage.getItem('arc_pulseswap_router_addr') || '0x62B28B8233C2932B39589d81d2fD0c4cf19D1C27';
+
+const PULSESWAP_ROUTER_ABI = [
+    "function createPool(address token, uint256 tokenAmount) external payable returns (uint256 lpShares)",
+    "function addLiquidity(address token, uint256 tokenAmount) external payable returns (uint256 lpShares)",
+    "function removeLiquidity(address token, uint256 lpShares) external returns (uint256 usdcOut, uint256 tokenOut)",
+    "function swapUSDCForTokens(address token, uint256 minTokensOut) external payable returns (uint256 tokensOut)",
+    "function swapTokensForUSDC(address token, uint256 tokenAmount, uint256 minUsdcOut) external returns (uint256 usdcOut)",
+    "function getAmountOut(uint256 amountIn, uint256 reserveIn, uint256 reserveOut) public pure returns (uint256 amountOut)",
+    "function getPool(address token) external view returns (uint256 usdcReserve, uint256 tokenReserve, uint256 totalLpShares, uint256 createdAt, uint256 totalSwaps, bool exists)",
+    "function totalPools() external view returns (uint256)",
+    "function getAllPoolTokens() external view returns (address[] memory)",
+    "function getUserLpBalance(address token, address user) external view returns (uint256)",
+    "event PoolCreated(address indexed token, address indexed creator, uint256 usdcAmount, uint256 tokenAmount, uint256 lpShares, uint256 timestamp)",
+    "event LiquidityAdded(address indexed token, address indexed provider, uint256 usdcAmount, uint256 tokenAmount, uint256 lpShares)",
+    "event LiquidityRemoved(address indexed token, address indexed provider, uint256 usdcAmount, uint256 tokenAmount, uint256 lpShares)",
+    "event TokenSwap(address indexed token, address indexed trader, bool isBuy, uint256 usdcAmount, uint256 tokenAmount, uint256 timestamp)"
+];
+
 const PREDICTION_MARKET_ABI = [
     "function buyShares(uint256 marketId, bool isYes, uint256 usdcAmount) external",
     "function claimWinnings(uint256 marketId) external returns (uint256 payout)",
@@ -134,10 +154,60 @@ let receiveToken = TOKENS[1];
 startLiveCountdown();
 startLiveTelemetryTicker();
 
-// TOKEN SELECTION MODAL
+// MULTI-TOKEN REGISTRY & SELECTION (SUPPORTS NATIVE + CUSTOM L1 TOKENS)
+function getAllAvailableTokens() {
+    const list = [...TOKENS];
+    const userTokens = getUserCreatedTokens();
+    const activePools = getStoredActivePools();
+
+    const seen = new Set();
+    list.forEach(t => seen.add(t.address ? t.address.toLowerCase() : t.symbol.toLowerCase()));
+
+    userTokens.forEach(ut => {
+        if (ut && ut.address && !seen.has(ut.address.toLowerCase())) {
+            seen.add(ut.address.toLowerCase());
+            list.push({
+                id: 'custom_' + ut.address.toLowerCase(),
+                symbol: ut.symbol,
+                name: ut.name,
+                balance: 0.00,
+                usdRate: 1.00,
+                icon: ut.symbol ? ut.symbol.charAt(0).toUpperCase() : 'T',
+                image: ut.image || '',
+                bg: 'bg-purple-600',
+                address: ut.address,
+                decimals: Number(ut.decimals) || 18,
+                isCustom: true
+            });
+        }
+    });
+
+    activePools.forEach(ap => {
+        if (ap && ap.tokenAddress && !seen.has(ap.tokenAddress.toLowerCase())) {
+            seen.add(ap.tokenAddress.toLowerCase());
+            list.push({
+                id: 'custom_' + ap.tokenAddress.toLowerCase(),
+                symbol: ap.tokenSymbol,
+                name: ap.tokenName,
+                balance: 0.00,
+                usdRate: ap.priceUsdc || 1.00,
+                icon: ap.tokenSymbol ? ap.tokenSymbol.charAt(0).toUpperCase() : 'T',
+                image: ap.tokenImage || '',
+                bg: 'bg-indigo-600',
+                address: ap.tokenAddress,
+                decimals: Number(ap.tokenDecimals) || 18,
+                isCustom: true
+            });
+        }
+    });
+
+    return list;
+}
+
 function openTokenModal(target) {
     tokenModalTarget = target;
-    renderTokenList(TOKENS);
+    const tokens = getAllAvailableTokens();
+    renderTokenList(tokens);
     const modal = document.getElementById('tokenModal');
     if (modal) modal.classList.remove('hidden');
 }
@@ -160,25 +230,28 @@ function renderTokenList(tokensToRender) {
             btn.onclick = () => selectToken(t);
         }
 
+        const iconHtml = t.image
+            ? `<img src="${t.image}" class="w-9 h-9 rounded-full object-cover shrink-0 border border-slate-950/20" onerror="this.outerHTML='<div class=\\'w-9 h-9 rounded-full ${t.bg || 'bg-purple-600'} flex items-center justify-center font-black text-white text-xs shrink-0\\'>${t.icon || 'T'}</div>'">`
+            : `<div class="w-9 h-9 rounded-full ${t.bg || 'bg-purple-600'} flex items-center justify-center font-black text-white text-xs shrink-0">${t.icon || 'T'}</div>`;
+
         btn.className = `w-full p-3 rounded-xl border-2 border-slate-950 flex items-center justify-between transition-colors font-mono ${t.isComingSoon ? 'bg-slate-100 opacity-70 cursor-not-allowed' : 'bg-slate-50 hover:bg-purple-50'}`;
         btn.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-full ${t.bg} flex items-center justify-center font-black text-white text-xs shrink-0">
-                            ${t.icon}
-                        </div>
-                        <div class="text-left">
-                            <div class="font-bold text-slate-950 text-sm flex items-center gap-1.5">
-                                <span>${t.symbol}</span>
-                                ${t.isComingSoon ? '<span class="text-[8px] bg-amber-200 text-amber-900 border border-amber-500 px-1.5 py-0.5 rounded font-bold">COMING SOON</span>' : ''}
-                            </div>
-                            <div class="text-[11px] text-slate-500">${t.name}</div>
-                        </div>
+            <div class="flex items-center gap-3">
+                ${iconHtml}
+                <div class="text-left">
+                    <div class="font-bold text-slate-950 text-sm flex items-center gap-1.5">
+                        <span>${escapeHtml(t.symbol)}</span>
+                        ${t.isComingSoon ? '<span class="text-[8px] bg-amber-200 text-amber-900 border border-amber-500 px-1.5 py-0.5 rounded font-bold">COMING SOON</span>' : ''}
+                        ${t.isCustom ? '<span class="text-[8px] bg-purple-100 text-purple-900 border border-purple-400 px-1.5 py-0.5 rounded font-bold">CUSTOM L1</span>' : ''}
                     </div>
-                    <div class="text-right">
-                        <div class="font-bold text-slate-950 text-xs">${t.balance.toFixed(2)}</div>
-                        <div class="text-[10px] text-slate-400">${t.isComingSoon ? 'Soon' : '$' + t.usdRate.toLocaleString()}</div>
-                    </div>
-                `;
+                    <div class="text-[11px] text-slate-500">${escapeHtml(t.name)}</div>
+                </div>
+            </div>
+            <div class="text-right">
+                <div class="font-bold text-slate-950 text-xs">${t.balance ? t.balance.toFixed(2) : '0.00'}</div>
+                <div class="text-[10px] text-slate-400">${t.isComingSoon ? 'Soon' : (t.isCustom ? 'AMM Pool' : '$' + t.usdRate.toLocaleString())}</div>
+            </div>
+        `;
         container.appendChild(btn);
     });
     safeInitIcons();
@@ -186,7 +259,8 @@ function renderTokenList(tokensToRender) {
 
 function filterTokens() {
     const searchVal = document.getElementById('tokenSearchInput')?.value?.toLowerCase() || '';
-    const filtered = TOKENS.filter(t => t.symbol.toLowerCase().includes(searchVal) || t.name.toLowerCase().includes(searchVal));
+    const all = getAllAvailableTokens();
+    const filtered = all.filter(t => (t.symbol && t.symbol.toLowerCase().includes(searchVal)) || (t.name && t.name.toLowerCase().includes(searchVal)));
     renderTokenList(filtered);
 }
 
@@ -212,18 +286,25 @@ function selectToken(token) {
     safeSetText('payTokenSymbol', payToken.symbol);
     safeSetText('receiveTokenSymbol', receiveToken.symbol);
 
-    const ratio = payToken.usdRate / receiveToken.usdRate;
-    safeSetText('exchangeRateText', `1 ${payToken.symbol} ≈ ${ratio.toFixed(6)} ${receiveToken.symbol}`);
-
     const payIconContainer = document.getElementById('payTokenIconContainer');
     const recIconContainer = document.getElementById('receiveTokenIconContainer');
     if (payIconContainer) {
-        payIconContainer.className = `w-7 h-7 rounded-full ${payToken.bg} flex items-center justify-center font-black text-white text-xs`;
-        payIconContainer.innerText = payToken.icon;
+        if (payToken.image) {
+            payIconContainer.className = 'w-7 h-7 rounded-full overflow-hidden border border-slate-950/20 shadow-sm shrink-0 flex items-center justify-center';
+            payIconContainer.innerHTML = `<img src="${payToken.image}" class="w-full h-full object-cover">`;
+        } else {
+            payIconContainer.className = `w-7 h-7 rounded-full ${payToken.bg || 'bg-purple-600'} flex items-center justify-center font-black text-white text-xs shrink-0`;
+            payIconContainer.innerText = payToken.icon || 'T';
+        }
     }
     if (recIconContainer) {
-        recIconContainer.className = `w-7 h-7 rounded-full ${receiveToken.bg} flex items-center justify-center font-black text-white text-xs`;
-        recIconContainer.innerText = receiveToken.icon;
+        if (receiveToken.image) {
+            recIconContainer.className = 'w-7 h-7 rounded-full overflow-hidden border border-slate-950/20 shadow-sm shrink-0 flex items-center justify-center';
+            recIconContainer.innerHTML = `<img src="${receiveToken.image}" class="w-full h-full object-cover">`;
+        } else {
+            recIconContainer.className = `w-7 h-7 rounded-full ${receiveToken.bg || 'bg-amber-500'} flex items-center justify-center font-black text-white text-xs shrink-0`;
+            recIconContainer.innerText = receiveToken.icon || 'T';
+        }
     }
 
     calculateSwap();
@@ -766,47 +847,535 @@ function switchSwapMode(mode) {
         if (btnSwap) btnSwap.className = 'flex-1 py-2.5 rounded-xl font-pixel font-bold text-xs text-slate-700 hover:text-slate-950 flex items-center justify-center gap-2';
         if (swapContainer) swapContainer.classList.add('hidden');
         if (poolContainer) poolContainer.classList.remove('hidden');
+
+        populatePoolTokenSelect();
+        refreshActivePoolsUI();
     }
 }
 
-function calculatePoolDeposit(source) {
-    const usdcInput = document.getElementById('poolUsdcInput');
-    const eurcInput = document.getElementById('poolEurcInput');
-    if (!usdcInput || !eurcInput) return;
+function switchPoolSubTab(tab) {
+    const btnCreate = document.getElementById('poolSubTabCreate');
+    const btnExplore = document.getElementById('poolSubTabExplore');
+    const viewCreate = document.getElementById('poolSubViewCreate');
+    const viewExplore = document.getElementById('poolSubViewExplore');
 
-    if (source === 'usdc') {
-        const val = parseFloat(usdcInput.value);
-        if (!isNaN(val) && val > 0) {
-            eurcInput.value = (val * 0.882639).toFixed(6);
-        } else {
-            eurcInput.value = '';
-        }
+    if (tab === 'create') {
+        if (btnCreate) btnCreate.className = 'btn-pixel-sm px-3.5 py-2 rounded-xl bg-purple-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm';
+        if (btnExplore) btnExplore.className = 'btn-pixel-sm px-3.5 py-2 rounded-xl bg-white text-slate-950 hover:bg-purple-50 font-bold text-xs flex items-center gap-1.5 shadow-sm border border-slate-300';
+        if (viewCreate) viewCreate.classList.remove('hidden');
+        if (viewExplore) viewExplore.classList.add('hidden');
     } else {
-        const val = parseFloat(eurcInput.value);
-        if (!isNaN(val) && val > 0) {
-            usdcInput.value = (val / 0.882639).toFixed(6);
-        } else {
-            usdcInput.value = '';
-        }
+        if (btnExplore) btnExplore.className = 'btn-pixel-sm px-3.5 py-2 rounded-xl bg-purple-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm';
+        if (btnCreate) btnCreate.className = 'btn-pixel-sm px-3.5 py-2 rounded-xl bg-white text-slate-950 hover:bg-purple-50 font-bold text-xs flex items-center gap-1.5 shadow-sm border border-slate-300';
+        if (viewCreate) viewCreate.classList.add('hidden');
+        if (viewExplore) viewExplore.classList.remove('hidden');
+        refreshActivePoolsUI();
     }
 }
 
-function addLiquidityToPool() {
-    const usdcInput = document.getElementById('poolUsdcInput');
-    const eurcInput = document.getElementById('poolEurcInput');
-    const val = usdcInput ? parseFloat(usdcInput.value) : 0;
+function getActivePoolsStorageKey() {
+    return 'arc_pulseswap_active_pools';
+}
 
-    if (isNaN(val) || val <= 0) {
-        showToast('Invalid Amount', 'Please enter a valid deposit amount for Liquidity Pool', 'warning');
+function getStoredActivePools() {
+    try {
+        return JSON.parse(localStorage.getItem(getActivePoolsStorageKey())) || [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveActivePool(poolData) {
+    const list = getStoredActivePools();
+    const idx = list.findIndex(p => p.tokenAddress.toLowerCase() === poolData.tokenAddress.toLowerCase());
+    if (idx >= 0) {
+        list[idx] = { ...list[idx], ...poolData };
+    } else {
+        list.unshift(poolData);
+    }
+    localStorage.setItem(getActivePoolsStorageKey(), JSON.stringify(list));
+}
+
+function populatePoolTokenSelect() {
+    const select = document.getElementById('poolTokenSelect');
+    if (!select) return;
+
+    const userTokens = getUserCreatedTokens();
+    if (userTokens.length === 0) {
+        select.innerHTML = '<option value="">-- No Deployed Tokens (Deploy in Token Forge first) --</option>';
         return;
     }
 
-    showToast('Liquidity Supplied! 🚀', `Successfully added ${val} USDC / ${eurcInput?.value || 0} EURC to AMM Pool! Earn 18.4% APR.`, 'success');
-    if (usdcInput) usdcInput.value = '';
-    if (eurcInput) eurcInput.value = '';
+    let opts = '<option value="">-- Choose From Your Deployed Tokens --</option>';
+    userTokens.forEach(t => {
+        opts += `<option value="${t.address}">${escapeHtml(t.name)} ($${escapeHtml(t.symbol)}) - ${t.address.substring(0, 8)}...</option>`;
+    });
+    select.innerHTML = opts;
 }
 
-// ACCURATE SWAP CONVERSION MATCHING TERMINAL SDK (1 USDC = 0.882639 EURC)
+async function onPoolTokenSelected() {
+    const select = document.getElementById('poolTokenSelect');
+    const customInput = document.getElementById('poolCustomTokenInput');
+    const tokenAddr = select?.value;
+
+    if (!tokenAddr) return;
+    if (customInput) customInput.value = tokenAddr;
+
+    const userTokens = getUserCreatedTokens();
+    const token = userTokens.find(t => t.address.toLowerCase() === tokenAddr.toLowerCase());
+    safeSetText('poolTokenSelectedSymbol', token ? token.symbol : 'TOKEN');
+
+    // Fetch token balance
+    await updatePoolTokenBalance(tokenAddr);
+    updatePoolPricePreview();
+}
+
+async function onCustomTokenAddressInput() {
+    const customInput = document.getElementById('poolCustomTokenInput');
+    const addr = customInput?.value.trim();
+    if (!addr || !addr.startsWith('0x') || addr.length !== 42) return;
+
+    const select = document.getElementById('poolTokenSelect');
+    if (select) select.value = '';
+
+    await updatePoolTokenBalance(addr);
+    updatePoolPricePreview();
+}
+
+async function updatePoolTokenBalance(tokenAddr) {
+    const balLabel = document.getElementById('poolTokenBalanceLabel');
+    if (!balLabel) return;
+
+    if (!currentAccount || !window.ethers) {
+        balLabel.textContent = 'Balance: 0.00';
+        return;
+    }
+
+    try {
+        const providerObj = activeWeb3Provider || window.ethereum;
+        if (!providerObj) return;
+        const provider = new ethers.providers.Web3Provider(providerObj);
+        const contract = new ethers.Contract(tokenAddr, ARC_CUSTOM_TOKEN_ABI, provider);
+        const [bal, dec, sym] = await Promise.all([
+            contract.balanceOf(currentAccount),
+            contract.decimals().catch(() => 18),
+            contract.symbol().catch(() => 'TOKEN')
+        ]);
+        const fmt = ethers.utils.formatUnits(bal, dec);
+        balLabel.textContent = `Balance: ${parseFloat(fmt).toLocaleString()} $${sym}`;
+        safeSetText('poolTokenSelectedSymbol', sym);
+    } catch (e) {
+        balLabel.textContent = 'Balance: Available on Arc';
+    }
+}
+
+function setMaxPoolTokenAmount() {
+    const balLabel = document.getElementById('poolTokenBalanceLabel')?.textContent || '';
+    const match = balLabel.match(/Balance:\s*([\d,.]+)/);
+    if (match && match[1]) {
+        const clean = match[1].replace(/,/g, '');
+        const input = document.getElementById('poolTokenAmountInput');
+        if (input) {
+            input.value = clean;
+            updatePoolPricePreview();
+        }
+    }
+}
+
+function setMaxPoolUsdcAmount() {
+    const usdcBal = TOKENS[0]?.balance || 0;
+    const input = document.getElementById('poolUsdcAmountInput');
+    if (input) {
+        // Leave a little for gas
+        const safeBal = Math.max(0, usdcBal - 0.01);
+        input.value = safeBal.toFixed(4);
+        updatePoolPricePreview();
+    }
+}
+
+function updatePoolPricePreview() {
+    const tokenInput = document.getElementById('poolTokenAmountInput');
+    const usdcInput = document.getElementById('poolUsdcAmountInput');
+    const preview = document.getElementById('poolLaunchPricePreview');
+    const symbol = document.getElementById('poolTokenSelectedSymbol')?.textContent || 'TOKEN';
+
+    const tokenAmt = parseFloat(tokenInput?.value || 0);
+    const usdcAmt = parseFloat(usdcInput?.value || 0);
+
+    if (!preview) return;
+
+    if (tokenAmt > 0 && usdcAmt > 0) {
+        const price = usdcAmt / tokenAmt;
+        const tokensPerUsdc = tokenAmt / usdcAmt;
+        preview.innerHTML = `<strong>1 ${symbol} = ${price < 0.00001 ? price.toExponential(4) : price.toFixed(6)} USDC</strong> (${tokensPerUsdc.toLocaleString(undefined, { maximumFractionDigits: 0 })} ${symbol} per USDC)`;
+    } else {
+        preview.textContent = 'Enter deposit amounts to calculate launch price';
+    }
+}
+
+async function handleCreateOrAddPool() {
+    if (!currentAccount) {
+        handleWalletClick();
+        return;
+    }
+
+    const select = document.getElementById('poolTokenSelect');
+    const customAddrInput = document.getElementById('poolCustomTokenInput');
+    const tokenAddr = (select?.value || customAddrInput?.value || '').trim();
+
+    if (!tokenAddr || !tokenAddr.startsWith('0x') || tokenAddr.length !== 42) {
+        showToast('Invalid Token', 'Please select or enter a valid ERC-20 token address.', 'warning');
+        return;
+    }
+
+    const tokenAmtVal = parseFloat(document.getElementById('poolTokenAmountInput')?.value || 0);
+    const usdcAmtVal = parseFloat(document.getElementById('poolUsdcAmountInput')?.value || 0);
+
+    if (isNaN(tokenAmtVal) || tokenAmtVal <= 0) {
+        showToast('Invalid Token Amount', 'Please enter a valid token deposit amount.', 'warning');
+        return;
+    }
+
+    if (isNaN(usdcAmtVal) || usdcAmtVal <= 0) {
+        showToast('Invalid USDC Amount', 'Please enter a valid native USDC amount (e.g. 1.0 or 5.0).', 'warning');
+        return;
+    }
+
+    const providerObj = activeWeb3Provider || window.ethereum;
+    if (!providerObj || !window.ethers) {
+        showToast('Wallet Error', 'Please connect your Web3 wallet.', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('btnCreatePoolAction');
+    const originalText = document.getElementById('btnCreatePoolText')?.textContent;
+
+    try {
+        const provider = new ethers.providers.Web3Provider(providerObj);
+        const signer = provider.getSigner();
+        const tokenContract = new ethers.Contract(tokenAddr, ARC_CUSTOM_TOKEN_ABI, signer);
+
+        let tokenDecimals = 18;
+        let tokenSymbol = 'TOKEN';
+        let tokenName = 'Custom Token';
+        try {
+            tokenDecimals = await tokenContract.decimals();
+            tokenSymbol = await tokenContract.symbol();
+            tokenName = await tokenContract.name();
+        } catch (e) { }
+
+        const tokenAmountUnits = ethers.utils.parseUnits(tokenAmtVal.toString(), tokenDecimals);
+        const usdcWei = ethers.utils.parseEther(usdcAmtVal.toString());
+
+        // Check user token balance
+        const userBal = await tokenContract.balanceOf(currentAccount);
+        if (userBal.lt(tokenAmountUnits)) {
+            showToast('Insufficient Balance', `You have ${ethers.utils.formatUnits(userBal, tokenDecimals)} ${tokenSymbol}. Need ${tokenAmtVal}.`, 'error');
+            return;
+        }
+
+        // Step 1: Approve PulseSwap Router
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Approving $${tokenSymbol}...</span>`;
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        const allowance = await tokenContract.allowance(currentAccount, PULSESWAP_ROUTER_ADDRESS);
+        if (allowance.lt(tokenAmountUnits)) {
+            showToast('Step 1/2: Approve Router', `Approving PulseSwap Router (${PULSESWAP_ROUTER_ADDRESS.substring(0, 6)}...) to take tokens...`, 'info');
+            const appTx = await tokenContract.approve(PULSESWAP_ROUTER_ADDRESS, tokenAmountUnits);
+            await appTx.wait();
+            showToast('Approval Confirmed', 'Step 1 complete! Now seeding liquidity in pool...', 'success');
+        }
+
+        // Step 2: Seed Pool
+        if (btn) {
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Seeding Liquidity on Arc L1...</span>`;
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        const routerContract = new ethers.Contract(PULSESWAP_ROUTER_ADDRESS, PULSESWAP_ROUTER_ABI, signer);
+
+        let poolExists = false;
+        try {
+            const existingPool = await routerContract.getPool(tokenAddr);
+            poolExists = existingPool.exists;
+        } catch (e) { }
+
+        let poolTx;
+        if (poolExists) {
+            showToast('Adding Liquidity', `Adding ${tokenAmtVal} $${tokenSymbol} and ${usdcAmtVal} USDC to pool...`, 'info');
+            poolTx = await routerContract.addLiquidity(tokenAddr, tokenAmountUnits, { value: usdcWei });
+        } else {
+            showToast('Creating Pool', `Creating initial AMM pool with ${tokenAmtVal} $${tokenSymbol} and ${usdcAmtVal} USDC...`, 'info');
+            poolTx = await routerContract.createPool(tokenAddr, tokenAmountUnits, { value: usdcWei });
+        }
+
+        await poolTx.wait();
+
+        const userCreated = getUserCreatedTokens().find(t => t.address.toLowerCase() === tokenAddr.toLowerCase());
+        const poolRecord = {
+            tokenAddress: tokenAddr,
+            tokenName: tokenName,
+            tokenSymbol: tokenSymbol,
+            tokenDecimals: tokenDecimals,
+            tokenImage: userCreated?.image || '',
+            usdcReserve: usdcAmtVal,
+            tokenReserve: tokenAmtVal,
+            priceUsdc: (usdcAmtVal / tokenAmtVal),
+            createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            txHash: poolTx.hash
+        };
+        saveActivePool(poolRecord);
+
+        showToast('Pool Created! 🚀', `Liquidity pool for $${tokenSymbol}/USDC is now live on Arc Testnet!`, 'success');
+
+        saveTxRecord(currentAccount, {
+            txHash: poolTx.hash,
+            type: 'PulseSwap Liquidity Seed',
+            pair: `Seeded ${usdcAmtVal} USDC + ${tokenAmtVal.toLocaleString()} $${tokenSymbol}`,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
+
+        // Reset inputs
+        if (document.getElementById('poolTokenAmountInput')) document.getElementById('poolTokenAmountInput').value = '';
+        if (document.getElementById('poolUsdcAmountInput')) document.getElementById('poolUsdcAmountInput').value = '';
+
+        switchPoolSubTab('explore');
+        refreshActivePoolsUI();
+
+    } catch (err) {
+        console.error("Pool creation error:", err);
+        showToast('Transaction Failed', err.reason || err.message || 'Could not create pool on Arc Testnet.', 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="plus-circle" class="w-5 h-5"></i><span id="btnCreatePoolText">${originalText || 'Create Liquidity Pool (1-Click)'}</span>`;
+            if (window.lucide) window.lucide.createIcons();
+        }
+    }
+}
+
+function refreshActivePoolsUI() {
+    const container = document.getElementById('activePoolsListContainer');
+    const countBadge = document.getElementById('activePoolsCountBadge');
+    const pools = getStoredActivePools();
+
+    if (countBadge) countBadge.textContent = pools.length;
+    if (!container) return;
+
+    if (pools.length === 0) {
+        container.innerHTML = `
+            <div class="col-span-full text-center py-10 bg-slate-50 rounded-2xl border-2 border-slate-950 text-slate-500 font-mono text-xs space-y-2">
+                <i data-lucide="droplet" class="w-8 h-8 mx-auto text-slate-400"></i>
+                <div class="font-bold text-slate-800 text-sm">No Active Pools Yet</div>
+                <p class="text-[11px] text-slate-500">Seed the first liquidity pool for your Arc token above!</p>
+                <button onclick="switchPoolSubTab('create')" class="btn-pixel-sm px-3.5 py-1.5 rounded-xl bg-purple-700 text-white font-bold text-xs mt-2">
+                    Create Pool Now
+                </button>
+            </div>
+        `;
+        if (window.lucide) window.lucide.createIcons();
+        return;
+    }
+
+    let html = '';
+    pools.forEach(p => {
+        const shortAddr = `${p.tokenAddress.substring(0, 6)}...${p.tokenAddress.substring(p.tokenAddress.length - 4)}`;
+        const priceFormatted = p.priceUsdc < 0.00001 ? p.priceUsdc.toExponential(4) : p.priceUsdc.toFixed(6);
+
+        const logoHtml = p.tokenImage
+            ? `<img src="${p.tokenImage}" class="w-10 h-10 rounded-xl object-cover border border-slate-950/20 shadow-sm shrink-0" onerror="this.outerHTML='<div class=\\'w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white font-pixel font-bold flex items-center justify-center text-sm shrink-0 shadow-sm\\'>${(p.tokenSymbol || 'T').charAt(0)}</div>'">`
+            : `<div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white font-pixel font-bold flex items-center justify-center text-sm shrink-0 shadow-sm">${(p.tokenSymbol || 'T').charAt(0)}</div>`;
+
+        html += `
+            <div class="p-4 rounded-2xl bg-white border-2 border-slate-950 shadow-[3px_3px_0px_#0F172A] space-y-3 font-mono text-xs">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        ${logoHtml}
+                        <div>
+                            <div class="font-bold text-slate-950 font-sans text-sm flex items-center gap-1.5">
+                                <span>${escapeHtml(p.tokenName || 'Custom Token')}</span>
+                                <span class="px-1.5 py-0.2 rounded bg-purple-100 text-purple-900 border border-purple-300 text-[10px] font-bold">$${escapeHtml(p.tokenSymbol)}</span>
+                            </div>
+                            <div class="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
+                                <span>Pair: <strong>$${escapeHtml(p.tokenSymbol)} / USDC</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold border border-emerald-300">Live AMM</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[11px]">
+                    <div>
+                        <div class="text-slate-500 text-[10px]">USDC Liquidity</div>
+                        <div class="font-bold text-slate-950">${Number(p.usdcReserve).toFixed(2)} USDC</div>
+                    </div>
+                    <div>
+                        <div class="text-slate-500 text-[10px]">Token Reserve</div>
+                        <div class="font-bold text-slate-950">${Number(p.tokenReserve).toLocaleString()}</div>
+                    </div>
+                    <div class="col-span-2 pt-1 border-t border-slate-200 flex justify-between items-center">
+                        <span class="text-slate-500 text-[10px]">Current Price:</span>
+                        <span class="font-bold text-purple-700">${priceFormatted} USDC</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 pt-1">
+                    <button onclick="loadTokenPairForSwap('${p.tokenAddress}')" class="btn-pixel-sm flex-1 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm">
+                        <i data-lucide="arrow-left-right" class="w-3.5 h-3.5"></i> Trade
+                    </button>
+                    <button onclick="initiatePoolCreation('${p.tokenAddress}')" class="btn-pixel-sm px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-950 font-bold text-xs flex items-center justify-center gap-1 border border-slate-300" title="Add More Liquidity">
+                        <i data-lucide="plus" class="w-3.5 h-3.5 text-purple-700"></i> Add
+                    </button>
+                    <a href="https://explorer.testnet.arc.network/address/${p.tokenAddress}" target="_blank" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 flex items-center justify-center" title="View Token on Explorer">
+                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                    </a>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+    safeInitIcons();
+}
+
+function initiatePoolCreation(tokenAddress) {
+    switchPage('swap');
+    switchSwapMode('pool');
+    switchPoolSubTab('create');
+
+    populatePoolTokenSelect();
+    const select = document.getElementById('poolTokenSelect');
+    if (select) {
+        select.value = tokenAddress;
+        onPoolTokenSelected();
+    }
+    const customInput = document.getElementById('poolCustomTokenInput');
+    if (customInput) customInput.value = tokenAddress;
+
+    showToast('Token Selected', 'Enter deposit amounts to seed your liquidity pool!', 'info');
+}
+
+function loadTokenPairForSwap(tokenAddress) {
+    switchPage('swap');
+    switchSwapMode('swap');
+
+    const available = getAllAvailableTokens();
+    const target = available.find(t => t.address && t.address.toLowerCase() === tokenAddress.toLowerCase());
+    if (target) {
+        payToken = TOKENS[0]; // USDC
+        receiveToken = target;
+
+        safeSetText('payTokenSymbol', payToken.symbol);
+        safeSetText('receiveTokenSymbol', receiveToken.symbol);
+
+        const payIconContainer = document.getElementById('payTokenIconContainer');
+        const recIconContainer = document.getElementById('receiveTokenIconContainer');
+        if (payIconContainer) {
+            payIconContainer.className = 'w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center font-black text-white text-xs shrink-0';
+            payIconContainer.innerText = '$';
+        }
+        if (recIconContainer) {
+            if (receiveToken.image) {
+                recIconContainer.className = 'w-7 h-7 rounded-full overflow-hidden border border-slate-950/20 shadow-sm shrink-0 flex items-center justify-center';
+                recIconContainer.innerHTML = `<img src="${receiveToken.image}" class="w-full h-full object-cover">`;
+            } else {
+                recIconContainer.className = 'w-7 h-7 rounded-full bg-purple-600 flex items-center justify-center font-black text-white text-xs shrink-0';
+                recIconContainer.innerText = receiveToken.icon || 'T';
+            }
+        }
+
+        calculateSwap();
+        showToast('Pair Loaded', `Ready to trade USDC for $${receiveToken.symbol}!`, 'info');
+    }
+}
+
+async function executePulseSwap(payTok, recTok, amt) {
+    const provider = activeWeb3Provider || window.ethereum;
+    if (!provider) throw new Error("No wallet connected");
+    const web3Provider = new ethers.providers.Web3Provider(provider);
+    const signer = web3Provider.getSigner();
+
+    const isBuy = (payTok.symbol === 'USDC');
+    const customToken = isBuy ? recTok : payTok;
+
+    const routerContract = new ethers.Contract(PULSESWAP_ROUTER_ADDRESS, PULSESWAP_ROUTER_ABI, signer);
+
+    if (isBuy) {
+        // Native USDC -> Buy Custom Tokens
+        const usdcWei = ethers.utils.parseEther(amt.toString());
+        showToast('Confirm AMM Swap', `Swapping ${amt} USDC for $${customToken.symbol} on Arc L1...`, 'info');
+
+        let minTokensOut = ethers.BigNumber.from(0);
+        try {
+            const poolData = await routerContract.getPool(customToken.address);
+            if (poolData.exists) {
+                const estTokens = await routerContract.getAmountOut(usdcWei, poolData.usdcReserve, poolData.tokenReserve);
+                minTokensOut = estTokens.mul(95).div(100); // 5% slippage
+            }
+        } catch (e) { }
+
+        const tx = await routerContract.swapUSDCForTokens(customToken.address, minTokensOut, { value: usdcWei });
+        showToast('Swap Broadcasted', `Tx: ${tx.hash.substring(0, 10)}... Confirming block on Arc Testnet`, 'info');
+        await tx.wait();
+        showToast('Swap Successful! 🚀', `Bought $${customToken.symbol} on Arc L1 via PulseSwap!`, 'success');
+
+        saveTxRecord(currentAccount, {
+            txHash: tx.hash,
+            type: 'PulseSwap AMM Buy',
+            pair: `Swapped ${amt} USDC ➔ $${customToken.symbol}`,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
+    } else {
+        // Custom Tokens -> Sell for Native USDC
+        const tokenDecimals = customToken.decimals || 18;
+        const tokenAmountUnits = ethers.utils.parseUnits(amt.toString(), tokenDecimals);
+        const tokenContract = new ethers.Contract(customToken.address, ARC_CUSTOM_TOKEN_ABI, signer);
+
+        // Step 1: Approve Router
+        const allowance = await tokenContract.allowance(currentAccount, PULSESWAP_ROUTER_ADDRESS);
+        if (allowance.lt(tokenAmountUnits)) {
+            showToast('Step 1/2: Approve Token', `Approving PulseSwap Router to spend $${customToken.symbol}...`, 'info');
+            const appTx = await tokenContract.approve(PULSESWAP_ROUTER_ADDRESS, tokenAmountUnits);
+            await appTx.wait();
+            showToast('Token Approved', 'Step 1 complete! Now confirm Sell Swap (Step 2/2)...', 'success');
+        }
+
+        // Step 2: Swap Tokens for USDC
+        showToast('Step 2/2: Confirm Swap', `Selling ${amt} $${customToken.symbol} for USDC on Spender Router...`, 'info');
+        let minUsdcOut = ethers.BigNumber.from(0);
+        try {
+            const poolData = await routerContract.getPool(customToken.address);
+            if (poolData.exists) {
+                const estUsdc = await routerContract.getAmountOut(tokenAmountUnits, poolData.tokenReserve, poolData.usdcReserve);
+                minUsdcOut = estUsdc.mul(95).div(100);
+            }
+        } catch (e) { }
+
+        const tx = await routerContract.swapTokensForUSDC(customToken.address, tokenAmountUnits, minUsdcOut);
+        showToast('Swap Broadcasted', `Tx: ${tx.hash.substring(0, 10)}... Confirming block on Arc Testnet`, 'info');
+        await tx.wait();
+        showToast('Swap Successful! 🚀', `Sold $${customToken.symbol} for native USDC on Arc L1!`, 'success');
+
+        saveTxRecord(currentAccount, {
+            txHash: tx.hash,
+            type: 'PulseSwap AMM Sell',
+            pair: `Sold ${amt} $${customToken.symbol} ➔ USDC`,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
+    }
+
+    await fetchBalances();
+    const input = document.getElementById('payAmountInput');
+    if (input) input.value = '';
+    const output = document.getElementById('receiveAmountInput');
+    if (output) output.value = '';
+    refreshActivePoolsUI();
+}
+
+// ACCURATE SWAP CONVERSION SUPPORTING AMM CUSTOM POOLS AND SDK STABLES
 function calculateSwap() {
     const input = document.getElementById('payAmountInput');
     const output = document.getElementById('receiveAmountInput');
@@ -818,9 +1387,36 @@ function calculateSwap() {
         return;
     }
 
+    if (payToken.isCustom || receiveToken.isCustom) {
+        const customToken = payToken.isCustom ? payToken : receiveToken;
+        const pools = getStoredActivePools();
+        const pool = pools.find(p => p.tokenAddress.toLowerCase() === customToken.address.toLowerCase());
+
+        if (pool && pool.usdcReserve > 0 && pool.tokenReserve > 0) {
+            const isBuy = (payToken.symbol === 'USDC');
+            const reserveIn = isBuy ? pool.usdcReserve : pool.tokenReserve;
+            const reserveOut = isBuy ? pool.tokenReserve : pool.usdcReserve;
+
+            const amountInWithFee = val * 997;
+            const numerator = amountInWithFee * reserveOut;
+            const denominator = (reserveIn * 1000) + amountInWithFee;
+            const est = numerator / denominator;
+
+            output.value = est > 0.000001 ? est.toFixed(6) : est.toExponential(4);
+            const currentPrice = pool.usdcReserve / pool.tokenReserve;
+            safeSetText('exchangeRateText', `1 $${customToken.symbol} ≈ ${currentPrice < 0.00001 ? currentPrice.toExponential(4) : currentPrice.toFixed(6)} USDC (PulseSwap AMM)`);
+            return;
+        } else {
+            safeSetText('exchangeRateText', `No active pool for $${customToken.symbol}. Go to Pools tab to seed liquidity!`);
+            output.value = '';
+            return;
+        }
+    }
+
     const ratio = payToken.usdRate / receiveToken.usdRate;
     const est = val * ratio;
     output.value = est.toFixed(6);
+    safeSetText('exchangeRateText', `1 ${payToken.symbol} ≈ ${ratio.toFixed(6)} ${receiveToken.symbol}`);
 }
 
 function setMaxPayAmount() {
@@ -893,6 +1489,11 @@ async function executeRealSwap() {
         const routerContract = new ethers.Contract(SPENDER_ROUTER_ADDRESS, SPENDER_ROUTER_ABI, signer);
 
         let swapTx;
+
+        if (payToken.isCustom || receiveToken.isCustom) {
+            await executePulseSwap(payToken, receiveToken, amt);
+            return;
+        }
 
         if (payToken.symbol === 'USDC') {
             const erc20Contract = new ethers.Contract(ERC20_USDC_ADDRESS, ERC20_ABI, signer);
@@ -5704,6 +6305,10 @@ function renderUserCreatedTokens(shouldSync = true) {
                     </div>
 
                     <div class="flex items-center gap-2">
+                        <button onclick="initiatePoolCreation('${t.address}')" class="px-2.5 py-1 bg-purple-100 hover:bg-purple-200 text-purple-950 border border-purple-300 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-colors" title="Create AMM Liquidity Pool on Arc">
+                            <i data-lucide="droplet" class="w-3.5 h-3.5 text-purple-700"></i>
+                            <span>Pool</span>
+                        </button>
                         <button onclick="addTokenToMetaMask('${t.address}', '${t.symbol}', ${t.decimals}, '${t.image || ''}')" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-colors" title="Import into MetaMask">
                             <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
                             <span>Add</span>

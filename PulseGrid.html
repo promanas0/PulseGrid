@@ -1096,6 +1096,109 @@
                         <span id="swapBtnLabel">Execute Arc Web3 Swap</span>
                     </button>
                 </div>
+
+                <!-- AMM LIQUIDITY POOL CONTAINER CARD -->
+                <div id="liquidityPoolContainer" class="pixel-card-purple p-6 sm:p-10 relative hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b-2 border-slate-950">
+                        <div>
+                            <h2 class="font-pixel text-2xl sm:text-3xl font-black text-slate-950 flex flex-wrap items-center gap-3">
+                                <i data-lucide="layers" class="w-7 h-7 text-purple-700"></i>
+                                <span>PulseSwap AMM Pools</span>
+                            </h2>
+                            <p class="text-xs text-slate-600 mt-1 font-medium">Create automated liquidity pools (AMM Pairs) for any Arc custom token & earn 0.3% trading fees</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="switchPoolSubTab('create')" id="poolSubTabCreate" class="btn-pixel-sm px-3.5 py-2 rounded-xl bg-purple-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm">
+                                <i data-lucide="plus-circle" class="w-4 h-4"></i> Create Pool
+                            </button>
+                            <button onclick="switchPoolSubTab('explore')" id="poolSubTabExplore" class="btn-pixel-sm px-3.5 py-2 rounded-xl bg-white text-slate-950 hover:bg-purple-50 font-bold text-xs flex items-center gap-1.5 shadow-sm border border-slate-300">
+                                <i data-lucide="compass" class="w-4 h-4 text-purple-700"></i> Explore Pools (<span id="activePoolsCountBadge">0</span>)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SUB-VIEW 1: CREATE / SEED POOL -->
+                    <div id="poolSubViewCreate" class="space-y-5">
+                        <!-- Select Token Dropdown -->
+                        <div class="p-4 rounded-2xl bg-slate-50 border-2 border-slate-950 space-y-2 font-mono">
+                            <div class="flex justify-between items-center text-xs text-slate-500">
+                                <span class="font-bold">1. SELECT TOKEN TO PAIR WITH USDC</span>
+                                <span class="text-[11px] text-purple-700 font-bold" id="poolTokenBalanceLabel">Balance: 0.00</span>
+                            </div>
+                            <div class="flex flex-col sm:flex-row gap-2">
+                                <select id="poolTokenSelect" onchange="onPoolTokenSelected()" class="w-full p-3 rounded-xl bg-white border-2 border-slate-950 font-bold text-xs text-slate-950 outline-none">
+                                    <option value="">-- Choose From Your Deployed Tokens --</option>
+                                </select>
+                            </div>
+                            <div class="text-[11px] text-slate-500 flex items-center gap-1">
+                                <span>Or enter contract address:</span>
+                                <input type="text" id="poolCustomTokenInput" oninput="onCustomTokenAddressInput()" placeholder="0x..." class="flex-1 px-2 py-1 rounded-lg bg-white border border-slate-300 text-xs font-mono">
+                            </div>
+                        </div>
+
+                        <!-- Deposit Amounts Form -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Token Deposit -->
+                            <div class="p-4 rounded-2xl bg-slate-50 border-2 border-slate-950 space-y-2">
+                                <div class="flex justify-between items-center text-xs text-slate-500 font-mono">
+                                    <span class="font-bold">DEPOSIT CUSTOM TOKEN</span>
+                                    <button type="button" onclick="setMaxPoolTokenAmount()" class="text-[10px] px-2 py-0.5 rounded bg-purple-200 text-purple-900 font-bold hover:bg-purple-700 hover:text-white transition-colors">MAX</button>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" id="poolTokenAmountInput" oninput="updatePoolPricePreview()" placeholder="100000" class="w-full bg-transparent text-2xl font-black font-mono text-slate-950 outline-none">
+                                    <span id="poolTokenSelectedSymbol" class="font-bold text-sm text-slate-700 font-mono shrink-0">TOKEN</span>
+                                </div>
+                            </div>
+
+                            <!-- USDC Deposit -->
+                            <div class="p-4 rounded-2xl bg-slate-50 border-2 border-slate-950 space-y-2">
+                                <div class="flex justify-between items-center text-xs text-slate-500 font-mono">
+                                    <span class="font-bold">DEPOSIT NATIVE USDC</span>
+                                    <button type="button" onclick="setMaxPoolUsdcAmount()" class="text-[10px] px-2 py-0.5 rounded bg-blue-200 text-blue-900 font-bold hover:bg-blue-700 hover:text-white transition-colors">MAX</button>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" id="poolUsdcAmountInput" oninput="updatePoolPricePreview()" placeholder="5.00" class="w-full bg-transparent text-2xl font-black font-mono text-slate-950 outline-none">
+                                    <span class="font-bold text-sm text-blue-700 font-mono shrink-0">USDC</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Price & Metrics Preview Box -->
+                        <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 space-y-2 font-mono text-xs">
+                            <div class="flex justify-between text-slate-600">
+                                <span>Initial Launch Price:</span>
+                                <strong id="poolLaunchPricePreview" class="text-purple-900">Enter amounts to calculate</strong>
+                            </div>
+                            <div class="flex justify-between text-slate-600">
+                                <span>AMM Formula:</span>
+                                <span class="text-slate-950 font-bold">Constant-Product (x · y = k)</span>
+                            </div>
+                            <div class="flex justify-between text-slate-600">
+                                <span>LP Trading Fee:</span>
+                                <span class="text-emerald-700 font-bold">0.30% shared proportionally by LPs</span>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button id="btnCreatePoolAction" onclick="handleCreateOrAddPool()" class="btn-pixel w-full py-4 rounded-xl bg-gradient-to-r from-purple-700 via-indigo-600 to-teal-600 text-white font-pixel font-bold text-base shadow-lg flex items-center justify-center gap-2">
+                            <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                            <span id="btnCreatePoolText">Create Liquidity Pool (1-Click)</span>
+                        </button>
+                    </div>
+
+                    <!-- SUB-VIEW 2: EXPLORE ACTIVE POOLS -->
+                    <div id="poolSubViewExplore" class="space-y-4 hidden">
+                        <div class="flex items-center justify-between">
+                            <div class="text-xs text-slate-600 font-mono">Live automated pairs on Arc Testnet:</div>
+                            <button onclick="refreshActivePoolsUI()" class="btn-pixel-sm px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-800 text-xs font-bold flex items-center gap-1">
+                                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
+                            </button>
+                        </div>
+                        <div id="activePoolsListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Injected via JavaScript -->
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 

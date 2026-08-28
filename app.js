@@ -1495,8 +1495,11 @@ function refreshActivePoolsUI() {
                     <button onclick="loadTokenPairForSwap('${p.tokenAddress}')" class="btn-pixel-sm flex-1 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm">
                         <i data-lucide="arrow-left-right" class="w-3.5 h-3.5"></i> Trade
                     </button>
-                    <button onclick="initiatePoolCreation('${p.tokenAddress}')" class="btn-pixel-sm px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-950 font-bold text-xs flex items-center justify-center gap-1 border border-slate-300" title="Add More Liquidity">
+                    <button onclick="initiatePoolCreation('${p.tokenAddress}')" class="btn-pixel-sm px-2.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-950 font-bold text-xs flex items-center justify-center gap-1 border border-slate-300" title="Add More Liquidity">
                         <i data-lucide="plus" class="w-3.5 h-3.5 text-purple-700"></i> Add
+                    </button>
+                    <button onclick="handleRemoveLiquidity('${p.tokenAddress}')" class="btn-pixel-sm px-2.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold text-xs flex items-center justify-center gap-1 border border-rose-300" title="Withdraw / Remove Liquidity to Wallet">
+                        <i data-lucide="arrow-down-left" class="w-3.5 h-3.5 text-rose-600"></i> Withdraw
                     </button>
                     <a href="https://explorer.testnet.arc.network/address/${p.tokenAddress}" target="_blank" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 flex items-center justify-center" title="View Token on Explorer">
                         <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
@@ -1509,6 +1512,51 @@ function refreshActivePoolsUI() {
     container.innerHTML = html;
     safeInitIcons();
     renderQuickPairBadges();
+}
+
+async function handleRemoveLiquidity(tokenAddress) {
+    if (!currentAccount) {
+        handleWalletClick();
+        return;
+    }
+
+    const providerObj = activeWeb3Provider || window.ethereum;
+    if (!providerObj || !window.ethers) {
+        showToast('Wallet Error', 'Please connect your Web3 wallet.', 'error');
+        return;
+    }
+
+    try {
+        const provider = new ethers.providers.Web3Provider(providerObj);
+        const signer = provider.getSigner();
+        const routerContract = new ethers.Contract(PULSESWAP_ROUTER_ADDRESS, PULSESWAP_ROUTER_ABI, signer);
+
+        const userLp = await routerContract.getUserLpBalance(tokenAddress, currentAccount);
+        if (userLp.isZero()) {
+            showToast('No LP Balance', 'You do not have any active LP shares in this pool to withdraw.', 'warning');
+            return;
+        }
+
+        showToast('Withdrawing Liquidity', 'Please confirm liquidity withdrawal in MetaMask...', 'info');
+        const tx = await routerContract.removeLiquidity(tokenAddress, userLp);
+        showToast('Transaction Broadcasted', `Tx: ${tx.hash.substring(0, 10)}... Withdrawing USDC and Tokens to Wallet`, 'info');
+        await tx.wait();
+
+        showToast('Liquidity Withdrawn! 💸', 'Your USDC and custom tokens have returned to your wallet balance!', 'success');
+
+        saveTxRecord(currentAccount, {
+            txHash: tx.hash,
+            type: 'PulseSwap Withdraw Liquidity',
+            pair: `Withdrew Pool Liquidity to Wallet`,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
+
+        await fetchBalances();
+        refreshActivePoolsUI();
+    } catch (err) {
+        console.error("Remove liquidity error:", err);
+        showToast('Withdraw Failed', err.reason || err.message || 'Could not withdraw liquidity', 'error');
+    }
 }
 
 function renderQuickPairBadges() {

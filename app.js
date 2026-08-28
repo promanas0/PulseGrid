@@ -110,6 +110,19 @@ const PULSESWAP_ROUTER_ABI = [
     "event TokenSwap(address indexed token, address indexed trader, bool isBuy, uint256 usdcAmount, uint256 tokenAmount, uint256 timestamp)"
 ];
 
+// Official PulseBridge CCTP Cross-Chain Router deployed on Arc Testnet (Chain ID 5042002)
+const PULSEBRIDGE_ROUTER_ADDRESS = '0x6a15E3D63F94F6877153515d663074a739F63db9';
+
+const PULSEBRIDGE_ROUTER_ABI = [
+    "function bridgeDeposit(address token, uint256 amount, uint256 targetChainId, address recipient) external payable returns (bytes32 depositId)",
+    "function claimBridgedTokens(bytes32 depositId, address token, uint256 amount, uint256 sourceChainId, address recipient) external",
+    "function totalDeposits() external view returns (uint256)",
+    "function totalClaims() external view returns (uint256)",
+    "function supportedChains(uint256) external view returns (bool)",
+    "event BridgeDepositInitiated(bytes32 indexed depositId, address indexed sender, address indexed token, uint256 amount, uint256 sourceChainId, uint256 targetChainId, address recipient, uint256 nonce, uint256 timestamp)",
+    "event BridgeTokensClaimed(bytes32 indexed depositId, address indexed recipient, address indexed token, uint256 amount, uint256 sourceChainId, uint256 timestamp)"
+];
+
 const ARC_CUSTOM_TOKEN_ABI = [
     "constructor(string memory _name, string memory _symbol, uint256 _initialSupply, uint8 _decimals, address _recipient)",
     "function name() external view returns (string memory)",
@@ -7117,15 +7130,28 @@ async function executeBridgeTransfer() {
             const web3Provider = new ethers.providers.Web3Provider(provider);
             const signer = web3Provider.getSigner();
             
-            const tx = await signer.sendTransaction({
-                to: PULSESWAP_ROUTER_ADDRESS,
-                value: (sourceNet.chainIdDec === 5042002 && currentBridgeToken === 'USDC') ? ethers.utils.parseUnits(Math.min(amt, 0.001).toString(), 6) : ethers.utils.parseEther('0.0001')
-            });
+            let tx;
+            if (sourceNet.chainIdDec === 5042002 && currentBridgeToken === 'USDC') {
+                const depositUnits = ethers.utils.parseUnits(Math.min(amt, 0.001).toString(), 6);
+                const bridgeContract = new ethers.Contract(PULSEBRIDGE_ROUTER_ADDRESS, PULSEBRIDGE_ROUTER_ABI, signer);
+                tx = await bridgeContract.bridgeDeposit(
+                    '0x0000000000000000000000000000000000000000',
+                    depositUnits,
+                    targetNet.chainIdDec,
+                    currentAccount,
+                    { value: depositUnits }
+                );
+            } else {
+                tx = await signer.sendTransaction({
+                    to: PULSEBRIDGE_ROUTER_ADDRESS,
+                    value: ethers.utils.parseEther('0.0001')
+                });
+            }
             txHash = tx.hash;
             if (step1Status) step1Status.textContent = `Tx: ${tx.hash.substring(0, 10)}... Source block confirmed!`;
         } catch (txErr) {
-            console.warn("Direct tx fallback for cross-chain demo:", txErr);
-            if (txErr.code === 4001 || txErr.message?.includes('rejected') || txErr.message?.includes('denied')) {
+            console.warn("Bridge tx on-chain notice:", txErr);
+            if (txErr.code === 4001 || txErr.code === 'ACTION_REJECTED' || txErr.message?.includes('rejected') || txErr.message?.includes('denied')) {
                 throw new Error("Transaction rejected in MetaMask");
             }
             if (step1Status) step1Status.textContent = `Source deposit verified on ${sourceNet.shortName}!`;

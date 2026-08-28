@@ -7000,6 +7000,8 @@ function invertBridgeNetworks() {
 function onBridgeTokenChange() {
     const tokSelect = document.getElementById('bridgeTokenSelect');
     if (tokSelect) currentBridgeToken = tokSelect.value;
+    const receiveTokLabel = document.getElementById('bridgeReceiveTokenLabel');
+    if (receiveTokLabel) receiveTokLabel.textContent = currentBridgeToken;
     updateBridgeBalancesUI();
     calculateBridgeRoute();
 }
@@ -7026,17 +7028,51 @@ function setBridgeMaxAmount() {
 
 function calculateBridgeRoute() {
     const input = document.getElementById('bridgeAmountInput');
+    const receiveInput = document.getElementById('bridgeReceiveAmountInput');
+    const receiveTokLabel = document.getElementById('bridgeReceiveTokenLabel');
     const netReceivedEl = document.getElementById('bridgeNetReceivedText');
-    if (!input || !netReceivedEl) return;
+    const rateEl = document.getElementById('bridgeExchangeRateText');
 
-    const val = parseFloat(input.value);
-    if (isNaN(val) || val <= 0) {
-        netReceivedEl.textContent = `0.00 ${currentBridgeToken}`;
+    if (receiveTokLabel) receiveTokLabel.textContent = currentBridgeToken;
+
+    const val = parseFloat(input ? input.value : 0);
+    const displayVal = (!isNaN(val) && val > 0) ? val.toFixed(2) : '0.00';
+
+    if (receiveInput) {
+        receiveInput.value = displayVal;
+    }
+    if (netReceivedEl) {
+        netReceivedEl.textContent = `${displayVal} ${currentBridgeToken}`;
+    }
+    if (rateEl) {
+        const src = SUPPORTED_BRIDGE_NETWORKS[currentBridgeSourceChain]?.shortName || 'Source';
+        const tgt = SUPPORTED_BRIDGE_NETWORKS[currentBridgeTargetChain]?.shortName || 'Target';
+        rateEl.textContent = `1 ${currentBridgeToken} (${src}) = 1.00 ${currentBridgeToken} (${tgt})`;
+    }
+}
+
+async function addBridgeTokenToMetaMask() {
+    if (!window.ethereum) {
+        showToast('MetaMask Required', 'Please connect MetaMask first.', 'warning');
         return;
     }
-
-    // 1:1 Circle CCTP zero-slippage peg
-    netReceivedEl.textContent = `${val.toFixed(2)} ${currentBridgeToken}`;
+    try {
+        await window.ethereum.request({
+            method: 'wallet_watchAsset',
+            params: {
+                type: 'ERC20',
+                options: {
+                    address: '0x036CbD53842c5426634e7929541eC2318f3dCF7e', // Official Circle Testnet USDC on Base Sepolia
+                    symbol: 'USDC',
+                    decimals: 6,
+                    image: 'https://cdn.worldvectorlogo.com/logos/circle-2.svg'
+                }
+            }
+        });
+        showToast('Token Added', 'USDC successfully added to MetaMask!', 'success');
+    } catch (e) {
+        console.warn("watchAsset notice:", e);
+    }
 }
 
 async function switchWalletToBridgeSourceChain() {

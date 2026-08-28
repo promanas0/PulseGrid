@@ -1243,25 +1243,48 @@
                 </div>
 
                 <!-- MAIN BRIDGE TERMINAL CARD -->
-                <div class="pixel-card-purple p-6 sm:p-8 space-y-6">
+                <div class="pixel-card-purple p-6 sm:p-8 space-y-5">
 
-                    <!-- SOURCE NETWORK SELECTION BLOCK -->
-                    <div class="p-4 sm:p-5 rounded-2xl bg-slate-50 border-2 border-slate-950 space-y-2">
+                    <!-- CARD 1: YOU SEND (SOURCE NETWORK & ASSET) -->
+                    <div class="p-5 rounded-2xl bg-slate-50 border-2 border-slate-950 space-y-3">
                         <div class="flex justify-between items-center text-xs text-slate-500 font-mono">
-                            <span class="font-bold font-silkscreen text-slate-700 uppercase tracking-wider">FROM NETWORK (SOURCE)</span>
-                            <span id="bridgeSourceNetworkStatus" class="flex items-center gap-1 text-[11px] font-bold text-purple-700">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Connected
+                            <span class="font-bold font-silkscreen text-slate-700 uppercase tracking-wider">YOU SEND (FROM)</span>
+                            <span class="flex items-center gap-1 font-bold">
+                                Balance: <span id="bridgeAssetBalance" class="text-slate-950 font-bold">0.00</span>
+                                <button onclick="setBridgeMaxAmount()" class="ml-1 text-[10px] px-2 py-0.5 rounded bg-purple-200 text-purple-900 font-bold hover:bg-purple-700 hover:text-white transition-colors">MAX</button>
                             </span>
                         </div>
-                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
-                            <select id="bridgeSourceChainSelect" onchange="onBridgeSourceChainChange()" class="flex-1 bg-white border-2 border-slate-950 rounded-xl px-4 py-3 font-bold text-sm text-slate-950 outline-none focus:border-purple-700">
-                                <option value="5042002" selected>Arc Testnet (Circle L1 - 5042002)</option>
-                                <option value="84532">Base Sepolia (Chain ID: 84532)</option>
-                                <option value="11155111">Ethereum Sepolia (Chain ID: 11155111)</option>
-                                <option value="421614">Arbitrum Sepolia (Chain ID: 421614)</option>
-                            </select>
-                            <button onclick="switchWalletToBridgeSourceChain()" id="bridgeSwitchNetworkBtn" class="btn-pixel-sm px-4 py-3 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shrink-0">
-                                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Switch Network
+
+                        <!-- Source Network & Amount Row -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div class="sm:col-span-2 flex items-center bg-white border-2 border-slate-950 rounded-xl px-4 py-2">
+                                <input type="number" id="bridgeAmountInput" oninput="calculateBridgeRoute()" placeholder="0.00" class="w-full bg-transparent text-2xl sm:text-3xl font-black font-mono text-slate-950 outline-none placeholder:text-slate-400">
+                                <select id="bridgeTokenSelect" onchange="onBridgeTokenChange()" class="font-bold text-sm text-slate-950 outline-none bg-transparent shrink-0 pl-2">
+                                    <option value="USDC">USDC</option>
+                                    <option value="EURC">EURC</option>
+                                    <option value="ETH">ETH</option>
+                                </select>
+                            </div>
+                            <div class="sm:col-span-1">
+                                <select id="bridgeSourceChainSelect" onchange="onBridgeSourceChainChange()" class="w-full h-full bg-white border-2 border-slate-950 rounded-xl px-3 py-3 font-bold text-xs text-slate-950 outline-none focus:border-purple-700">
+                                    <option value="5042002" selected>Arc Testnet</option>
+                                    <option value="84532">Base Sepolia</option>
+                                    <option value="11155111">Ethereum Sepolia</option>
+                                    <option value="421614">Arbitrum Sepolia</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Quick Percentage Pills & Switch Network Helper -->
+                        <div class="flex flex-wrap items-center justify-between gap-2 pt-1 font-mono text-xs font-bold">
+                            <div class="flex items-center gap-1.5 flex-1">
+                                <button onclick="setBridgePercent(0.25)" class="flex-1 py-1 rounded-lg bg-white border border-slate-300 hover:border-purple-600 text-slate-700 hover:bg-purple-50 text-center">25%</button>
+                                <button onclick="setBridgePercent(0.50)" class="flex-1 py-1 rounded-lg bg-white border border-slate-300 hover:border-purple-600 text-slate-700 hover:bg-purple-50 text-center">50%</button>
+                                <button onclick="setBridgePercent(0.75)" class="flex-1 py-1 rounded-lg border border-slate-300 hover:border-purple-600 text-slate-700 hover:bg-purple-50 bg-white text-center">75%</button>
+                                <button onclick="setBridgePercent(1.00)" class="flex-1 py-1 rounded-lg bg-purple-100 border border-purple-400 text-purple-900 hover:bg-purple-200 text-center">100%</button>
+                            </div>
+                            <button onclick="switchWalletToBridgeSourceChain()" id="bridgeSwitchNetworkBtn" class="btn-pixel-sm px-3 py-1.5 rounded-lg bg-purple-700 hover:bg-purple-800 text-white font-bold text-[11px] flex items-center justify-center gap-1 shrink-0">
+                                <i data-lucide="refresh-cw" class="w-3 h-3"></i> Switch Network
                             </button>
                         </div>
                     </div>
@@ -1273,80 +1296,56 @@
                         </button>
                     </div>
 
-                    <!-- DESTINATION NETWORK SELECTION BLOCK -->
-                    <div class="p-4 sm:p-5 rounded-2xl bg-slate-50 border-2 border-slate-950 space-y-2">
-                        <div class="flex justify-between items-center text-xs text-slate-500 font-mono">
-                            <span class="font-bold font-silkscreen text-slate-700 uppercase tracking-wider">TO NETWORK (DESTINATION)</span>
-                        </div>
-                        <div class="pt-1">
-                            <select id="bridgeTargetChainSelect" onchange="onBridgeTargetChainChange()" class="w-full bg-white border-2 border-slate-950 rounded-xl px-4 py-3 font-bold text-sm text-slate-950 outline-none focus:border-purple-700">
-                                <option value="84532" selected>Base Sepolia (Chain ID: 84532)</option>
-                                <option value="5042002">Arc Testnet (Circle L1 - 5042002)</option>
-                                <option value="11155111">Ethereum Sepolia (Chain ID: 11155111)</option>
-                                <option value="421614">Arbitrum Sepolia (Chain ID: 421614)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- SEND ASSET & AMOUNT BLOCK -->
-                    <div class="p-5 rounded-2xl bg-slate-50 border-2 border-slate-950 space-y-3">
-                        <div class="flex justify-between items-center text-xs text-slate-500">
-                            <span class="font-bold font-silkscreen text-slate-700">SELECT ASSET &amp; AMOUNT</span>
-                            <span class="font-mono flex items-center gap-1">
-                                Balance: <span id="bridgeAssetBalance" class="text-slate-950 font-bold">0.00</span>
-                                <button onclick="setBridgeMaxAmount()" class="ml-1 text-[10px] px-2 py-0.5 rounded bg-purple-200 text-purple-900 font-bold hover:bg-purple-700 hover:text-white transition-colors">MAX</button>
-                            </span>
-                        </div>
-                        
-                        <div class="flex items-center gap-3">
-                            <input type="number" id="bridgeAmountInput" oninput="calculateBridgeRoute()" placeholder="0.00" class="w-full bg-transparent text-3xl font-black font-mono text-slate-950 outline-none placeholder:text-slate-400">
-                            
-                            <select id="bridgeTokenSelect" onchange="onBridgeTokenChange()" class="btn-pixel-sm px-3.5 py-2.5 rounded-xl bg-white border-2 border-slate-950 font-bold text-sm text-slate-950 outline-none shrink-0">
-                                <option value="USDC">USDC (Circle)</option>
-                                <option value="EURC">EURC (Euro)</option>
-                                <option value="ETH">ETH (Native)</option>
-                            </select>
+                    <!-- CARD 2: YOU RECEIVE (DESTINATION NETWORK & OUTPUT ESTIMATE) -->
+                    <div class="p-5 rounded-2xl bg-purple-50/70 border-2 border-purple-700 space-y-3">
+                        <div class="flex justify-between items-center text-xs font-mono">
+                            <span class="font-bold font-silkscreen text-purple-950 uppercase tracking-wider">YOU RECEIVE (ESTIMATED)</span>
+                            <span id="bridgeExchangeRateText" class="text-purple-700 font-bold text-[11px]">1:1 Peg Guaranteed</span>
                         </div>
 
-                        <!-- Quick Percentage Pills -->
-                        <div class="flex items-center gap-2 pt-1 font-mono text-xs font-bold">
-                            <button onclick="setBridgePercent(0.25)" class="flex-1 py-1 rounded-lg bg-white border border-slate-300 hover:border-purple-600 text-slate-700 hover:bg-purple-50">25%</button>
-                            <button onclick="setBridgePercent(0.50)" class="flex-1 py-1 rounded-lg bg-white border border-slate-300 hover:border-purple-600 text-slate-700 hover:bg-purple-50">50%</button>
-                            <button onclick="setBridgePercent(0.75)" class="flex-1 py-1 rounded-lg border border-slate-300 hover:border-purple-600 text-slate-700 hover:bg-purple-50 bg-white">75%</button>
-                            <button onclick="setBridgePercent(1.00)" class="flex-1 py-1 rounded-lg bg-purple-100 border border-purple-400 text-purple-900 hover:bg-purple-200">100%</button>
+                        <!-- Destination Amount & Network Row -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div class="sm:col-span-2 flex items-center bg-white border-2 border-purple-700 rounded-xl px-4 py-2">
+                                <input type="text" id="bridgeReceiveAmountInput" readonly placeholder="0.00" value="0.00" class="w-full bg-transparent text-2xl sm:text-3xl font-black font-mono text-purple-950 outline-none cursor-default">
+                                <span id="bridgeReceiveTokenLabel" class="font-bold text-sm text-purple-950 shrink-0 pl-2">USDC</span>
+                            </div>
+                            <div class="sm:col-span-1">
+                                <select id="bridgeTargetChainSelect" onchange="onBridgeTargetChainChange()" class="w-full h-full bg-white border-2 border-purple-700 rounded-xl px-3 py-3 font-bold text-xs text-slate-950 outline-none focus:border-purple-900">
+                                    <option value="84532" selected>Base Sepolia</option>
+                                    <option value="5042002">Arc Testnet</option>
+                                    <option value="11155111">Ethereum Sepolia</option>
+                                    <option value="421614">Arbitrum Sepolia</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
                     <!-- ROUTE & ATTRIBUTE SUMMARY BOX -->
                     <div class="p-4 rounded-xl bg-slate-50 border-2 border-slate-950 space-y-2 text-xs font-mono">
                         <div class="flex justify-between text-slate-600">
-                            <span>Bridge Architecture</span>
+                            <span>Bridge Protocol</span>
                             <span class="text-purple-700 font-bold flex items-center gap-1">
-                                <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Circle CCTP Protocol
+                                <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> PulseBridge CCTP Router
                             </span>
                         </div>
                         <div class="flex justify-between text-slate-600">
-                            <span>Estimated Arrival</span>
-                            <span class="text-emerald-700 font-bold">&lt; 15 Seconds (Arc L1)</span>
+                            <span>Estimated Time</span>
+                            <span class="text-emerald-700 font-bold">&lt; 15 Seconds</span>
                         </div>
                         <div class="flex justify-between text-slate-600">
-                            <span>Slippage &amp; Peg</span>
-                            <span class="text-slate-950 font-bold">0.00% (1:1 Native Peg)</span>
-                        </div>
-                        <div class="flex justify-between text-slate-600">
-                            <span>Bridge Protocol Fee</span>
+                            <span>Bridge Fee</span>
                             <span class="text-emerald-600 font-bold">FREE (0.00 USDC)</span>
                         </div>
                         <div class="pt-2 border-t border-slate-200 flex justify-between items-center text-sm font-bold text-slate-950">
-                            <span>Destination Receives (Net):</span>
-                            <span id="bridgeNetReceivedText" class="text-teal-700 font-mono text-base">0.00 USDC</span>
+                            <span>Destination Output:</span>
+                            <span id="bridgeNetReceivedText" class="text-purple-700 font-mono text-base">0.00 USDC</span>
                         </div>
                     </div>
 
                     <!-- MAIN BRIDGE ACTION BUTTON -->
                     <button id="executeBridgeBtn" onclick="executeBridgeTransfer()" class="btn-pixel w-full py-4 rounded-xl bg-gradient-to-r from-purple-700 via-indigo-600 to-teal-600 text-white font-pixel font-bold text-base shadow-lg flex items-center justify-center gap-2 transition-all">
                         <i data-lucide="zap" class="w-5 h-5"></i>
-                        <span id="bridgeBtnLabel">Initiate CCTP Cross-Chain Bridge</span>
+                        <span id="bridgeBtnLabel">Initiate Bridge Transfer</span>
                     </button>
                 </div>
 

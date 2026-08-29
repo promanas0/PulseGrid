@@ -3088,13 +3088,19 @@ function mintTestEbtc() {
 function calculateTotalPortfolioNetWorth() {
     if (!currentAccount) return 0;
     const usdcVal = (TOKENS[0]?.balance || 0) * (TOKENS[0]?.usdRate || 1.0);
-    const eurcVal = (TOKENS[1]?.balance || 0) * (TOKENS[1]?.usdRate || 1.08);
+    const eurcVal = (TOKENS[1]?.balance || 0) * (TOKENS[1]?.usdRate || 1.13296);
     const savedEbtc = parseFloat(localStorage.getItem(`PulseGrid_ebtc_${currentAccount.toLowerCase()}`) || '0.00');
-    const ebtcVal = savedEbtc * 64250.0;
+    const ebtcVal = savedEbtc * (TOKENS[2]?.usdRate || 62500.0);
 
     let customVal = 0;
+    const pools = getStoredActivePools();
     Object.entries(customTokenBalances).forEach(([addr, bal]) => {
-        if (bal > 0) customVal += (bal * 1.0);
+        if (bal > 0) {
+            const pool = pools.find(p => p && p.tokenAddress && p.tokenAddress.toLowerCase() === addr.toLowerCase());
+            if (pool && pool.priceUsdc && pool.priceUsdc > 0) {
+                customVal += (bal * pool.priceUsdc);
+            }
+        }
     });
     return usdcVal + eurcVal + ebtcVal + customVal;
 }
@@ -3118,7 +3124,7 @@ function renderWalletView() {
         safeSetText('walletTabUsdcUsd', `$${(TOKENS[0].balance * TOKENS[0].usdRate).toFixed(2)} USD`);
 
         safeSetText('walletTabEurcBal', `${TOKENS[1].balance.toFixed(4)} EURC`);
-        safeSetText('walletTabEurcUsd', `€${(TOKENS[1].balance * 0.92).toFixed(2)} EUR`);
+        safeSetText('walletTabEurcUsd', `$${(TOKENS[1].balance * (TOKENS[1].usdRate || 1.13296)).toFixed(2)} USD`);
 
         const savedEbtc = parseFloat(localStorage.getItem(`PulseGrid_ebtc_${currentAccount.toLowerCase()}`) || '0.00').toFixed(4);
         safeSetText('walletTabEbtcBal', `${savedEbtc} eBTC`);
@@ -3142,7 +3148,7 @@ function renderWalletView() {
         safeSetText('walletTabUsdcBal', '0.00 USDC');
         safeSetText('walletTabUsdcUsd', '$0.00 USD');
         safeSetText('walletTabEurcBal', '0.00 EURC');
-        safeSetText('walletTabEurcUsd', '€0.00 EUR');
+        safeSetText('walletTabEurcUsd', '$0.00 USD');
         safeSetText('walletTabEbtcBal', '0.0000 eBTC');
         safeSetText('walletTabArcBal', '0.00 ARC');
 

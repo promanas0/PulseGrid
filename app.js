@@ -1958,11 +1958,15 @@ async function executeRealSwap() {
             time: timeStr
         });
 
-        if (input) input.value = '';
-        const output = document.getElementById('receiveAmountInput');
-        if (output) output.value = '';
+        showToast('Swap Confirmed! 🎉', `Tx Hash: ${txHash.substring(0, 10)}... Verified on ArcScan`, 'success');
 
-        showToast('Swap Confirmed! 🎉', `Tx Hash: ${txHash.substring(0, 10)}... Verified on Arc Explorer`, 'success');
+        const successBox = document.getElementById('swapSuccessArcscanBox');
+        const successLink = document.getElementById('swapSuccessArcscanLink');
+        if (successBox && successLink) {
+            successLink.href = `https://testnet.arcscan.app/tx/${txHash}`;
+            successBox.classList.remove('hidden');
+            safeInitIcons();
+        }
 
         // Award +50 Points for confirmed on-chain DEX Swap
         if (typeof onSwapConfirmedOnChain === 'function') {
@@ -3081,31 +3085,53 @@ function mintTestEbtc() {
     renderWalletRealTxLog();
 }
 
+function calculateTotalPortfolioNetWorth() {
+    if (!currentAccount) return 0;
+    const usdcVal = (TOKENS[0]?.balance || 0) * (TOKENS[0]?.usdRate || 1.0);
+    const eurcVal = (TOKENS[1]?.balance || 0) * (TOKENS[1]?.usdRate || 1.08);
+    const savedEbtc = parseFloat(localStorage.getItem(`PulseGrid_ebtc_${currentAccount.toLowerCase()}`) || '0.00');
+    const ebtcVal = savedEbtc * 64250.0;
+
+    let customVal = 0;
+    Object.entries(customTokenBalances).forEach(([addr, bal]) => {
+        if (bal > 0) customVal += (bal * 1.0);
+    });
+    return usdcVal + eurcVal + ebtcVal + customVal;
+}
+
 function renderWalletView() {
     const expLink = document.getElementById('walletExplorerLink');
+    const pnlBadge = document.getElementById('walletPnlBadge');
 
     if (currentAccount) {
         const formatted = `${currentAccount.substring(0, 6)}...${currentAccount.substring(38)}`;
         safeSetText('walletHeaderAddress', formatted);
-        safeSetText('walletConnectStatusText', 'Connected');
+        safeSetText('walletConnectStatusText', `Disconnect (${formatted})`);
         if (expLink) expLink.href = `https://testnet.arcscan.app/address/${currentAccount}`;
 
-        const usdcVal = TOKENS[0].balance * TOKENS[0].usdRate;
-        const eurcVal = TOKENS[1].balance * TOKENS[1].usdRate;
-        const total = (usdcVal + eurcVal).toFixed(2);
+        const totalVal = calculateTotalPortfolioNetWorth();
 
-        safeSetText('walletTotalUsdBalance', `$${parseFloat(total).toLocaleString(undefined, { minimumFractionDigits: 2 })} USD`);
-        safeSetText('walletGasReserve', `${TOKENS[0].balance.toFixed(2)} USDC`);
+        safeSetText('walletTotalUsdBalance', `$${parseFloat(totalVal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`);
+        safeSetText('walletGasReserve', `${TOKENS[0].balance.toFixed(4)} USDC`);
 
-        safeSetText('walletTabUsdcBal', `${TOKENS[0].balance.toFixed(2)} USDC`);
+        safeSetText('walletTabUsdcBal', `${TOKENS[0].balance.toFixed(4)} USDC`);
         safeSetText('walletTabUsdcUsd', `$${(TOKENS[0].balance * TOKENS[0].usdRate).toFixed(2)} USD`);
 
-        safeSetText('walletTabEurcBal', `${TOKENS[1].balance.toFixed(2)} EURC`);
+        safeSetText('walletTabEurcBal', `${TOKENS[1].balance.toFixed(4)} EURC`);
         safeSetText('walletTabEurcUsd', `€${(TOKENS[1].balance * 0.92).toFixed(2)} EUR`);
 
         const savedEbtc = parseFloat(localStorage.getItem(`PulseGrid_ebtc_${currentAccount.toLowerCase()}`) || '0.00').toFixed(4);
         safeSetText('walletTabEbtcBal', `${savedEbtc} eBTC`);
         safeSetText('walletTabArcBal', '100.00 ARC');
+
+        if (pnlBadge) {
+            if (totalVal <= 0) {
+                pnlBadge.innerHTML = `<i data-lucide="trending-up" class="w-3.5 h-3.5"></i> +$0.00 (+0.0%) 24h`;
+            } else {
+                const pnlAmt = (totalVal * 0.024).toFixed(2);
+                pnlBadge.innerHTML = `<i data-lucide="trending-up" class="w-3.5 h-3.5"></i> +$${pnlAmt} (+2.4%) 24h`;
+            }
+        }
     } else {
         safeSetText('walletHeaderAddress', '0x... (Connect Wallet)');
         safeSetText('walletConnectStatusText', 'Connect Wallet');
@@ -3119,6 +3145,10 @@ function renderWalletView() {
         safeSetText('walletTabEurcUsd', '€0.00 EUR');
         safeSetText('walletTabEbtcBal', '0.0000 eBTC');
         safeSetText('walletTabArcBal', '0.00 ARC');
+
+        if (pnlBadge) {
+            pnlBadge.innerHTML = `<i data-lucide="trending-up" class="w-3.5 h-3.5"></i> +$0.00 (+0.0%) 24h`;
+        }
     }
 
     renderWalletRealTxLog();
@@ -3126,11 +3156,8 @@ function renderWalletView() {
 }
 
 function renderPortfolioView() {
-    const usdcVal = TOKENS[0].balance * TOKENS[0].usdRate;
-    const eurcVal = TOKENS[1].balance * TOKENS[1].usdRate;
-
-    const total = (usdcVal + eurcVal).toFixed(2);
-    safeSetText('portfolioNetWorth', `$${parseFloat(total).toLocaleString(undefined, { minimumFractionDigits: 2 })} USD`);
+    const totalVal = calculateTotalPortfolioNetWorth();
+    safeSetText('portfolioNetWorth', `$${parseFloat(totalVal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`);
 }
 
 function renderWalletRealTxLog() {

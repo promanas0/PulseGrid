@@ -1085,13 +1085,33 @@
 
                     <div class="mt-6 p-4 rounded-xl bg-slate-50 border-2 border-slate-950 space-y-2 text-xs font-mono">
                         <div class="flex justify-between text-slate-600">
-                            <span>Circle SDK Rate</span>
+                            <span>Estimated Swap Rate</span>
                             <span id="exchangeRateText" class="text-slate-950 font-bold">1 USDC ≈ 0.882639 EURC</span>
                         </div>
                         <div class="flex justify-between text-slate-600">
-                            <span>Network Gas Fee</span>
-                            <span class="text-emerald-700 font-bold">0.001 USDC (Arc Testnet)</span>
+                            <span>Slippage Tolerance</span>
+                            <span class="text-purple-700 font-bold">0.5% (Auto)</span>
                         </div>
+                        <div class="flex justify-between text-slate-600">
+                            <span>Price Impact</span>
+                            <span class="text-emerald-700 font-bold">&lt; 0.01%</span>
+                        </div>
+                        <div class="flex justify-between text-slate-600">
+                            <span>Network Gas Fee</span>
+                            <span class="text-emerald-700 font-bold">&lt; 0.001 USDC (Arc Testnet)</span>
+                        </div>
+                    </div>
+
+                    <!-- Post-Swap Direct ArcScan Action Link (Injected on confirmed swap) -->
+                    <div id="swapSuccessArcscanBox" class="hidden mt-4 p-3.5 rounded-xl bg-emerald-50 border-2 border-emerald-500 text-emerald-950 flex items-center justify-between font-mono text-xs shadow-sm">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                            <span class="font-bold text-emerald-900">Swap Confirmed On-Chain!</span>
+                        </div>
+                        <a id="swapSuccessArcscanLink" href="https://testnet.arcscan.app" target="_blank" class="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-colors">
+                            <span>View on ArcScan</span>
+                            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                        </a>
                     </div>
 
                     <button id="executeSwapBtn" onclick="executeRealSwap()" class="btn-pixel w-full mt-5 py-4 rounded-xl bg-gradient-to-r from-purple-700 via-indigo-600 to-teal-600 text-white font-pixel font-bold text-base shadow-lg flex items-center justify-center gap-2">
@@ -1470,11 +1490,11 @@
                         
                         <div class="flex flex-wrap items-center justify-center gap-3 pt-1">
                             <span id="walletPnlBadge" class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-mono font-bold">
-                                <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> +$18.40 (+4.6%) 24h
+                                <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> +$0.00 (+0.0%) 24h
                             </span>
                             <span class="text-xs text-slate-300 font-mono flex items-center gap-1.5">
                                 <i data-lucide="fuel" class="w-3.5 h-3.5 text-purple-400"></i>
-                                Gas Reserve: <strong id="walletGasReserve" class="text-white font-bold">0.00 USDC</strong>
+                                USDC Available for Gas: <strong id="walletGasReserve" class="text-white font-bold">0.00 USDC</strong>
                             </span>
                         </div>
                     </div>
@@ -1495,7 +1515,7 @@
                         </button>
                         <button onclick="openFaucetModal()" class="btn-pixel py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-pixel font-bold text-xs flex items-center justify-center gap-2 shadow-[3px_3px_0px_#0F172A] hover:-translate-y-0.5 transition-all">
                             <i data-lucide="droplet" class="w-4 h-4"></i>
-                            <span>Gas Faucet</span>
+                            <span>Get Testnet USDC</span>
                         </button>
                     </div>
                 </div>
@@ -1509,7 +1529,7 @@
                     </div>
                     <div>
                         <div class="text-[10px] font-silkscreen uppercase tracking-wider text-slate-500 font-bold">Network Speed</div>
-                        <div class="text-sm font-pixel font-bold text-slate-950">~450ms Finality</div>
+                        <div class="text-sm font-pixel font-bold text-slate-950">Sub-Second Finality</div>
                     </div>
                 </div>
 
@@ -1538,7 +1558,7 @@
                         <i data-lucide="lock" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <div class="text-[10px] font-silkscreen uppercase tracking-wider text-slate-500 font-bold">Key Protection</div>
+                        <div class="text-[10px] font-silkscreen uppercase tracking-wider text-slate-500 font-bold">Typed Data Signing</div>
                         <div class="text-sm font-pixel font-bold text-slate-950">EIP-712 Sign Guard</div>
                     </div>
                 </div>
@@ -1833,7 +1853,7 @@
                         </div>
                         <div>
                             <h1 class="font-pixel text-2xl sm:text-3xl font-black text-slate-950">1-Click ERC-20 Token Factory</h1>
-                            <p class="text-xs text-slate-600 font-medium font-sans">Mint &amp; deploy your own custom cryptocurrency token on Arc Testnet in &lt;450ms.</p>
+                            <p class="text-xs text-slate-600 font-medium font-sans">Mint &amp; deploy your own custom cryptocurrency token on Arc Testnet with sub-second finality.</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">

@@ -82,7 +82,7 @@ const ARC_RPC_URL_DRPC = 'https://rpc.drpc.testnet.arc.io';
 const ARC_RPC_URL_QUICKNODE = 'https://rpc.quicknode.testnet.arc.io';
 const ARC_RPC_URL_BLOCKDAEMON = 'https://rpc.blockdaemon.testnet.arc.io';
 const ARC_RPC_URL_ALT = 'https://rpc.drpc.testnet.arc.io';
-const ARC_EXPLORER_URL = 'https://explorer.testnet.arc.network';
+const ARC_EXPLORER_URL = 'https://testnet.arcscan.app';
 
 // Official Deployed PulseGrid Spender Router & Prediction Market Address & ABIs
 const SPENDER_ROUTER_ADDRESS = '0x24EC9947C9Bd6c5ab4a3357A50c78D064176af31';
@@ -1516,7 +1516,7 @@ function refreshActivePoolsUI() {
                     <button onclick="handleRemoveLiquidity('${p.tokenAddress}')" class="btn-pixel-sm px-2.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold text-xs flex items-center justify-center gap-1 border border-rose-300" title="Withdraw / Remove Liquidity to Wallet">
                         <i data-lucide="arrow-down-left" class="w-3.5 h-3.5 text-rose-600"></i> Withdraw
                     </button>
-                    <a href="https://explorer.testnet.arc.network/address/${p.tokenAddress}" target="_blank" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 flex items-center justify-center" title="View Token on Explorer">
+                    <a href="https://testnet.arcscan.app/address/${p.tokenAddress}" target="_blank" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 flex items-center justify-center" title="View Token on Explorer">
                         <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
                     </a>
                 </div>
@@ -6585,7 +6585,7 @@ async function deployArcToken() {
         safeSetText('successTokenSupply', `${supply.toLocaleString()} ${symbol}`);
         const explorerLink = document.getElementById('successExplorerLink');
         if (explorerLink) {
-            explorerLink.href = `https://explorer.testnet.arc.network/address/${tokenAddress}`;
+            explorerLink.href = `https://testnet.arcscan.app/address/${tokenAddress}`;
         }
 
         const successCard = document.getElementById('tokenDeploySuccessCard');
@@ -6956,7 +6956,7 @@ function renderUserCreatedTokens(shouldSync = true) {
                             <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
                             <span>Add</span>
                         </button>
-                        <a href="https://explorer.testnet.arc.network/address/${t.address}" target="_blank" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 transition-colors" title="View in Arc Explorer">
+                        <a href="https://testnet.arcscan.app/address/${t.address}" target="_blank" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 transition-colors" title="View in Arc Explorer">
                             <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
                             <span>Explorer</span>
                         </a>
@@ -7066,7 +7066,7 @@ const SUPPORTED_BRIDGE_NETWORKS = {
         shortName: 'Arc L1',
         rpcUrl: 'https://rpc.testnet.arc.io',
         nativeCurrency: { name: 'USD Coin', symbol: 'USDC', decimals: 6 },
-        blockExplorer: 'https://explorer.testnet.arc.network',
+        blockExplorer: 'https://testnet.arcscan.app',
         badgeColor: 'bg-purple-100 text-purple-900 border-purple-300'
     },
     '84532': {

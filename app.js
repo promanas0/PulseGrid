@@ -738,9 +738,11 @@ async function executeAuthSignFromModal() {
         }
 
         if (signature) {
+            localStorage.setItem(`pulsegrid_siwe_verified_${currentAccount.toLowerCase()}`, 'true');
             if (btn) {
                 btn.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-300"></i><span>Authenticated Successfully!</span>`;
             }
+            updateAuthStatusUI();
             safeInitIcons();
             showToast('Session Authenticated! 🛡️', `Verified cryptographic sign: ${signature.substring(0, 12)}...`, 'success');
             setTimeout(() => {
@@ -756,6 +758,31 @@ async function executeAuthSignFromModal() {
         safeInitIcons();
         showToast('Signature Cancelled', 'You can sign in anytime from the Wallet view', 'info');
     }
+}
+
+function updateAuthStatusUI() {
+    const authBtn = document.getElementById('walletAuthSignBtn');
+    const authBadge = document.getElementById('walletAuthVerifiedBadge');
+    const topEip191Pill = document.getElementById('topEip191Pill');
+
+    const isVerified = currentAccount && localStorage.getItem(`pulsegrid_siwe_verified_${currentAccount.toLowerCase()}`) === 'true';
+
+    if (isVerified) {
+        if (authBtn) authBtn.classList.add('hidden');
+        if (authBadge) authBadge.classList.remove('hidden');
+        if (topEip191Pill) {
+            topEip191Pill.innerHTML = `<i data-lucide="shield-check" class="w-3 h-3 text-emerald-400"></i> EIP-191 Verified`;
+            topEip191Pill.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-mono font-bold';
+        }
+    } else {
+        if (authBtn) authBtn.classList.remove('hidden');
+        if (authBadge) authBadge.classList.add('hidden');
+        if (topEip191Pill) {
+            topEip191Pill.innerHTML = `<i data-lucide="shield-check" class="w-3 h-3 text-teal-400"></i> EIP-191 Auth`;
+            topEip191Pill.className = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/10 text-[10px] font-mono text-slate-300';
+        }
+    }
+    safeInitIcons();
 }
 
 async function requestSignatureAuth() {
@@ -829,6 +856,7 @@ function onWalletConnected(account, providerName, isAutoReconnect = false) {
         fetchRealOnChainBalances(account);
         updateTokenBalancesUI();
         updateWalletUI();
+        updateAuthStatusUI();
         renderWalletView();
         renderPortfolioView();
         if (typeof loadQuestState === 'function') {
@@ -862,6 +890,7 @@ async function disconnectWallet() {
     Object.keys(customTokenBalances).forEach(k => delete customTokenBalances[k]);
     updateTokenBalancesUI();
     updateWalletUI();
+    updateAuthStatusUI();
     renderWalletView();
     renderPortfolioView();
     if (typeof loadQuestState === 'function') {
@@ -3158,6 +3187,7 @@ function renderWalletView() {
     }
 
     renderWalletRealTxLog();
+    updateAuthStatusUI();
     safeInitIcons();
 }
 
@@ -3856,7 +3886,7 @@ function generateSmartAiResponse(userMsg) {
         return "### Ritual & Arc Mainnet Launch Update\n- **Ritual AI Network**: Ritual AI Coprocessor and Infernet Mainnet deployment **Q3/Q4 2026** me planned hai!\n- **Arc L1 Mainnet**: Official Arc Mainnet launch **September 16, 2026** ko set hai.\n- **Current Status**: Abhi Arc L1 Testnet (Chain ID `5042002`) active hai jisme aap Testnet DEX swaps aur quests try kar sakte hain!";
     }
     if (q.includes("arc") || q.includes("testnet")) {
-        return "### Arc L1 Testnet Overview\nArc L1 Testnet ek high-performance enterprise Layer-1 blockchain hai:\n\n- **Block Time**: ~450ms sub-second finality\n- **Native Gas Token**: USDC\n- **Chain ID**: 5042002\n- **RPC Endpoint**: https://rpc.testnet.arc.network\n- **Consortium Validators**: Circle, BlackRock, Visa, DTCC, BNY";
+        return "### Arc L1 Testnet Overview\nArc L1 Testnet ek high-performance enterprise Layer-1 blockchain hai:\n\n- **Block Time**: Sub-Second Finality\n- **Native Gas Token**: USDC\n- **Chain ID**: 5042002\n- **RPC Endpoint**: https://rpc.testnet.arc.network\n- **Consortium Validators**: Circle, BlackRock, Visa, DTCC, BNY";
     }
     if (q.includes("swap") || q.includes("dex")) {
         return "### PulseGrid DEX AMM Swap\nPulseGrid DEX par aap USDC ➔ EURC aur EURC ➔ USDC zero-slippage AMM swaps perform kar sakte hain:\n\n1. **Sub-second Finality**: Swaps complete in < 500ms.\n2. **Ultra-Low Gas Fee**: ~0.001 USDC native gas fee.\n3. **Points Reward**: Har confirmed swap par **+50 Builder PTS** milte hain!";
@@ -6533,7 +6563,7 @@ async function deployArcToken() {
                 decimals
             );
 
-            showToast('Broadcasting to Arc L1', 'Waiting for institutional block confirmation (<450ms)...', 'info');
+            showToast('Broadcasting to Arc L1', 'Waiting for institutional block confirmation (sub-second)...', 'info');
 
             if (btn) {
                 btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Verifying on Arc L1...</span>`;
@@ -7063,7 +7093,7 @@ async function executeCustomTokenTransfer() {
         showToast('MetaMask Request', `Confirm transfer of ${amount} tokens to ${recipient.substring(0, 8)}...`, 'info');
         const tx = await tokenContract.transfer(recipient, amountUnits);
 
-        showToast('Broadcasting Transfer', 'Waiting for Arc Testnet block confirmation (<450ms)...', 'info');
+        showToast('Broadcasting Transfer', 'Waiting for Arc Testnet block confirmation (sub-second)...', 'info');
         const receipt = await tx.wait();
 
         showToast('Transfer Confirmed', `Successfully sent ${amount} tokens to ${recipient.substring(0, 8)}... on Arc L1!`, 'success');
@@ -7525,7 +7555,7 @@ async function executeBridgeTransfer() {
 
         // STEP 3: DESTINATION DELIVERY & MINT
         if (step3) step3.className = 'p-3 rounded-xl bg-purple-50 border border-purple-300 flex items-center gap-3 animate-pulse opacity-100';
-        if (step3Status) step3Status.textContent = `Minting ${amt} ${currentBridgeToken} on ${targetNet.shortName} (<450ms)...`;
+        if (step3Status) step3Status.textContent = `Minting ${amt} ${currentBridgeToken} on ${targetNet.shortName} (sub-second)...`;
         safeInitIcons();
 
         await new Promise(r => setTimeout(r, 1200));

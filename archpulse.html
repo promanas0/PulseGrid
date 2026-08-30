@@ -3303,105 +3303,127 @@
         </div>
     </div>
 
-    <!-- MULTI-WALLET CONNECT MODAL (DIRECT DETECTION) -->
-    <div id="walletConnectModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="pixel-card-purple w-full max-w-md p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="wallet" class="w-5 h-5 text-purple-700"></i>
-                    <h3 class="font-pixel font-bold text-slate-950 text-lg">Connect Web3 Wallet</h3>
-                </div>
-                <button onclick="closeWalletConnectModal()" class="text-slate-500 hover:text-slate-950 p-1">
-                    <i data-lucide="x" class="w-5 h-5"></i>
+    <!-- RAINBOWKIT STYLE CONNECT WALLET MODAL -->
+    <div id="walletConnectModal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-[380px] bg-white rounded-3xl p-5 sm:p-6 shadow-2xl border border-slate-200/80 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            
+            <!-- Header -->
+            <div class="flex items-center justify-between">
+                <h3 class="font-bold text-slate-900 text-lg tracking-tight font-sans">Connect a Wallet</h3>
+                <button onclick="closeWalletConnectModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 flex items-center justify-center transition-colors">
+                    <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
 
-            <p class="text-xs text-slate-600 font-medium">Select your installed wallet or scan QR with WalletConnect to connect to Arc Testnet L1 (Chain ID 5042002).</p>
+            <!-- Dynamic Installed Section -->
+            <div id="walletModalInstalledSection" class="space-y-1.5 hidden">
+                <div class="text-[11px] font-bold text-blue-600 uppercase tracking-wider px-1">Installed</div>
+                <div id="walletModalInstalledList" class="space-y-1"></div>
+            </div>
 
-            <div class="space-y-2.5 pt-1 font-mono text-xs">
-                <!-- 1. MetaMask -->
-                <button onclick="connectProvider('metamask')" class="btn-pixel-sm w-full p-3.5 rounded-2xl bg-white border-2 border-slate-950 hover:bg-orange-50/60 flex items-center justify-between transition-all group shadow-[2px_2px_0px_#0F172A]">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-xl bg-orange-100 border-2 border-slate-950 flex items-center justify-center font-bold text-orange-600 text-sm shadow-sm shrink-0">
-                            🦊
+            <!-- Recommended Section -->
+            <div class="space-y-1.5">
+                <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider px-1">Recommended</div>
+                
+                <div class="space-y-1">
+                    <!-- MetaMask -->
+                    <button onclick="connectProvider('metamask')" class="w-full p-2.5 rounded-2xl hover:bg-slate-100/90 active:bg-slate-200 flex items-center justify-between transition-all group">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-8 h-8 rounded-xl bg-orange-50 border border-orange-200/60 flex items-center justify-center shrink-0">
+                                <svg class="w-5 h-5" viewBox="0 0 32 32">
+                                    <path fill="#E17726" d="M28.3 4.1l-10.4 7.7 2.1-5.1z"/>
+                                    <path fill="#E27625" d="M3.7 4.1l10.3 7.8-2-5.2z"/>
+                                    <path fill="#D56B1B" d="M24.2 22.3l-2.7 4.1 6-1.7z"/>
+                                    <path fill="#D56B1B" d="M4.5 24.7l6 1.7-2.7-4.1z"/>
+                                    <path fill="#F5841F" d="M9.9 14.7l-2.6 3.9 5.8.2-.2-6.4z"/>
+                                    <path fill="#F5841F" d="M22.1 14.7l-3-2.3-.2 6.4 5.8-.2z"/>
+                                    <path fill="#E27625" d="M10.7 26.4l3.7-1.8-3.1-2.4z"/>
+                                    <path fill="#E27625" d="M21.3 26.4l-.6-4.2-3.1 2.4z"/>
+                                </svg>
+                            </div>
+                            <span class="font-bold text-slate-900 text-sm font-sans">MetaMask</span>
                         </div>
-                        <div class="text-left">
-                            <div class="font-bold text-slate-950 text-sm font-pixel">MetaMask</div>
-                            <div class="text-[10px] text-slate-500 font-sans">Browser Extension &amp; Mobile App</div>
-                        </div>
-                    </div>
-                    <span id="walletDetectedBadge-metamask" class="hidden px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-bold">Detected</span>
-                </button>
+                        <span id="walletRecentBadge-metamask" class="hidden text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">Recent</span>
+                    </button>
 
-                <!-- 2. OKX Wallet -->
-                <button onclick="connectProvider('okx')" class="btn-pixel-sm w-full p-3.5 rounded-2xl bg-white border-2 border-slate-950 hover:bg-slate-100 flex items-center justify-between transition-all group shadow-[2px_2px_0px_#0F172A]">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-xl bg-slate-950 border-2 border-slate-950 flex items-center justify-center font-bold text-white text-xs shadow-sm shrink-0">
-                            OKX
+                    <!-- OKX Wallet -->
+                    <button onclick="connectProvider('okx')" class="w-full p-2.5 rounded-2xl hover:bg-slate-100/90 active:bg-slate-200 flex items-center justify-between transition-all group">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-8 h-8 rounded-xl bg-black flex items-center justify-center shrink-0 text-white font-bold text-[10px]">
+                                OKX
+                            </div>
+                            <span class="font-bold text-slate-900 text-sm font-sans">OKX Wallet</span>
                         </div>
-                        <div class="text-left">
-                            <div class="font-bold text-slate-950 text-sm font-pixel">OKX Wallet</div>
-                            <div class="text-[10px] text-slate-500 font-sans">DEX &amp; Multi-Chain Extension</div>
-                        </div>
-                    </div>
-                    <span id="walletDetectedBadge-okx" class="hidden px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-bold">Detected</span>
-                </button>
+                        <span id="walletRecentBadge-okx" class="hidden text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">Recent</span>
+                    </button>
 
-                <!-- 3. Rabby Wallet -->
-                <button onclick="connectProvider('rabby')" class="btn-pixel-sm w-full p-3.5 rounded-2xl bg-white border-2 border-slate-950 hover:bg-blue-50/60 flex items-center justify-between transition-all group shadow-[2px_2px_0px_#0F172A]">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-xl bg-blue-100 border-2 border-slate-950 flex items-center justify-center font-bold text-blue-700 text-xs shadow-sm shrink-0">
-                            🐰
+                    <!-- Bitget Wallet -->
+                    <button onclick="connectProvider('bitget')" class="w-full p-2.5 rounded-2xl hover:bg-slate-100/90 active:bg-slate-200 flex items-center justify-between transition-all group">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-8 h-8 rounded-xl bg-[#00F0FF] flex items-center justify-center shrink-0 text-black shadow-xs">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M7 6l6 6-6 6 3 0 6-6-6-6z"/>
+                                </svg>
+                            </div>
+                            <span class="font-bold text-slate-900 text-sm font-sans">Bitget Wallet</span>
                         </div>
-                        <div class="text-left">
-                            <div class="font-bold text-slate-950 text-sm font-pixel">Rabby Wallet</div>
-                            <div class="text-[10px] text-slate-500 font-sans">Game-Changing EVM Browser Wallet</div>
-                        </div>
-                    </div>
-                    <span id="walletDetectedBadge-rabby" class="hidden px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-bold">Detected</span>
-                </button>
+                        <span id="walletRecentBadge-bitget" class="hidden text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">Recent</span>
+                    </button>
 
-                <!-- 4. Coinbase Wallet -->
-                <button onclick="connectProvider('coinbase')" class="btn-pixel-sm w-full p-3.5 rounded-2xl bg-white border-2 border-slate-950 hover:bg-blue-50/60 flex items-center justify-between transition-all group shadow-[2px_2px_0px_#0F172A]">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-xl bg-blue-600 border-2 border-slate-950 flex items-center justify-center font-bold text-white text-sm shadow-sm shrink-0">
-                            🔵
+                    <!-- Coinbase Wallet -->
+                    <button onclick="connectProvider('coinbase')" class="w-full p-2.5 rounded-2xl hover:bg-slate-100/90 active:bg-slate-200 flex items-center justify-between transition-all group">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-8 h-8 rounded-xl bg-[#0052FF] flex items-center justify-center shrink-0">
+                                <div class="w-3.5 h-3.5 bg-white rounded-xs"></div>
+                            </div>
+                            <span class="font-bold text-slate-900 text-sm font-sans">Coinbase Wallet</span>
                         </div>
-                        <div class="text-left">
-                            <div class="font-bold text-slate-950 text-sm font-pixel">Coinbase Wallet</div>
-                            <div class="text-[10px] text-slate-500 font-sans">Self-Custody Web3 Extension</div>
-                        </div>
-                    </div>
-                    <span id="walletDetectedBadge-coinbase" class="hidden px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-bold">Detected</span>
-                </button>
+                        <span id="walletRecentBadge-coinbase" class="hidden text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">Recent</span>
+                    </button>
 
-                <!-- 5. Phantom (EVM) -->
-                <button onclick="connectProvider('phantom')" class="btn-pixel-sm w-full p-3.5 rounded-2xl bg-white border-2 border-slate-950 hover:bg-purple-50 flex items-center justify-between transition-all group shadow-[2px_2px_0px_#0F172A]">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-xl bg-purple-100 border-2 border-slate-950 flex items-center justify-center font-bold text-purple-700 text-sm shadow-sm shrink-0">
-                            👻
+                    <!-- Trust Wallet -->
+                    <button onclick="connectProvider('trust')" class="w-full p-2.5 rounded-2xl hover:bg-slate-100/90 active:bg-slate-200 flex items-center justify-between transition-all group">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center shrink-0 shadow-xs">
+                                <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                </svg>
+                            </div>
+                            <span class="font-bold text-slate-900 text-sm font-sans">Trust Wallet</span>
                         </div>
-                        <div class="text-left">
-                            <div class="font-bold text-slate-950 text-sm font-pixel">Phantom (EVM)</div>
-                            <div class="text-[10px] text-slate-500 font-sans">Multi-Chain &amp; EVM Extension</div>
-                        </div>
-                    </div>
-                    <span id="walletDetectedBadge-phantom" class="hidden px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-bold">Detected</span>
-                </button>
+                        <span id="walletRecentBadge-trust" class="hidden text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">Recent</span>
+                    </button>
 
-                <!-- 6. Universal WalletConnect v2 -->
-                <button onclick="connectProvider('walletconnect')" class="btn-pixel w-full p-3.5 rounded-2xl bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-700 text-white flex items-center justify-between shadow-[3px_3px_0px_#0F172A] mt-2">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-xl bg-white/20 border border-white/40 flex items-center justify-center text-white text-base">
-                            <i data-lucide="qr-code" class="w-5 h-5"></i>
+                    <!-- Rabby Wallet -->
+                    <button onclick="connectProvider('rabby')" class="w-full p-2.5 rounded-2xl hover:bg-slate-100/90 active:bg-slate-200 flex items-center justify-between transition-all group">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-8 h-8 rounded-xl bg-[#8697FF] flex items-center justify-center shrink-0 text-white text-xs">
+                                🐰
+                            </div>
+                            <span class="font-bold text-slate-900 text-sm font-sans">Rabby Wallet</span>
                         </div>
-                        <div class="text-left">
-                            <div class="font-pixel font-bold text-white text-sm">WalletConnect v2</div>
-                            <div class="text-[10px] text-sky-100 font-sans">Scan QR with 500+ Mobile Wallets</div>
+                        <span id="walletRecentBadge-rabby" class="hidden text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">Recent</span>
+                    </button>
+
+                    <!-- WalletConnect -->
+                    <button onclick="connectProvider('walletconnect')" class="w-full p-2.5 rounded-2xl hover:bg-slate-100/90 active:bg-slate-200 flex items-center justify-between transition-all group">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-8 h-8 rounded-xl bg-[#3B99FC] flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M5.5 8.5a9.2 9.2 0 0 1 13 0l.4.4a.6.6 0 0 1 0 .9l-1.5 1.5a.4.4 0 0 1-.6 0l-.6-.6a6.6 0 0 0-9.4 0l-.6.6a.4.4 0 0 1-.6 0L4.1 9.8a.6.6 0 0 1 0-.9l1.4-1.4zM3 11a12.8 12.8 0 0 1 18 0l.4.4a.6.6 0 0 1 0 .9l-1.5 1.5a.4.4 0 0 1-.6 0l-.6-.6a10.2 10.2 0 0 0-14.4 0l-.6.6a.4.4 0 0 1-.6 0L1.6 12.3a.6.6 0 0 1 0-.9l1.4-.4z"/>
+                                </svg>
+                            </div>
+                            <span class="font-bold text-slate-900 text-sm font-sans">WalletConnect</span>
                         </div>
-                    </div>
-                    <span class="px-2 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-bold">Universal</span>
-                </button>
+                        <span class="text-[11px] font-medium text-slate-400">QR / Mobile</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- RainbowKit Footer -->
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-sans">
+                <span>New to Ethereum wallets?</span>
+                <a href="https://ethereum.org/en/wallets/" target="_blank" rel="noopener noreferrer" class="font-bold text-blue-600 hover:underline">Learn More</a>
             </div>
         </div>
     </div>

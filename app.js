@@ -598,6 +598,45 @@ function closeWalletConnectModal() {
     if (modal) modal.classList.add('hidden');
 }
 
+const WALLET_CONFIGS = [
+    {
+        id: 'metamask',
+        name: 'MetaMask',
+        iconSvg: `<svg class="w-5 h-5" viewBox="0 0 32 32"><path fill="#E17726" d="M28.3 4.1l-10.4 7.7 2.1-5.1z"/><path fill="#E27625" d="M3.7 4.1l10.3 7.8-2-5.2z"/><path fill="#D56B1B" d="M24.2 22.3l-2.7 4.1 6-1.7z"/><path fill="#D56B1B" d="M4.5 24.7l6 1.7-2.7-4.1z"/><path fill="#F5841F" d="M9.9 14.7l-2.6 3.9 5.8.2-.2-6.4z"/><path fill="#F5841F" d="M22.1 14.7l-3-2.3-.2 6.4 5.8-.2z"/><path fill="#E27625" d="M10.7 26.4l3.7-1.8-3.1-2.4z"/><path fill="#E27625" d="M21.3 26.4l-.6-4.2-3.1 2.4z"/></svg>`,
+        bgClass: 'bg-orange-50 border border-orange-200/60'
+    },
+    {
+        id: 'okx',
+        name: 'OKX Wallet',
+        iconSvg: `<span class="text-white font-bold text-[10px]">OKX</span>`,
+        bgClass: 'bg-black'
+    },
+    {
+        id: 'bitget',
+        name: 'Bitget Wallet',
+        iconSvg: `<svg class="w-4 h-4 text-black" viewBox="0 0 24 24" fill="currentColor"><path d="M7 6l6 6-6 6 3 0 6-6-6-6z"/></svg>`,
+        bgClass: 'bg-[#00F0FF]'
+    },
+    {
+        id: 'coinbase',
+        name: 'Coinbase Wallet',
+        iconSvg: `<div class="w-3.5 h-3.5 bg-white rounded-xs"></div>`,
+        bgClass: 'bg-[#0052FF]'
+    },
+    {
+        id: 'trust',
+        name: 'Trust Wallet',
+        iconSvg: `<svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+        bgClass: 'bg-gradient-to-tr from-blue-600 to-cyan-400'
+    },
+    {
+        id: 'rabby',
+        name: 'Rabby Wallet',
+        iconSvg: `<span class="text-white text-xs">🐰</span>`,
+        bgClass: 'bg-[#8697FF]'
+    }
+];
+
 function getInjectedProvider(walletKey) {
     if (typeof window === 'undefined') return null;
 
@@ -606,9 +645,9 @@ function getInjectedProvider(walletKey) {
 
     switch (walletKey) {
         case 'metamask':
-            const mmFromProviders = ethProviders.find(p => p.isMetaMask && !p.isOkxWallet && !p.isRabby && !p.isPhantom);
+            const mmFromProviders = ethProviders.find(p => p.isMetaMask && !p.isOkxWallet && !p.isRabby && !p.isPhantom && !p.isBitKeep && !p.isTrust);
             if (mmFromProviders) return mmFromProviders;
-            if (window.ethereum && window.ethereum.isMetaMask && !window.ethereum.isOkxWallet && !window.ethereum.isRabby && !window.ethereum.isPhantom) {
+            if (window.ethereum && window.ethereum.isMetaMask && !window.ethereum.isOkxWallet && !window.ethereum.isRabby && !window.ethereum.isPhantom && !window.ethereum.isBitKeep && !window.ethereum.isTrust) {
                 return window.ethereum;
             }
             return window.ethereum?.isMetaMask ? window.ethereum : null;
@@ -619,6 +658,20 @@ function getInjectedProvider(walletKey) {
             const okxFromProviders = ethProviders.find(p => p.isOkxWallet);
             if (okxFromProviders) return okxFromProviders;
             return window.ethereum?.isOkxWallet ? window.ethereum : null;
+
+        case 'bitget':
+            if (window.bitkeep?.ethereum) return window.bitkeep.ethereum;
+            if (window.bitgetWallet?.ethereum) return window.bitgetWallet.ethereum;
+            const bgFromProviders = ethProviders.find(p => p.isBitKeep || p.isBitget);
+            if (bgFromProviders) return bgFromProviders;
+            return window.ethereum?.isBitKeep ? window.ethereum : null;
+
+        case 'trust':
+            if (window.trustwallet?.ethereum) return window.trustwallet.ethereum;
+            if (window.trustwallet) return window.trustwallet;
+            const trustFromProviders = ethProviders.find(p => p.isTrust || p.isTrustWallet);
+            if (trustFromProviders) return trustFromProviders;
+            return window.ethereum?.isTrust || window.ethereum?.isTrustWallet ? window.ethereum : null;
 
         case 'rabby':
             if (window.rabby) return window.rabby;
@@ -632,12 +685,6 @@ function getInjectedProvider(walletKey) {
             if (cbFromProviders) return cbFromProviders;
             return window.ethereum?.isCoinbaseWallet ? window.ethereum : null;
 
-        case 'phantom':
-            if (window.phantom?.ethereum) return window.phantom.ethereum;
-            const phantomFromProviders = ethProviders.find(p => p.isPhantom);
-            if (phantomFromProviders) return phantomFromProviders;
-            return window.ethereum?.isPhantom ? window.ethereum : null;
-
         case 'injected':
         default:
             return window.ethereum || null;
@@ -645,24 +692,44 @@ function getInjectedProvider(walletKey) {
 }
 
 function detectInstalledWallets() {
-    const wallets = [
-        { id: 'metamask', isInstalled: !!getInjectedProvider('metamask') },
-        { id: 'okx', isInstalled: !!getInjectedProvider('okx') },
-        { id: 'rabby', isInstalled: !!getInjectedProvider('rabby') },
-        { id: 'coinbase', isInstalled: !!getInjectedProvider('coinbase') },
-        { id: 'phantom', isInstalled: !!getInjectedProvider('phantom') }
-    ];
+    const lastUsedWallet = localStorage.getItem('pulsegrid_last_wallet') || 'metamask';
 
-    wallets.forEach(w => {
-        const badge = document.getElementById(`walletDetectedBadge-${w.id}`);
+    // Update Recent Badges
+    WALLET_CONFIGS.forEach(w => {
+        const badge = document.getElementById(`walletRecentBadge-${w.id}`);
         if (badge) {
-            if (w.isInstalled) {
+            if (w.id === lastUsedWallet) {
                 badge.classList.remove('hidden');
             } else {
                 badge.classList.add('hidden');
             }
         }
     });
+
+    // Detect installed wallets and dynamically populate the Installed section
+    const installedWallets = WALLET_CONFIGS.filter(w => !!getInjectedProvider(w.id));
+    const installedSection = document.getElementById('walletModalInstalledSection');
+    const installedList = document.getElementById('walletModalInstalledList');
+
+    if (installedSection && installedList) {
+        if (installedWallets.length > 0) {
+            installedSection.classList.remove('hidden');
+            installedList.innerHTML = installedWallets.map(w => `
+                <button onclick="connectProvider('${w.id}')" class="w-full p-2.5 rounded-2xl bg-blue-50/50 hover:bg-blue-100/70 border border-blue-200/60 active:bg-blue-200/80 flex items-center justify-between transition-all group">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-8 h-8 rounded-xl ${w.bgClass} flex items-center justify-center shrink-0">
+                            ${w.iconSvg}
+                        </div>
+                        <span class="font-bold text-slate-900 text-sm font-sans">${w.name}</span>
+                    </div>
+                    <span class="text-[11px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md">Installed</span>
+                </button>
+            `).join('');
+        } else {
+            installedSection.classList.add('hidden');
+            installedList.innerHTML = '';
+        }
+    }
 }
 
 async function manualSwitchToArcNetwork() {
@@ -730,9 +797,10 @@ async function connectProvider(providerType) {
                 const names = {
                     metamask: 'MetaMask',
                     okx: 'OKX Wallet',
+                    bitget: 'Bitget Wallet',
+                    trust: 'Trust Wallet',
                     rabby: 'Rabby Wallet',
-                    coinbase: 'Coinbase Wallet',
-                    phantom: 'Phantom Wallet'
+                    coinbase: 'Coinbase Wallet'
                 };
                 const walletName = names[providerType] || providerType;
                 showToast(`${walletName} Not Detected`, `Please install the ${walletName} browser extension or use WalletConnect!`, 'info');
@@ -747,9 +815,10 @@ async function connectProvider(providerType) {
                 const names = {
                     metamask: 'MetaMask',
                     okx: 'OKX Wallet',
+                    bitget: 'Bitget Wallet',
+                    trust: 'Trust Wallet',
                     rabby: 'Rabby Wallet',
-                    coinbase: 'Coinbase Wallet',
-                    phantom: 'Phantom'
+                    coinbase: 'Coinbase Wallet'
                 };
                 providerName = names[providerType] || providerType.toUpperCase();
             }
@@ -757,6 +826,7 @@ async function connectProvider(providerType) {
 
         if (!account) return;
 
+        localStorage.setItem('pulsegrid_last_wallet', providerType);
         currentAccount = account;
         onWalletConnected(currentAccount, providerName);
 

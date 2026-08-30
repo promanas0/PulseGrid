@@ -580,6 +580,24 @@ function switchPage(pageId) {
     }
 }
 
+// EIP-6963 Multi Injected Provider Discovery
+const eip6963Providers = [];
+
+if (typeof window !== 'undefined') {
+    window.addEventListener('eip6963:announceProvider', (event) => {
+        if (event && event.detail) {
+            const exists = eip6963Providers.find(p => p.info.uuid === event.detail.info.uuid);
+            if (!exists) {
+                eip6963Providers.push(event.detail);
+                if (typeof detectInstalledWallets === 'function') {
+                    detectInstalledWallets();
+                }
+            }
+        }
+    });
+    window.dispatchEvent(new Event('eip6963:requestProvider'));
+}
+
 function openWalletConnectModal() {
     const modal = document.getElementById('walletConnectModal');
     if (modal) {
@@ -587,7 +605,9 @@ function openWalletConnectModal() {
         modal.style.display = 'flex';
         try {
             detectInstalledWallets();
-        } catch (e) { }
+        } catch (e) {
+            console.warn("detectInstalledWallets error:", e);
+        }
         safeInitIcons();
     }
 }
@@ -604,15 +624,6 @@ function handleWalletClick() {
     if (currentAccount) {
         disconnectWallet();
         return;
-    }
-
-    if (window.reownAppKit && typeof window.reownAppKit.open === 'function') {
-        try {
-            window.reownAppKit.open();
-            return;
-        } catch (e) {
-            console.warn("Reown open notice:", e);
-        }
     }
     openWalletConnectModal();
 }
@@ -653,13 +664,22 @@ const WALLET_CONFIGS = [
         name: 'Rabby Wallet',
         iconSvg: `<span class="text-white text-xs">🐰</span>`,
         bgClass: 'bg-[#8697FF]'
+    },
+    {
+        id: 'phantom',
+        name: 'Phantom',
+        iconSvg: `<span class="text-white text-xs">👻</span>`,
+        bgClass: 'bg-[#AB9FF2]'
     }
 ];
 
 function getInjectedProvider(walletKey) {
     if (typeof window === 'undefined') return null;
 
-    // Check for multi-provider array if multiple extensions injected into window.ethereum
+    // Check EIP-6963 discovered providers first
+    const eipProvider = eip6963Providers.find(p => p.info.uuid === walletKey || p.info.name?.toLowerCase().includes(walletKey));
+    if (eipProvider) return eipProvider.provider;
+
     const ethProviders = window.ethereum?.providers || (window.ethereum ? [window.ethereum] : []);
 
     switch (walletKey) {
@@ -704,6 +724,12 @@ function getInjectedProvider(walletKey) {
             if (cbFromProviders) return cbFromProviders;
             return window.ethereum?.isCoinbaseWallet ? window.ethereum : null;
 
+        case 'phantom':
+            if (window.phantom?.ethereum) return window.phantom.ethereum;
+            const phantomFromProviders = ethProviders.find(p => p.isPhantom);
+            if (phantomFromProviders) return phantomFromProviders;
+            return null;
+
         case 'injected':
         default:
             return window.ethereum || null;
@@ -725,25 +751,60 @@ function detectInstalledWallets() {
         }
     });
 
-    // Detect installed wallets and dynamically populate the Installed section
-    const installedWallets = WALLET_CONFIGS.filter(w => !!getInjectedProvider(w.id));
+    const detected = [];
+
+    // 1. Add EIP-6963 discovered providers
+    eip6963Providers.forEach(p => {
+        detected.push({
+            id: p.info.uuid,
+            name: p.info.name,
+            iconImg: p.info.icon,
+            provider: p.provider,
+            isEip: true
+        });
+    });
+
+    // 2. Add standard known injected providers (if not already discovered via EIP)
+    WALLET_CONFIGS.forEach(w => {
+        const prov = getInjectedProvider(w.id);
+        if (prov && !detected.some(d => d.name?.toLowerCase().includes(w.id) || d.name === w.name)) {
+            detected.push({
+                id: w.id,
+                name: w.name,
+                iconSvg: w.iconSvg,
+                bgClass: w.bgClass,
+                provider: prov,
+                isEip: false
+            });
+        }
+    });
+
     const installedSection = document.getElementById('walletModalInstalledSection');
     const installedList = document.getElementById('walletModalInstalledList');
 
     if (installedSection && installedList) {
-        if (installedWallets.length > 0) {
+        if (detected.length > 0) {
             installedSection.classList.remove('hidden');
-            installedList.innerHTML = installedWallets.map(w => `
-                <button onclick="connectProvider('${w.id}')" class="w-full p-2.5 rounded-2xl bg-blue-50/50 hover:bg-blue-100/70 border border-blue-200/60 active:bg-blue-200/80 flex items-center justify-between transition-all group">
-                    <div class="flex items-center gap-3.5">
-                        <div class="w-8 h-8 rounded-xl ${w.bgClass} flex items-center justify-center shrink-0">
-                            ${w.iconSvg}
+            installedList.innerHTML = detected.map(w => {
+                const iconHtml = w.iconImg ? `<img src="${w.iconImg}" alt="${w.name}" class="w-5 h-5 rounded-lg object-contain" />` : (w.iconSvg || '⚡');
+                const bg = w.bgClass || 'bg-slate-100 border border-slate-300';
+                return `
+                    <button onclick="connectProvider('${w.id}')" class="w-full p-2.5 rounded-2xl bg-emerald-50/70 hover:bg-emerald-100/90 border border-emerald-300/80 active:bg-emerald-200 flex items-center justify-between transition-all group shadow-xs">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-xl ${bg} flex items-center justify-center shrink-0">
+                                ${iconHtml}
+                            </div>
+                            <div class="text-left">
+                                <div class="font-bold text-slate-900 text-sm font-sans">${w.name}</div>
+                                <div class="text-[10px] text-emerald-700 font-mono font-bold flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Detected Ready
+                                </div>
+                            </div>
                         </div>
-                        <span class="font-bold text-slate-900 text-sm font-sans">${w.name}</span>
-                    </div>
-                    <span class="text-[11px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md">Installed</span>
-                </button>
-            `).join('');
+                        <span class="text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-300">Connect ➔</span>
+                    </button>
+                `;
+            }).join('');
         } else {
             installedSection.classList.add('hidden');
             installedList.innerHTML = '';
@@ -794,11 +855,7 @@ async function connectProvider(providerType) {
         let providerName = providerType.toUpperCase();
         let targetProvider = null;
 
-        if (providerType === 'walletconnect' || providerType === 'reown') {
-            if (window.reownAppKit && typeof window.reownAppKit.open === 'function') {
-                window.reownAppKit.open();
-                return;
-            }
+        if (providerType === 'walletconnect') {
             if (!walletConnectProvider) {
                 await initWalletConnectProvider();
             }
@@ -808,25 +865,34 @@ async function connectProvider(providerType) {
                 if (accounts && accounts.length > 0) {
                     account = accounts[0];
                     activeWeb3Provider = walletConnectProvider;
-                    providerName = 'Reown AppKit';
+                    providerName = 'WalletConnect v2';
                 }
             } else {
-                showToast('WalletConnect Info', 'Loading Reown AppKit provider...', 'info');
+                showToast('WalletConnect Info', 'Loading WalletConnect provider...', 'info');
                 return;
             }
         } else {
-            targetProvider = getInjectedProvider(providerType);
-            if (!targetProvider) {
+            // Check EIP-6963 by uuid first
+            const eipProv = eip6963Providers.find(p => p.info.uuid === providerType);
+            if (eipProv) {
+                targetProvider = eipProv.provider;
+                providerName = eipProv.info.name;
+            } else {
+                targetProvider = getInjectedProvider(providerType);
                 const names = {
                     metamask: 'MetaMask',
                     okx: 'OKX Wallet',
                     bitget: 'Bitget Wallet',
                     trust: 'Trust Wallet',
                     rabby: 'Rabby Wallet',
-                    coinbase: 'Coinbase Wallet'
+                    coinbase: 'Coinbase Wallet',
+                    phantom: 'Phantom'
                 };
-                const walletName = names[providerType] || providerType;
-                showToast(`${walletName} Not Detected`, `Please install the ${walletName} browser extension or use WalletConnect!`, 'info');
+                providerName = names[providerType] || providerType;
+            }
+
+            if (!targetProvider) {
+                showToast(`${providerName} Not Detected`, `Please install the ${providerName} browser extension or use WalletConnect!`, 'info');
                 return;
             }
 
@@ -834,16 +900,6 @@ async function connectProvider(providerType) {
             if (accounts && accounts.length > 0) {
                 account = accounts[0];
                 activeWeb3Provider = targetProvider;
-                
-                const names = {
-                    metamask: 'MetaMask',
-                    okx: 'OKX Wallet',
-                    bitget: 'Bitget Wallet',
-                    trust: 'Trust Wallet',
-                    rabby: 'Rabby Wallet',
-                    coinbase: 'Coinbase Wallet'
-                };
-                providerName = names[providerType] || providerType.toUpperCase();
             }
         }
 
@@ -863,9 +919,9 @@ async function connectProvider(providerType) {
     } catch (err) {
         console.error("Connect error:", err);
         if (err.code === 4001 || err.code === 'ACTION_REJECTED' || err.message?.includes('User rejected')) {
-            showToast('Connection Cancelled', 'Wallet connection request was cancelled.', 'info');
+            showToast('Connection Rejected', 'You cancelled the connection request.', 'info');
         } else {
-            showToast('Connection Notice', err.message?.substring(0, 80) || 'Connection closed.', 'info');
+            showToast('Connection Error', err.message || 'Could not connect wallet.', 'error');
         }
     }
 }

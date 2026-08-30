@@ -19,7 +19,7 @@
 
 ---
 
-## 📑 Table of Contents
+##  Table of Contents
 - [Executive Overview](#-executive-overview)
 - [Circle Arc L1 Network Specifications](#-circle-arc-l1-network-specifications)
 - [Key Architectural Features](#-key-architectural-features)
@@ -39,7 +39,7 @@
 
 ---
 
-## ⚡ Executive Overview
+##  Executive Overview
 
 **PulseGrid (ArchPulse)** is an institutional-grade, single-page Web3 decentralized ecosystem and infrastructure dashboard built for **Circle Arc L1** — the high-throughput, sub-second finality Layer-1 blockchain powered by native USDC gas settlement.
 
@@ -47,7 +47,7 @@ Combining modern neo-brutalist and holographic glassmorphism aesthetics, PulseGr
 
 ---
 
-## 🌐 Circle Arc L1 Network Specifications
+##  Circle Arc L1 Network Specifications
 
 | Parameter | Specification / Value |
 | :--- | :--- |

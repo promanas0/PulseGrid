@@ -52,6 +52,8 @@
     "@circle-fin/bridge-kit": "^1.13.0",
     "@circle-fin/developer-controlled-wallets": "^10.8.0",
     "@circle-fin/swap-kit": "^1.5.1",
+    "@reown/appkit": "^1.8.23",
+    "@reown/appkit-adapter-wagmi": "^1.8.23",
     "@tanstack/react-query": "^5.102.8",
     "dotenv": "^17.4.2",
     "ethers": "^6.17.0",

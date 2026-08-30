@@ -1,3 +1,6 @@
+import React from 'react';
+import { AppKitProvider } from '../components/AppKitProvider';
+
 export const metadata = {
   title: 'PulseGrid — Arc L1 Web3 Ecosystem',
   description: 'High-performance Web3 dApp with Reown AppKit & Multi-Wallet support on Circle Arc L1 Testnet.',
@@ -33,7 +36,9 @@ export default function RootLayout({
         `}} />
       </head>
       <body className="bg-slate-50 text-slate-950 min-h-screen antialiased">
-        {children}
+        <AppKitProvider>
+          {children}
+        </AppKitProvider>
       </body>
     </html>
   );

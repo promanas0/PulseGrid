@@ -1109,14 +1109,51 @@
                         </div>
                     </div>
 
-                    <div class="mt-6 p-4 rounded-xl bg-slate-50 border-2 border-slate-950 space-y-2 text-xs font-mono">
+                    <!-- INTERACTIVE SLIPPAGE TOLERANCE CONTROLLER -->
+                    <div class="mt-4 p-3.5 rounded-2xl bg-white border-2 border-slate-950 shadow-[2px_2px_0px_#0F172A] space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-1.5 text-xs font-mono font-bold text-slate-800">
+                                <i data-lucide="sliders" class="w-3.5 h-3.5 text-purple-700"></i>
+                                <span>Slippage Tolerance</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span id="slippageCurrentBadge" class="text-[11px] font-mono font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-900 border border-purple-300">0.5%</span>
+                                <span id="slippageWarningBadge" class="hidden text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-amber-100 text-amber-900 border border-amber-300">High</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <!-- Preset Buttons -->
+                            <button type="button" onclick="setSlippage(0.1)" id="slipBtn-0.1" class="slippage-btn px-2.5 py-1.5 rounded-xl border-2 border-slate-950 text-xs font-mono font-bold bg-slate-50 hover:bg-purple-50 text-slate-800 transition-all">0.1%</button>
+                            <button type="button" onclick="setSlippage(0.5)" id="slipBtn-0.5" class="slippage-btn px-2.5 py-1.5 rounded-xl border-2 border-slate-950 text-xs font-mono font-bold bg-purple-700 text-white shadow-xs transition-all">0.5%</button>
+                            <button type="button" onclick="setSlippage(1.0)" id="slipBtn-1.0" class="slippage-btn px-2.5 py-1.5 rounded-xl border-2 border-slate-950 text-xs font-mono font-bold bg-slate-50 hover:bg-purple-50 text-slate-800 transition-all">1.0%</button>
+                            <button type="button" onclick="setSlippage(2.5)" id="slipBtn-2.5" class="slippage-btn px-2.5 py-1.5 rounded-xl border-2 border-slate-950 text-xs font-mono font-bold bg-slate-50 hover:bg-purple-50 text-slate-800 transition-all">2.5%</button>
+
+                            <!-- Custom Input Field -->
+                            <div class="flex-1 min-w-[105px] relative">
+                                <input
+                                    type="number"
+                                    id="customSlippageInput"
+                                    step="0.1"
+                                    min="0.01"
+                                    max="50"
+                                    placeholder="Custom"
+                                    oninput="onCustomSlippageInput(this.value)"
+                                    class="w-full px-3 py-1.5 pr-7 rounded-xl bg-slate-50 border-2 border-slate-950 text-xs font-mono font-bold text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-purple-700 outline-none transition-all"
+                                />
+                                <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-slate-500">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-4 rounded-xl bg-slate-50 border-2 border-slate-950 space-y-2 text-xs font-mono">
                         <div class="flex justify-between text-slate-600">
                             <span>Estimated Swap Rate</span>
                             <span id="exchangeRateText" class="text-slate-950 font-bold">1 USDC ≈ 0.882639 EURC</span>
                         </div>
                         <div class="flex justify-between text-slate-600">
                             <span>Slippage Tolerance</span>
-                            <span class="text-purple-700 font-bold">0.5% (Auto)</span>
+                            <span id="tableSlippageText" class="text-purple-700 font-bold">0.5% (Auto)</span>
                         </div>
                         <div class="flex justify-between text-slate-600">
                             <span>Price Impact</span>

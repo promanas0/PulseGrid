@@ -1928,7 +1928,9 @@ async function executePulseSwap(payTok, recTok, amt) {
             const poolData = await routerContract.getPool(customToken.address);
             if (poolData.exists) {
                 const estTokens = await routerContract.getAmountOut(usdcWei, poolData.usdcReserve, poolData.tokenReserve);
-                minTokensOut = estTokens.mul(95).div(100); // 5% slippage
+                // Calculate dynamic minTokensOut based on user slippage tolerance
+                const slipBps = Math.max(1, Math.min(5000, Math.floor((currentSlippage || 0.5) * 100))); // e.g. 0.5% -> 50 bps
+                minTokensOut = estTokens.mul(10000 - slipBps).div(10000);
             }
         } catch (e) { }
 
@@ -1965,7 +1967,9 @@ async function executePulseSwap(payTok, recTok, amt) {
             const poolData = await routerContract.getPool(customToken.address);
             if (poolData.exists) {
                 const estUsdc = await routerContract.getAmountOut(tokenAmountUnits, poolData.tokenReserve, poolData.usdcReserve);
-                minUsdcOut = estUsdc.mul(95).div(100);
+                // Calculate dynamic minUsdcOut based on user slippage tolerance
+                const slipBps = Math.max(1, Math.min(5000, Math.floor((currentSlippage || 0.5) * 100)));
+                minUsdcOut = estUsdc.mul(10000 - slipBps).div(10000);
             }
         } catch (e) { }
 
@@ -1988,6 +1992,70 @@ async function executePulseSwap(payTok, recTok, amt) {
     const output = document.getElementById('receiveAmountInput');
     if (output) output.value = '';
     refreshActivePoolsUI();
+}
+
+// SLIPPAGE TOLERANCE MANAGEMENT
+let currentSlippage = 0.5; // default 0.5%
+
+function setSlippage(val) {
+    currentSlippage = parseFloat(val) || 0.5;
+    const customInput = document.getElementById('customSlippageInput');
+    if (customInput) customInput.value = '';
+
+    // Reset and highlight active preset button
+    document.querySelectorAll('.slippage-btn').forEach(btn => {
+        btn.className = 'slippage-btn px-2.5 py-1.5 rounded-xl border-2 border-slate-950 text-xs font-mono font-bold bg-slate-50 hover:bg-purple-50 text-slate-800 transition-all';
+    });
+    const activeBtn = document.getElementById(`slipBtn-${val}`);
+    if (activeBtn) {
+        activeBtn.className = 'slippage-btn px-2.5 py-1.5 rounded-xl border-2 border-slate-950 text-xs font-mono font-bold bg-purple-700 text-white shadow-xs transition-all';
+    }
+
+    updateSlippageBadges();
+    calculateSwap();
+}
+
+function onCustomSlippageInput(val) {
+    const num = parseFloat(val);
+    if (!isNaN(num) && num > 0 && num <= 50) {
+        currentSlippage = num;
+        document.querySelectorAll('.slippage-btn').forEach(btn => {
+            btn.className = 'slippage-btn px-2.5 py-1.5 rounded-xl border-2 border-slate-950 text-xs font-mono font-bold bg-slate-50 hover:bg-purple-50 text-slate-800 transition-all';
+        });
+        updateSlippageBadges();
+        calculateSwap();
+    } else if (!val || val === '') {
+        currentSlippage = 0.5;
+        updateSlippageBadges();
+        calculateSwap();
+    }
+}
+
+function updateSlippageBadges() {
+    const badge = document.getElementById('slippageCurrentBadge');
+    const warn = document.getElementById('slippageWarningBadge');
+    const tableBadge = document.getElementById('tableSlippageText');
+
+    if (badge) badge.textContent = `${currentSlippage}%`;
+    if (tableBadge) tableBadge.textContent = `${currentSlippage}% (${currentSlippage === 0.5 ? 'Auto' : 'Custom'})`;
+
+    if (warn) {
+        if (currentSlippage > 5.0) {
+            warn.classList.remove('hidden');
+            warn.textContent = 'Very High';
+            warn.className = 'text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-rose-100 text-rose-900 border border-rose-300';
+        } else if (currentSlippage > 2.0) {
+            warn.classList.remove('hidden');
+            warn.textContent = 'High';
+            warn.className = 'text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-amber-100 text-amber-900 border border-amber-300';
+        } else if (currentSlippage < 0.1) {
+            warn.classList.remove('hidden');
+            warn.textContent = 'Low (May Revert)';
+            warn.className = 'text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-amber-100 text-amber-900 border border-amber-300';
+        } else {
+            warn.classList.add('hidden');
+        }
+    }
 }
 
 // ACCURATE SWAP CONVERSION SUPPORTING AMM CUSTOM POOLS AND SDK STABLES

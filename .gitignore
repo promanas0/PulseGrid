@@ -1,9 +1,12 @@
 node_modules
 .next
 .env
+*.sol
+*.bin
+*.abi
+build/
 my-swap/.env
 pubkey.pem
 publickey.txt
 recovery/
 ciphertext.txt
-

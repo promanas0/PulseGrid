@@ -670,6 +670,32 @@
     <!-- MAIN CONTENT DISPLAY AREA -->
     <main class="flex-1 w-full min-w-0 lg:ml-64 p-4 sm:p-6 lg:p-10 space-y-8 pb-28 lg:pb-10">
 
+        <!-- TOP PERSISTENT DESKTOP NAVBAR -->
+        <header class="hidden lg:flex items-center justify-between p-4 bg-white/95 backdrop-blur-md rounded-2xl border-2 border-slate-950 shadow-[4px_4px_0px_#0F172A]">
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-purple-50 border border-purple-200 font-mono text-xs font-bold text-purple-900 shadow-xs">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Arc Testnet L1 (Chain ID: 5042002)
+                </div>
+                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs text-slate-700">
+                    <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-500"></i>
+                    Sub-Second Finality
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <div id="desktopHeaderWalletPill" class="hidden items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-300 font-mono text-xs font-bold text-emerald-900">
+                    <span id="desktopHeaderUsdcBal">0.00 USDC</span>
+                    <span class="text-slate-300">|</span>
+                    <span id="desktopHeaderAddress" class="text-slate-700">0x0...0000</span>
+                </div>
+                <button id="desktopHeaderConnectBtn" onclick="handleWalletClick()" class="btn-pixel px-4 py-2 rounded-xl bg-gradient-to-r from-purple-700 via-indigo-600 to-teal-600 hover:opacity-95 text-white font-pixel font-bold text-xs flex items-center gap-2 shadow-[2px_2px_0px_#0F172A] transition-all">
+                    <i data-lucide="wallet" class="w-4 h-4"></i>
+                    <span id="desktopHeaderConnectText">Connect Wallet</span>
+                </button>
+            </div>
+        </header>
+
         <!-- PAGE 1: NETWORK MONITOR VIEW -->
         <section id="view-monitor" class="page-view space-y-8">
             <div class="pixel-hero-gradient p-6 sm:p-10 text-white relative overflow-hidden">

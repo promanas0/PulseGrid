@@ -580,22 +580,50 @@ function switchPage(pageId) {
     }
 }
 
-function handleWalletClick() {
-    if (currentAccount) {
-        disconnectWallet();
-    } else {
-        const modal = document.getElementById('walletConnectModal');
-        if (modal) {
-            modal.classList.remove('hidden');
-            detectInstalledWallets();
-            safeInitIcons();
-        }
+function openWalletConnectModal() {
+    const modal = document.getElementById('walletConnectModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+        detectInstalledWallets();
+        safeInitIcons();
     }
 }
 
 function closeWalletConnectModal() {
     const modal = document.getElementById('walletConnectModal');
-    if (modal) modal.classList.add('hidden');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+    }
+}
+
+function handleWalletClick() {
+    if (currentAccount) {
+        disconnectWallet();
+    } else {
+        openWalletConnectModal();
+    }
+}
+
+async function onWalletConnected(account, providerName) {
+    if (!account) return;
+    localStorage.setItem('pulsegrid_connected_wallet', account);
+    localStorage.setItem('pulsegrid_provider_name', providerName || 'MetaMask');
+    closeWalletConnectModal();
+    await fetchRealOnChainBalances(account);
+    updateTokenBalancesUI();
+    updateWalletUI();
+    updateAuthStatusUI();
+    renderWalletView();
+    renderPortfolioView();
+    if (typeof loadQuestState === 'function') {
+        loadQuestState(account);
+    }
+    if (typeof renderUserCreatedTokens === 'function') {
+        renderUserCreatedTokens();
+    }
+    showToast('Wallet Connected! 🚀', `Connected via ${providerName}: ${account.substring(0, 6)}...${account.substring(account.length - 4)}`, 'success');
 }
 
 const WALLET_CONFIGS = [
@@ -1105,6 +1133,8 @@ function updateWalletUI() {
     const infoBox = document.getElementById('sidebarWalletInfoBox');
     const connectBtn = document.getElementById('sidebarConnectBtn');
     const disconnectBtn = document.getElementById('sidebarDisconnectBtn');
+    const desktopHeaderPill = document.getElementById('desktopHeaderWalletPill');
+    const desktopHeaderConnectText = document.getElementById('desktopHeaderConnectText');
 
     if (currentAccount) {
         const formatted = `${currentAccount.substring(0, 6)}...${currentAccount.substring(currentAccount.length - 4)}`;
@@ -1115,6 +1145,16 @@ function updateWalletUI() {
         safeSetText('mobileHeaderWalletBtnText', formatted);
         safeSetText('mobileDrawerWalletBtnText', `Disconnect (${formatted})`);
 
+        if (desktopHeaderPill) {
+            desktopHeaderPill.classList.remove('hidden');
+            desktopHeaderPill.classList.add('flex');
+            safeSetText('desktopHeaderUsdcBal', `${TOKENS[0].balance.toFixed(2)} USDC`);
+            safeSetText('desktopHeaderAddress', formatted);
+        }
+        if (desktopHeaderConnectText) {
+            desktopHeaderConnectText.innerText = 'Disconnect';
+        }
+
         if (infoBox) infoBox.classList.remove('hidden');
         if (connectBtn) connectBtn.classList.add('hidden');
         if (disconnectBtn) disconnectBtn.classList.remove('hidden');
@@ -1123,6 +1163,15 @@ function updateWalletUI() {
         safeSetText('heroWalletBtnText', 'Connect Wallet');
         safeSetText('mobileHeaderWalletBtnText', 'Connect');
         safeSetText('mobileDrawerWalletBtnText', 'Connect Wallet');
+
+        if (desktopHeaderPill) {
+            desktopHeaderPill.classList.add('hidden');
+            desktopHeaderPill.classList.remove('flex');
+        }
+        if (desktopHeaderConnectText) {
+            desktopHeaderConnectText.innerText = 'Connect Wallet';
+        }
+
         if (infoBox) infoBox.classList.add('hidden');
         if (connectBtn) connectBtn.classList.remove('hidden');
         if (disconnectBtn) disconnectBtn.classList.add('hidden');

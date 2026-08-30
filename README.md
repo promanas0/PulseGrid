@@ -8,7 +8,7 @@
 
 [![Network: Arc L1 Testnet](https://img.shields.io/badge/Network-Arc%20L1%20Testnet-7B2CBF?style=for-the-badge&logo=ethereum&logoColor=white)](https://testnet.arcscan.app)
 [![Chain ID: 5042002](https://img.shields.io/badge/Chain%20ID-5042002-008080?style=for-the-badge)](https://rpc.testnet.arc.network)
-[![Block Time: ~450ms](https://img.shields.io/badge/Block%20Time-~450ms-emerald?style=for-the-badge&logo=speedtest&logoColor=white)](https://testnet.arcscan.app)
+[![Finality: Sub--Second](https://img.shields.io/badge/Finality-Sub--Second-emerald?style=for-the-badge&logo=speedtest&logoColor=white)](https://testnet.arcscan.app)
 [![Native Gas: USDC](https://img.shields.io/badge/Native%20Gas-USDC%20(Circle)-2775CA?style=for-the-badge&logo=circle&logoColor=white)](https://circle.com)
 [![Status: Active](https://img.shields.io/badge/Status-Mainnet%20Prep%20Active-success?style=for-the-badge)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-purple?style=for-the-badge)](LICENSE)
@@ -19,7 +19,7 @@
 
 ---
 
-##  Table of Contents
+## 📑 Table of Contents
 - [Executive Overview](#-executive-overview)
 - [Circle Arc L1 Network Specifications](#-circle-arc-l1-network-specifications)
 - [Key Architectural Features](#-key-architectural-features)
@@ -39,7 +39,7 @@
 
 ---
 
-##  Executive Overview
+## ⚡ Executive Overview
 
 **PulseGrid (ArchPulse)** is an institutional-grade, single-page Web3 decentralized ecosystem and infrastructure dashboard built for **Circle Arc L1** — the high-throughput, sub-second finality Layer-1 blockchain powered by native USDC gas settlement.
 
@@ -47,15 +47,15 @@ Combining modern neo-brutalist and holographic glassmorphism aesthetics, PulseGr
 
 ---
 
-##  Circle Arc L1 Network Specifications
+## 🌐 Circle Arc L1 Network Specifications
 
 | Parameter | Specification / Value |
 | :--- | :--- |
 | **Network Name** | Circle Arc L1 Testnet |
-| **Chain ID** | `5042002` (Hex: `0x4cef12`) |
+| **Chain ID** | `5042002` (Hex: `0x4cef52`) |
 | **Native Gas Currency** | **USDC** (USD Coin by Circle) |
 | **Decimals** | `18` (Wei scale for EVM RPC compatibility) |
-| **Block Time** | `~450 ms` (Sub-second Byzantine Fault Tolerant Finality) |
+| **Block Time** | `Sub-Second` (Sub-second Byzantine Fault Tolerant Finality) |
 | **Throughput** | `1,400+ TPS` with deterministic institutional gas model |
 | **RPC Endpoint** | `https://rpc.testnet.arc.network` |
 | **Block Explorer** | [https://testnet.arcscan.app](https://testnet.arcscan.app) |
@@ -116,20 +116,32 @@ Combining modern neo-brutalist and holographic glassmorphism aesthetics, PulseGr
 
 ---
 
-##  Project Directory Structure
+## 📁 Project Directory Structure
 
 ```plaintext
 archpulse/
-├── PulseGrid.html             # Primary production entrypoint (Pro Web3 Suite)
-├── archpulse.html             # Synchronized standalone application entrypoint
-├── index.html                 # Direct root redirection & landing router
-├── app.js                     # Core Web3 execution engine, RPC polling & state
-├── logo.png                   # High-resolution application brandmark
-├── app/                       # Modular Next.js application routes
-│   └── validators/            # Dedicated validator matrix components
-│       └── page.tsx
-├── README.md                  # Comprehensive GitHub documentation
-└── LICENSE                    # Open-source MIT license
+├── 📁 app/                       # Modular Next.js App Router (Pages & Telemetry)
+│   ├── layout.tsx                # Root layout with RainbowWeb3Provider & Tailwind
+│   ├── page.tsx                  # Web3 Dashboard with RainbowKit Connect Button
+│   └── validators/page.tsx       # Dedicated validator matrix components
+├── 📁 components/                # Modular React & RainbowKit Components
+│   ├── RainbowWeb3Provider.tsx   # Wagmi v2 & RainbowKit v2 Theme Provider
+│   ├── RainbowConnectButton.tsx  # Custom Arc L1 Network Connect Button
+│   └── ValidatorStatus.tsx       # Live validator health & telemetry radar
+├── 📁 scripts/                   # Circle W3S & Arc L1 Developer CLI Tools
+│   ├── create-wallet.ts          # Circle SCA Developer Controlled Wallet creator
+│   ├── send-tokens.ts            # Native USDC transaction dispatcher
+│   ├── bridge-tokens.ts          # Circle CCTP cross-chain relayer
+│   ├── fee-estimator.ts          # Arc L1 deterministic gas estimator
+│   └── balance-checker.ts        # Multi-chain unified balance inspector
+├── 📄 PulseGrid.html             # Main Ecosystem dApp (DEX, Tokens, Predictions, AI)
+├── 📄 archpulse.html             # Alternate synchronized standalone entrypoint
+├── 📄 index.html                 # Neo-Brutalist Official Landing Page
+├── 📄 app.js                     # Core Web3 execution engine, RPC polling & state
+├── 📄 rainbow-config.ts          # Arc Testnet L1 (5042002) RainbowKit config
+├── 📄 next.config.mjs            # Next.js 16 Webpack & build fallbacks
+├── 📄 package.json               # Dependencies & developer workflow scripts
+└── 📄 README.md                  # Comprehensive GitHub documentation
 ```
 
 ---

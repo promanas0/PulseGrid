@@ -600,9 +600,17 @@ function closeWalletConnectModal() {
 
 function handleWalletClick() {
     if (currentAccount) {
-        disconnectWallet();
+        if (window.reownAppKit && typeof window.reownAppKit.open === 'function') {
+            window.reownAppKit.open();
+        } else {
+            disconnectWallet();
+        }
     } else {
-        openWalletConnectModal();
+        if (window.reownAppKit && typeof window.reownAppKit.open === 'function') {
+            window.reownAppKit.open();
+        } else {
+            openWalletConnectModal();
+        }
     }
 }
 
@@ -783,7 +791,11 @@ async function connectProvider(providerType) {
         let providerName = providerType.toUpperCase();
         let targetProvider = null;
 
-        if (providerType === 'walletconnect') {
+        if (providerType === 'walletconnect' || providerType === 'reown') {
+            if (window.reownAppKit && typeof window.reownAppKit.open === 'function') {
+                window.reownAppKit.open();
+                return;
+            }
             if (!walletConnectProvider) {
                 await initWalletConnectProvider();
             }
@@ -793,10 +805,10 @@ async function connectProvider(providerType) {
                 if (accounts && accounts.length > 0) {
                     account = accounts[0];
                     activeWeb3Provider = walletConnectProvider;
-                    providerName = 'WalletConnect v2';
+                    providerName = 'Reown AppKit';
                 }
             } else {
-                showToast('WalletConnect Info', 'Loading WalletConnect provider...', 'info');
+                showToast('WalletConnect Info', 'Loading Reown AppKit provider...', 'info');
                 return;
             }
         } else {

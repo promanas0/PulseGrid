@@ -56,6 +56,76 @@
     <!-- Ethers.js v5 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     
+    <!-- Official Reown AppKit (Web3Modal) Vanilla JS SDK -->
+    <script type="module">
+        try {
+            const { createAppKit } = await import('https://cdn.jsdelivr.net/npm/@reown/appkit@1.8.23/+esm');
+            const { Ethers5Adapter } = await import('https://cdn.jsdelivr.net/npm/@reown/appkit-adapter-ethers5@1.8.23/+esm');
+
+            const arcTestnet = {
+                id: 5042002,
+                name: 'Arc Testnet',
+                nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
+                rpcUrls: {
+                    default: { http: ['https://rpc.testnet.arc.network'] },
+                    public: { http: ['https://rpc.testnet.arc.network', 'https://rpc.testnet.arc.io', 'https://rpc.drpc.testnet.arc.io'] }
+                },
+                blockExplorers: {
+                    default: { name: 'ArcScan', url: 'https://testnet.arcscan.app' }
+                }
+            };
+
+            const projectId = '20272da6a3b2b8d0e527d9255a40f1a6';
+
+            const appKit = createAppKit({
+                adapters: [new Ethers5Adapter()],
+                networks: [arcTestnet],
+                projectId,
+                metadata: {
+                    name: 'PulseGrid',
+                    description: 'Arc L1 Web3 Ecosystem & DEX Engine',
+                    url: window.location.origin || 'https://pulsegrid-hub.vercel.app',
+                    icons: ['https://pulsegrid-hub.vercel.app/logo.png']
+                },
+                themeMode: 'light',
+                themeVariables: {
+                    '--w3m-accent': '#7E22CE',
+                    '--w3m-border-radius-master': '16px'
+                },
+                features: {
+                    analytics: false,
+                    email: true,
+                    socials: ['google', 'x', 'github', 'discord', 'apple'],
+                    emailShowWallets: true
+                }
+            });
+
+            window.reownAppKit = appKit;
+
+            appKit.subscribeAccount((account) => {
+                if (account?.address && account.isConnected) {
+                    if (typeof onWalletConnected === 'function') {
+                        onWalletConnected(account.address, 'Reown AppKit');
+                    }
+                } else if (account?.isConnected === false && window.currentAccount) {
+                    if (typeof disconnectWallet === 'function') {
+                        disconnectWallet();
+                    }
+                }
+            });
+
+            appKit.subscribeProvider((state) => {
+                if (state?.provider) {
+                    window.activeWeb3Provider = state.provider;
+                }
+            });
+
+            console.log("Official Reown AppKit Initialized in PulseGrid.html!");
+        } catch (err) {
+            console.warn("Reown AppKit init notice:", err);
+        }
+    </script>
+
     <style>
         body {
             background-color: #FFFFFF;
@@ -3387,8 +3457,27 @@
             </div>
 
             <!-- Recommended Section -->
-            <div class="space-y-1.5">
-                <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider px-1">Recommended</div>
+            <div class="space-y-2">
+                <!-- Official Reown AppKit Primary Option -->
+                <button onclick="connectProvider('reown')" class="w-full p-3 rounded-2xl bg-gradient-to-r from-purple-700 via-indigo-600 to-blue-600 hover:from-purple-800 hover:to-blue-700 text-white flex items-center justify-between transition-all shadow-md group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M5.5 8.5a9.2 9.2 0 0 1 13 0l.4.4a.6.6 0 0 1 0 .9l-1.5 1.5a.4.4 0 0 1-.6 0l-.6-.6a6.6 0 0 0-9.4 0l-.6.6a.4.4 0 0 1-.6 0L4.1 9.8a.6.6 0 0 1 0-.9l1.4-1.4zM3 11a12.8 12.8 0 0 1 18 0l.4.4a.6.6 0 0 1 0 .9l-1.5 1.5a.4.4 0 0 1-.6 0l-.6-.6a10.2 10.2 0 0 0-14.4 0l-.6.6a.4.4 0 0 1-.6 0L1.6 12.3a.6.6 0 0 1 0-.9l1.4-.4z"/>
+                            </svg>
+                        </div>
+                        <div class="text-left">
+                            <div class="font-bold text-sm font-sans flex items-center gap-1.5">
+                                <span>Reown AppKit</span>
+                                <span class="text-[10px] bg-white/20 px-1.5 py-0.2 rounded font-mono font-bold">500+ Wallets</span>
+                            </div>
+                            <div class="text-[10px] text-white/80 font-mono">QR Code, Email, Socials & All Wallets</div>
+                        </div>
+                    </div>
+                    <span class="text-xs font-mono font-bold bg-white text-purple-900 px-2.5 py-1 rounded-lg shadow-xs">Open ➔</span>
+                </button>
+
+                <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider px-1 pt-1">Or Choose Extension</div>
                 
                 <div class="space-y-1">
                     <!-- MetaMask -->

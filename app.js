@@ -585,13 +585,84 @@ function handleWalletClick() {
         disconnectWallet();
     } else {
         const modal = document.getElementById('walletConnectModal');
-        if (modal) modal.classList.remove('hidden');
+        if (modal) {
+            modal.classList.remove('hidden');
+            detectInstalledWallets();
+            safeInitIcons();
+        }
     }
 }
 
 function closeWalletConnectModal() {
     const modal = document.getElementById('walletConnectModal');
     if (modal) modal.classList.add('hidden');
+}
+
+function getInjectedProvider(walletKey) {
+    if (typeof window === 'undefined') return null;
+
+    // Check for multi-provider array if multiple extensions injected into window.ethereum
+    const ethProviders = window.ethereum?.providers || (window.ethereum ? [window.ethereum] : []);
+
+    switch (walletKey) {
+        case 'metamask':
+            const mmFromProviders = ethProviders.find(p => p.isMetaMask && !p.isOkxWallet && !p.isRabby && !p.isPhantom);
+            if (mmFromProviders) return mmFromProviders;
+            if (window.ethereum && window.ethereum.isMetaMask && !window.ethereum.isOkxWallet && !window.ethereum.isRabby && !window.ethereum.isPhantom) {
+                return window.ethereum;
+            }
+            return window.ethereum?.isMetaMask ? window.ethereum : null;
+
+        case 'okx':
+            if (window.okxwallet?.ethereum) return window.okxwallet.ethereum;
+            if (window.okxwallet) return window.okxwallet;
+            const okxFromProviders = ethProviders.find(p => p.isOkxWallet);
+            if (okxFromProviders) return okxFromProviders;
+            return window.ethereum?.isOkxWallet ? window.ethereum : null;
+
+        case 'rabby':
+            if (window.rabby) return window.rabby;
+            const rabbyFromProviders = ethProviders.find(p => p.isRabby);
+            if (rabbyFromProviders) return rabbyFromProviders;
+            return window.ethereum?.isRabby ? window.ethereum : null;
+
+        case 'coinbase':
+            if (window.coinbaseWalletExtension) return window.coinbaseWalletExtension;
+            const cbFromProviders = ethProviders.find(p => p.isCoinbaseWallet);
+            if (cbFromProviders) return cbFromProviders;
+            return window.ethereum?.isCoinbaseWallet ? window.ethereum : null;
+
+        case 'phantom':
+            if (window.phantom?.ethereum) return window.phantom.ethereum;
+            const phantomFromProviders = ethProviders.find(p => p.isPhantom);
+            if (phantomFromProviders) return phantomFromProviders;
+            return window.ethereum?.isPhantom ? window.ethereum : null;
+
+        case 'injected':
+        default:
+            return window.ethereum || null;
+    }
+}
+
+function detectInstalledWallets() {
+    const wallets = [
+        { id: 'metamask', isInstalled: !!getInjectedProvider('metamask') },
+        { id: 'okx', isInstalled: !!getInjectedProvider('okx') },
+        { id: 'rabby', isInstalled: !!getInjectedProvider('rabby') },
+        { id: 'coinbase', isInstalled: !!getInjectedProvider('coinbase') },
+        { id: 'phantom', isInstalled: !!getInjectedProvider('phantom') }
+    ];
+
+    wallets.forEach(w => {
+        const badge = document.getElementById(`walletDetectedBadge-${w.id}`);
+        if (badge) {
+            if (w.isInstalled) {
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+    });
 }
 
 async function manualSwitchToArcNetwork() {
@@ -635,6 +706,7 @@ async function connectProvider(providerType) {
     try {
         let account = null;
         let providerName = providerType.toUpperCase();
+        let targetProvider = null;
 
         if (providerType === 'walletconnect') {
             if (!walletConnectProvider) {
@@ -652,15 +724,35 @@ async function connectProvider(providerType) {
                 showToast('WalletConnect Info', 'Loading WalletConnect provider...', 'info');
                 return;
             }
-        } else if (window.ethereum) {
-            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        } else {
+            targetProvider = getInjectedProvider(providerType);
+            if (!targetProvider) {
+                const names = {
+                    metamask: 'MetaMask',
+                    okx: 'OKX Wallet',
+                    rabby: 'Rabby Wallet',
+                    coinbase: 'Coinbase Wallet',
+                    phantom: 'Phantom Wallet'
+                };
+                const walletName = names[providerType] || providerType;
+                showToast(`${walletName} Not Detected`, `Please install the ${walletName} browser extension or use WalletConnect!`, 'info');
+                return;
+            }
+
+            const accounts = await targetProvider.request({ method: 'eth_requestAccounts' });
             if (accounts && accounts.length > 0) {
                 account = accounts[0];
-                activeWeb3Provider = window.ethereum;
+                activeWeb3Provider = targetProvider;
+                
+                const names = {
+                    metamask: 'MetaMask',
+                    okx: 'OKX Wallet',
+                    rabby: 'Rabby Wallet',
+                    coinbase: 'Coinbase Wallet',
+                    phantom: 'Phantom'
+                };
+                providerName = names[providerType] || providerType.toUpperCase();
             }
-        } else {
-            showToast('Provider Missing', `${providerType} wallet not detected. Use WalletConnect!`, 'error');
-            return;
         }
 
         if (!account) return;
@@ -668,9 +760,20 @@ async function connectProvider(providerType) {
         currentAccount = account;
         onWalletConnected(currentAccount, providerName);
 
+        // Prompt network switch to Arc Testnet if needed
+        try {
+            await manualSwitchToArcNetwork();
+        } catch (netErr) {
+            console.warn("Network switch notice on connect:", netErr);
+        }
+
     } catch (err) {
         console.error("Connect error:", err);
-        showToast('Connection Info', err.message || 'Connection request closed', 'info');
+        if (err.code === 4001 || err.code === 'ACTION_REJECTED' || err.message?.includes('User rejected')) {
+            showToast('Connection Cancelled', 'Wallet connection request was cancelled.', 'info');
+        } else {
+            showToast('Connection Notice', err.message?.substring(0, 80) || 'Connection closed.', 'info');
+        }
     }
 }
 

@@ -5,6 +5,7 @@
   "description": "pulsegrid - High-performance Web3 DEX & Circle W3S Engine for Arc Testnet",
   "main": "index.html",
   "scripts": {
+    "dev": "next dev",
     "start": "node server.mjs",
     "create-wallet": "node --env-file=.env create-wallet.js",
     "send-tokens": "node --env-file=.env send-tokens.js",
@@ -69,6 +70,8 @@
     "@circle-fin/bridge-kit": "^1.13.0",
     "@circle-fin/developer-controlled-wallets": "^10.8.0",
     "@circle-fin/swap-kit": "^1.5.1",
+    "@rainbow-me/rainbowkit": "^2.2.11",
+    "@tanstack/react-query": "^5.102.8",
     "connectkit": "^1.7.3",
     "dotenv": "^17.4.2",
     "ethers": "^6.17.0",

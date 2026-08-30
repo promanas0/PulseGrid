@@ -379,6 +379,12 @@
                     <span>Wallet</span>
                 </button>
 
+                <button onclick="switchPage('pulsepay')" id="nav-btn-pulsepay" class="sidebar-link w-full">
+                    <i data-lucide="credit-card" class="w-4 h-4 shrink-0 text-emerald-600"></i>
+                    <span>PulsePay</span>
+                    <span class="ml-auto text-[9px] bg-emerald-100 text-emerald-800 font-mono px-1.5 py-0.2 rounded font-bold border border-emerald-300">NEW</span>
+                </button>
+
                 <button onclick="switchPage('portfolio')" id="nav-btn-portfolio" class="sidebar-link w-full">
                     <i data-lucide="pie-chart" class="w-4 h-4 shrink-0"></i>
                     <span>Portfolio</span>
@@ -579,6 +585,11 @@
                 <div class="space-y-2 font-mono text-xs">
                     <div class="text-[10px] font-black uppercase tracking-wider text-slate-400 px-1">Protocol &amp; Finance</div>
                     <div class="grid grid-cols-2 gap-2">
+                        <button onclick="switchPageAndCloseDrawer('pulsepay')" id="mobile-more-btn-pulsepay" class="p-3 rounded-xl bg-purple-50 hover:bg-purple-100 border-2 border-slate-950 flex items-center gap-2 font-bold text-slate-800 text-left transition-colors col-span-2">
+                            <i data-lucide="credit-card" class="w-4 h-4 text-emerald-600 shrink-0"></i>
+                            <span class="font-pixel text-slate-950">PulsePay (USDC Invoicing)</span>
+                            <span class="ml-auto text-[9px] bg-emerald-600 text-white font-mono px-1.5 py-0.2 rounded font-bold">NEW</span>
+                        </button>
                         <button onclick="switchPageAndCloseDrawer('bridge')" id="mobile-more-btn-bridge" class="p-3 rounded-xl bg-slate-50 hover:bg-purple-50 border-2 border-slate-950 flex items-center gap-2 font-bold text-slate-800 text-left transition-colors">
                             <i data-lucide="network" class="w-4 h-4 text-purple-700 shrink-0"></i>
                             <span>Bridge</span>
@@ -1480,6 +1491,274 @@
                     </div>
                 </div>
 
+            </div>
+        </section>
+
+        <!-- PULSEPAY GLOBAL USDC MERCHANT & INVOICING ENGINE -->
+        <section id="view-pulsepay" class="page-view hidden space-y-8 animate-in fade-in duration-200">
+            <!-- Hero Banner -->
+            <div class="pixel-card-purple p-6 sm:p-10 relative overflow-hidden bg-gradient-to-br from-purple-950 via-slate-900 to-slate-950 text-white shadow-[6px_6px_0px_#0F172A]">
+                <div class="absolute -top-24 -right-24 w-80 h-80 bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+                    <div class="space-y-2 max-w-2xl">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 font-silkscreen text-[11px] font-bold">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            Circle Arc L1 Native Settlement • Contract: 0x236c...7947
+                        </div>
+                        <h2 class="font-pixel text-3xl sm:text-5xl font-black text-white tracking-wide">PulsePay Protocol</h2>
+                        <p class="text-slate-300 text-xs sm:text-sm font-sans leading-relaxed">
+                            Generate instant sharable USDC payment links, downloadable QR invoices, and execute 1-click sub-second merchant settlements with native USDC gas on Circle Arc L1.
+                        </p>
+                    </div>
+
+                    <!-- Verified Metrics Strip -->
+                    <div class="grid grid-cols-2 gap-3 shrink-0 font-mono text-center w-full lg:w-auto">
+                        <div class="bg-white/10 backdrop-blur-md border border-white/20 p-3.5 rounded-2xl">
+                            <div class="text-[10px] text-slate-400 font-bold uppercase">Avg Finality</div>
+                            <div class="font-pixel text-xl sm:text-2xl font-bold text-emerald-400 mt-0.5">~0.4 Sec</div>
+                        </div>
+                        <div class="bg-white/10 backdrop-blur-md border border-white/20 p-3.5 rounded-2xl">
+                            <div class="text-[10px] text-slate-400 font-bold uppercase">Gas Asset</div>
+                            <div class="font-pixel text-xl sm:text-2xl font-bold text-purple-300 mt-0.5">Native USDC</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Interactive Studio: 2 Columns -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                <!-- LEFT COLUMN: Create Payment Link / Invoice Studio (7 Cols) -->
+                <div class="lg:col-span-7 pixel-card p-6 sm:p-8 space-y-6 bg-white">
+                    <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-purple-100 border-2 border-slate-950 flex items-center justify-center text-purple-700 shadow-[2px_2px_0px_#0F172A]">
+                                <i data-lucide="zap" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-pixel text-xl font-bold text-slate-950">Create Payment Link</h3>
+                                <p class="text-xs text-slate-500 font-mono">Sharable URL &amp; Dynamic QR Code</p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-mono font-bold bg-purple-50 text-purple-700 px-2.5 py-1 rounded-lg border border-purple-200">Instant Generator</span>
+                    </div>
+
+                    <!-- Input Form -->
+                    <div class="space-y-4 font-mono text-xs">
+                        <!-- Token & Amount Row -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div class="sm:col-span-2 space-y-1">
+                                <label class="text-[11px] font-bold text-slate-700 uppercase font-silkscreen">Requested Amount</label>
+                                <div class="flex items-center bg-slate-50 border-2 border-slate-950 rounded-xl px-3.5 py-2.5 focus-within:border-purple-700 transition-colors">
+                                    <input type="number" id="pulsePayInputAmount" step="0.01" min="0.01" placeholder="10.00" value="10.00" oninput="onPulsePayInputChange()" class="w-full bg-transparent text-xl font-black font-mono text-slate-950 outline-none">
+                                    <span class="text-xs font-bold font-mono text-purple-700 bg-purple-100 px-2.5 py-1 rounded-lg border border-purple-300 shrink-0">USDC</span>
+                                </div>
+                            </div>
+                            <div class="sm:col-span-1 space-y-1">
+                                <label class="text-[11px] font-bold text-slate-700 uppercase font-silkscreen">Currency</label>
+                                <select id="pulsePayTokenSelect" onchange="onPulsePayInputChange()" class="w-full h-[46px] bg-slate-50 border-2 border-slate-950 rounded-xl px-3 font-bold text-xs text-slate-950 outline-none focus:border-purple-700">
+                                    <option value="USDC" selected>USDC (Native)</option>
+                                    <option value="EURC">EURC (Euro)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Recipient Address -->
+                        <div class="space-y-1">
+                            <div class="flex justify-between items-center text-[11px]">
+                                <label class="font-bold text-slate-700 uppercase font-silkscreen">Recipient / Payee Address</label>
+                                <button onclick="useMyWalletForPulsePay()" class="text-purple-700 hover:underline font-bold text-[10px] flex items-center gap-1">
+                                    <i data-lucide="wallet" class="w-3 h-3"></i> Use My Wallet
+                                </button>
+                            </div>
+                            <input type="text" id="pulsePayRecipientInput" placeholder="0x..." oninput="onPulsePayInputChange()" class="w-full p-3 bg-slate-50 border-2 border-slate-950 rounded-xl font-mono text-xs outline-none focus:border-purple-700 font-bold">
+                        </div>
+
+                        <!-- Purpose / Memo -->
+                        <div class="space-y-1">
+                            <label class="text-[11px] font-bold text-slate-700 uppercase font-silkscreen">Invoice Purpose / Description</label>
+                            <input type="text" id="pulsePayMemoInput" placeholder="e.g. Web3 Design Services, Coffee, Tip" value="Arc Ecosystem Services" oninput="onPulsePayInputChange()" class="w-full p-3 bg-slate-50 border-2 border-slate-950 rounded-xl font-mono text-xs outline-none focus:border-purple-700 font-bold">
+                        </div>
+
+                        <!-- Invoice Reference ID (Auto generated) -->
+                        <div class="grid grid-cols-2 gap-3 pt-1">
+                            <div>
+                                <label class="text-[10px] text-slate-500 uppercase font-bold">Invoice Reference</label>
+                                <div id="pulsePayRefIdText" class="font-bold text-slate-900 bg-slate-100 p-2.5 rounded-xl border border-slate-300 truncate">ARC-PAY-7294</div>
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-slate-500 uppercase font-bold">Settlement Layer</label>
+                                <div class="font-bold text-purple-700 bg-purple-50 p-2.5 rounded-xl border border-purple-200 truncate">Arc L1 (Chain 5042002)</div>
+                            </div>
+                        </div>
+
+                        <!-- Generate Button -->
+                        <button onclick="generatePulsePayLink()" class="btn-pixel w-full py-4 rounded-xl bg-gradient-to-r from-purple-700 via-indigo-600 to-teal-600 hover:from-purple-800 hover:to-teal-700 text-white font-pixel font-bold text-xs flex items-center justify-center gap-2 shadow-[3px_3px_0px_#0F172A] mt-2">
+                            <i data-lucide="qr-code" class="w-4 h-4"></i>
+                            <span>Generate Instant Payment Link &amp; QR</span>
+                        </button>
+                    </div>
+
+                    <!-- Generated Result Box (Always live / reactive) -->
+                    <div id="pulsePayGeneratedOutputBox" class="p-5 rounded-2xl bg-gradient-to-br from-slate-50 via-purple-50/40 to-slate-50 border-2 border-slate-950 space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                            <div class="font-silkscreen text-xs font-bold text-slate-950 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Live Sharable Payment Link
+                            </div>
+                            <span class="text-[10px] font-mono text-purple-700 font-bold">Ready to Share</span>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row items-center gap-4">
+                            <!-- Dynamic QR Code -->
+                            <div class="p-2.5 bg-white border-2 border-slate-950 rounded-xl shadow-sm shrink-0">
+                                <img id="pulsePayQrImg" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https%3A%2F%2Fpulsegrid-hub.vercel.app%2Farchpulse.html%3Fpay%3D0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947%26amt%3D10%26token%3DUSDC" alt="Payment QR Code" class="w-32 h-32 rounded-lg object-contain">
+                            </div>
+
+                            <div class="flex-1 w-full space-y-3 font-mono text-xs">
+                                <div>
+                                    <div class="text-[10px] text-slate-500 font-bold mb-1">Direct Checkout URL:</div>
+                                    <div class="flex items-center gap-1.5">
+                                        <input type="text" id="pulsePayGeneratedUrlInput" readonly class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-[11px] font-bold text-slate-800 outline-none truncate select-all">
+                                        <button onclick="copyPulsePayGeneratedLink()" class="px-3 py-2.5 rounded-lg bg-purple-700 hover:bg-purple-800 text-white font-bold shrink-0 text-xs flex items-center gap-1">
+                                            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-2">
+                                    <button onclick="sharePulsePayOnTwitter()" class="btn-pixel-sm px-3 py-2 rounded-lg bg-slate-950 text-white text-[11px] font-bold flex items-center gap-1.5 flex-1 justify-center">
+                                        <span>Share on X</span>
+                                    </button>
+                                    <button onclick="sharePulsePayOnTelegram()" class="btn-pixel-sm px-3 py-2 rounded-lg bg-[#229ED9] text-white text-[11px] font-bold flex items-center gap-1.5 flex-1 justify-center">
+                                        <span>Telegram</span>
+                                    </button>
+                                    <a id="pulsePayTestOpenLink" href="#" target="_blank" class="btn-pixel-sm px-3 py-2 rounded-lg bg-purple-100 hover:bg-purple-200 text-purple-900 border border-purple-300 text-[11px] font-bold flex items-center gap-1">
+                                        <i data-lucide="external-link" class="w-3 h-3"></i> Test
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN: Instant Checkout Terminal & Live Pay (5 Cols) -->
+                <div class="lg:col-span-5 space-y-6">
+                    
+                    <!-- Checkout Card -->
+                    <div class="pixel-card-purple p-6 sm:p-7 space-y-5 bg-white">
+                        <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-9 h-9 rounded-xl bg-emerald-100 border-2 border-slate-950 flex items-center justify-center text-emerald-700">
+                                    <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-pixel text-lg font-bold text-slate-950">Payment Checkout</h3>
+                                    <div class="text-[10px] font-mono text-emerald-700 font-bold">Arc L1 Instant Settlement</div>
+                                </div>
+                            </div>
+                            <span id="pulsePayCheckoutStatusPill" class="text-[10px] font-mono font-bold bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-full">Awaiting Payment</span>
+                        </div>
+
+                        <!-- Active Invoice Details -->
+                        <div class="p-4 rounded-2xl bg-slate-50 border-2 border-slate-950 space-y-3 font-mono text-xs">
+                            <div class="flex justify-between items-center text-[11px]">
+                                <span class="text-slate-500 font-bold">Paying To:</span>
+                                <span id="pulsePayCheckoutRecipientDisplay" class="font-bold text-purple-700 truncate max-w-[180px]">0x... (Recipient)</span>
+                            </div>
+
+                            <div class="p-3 bg-white rounded-xl border border-slate-300 flex items-center justify-between">
+                                <div>
+                                    <div class="text-[10px] text-slate-400 font-bold uppercase">Total Due</div>
+                                    <div id="pulsePayCheckoutAmountDisplay" class="text-2xl font-black font-pixel text-slate-950">10.00 USDC</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-[10px] text-slate-400 font-bold uppercase">Network</div>
+                                    <div class="text-xs font-bold text-purple-700 font-mono">Arc L1 (5042002)</div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-1.5 pt-1 text-[11px] text-slate-600">
+                                <div class="flex justify-between">
+                                    <span>Purpose:</span>
+                                    <strong id="pulsePayCheckoutMemoDisplay" class="text-slate-900 truncate max-w-[200px]">Arc Ecosystem Services</strong>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Invoice Ref:</span>
+                                    <strong id="pulsePayCheckoutRefDisplay" class="text-slate-900">ARC-PAY-7294</strong>
+                                </div>
+                                <div class="flex justify-between text-emerald-700 font-bold">
+                                    <span>Estimated Speed:</span>
+                                    <span>&lt; 0.5 Seconds</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pay Button -->
+                        <div class="space-y-2">
+                            <button id="pulsePayExecuteBtn" onclick="executePulsePayPayment()" class="btn-pixel w-full py-4 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 hover:from-emerald-500 hover:to-teal-500 text-white font-pixel font-bold text-xs flex items-center justify-center gap-2 shadow-[3px_3px_0px_#0F172A]">
+                                <i data-lucide="send" class="w-4 h-4"></i>
+                                <span id="pulsePayExecuteBtnText">Pay 10.00 USDC with Arc L1</span>
+                            </button>
+                            <div class="text-[10px] font-mono text-center text-slate-500">
+                                Native USDC gas settled directly on Arc Testnet Smart Contract.
+                            </div>
+                        </div>
+
+                        <!-- Success Receipt Modal Preview (Shows after payment) -->
+                        <div id="pulsePayReceiptCard" class="hidden p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-500 space-y-3 font-mono text-xs animate-in zoom-in-95 duration-200">
+                            <div class="flex items-center gap-2 text-emerald-800 font-bold">
+                                <i data-lucide="check-check" class="w-5 h-5 text-emerald-600"></i>
+                                <span>Payment Confirmed on Arc L1!</span>
+                            </div>
+                            <div class="p-2.5 bg-white rounded-xl border border-emerald-200 text-[11px] space-y-1">
+                                <div class="flex justify-between">
+                                    <span class="text-slate-500">TX Hash:</span>
+                                    <a id="pulsePayReceiptTxLink" href="#" target="_blank" class="text-purple-700 font-bold hover:underline truncate max-w-[170px]">0x...</a>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-500">Time:</span>
+                                    <span id="pulsePayReceiptTime" class="font-bold text-slate-800">Just now</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Info Box: Why Arc for Payments -->
+                    <div class="pixel-card p-5 space-y-3 bg-gradient-to-br from-purple-50 to-white text-xs font-mono">
+                        <div class="font-bold text-slate-900 font-silkscreen flex items-center gap-2">
+                            <i data-lucide="shield-check" class="w-4 h-4 text-purple-700"></i>
+                            Why PulsePay on Circle Arc L1?
+                        </div>
+                        <ul class="space-y-1.5 text-slate-600 text-[11px]">
+                            <li>✓ <strong>Native USDC Gas:</strong> Zero volatile gas tokens.</li>
+                            <li>✓ <strong>Sub-Second Finality:</strong> ~0.4s merchant settlement.</li>
+                            <li>✓ <strong>Zero Middleman:</strong> Direct peer-to-peer value transfer.</li>
+                            <li>✓ <strong>Verifiable Ledger:</strong> Every invoice tracked on ArcScan.</li>
+                        </ul>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Merchant Invoicing History & Receipts Table -->
+            <div class="pixel-card p-6 sm:p-8 space-y-4 bg-white">
+                <div class="flex items-center justify-between border-b-2 border-slate-950 pb-3">
+                    <div class="flex items-center gap-2.5">
+                        <i data-lucide="receipt" class="w-5 h-5 text-purple-700"></i>
+                        <h3 class="font-pixel font-bold text-slate-950 text-base">Payment &amp; Invoice History</h3>
+                    </div>
+                    <span id="pulsePayHistoryCount" class="text-xs font-mono font-bold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200">0 Records</span>
+                </div>
+
+                <div id="pulsePayHistoryList" class="space-y-2.5 font-mono text-xs">
+                    <div class="text-center py-8 text-slate-400 font-mono">
+                        No payment links or receipts recorded yet. Create a link above to get started!
+                    </div>
+                </div>
             </div>
         </section>
 

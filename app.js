@@ -554,7 +554,9 @@ function switchPage(pageId) {
             drawer.classList.add('hidden');
         }
 
-        if (pageId === 'bridge') {
+        if (pageId === 'pulsepay') {
+            if (typeof initPulsePayView === 'function') initPulsePayView();
+        } else if (pageId === 'bridge') {
             if (typeof renderBridgeView === 'function') renderBridgeView();
         } else if (pageId === 'wallet') {
             renderWalletView();
@@ -4390,7 +4392,7 @@ function startNewProAiChat() {
 
 function saveAiTurnToHistory(userMsg, attachedMedia, aiReplyText) {
     if (!userMsg && !attachedMedia) return;
-    
+
     if (!currentAiSessionId) {
         currentAiSessionId = 'sess_' + Date.now();
     }
@@ -4488,10 +4490,9 @@ function renderAiHistoryList() {
         });
 
         html += `
-            <div onclick="loadAiChatSession('${sess.id}')" class="p-3.5 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between gap-3 ${
-                isActive 
-                    ? 'bg-purple-950/80 border-purple-500 shadow-md' 
-                    : 'bg-slate-800/80 hover:bg-slate-800 border-slate-700 hover:border-slate-600'
+            <div onclick="loadAiChatSession('${sess.id}')" class="p-3.5 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between gap-3 ${isActive
+                ? 'bg-purple-950/80 border-purple-500 shadow-md'
+                : 'bg-slate-800/80 hover:bg-slate-800 border-slate-700 hover:border-slate-600'
             }">
                 <div class="flex items-center gap-3 overflow-hidden">
                     <div class="p-2 rounded-lg ${isActive ? 'bg-purple-600 text-white' : 'bg-slate-700 text-slate-300'} shrink-0">
@@ -7067,7 +7068,7 @@ function saveUserCreatedToken(tokenMeta) {
     localStorage.setItem(key, JSON.stringify(filtered));
     try {
         populatePoolTokenSelect();
-    } catch (e) {}
+    } catch (e) { }
 }
 
 function copyDeployedTokenAddress() {
@@ -7564,7 +7565,7 @@ async function updateBridgeStatusIndicator() {
     if (!hexChain && provider.request) {
         try {
             hexChain = await provider.request({ method: 'eth_chainId' });
-        } catch (e) {}
+        } catch (e) { }
     }
     const currentChainId = parseInt(hexChain || '0x0', 16);
     const sourceChain = SUPPORTED_BRIDGE_NETWORKS[currentBridgeSourceChain];
@@ -7816,15 +7817,15 @@ async function executeBridgeTransfer() {
     if (step2Status) step2Status.textContent = 'Pending source block finality';
     if (step3Status) step3Status.textContent = 'Pending attestation';
 
-    let txHash = '0x' + Array.from({length: 64}, () => Math.floor(Math.random()*16).toString(16)).join('');
+    let txHash = '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
 
     try {
         // STEP 1: SOURCE CHAIN TRANSACTION
         showToast('MetaMask Request', `Confirm ${amt} ${currentBridgeToken} Bridge deposit on ${sourceNet.shortName}...`, 'info');
-        
+
         const web3Provider = new ethers.providers.Web3Provider(provider);
         const signer = web3Provider.getSigner();
-        
+
         let tx;
         if (sourceNet.chainIdDec === 5042002 && currentBridgeToken === 'USDC') {
             // Native USDC on Arc Testnet (18 decimals for EVM msg.value)
@@ -7862,10 +7863,10 @@ async function executeBridgeTransfer() {
                 value: ethers.utils.parseEther(Math.min(amt, 0.001).toString())
             });
         }
-        
+
         txHash = tx.hash;
         if (step1Status) step1Status.textContent = `Tx: ${tx.hash.substring(0, 10)}... Confirming on ${sourceNet.shortName}...`;
-        
+
         // Wait for real on-chain confirmation
         await tx.wait();
         if (step1Status) step1Status.textContent = `Tx: ${tx.hash.substring(0, 10)}... Source block confirmed!`;
@@ -8011,5 +8012,477 @@ if (typeof window !== 'undefined') {
     window.handleAiMediaSelect = handleAiMediaSelect;
     window.clearAiAttachment = clearAiAttachment;
 }
+
+/* =========================================================================
+   ====================== PULSEPAY PROTOCOL (ARC L1) ======================
+   Instant USDC Payment Links, Dynamic Invoicing & Sub-Second Settlement Engine
+   ========================================================================= */
+
+const PULSEPAY_CONTRACT_ADDRESS = "0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947";
+const PULSEPAY_ABI = [
+    "function payInvoice(bytes32 invoiceId, address payable recipient, string calldata memo) external payable",
+    "function directPay(address payable recipient, string calldata memo) external payable",
+    "function getStats() external view returns (uint256 paymentsCount, uint256 volumeUSDC)",
+    "function invoices(bytes32) external view returns (bytes32 invoiceId, address payable recipient, uint256 amount, string memo, bool isPaid, address payer, uint256 paidTimestamp)",
+    "event InvoicePaid(bytes32 indexed invoiceId, address indexed payer, address indexed recipient, uint256 amount, string memo, uint256 timestamp)",
+    "event DirectPayment(address indexed payer, address indexed recipient, uint256 amount, string memo, uint256 timestamp)"
+];
+
+let pulsePayActiveInvoice = null;
+
+function getPulsePayHistory() {
+    try {
+        return JSON.parse(localStorage.getItem('pulsegrid_pulsepay_history')) || [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function savePulsePayRecord(record) {
+    const list = getPulsePayHistory();
+    list.unshift(record);
+    localStorage.setItem('pulsegrid_pulsepay_history', JSON.stringify(list.slice(0, 50)));
+}
+
+function generateRandomInvoiceRef() {
+    const chars = '0123456789ABCDEF';
+    let code = '';
+    for (let i = 0; i < 4; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return `ARC-PAY-${code}`;
+}
+
+function initPulsePayView() {
+    try {
+        // Pre-fill recipient with current wallet if empty
+        const recInput = document.getElementById('pulsePayRecipientInput');
+        if (recInput && !recInput.value && currentAccount) {
+            recInput.value = currentAccount;
+        }
+
+        const refText = document.getElementById('pulsePayRefIdText');
+        if (refText && (!refText.innerText || refText.innerText === 'ARC-PAY-7294')) {
+            refText.innerText = generateRandomInvoiceRef();
+        }
+
+        onPulsePayInputChange();
+        renderPulsePayHistory();
+        safeInitIcons();
+    } catch (e) {
+        console.warn("initPulsePayView error:", e);
+    }
+}
+
+function useMyWalletForPulsePay() {
+    if (!currentAccount) {
+        openWalletConnectModal();
+        return;
+    }
+    const recInput = document.getElementById('pulsePayRecipientInput');
+    if (recInput) {
+        recInput.value = currentAccount;
+        onPulsePayInputChange();
+        showToast('Wallet Set', 'Your address set as recipient.', 'success');
+    }
+}
+
+function onPulsePayInputChange() {
+    try {
+        const amount = document.getElementById('pulsePayInputAmount')?.value || '10.00';
+        const token = document.getElementById('pulsePayTokenSelect')?.value || 'USDC';
+        const recipient = document.getElementById('pulsePayRecipientInput')?.value || (currentAccount || '0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947');
+        const memo = document.getElementById('pulsePayMemoInput')?.value || 'Arc Ecosystem Services';
+        const refId = document.getElementById('pulsePayRefIdText')?.innerText || 'ARC-PAY-7294';
+
+        const origin = window.location.origin && window.location.origin !== 'null' ? window.location.origin : 'https://pulsegrid-hub.vercel.app';
+        const pathname = window.location.pathname && window.location.pathname !== '/' ? window.location.pathname : '/archpulse.html';
+        const paymentLink = `${origin}${pathname}?pay=${encodeURIComponent(recipient)}&amt=${encodeURIComponent(amount)}&token=${encodeURIComponent(token)}&memo=${encodeURIComponent(memo)}&ref=${encodeURIComponent(refId)}`;
+
+        const urlInput = document.getElementById('pulsePayGeneratedUrlInput');
+        if (urlInput) urlInput.value = paymentLink;
+
+        const testLink = document.getElementById('pulsePayTestOpenLink');
+        if (testLink) testLink.href = paymentLink;
+
+        const qrImg = document.getElementById('pulsePayQrImg');
+        if (qrImg) {
+            qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(paymentLink)}`;
+        }
+
+        // Update Checkout Preview on the Right column if not locked to URL params
+        if (!pulsePayActiveInvoice || !pulsePayActiveInvoice.isFromUrl) {
+            safeSetText('pulsePayCheckoutRecipientDisplay', recipient.length > 12 ? `${recipient.substring(0, 6)}...${recipient.substring(recipient.length - 4)}` : recipient);
+            safeSetText('pulsePayCheckoutAmountDisplay', `${parseFloat(amount || 0).toFixed(2)} ${token}`);
+            safeSetText('pulsePayCheckoutMemoDisplay', memo);
+            safeSetText('pulsePayCheckoutRefDisplay', refId);
+            safeSetText('pulsePayExecuteBtnText', `Pay ${parseFloat(amount || 0).toFixed(2)} ${token} with Arc L1`);
+        }
+    } catch (e) {
+        console.warn("onPulsePayInputChange error:", e);
+    }
+}
+
+function generatePulsePayLink() {
+    const amount = parseFloat(document.getElementById('pulsePayInputAmount')?.value || '0');
+    const recipient = document.getElementById('pulsePayRecipientInput')?.value?.trim();
+    const token = document.getElementById('pulsePayTokenSelect')?.value || 'USDC';
+    const memo = document.getElementById('pulsePayMemoInput')?.value?.trim() || 'Arc Ecosystem Services';
+    const refId = document.getElementById('pulsePayRefIdText')?.innerText || generateRandomInvoiceRef();
+
+    if (!recipient || !recipient.startsWith('0x') || recipient.length !== 42) {
+        showToast('Invalid Recipient', 'Please enter a valid 0x EVM recipient address.', 'warning');
+        document.getElementById('pulsePayRecipientInput')?.focus();
+        return;
+    }
+
+    if (isNaN(amount) || amount <= 0) {
+        showToast('Invalid Amount', 'Please enter a payment amount greater than 0.', 'warning');
+        document.getElementById('pulsePayInputAmount')?.focus();
+        return;
+    }
+
+    onPulsePayInputChange();
+
+    // Store in created invoices list
+    const createdInvoice = {
+        refId,
+        recipient,
+        amount,
+        token,
+        memo,
+        createdTimestamp: Date.now()
+    };
+
+    savePulsePayRecord({
+        ...createdInvoice,
+        type: 'created',
+        txHash: null,
+        status: 'Generated'
+    });
+
+    renderPulsePayHistory();
+    copyPulsePayGeneratedLink();
+    showToast('Payment Link Ready! ⚡', 'Link & Dynamic QR code generated and copied to clipboard!', 'success');
+}
+
+function copyPulsePayGeneratedLink() {
+    const input = document.getElementById('pulsePayGeneratedUrlInput');
+    if (input && input.value) {
+        navigator.clipboard.writeText(input.value).then(() => {
+            showToast('Copied to Clipboard! 📋', 'Sharable PulsePay checkout URL copied.', 'success');
+        }).catch(() => {
+            input.select();
+            document.execCommand('copy');
+            showToast('Copied to Clipboard! 📋', 'Sharable PulsePay checkout URL copied.', 'success');
+        });
+    }
+}
+
+function sharePulsePayOnTwitter() {
+    const amount = document.getElementById('pulsePayInputAmount')?.value || '10';
+    const token = document.getElementById('pulsePayTokenSelect')?.value || 'USDC';
+    const memo = document.getElementById('pulsePayMemoInput')?.value || 'Arc Ecosystem Services';
+    const link = document.getElementById('pulsePayGeneratedUrlInput')?.value || window.location.href;
+
+    const tweetText = `⚡ Pay invoice of ${amount} ${token} on Circle Arc L1 (${memo}) using PulsePay!\n\nSub-second settlement with native USDC gas: ${link}\n\n#CircleArc #ArcL1 #PulseGrid #Web3Payments`;
+    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+    window.open(tweetUrl, '_blank', 'width=600,height=450');
+}
+
+function sharePulsePayOnTelegram() {
+    const amount = document.getElementById('pulsePayInputAmount')?.value || '10';
+    const token = document.getElementById('pulsePayTokenSelect')?.value || 'USDC';
+    const link = document.getElementById('pulsePayGeneratedUrlInput')?.value || window.location.href;
+
+    const tgText = `⚡ Pay invoice of ${amount} ${token} on Arc L1 using PulsePay: ${link}`;
+    const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(tgText)}`;
+    window.open(tgUrl, '_blank', 'width=600,height=450');
+}
+
+async function executePulsePayPayment() {
+    if (!currentAccount) {
+        showToast('Connect Wallet', 'Please connect your Web3 wallet to pay this invoice.', 'info');
+        openWalletConnectModal();
+        return;
+    }
+
+    const provider = activeWeb3Provider || window.ethereum;
+    if (!provider) {
+        showToast('No Wallet Detected', 'Please install or connect a Web3 wallet (MetaMask, OKX, etc.)', 'error');
+        openWalletConnectModal();
+        return;
+    }
+
+    // Determine target payment details
+    let recipient = '';
+    let amount = 0;
+    let token = 'USDC';
+    let memo = '';
+    let refId = '';
+
+    if (pulsePayActiveInvoice && pulsePayActiveInvoice.isFromUrl) {
+        recipient = pulsePayActiveInvoice.recipient;
+        amount = pulsePayActiveInvoice.amount;
+        token = pulsePayActiveInvoice.token;
+        memo = pulsePayActiveInvoice.memo;
+        refId = pulsePayActiveInvoice.refId;
+    } else {
+        recipient = document.getElementById('pulsePayRecipientInput')?.value?.trim();
+        amount = parseFloat(document.getElementById('pulsePayInputAmount')?.value || '0');
+        token = document.getElementById('pulsePayTokenSelect')?.value || 'USDC';
+        memo = document.getElementById('pulsePayMemoInput')?.value?.trim() || 'Arc Ecosystem Payment';
+        refId = document.getElementById('pulsePayRefIdText')?.innerText || generateRandomInvoiceRef();
+    }
+
+    if (!recipient || !recipient.startsWith('0x') || recipient.length !== 42) {
+        showToast('Invalid Recipient', 'Please enter a valid 0x recipient address.', 'warning');
+        return;
+    }
+
+    if (isNaN(amount) || amount <= 0) {
+        showToast('Invalid Amount', 'Payment amount must be greater than 0.', 'warning');
+        return;
+    }
+
+    // Ensure we are on Arc Testnet
+    await switchOrAddArcNetwork();
+
+    const executeBtn = document.getElementById('pulsePayExecuteBtn');
+    const executeBtnText = document.getElementById('pulsePayExecuteBtnText');
+    const statusPill = document.getElementById('pulsePayCheckoutStatusPill');
+
+    try {
+        if (executeBtn) executeBtn.disabled = true;
+        if (executeBtnText) executeBtnText.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin inline mr-1.5"></i> Broadcasting Arc L1 Payment...`;
+        if (statusPill) {
+            statusPill.className = 'text-[10px] font-mono font-bold bg-purple-100 text-purple-900 border border-purple-300 px-2 py-0.5 rounded-full animate-pulse';
+            statusPill.innerText = 'Confirming in Wallet...';
+        }
+        safeInitIcons();
+
+        const ethersProvider = new ethers.providers.Web3Provider(provider);
+        const signer = ethersProvider.getSigner();
+
+        let txHash = null;
+
+        // Try executing via PulsePay smart contract first, or direct native send fallback
+        try {
+            const contract = new ethers.Contract(PULSEPAY_CONTRACT_ADDRESS, PULSEPAY_ABI, signer);
+            const amountWei = ethers.utils.parseEther(amount.toString());
+            
+            // Format invoice ID to bytes32
+            const cleanRef = (refId || 'ARC-PAY').replace(/[^a-zA-Z0-9-]/g, '').substring(0, 31);
+            const invoiceBytes32 = ethers.utils.formatBytes32String(cleanRef);
+
+            const tx = await contract.payInvoice(invoiceBytes32, recipient, memo, {
+                value: amountWei
+            });
+            txHash = tx.hash;
+            showToast('Payment Broadcasted! ⚡', 'Arc L1 sub-second settlement in progress...', 'info');
+            await tx.wait();
+        } catch (contractErr) {
+            console.warn("PulsePay smart contract call notice, falling back to direct native USDC transfer:", contractErr);
+            // Direct native transfer
+            const tx = await signer.sendTransaction({
+                to: recipient,
+                value: ethers.utils.parseEther(amount.toString())
+            });
+            txHash = tx.hash;
+            showToast('Payment Broadcasted! ⚡', 'Sub-second confirmation on Arc L1...', 'info');
+            await tx.wait();
+        }
+
+        // Success State
+        if (statusPill) {
+            statusPill.className = 'text-[10px] font-mono font-bold bg-emerald-100 text-emerald-900 border border-emerald-300 px-2 py-0.5 rounded-full';
+            statusPill.innerText = 'Paid & Settled (Arc L1)';
+        }
+
+        if (executeBtn) {
+            executeBtn.disabled = false;
+            executeBtn.className = 'btn-pixel w-full py-4 rounded-xl bg-emerald-600 text-white font-pixel font-bold text-xs flex items-center justify-center gap-2 shadow-[3px_3px_0px_#0F172A]';
+        }
+        if (executeBtnText) {
+            executeBtnText.innerHTML = `<i data-lucide="check-check" class="w-4 h-4 inline mr-1"></i> Paid ${amount.toFixed(2)} ${token} (Verified)`;
+        }
+
+        // Show Holographic Receipt Card
+        const receiptCard = document.getElementById('pulsePayReceiptCard');
+        const txLink = document.getElementById('pulsePayReceiptTxLink');
+        const timeDisplay = document.getElementById('pulsePayReceiptTime');
+
+        if (receiptCard) receiptCard.classList.remove('hidden');
+        if (txLink && txHash) {
+            txLink.href = `https://testnet.arcscan.app/tx/${txHash}`;
+            txLink.innerText = `${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 8)}`;
+        }
+        if (timeDisplay) timeDisplay.innerText = new Date().toLocaleTimeString();
+
+        // Save to History
+        savePulsePayRecord({
+            refId,
+            recipient,
+            payer: currentAccount,
+            amount,
+            token,
+            memo,
+            type: 'paid',
+            txHash,
+            status: 'Settled',
+            timestamp: Date.now()
+        });
+
+        renderPulsePayHistory();
+        fetchRealOnChainBalances(currentAccount);
+        safeInitIcons();
+
+        showToast('Payment Successful! 🎉', `Paid ${amount} ${token} to ${recipient.substring(0, 6)}... on Arc L1!`, 'success');
+
+    } catch (err) {
+        console.error("executePulsePayPayment error:", err);
+        if (executeBtn) executeBtn.disabled = false;
+        if (executeBtnText) executeBtnText.innerText = `Pay ${amount.toFixed(2)} ${token} with Arc L1`;
+        if (statusPill) {
+            statusPill.className = 'text-[10px] font-mono font-bold bg-rose-100 text-rose-900 border border-rose-300 px-2 py-0.5 rounded-full';
+            statusPill.innerText = 'Payment Failed';
+        }
+        showToast('Payment Cancelled / Failed', err.message || 'User rejected transaction or insufficient balance.', 'error');
+    }
+}
+
+function renderPulsePayHistory() {
+    const container = document.getElementById('pulsePayHistoryList');
+    const countEl = document.getElementById('pulsePayHistoryCount');
+    if (!container) return;
+
+    const list = getPulsePayHistory();
+    if (countEl) countEl.innerText = `${list.length} Records`;
+
+    if (list.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8 text-slate-400 font-mono">
+                No payment links or receipts recorded yet. Create a link above to get started!
+            </div>
+        `;
+        return;
+    }
+
+    let html = '';
+    list.forEach(item => {
+        const isPaid = item.type === 'paid' || item.status === 'Settled';
+        const formattedDate = new Date(item.timestamp || item.createdTimestamp || Date.now()).toLocaleString();
+        const shortRec = item.recipient ? `${item.recipient.substring(0, 6)}...${item.recipient.substring(item.recipient.length - 4)}` : '0x...';
+        const shortTx = item.txHash ? `${item.txHash.substring(0, 8)}...` : null;
+
+        html += `
+            <div class="p-3.5 rounded-xl bg-slate-50 border-2 border-slate-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 rounded-lg ${isPaid ? 'bg-emerald-100 text-emerald-700 border border-emerald-300' : 'bg-purple-100 text-purple-700 border border-purple-300'} shrink-0">
+                        <i data-lucide="${isPaid ? 'check-check' : 'qr-code'}" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-slate-950 flex items-center gap-2">
+                            <span>${item.amount} ${item.token || 'USDC'}</span>
+                            <span class="text-slate-400">&bull;</span>
+                            <span class="text-xs ${isPaid ? 'text-emerald-700 font-bold' : 'text-purple-700 font-bold'}">${item.refId || 'ARC-PAY'}</span>
+                            <span class="text-[10px] ${isPaid ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} px-2 py-0.5 rounded font-mono font-bold">${item.status || (isPaid ? 'Settled' : 'Created')}</span>
+                        </div>
+                        <div class="text-[11px] text-slate-500 mt-0.5">
+                            <span>To: <strong>${shortRec}</strong></span> &bull; <span>${item.memo || 'Arc Payment'}</span> &bull; <span>${formattedDate}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
+                    ${shortTx ? `
+                        <a href="https://testnet.arcscan.app/tx/${item.txHash}" target="_blank" class="text-[11px] font-bold text-purple-700 hover:text-purple-900 flex items-center gap-1 bg-white border border-slate-300 px-2.5 py-1.5 rounded-lg shadow-sm">
+                            <span>${shortTx}</span>
+                            <i data-lucide="external-link" class="w-3 h-3"></i>
+                        </a>
+                    ` : `
+                        <button onclick="copyGeneratedLinkFromHistory('${item.refId}', '${item.recipient}', ${item.amount}, '${item.token}', '${encodeURIComponent(item.memo || '')}')" class="btn-pixel-sm px-2.5 py-1.5 rounded-lg bg-purple-100 hover:bg-purple-200 text-purple-900 text-[11px] font-bold flex items-center gap-1">
+                            <i data-lucide="copy" class="w-3 h-3"></i> Copy Link
+                        </button>
+                    `}
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+    safeInitIcons();
+}
+
+function copyGeneratedLinkFromHistory(refId, recipient, amount, token, encodedMemo) {
+    const origin = window.location.origin && window.location.origin !== 'null' ? window.location.origin : 'https://pulsegrid-hub.vercel.app';
+    const pathname = window.location.pathname && window.location.pathname !== '/' ? window.location.pathname : '/archpulse.html';
+    const memo = decodeURIComponent(encodedMemo || '');
+    const link = `${origin}${pathname}?pay=${encodeURIComponent(recipient)}&amt=${encodeURIComponent(amount)}&token=${encodeURIComponent(token)}&memo=${encodeURIComponent(memo)}&ref=${encodeURIComponent(refId)}`;
+    
+    navigator.clipboard.writeText(link).then(() => {
+        showToast('Link Copied! 📋', 'Payment link copied to clipboard.', 'success');
+    });
+}
+
+function checkPulsePayUrlParams() {
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('pay') || urlParams.has('amt')) {
+            const payRecipient = urlParams.get('pay') || '';
+            const payAmt = parseFloat(urlParams.get('amt') || '10.00');
+            const payToken = urlParams.get('token') || 'USDC';
+            const payMemo = urlParams.get('memo') || 'Arc Ecosystem Services';
+            const payRef = urlParams.get('ref') || 'ARC-PAY-INV';
+
+            pulsePayActiveInvoice = {
+                recipient: payRecipient,
+                amount: payAmt,
+                token: payToken,
+                memo: payMemo,
+                refId: payRef,
+                isFromUrl: true
+            };
+
+            // Switch directly to pulsepay view
+            setTimeout(() => {
+                switchPage('pulsepay');
+
+                // Populate Checkout Terminal with active values
+                safeSetText('pulsePayCheckoutRecipientDisplay', payRecipient.length > 12 ? `${payRecipient.substring(0, 6)}...${payRecipient.substring(payRecipient.length - 4)}` : payRecipient);
+                safeSetText('pulsePayCheckoutAmountDisplay', `${payAmt.toFixed(2)} ${payToken}`);
+                safeSetText('pulsePayCheckoutMemoDisplay', payMemo);
+                safeSetText('pulsePayCheckoutRefDisplay', payRef);
+                safeSetText('pulsePayExecuteBtnText', `Pay ${payAmt.toFixed(2)} ${payToken} with Arc L1`);
+
+                // Pre-populate input generator too
+                const recInput = document.getElementById('pulsePayRecipientInput');
+                if (recInput) recInput.value = payRecipient;
+                const amtInput = document.getElementById('pulsePayInputAmount');
+                if (amtInput) amtInput.value = payAmt.toFixed(2);
+                const memoInput = document.getElementById('pulsePayMemoInput');
+                if (memoInput) memoInput.value = payMemo;
+                const tokenSelect = document.getElementById('pulsePayTokenSelect');
+                if (tokenSelect) tokenSelect.value = payToken;
+                const refText = document.getElementById('pulsePayRefIdText');
+                if (refText) refText.innerText = payRef;
+
+                onPulsePayInputChange();
+
+                showToast(`Invoice Loaded! ⚡`, `Requested: ${payAmt.toFixed(2)} ${payToken} for ${payMemo}`, 'success');
+            }, 300);
+        }
+    } catch (e) {
+        console.warn("checkPulsePayUrlParams error:", e);
+    }
+}
+
+// Auto check URL parameters on DOM loaded
+if (typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(checkPulsePayUrlParams, 200);
+    });
+}
+
 
 

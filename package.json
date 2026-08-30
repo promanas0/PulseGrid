@@ -31,7 +31,7 @@
     "swap-viem:ts": "tsx --env-file=.env swap-viem.ts",
     "swap-circle-wallets": "node --env-file=.env swap-circle-wallets.js",
     "swap-circle-wallets:ts": "tsx --env-file=.env swap-circle-wallets.ts",
-    "wagmi-config": "node --env-file=.env wagmi-config.js",
+    "wagmi-config": "tsx --env-file=.env wagmi-config.ts",
     "wagmi-config:ts": "tsx --env-file=.env wagmi-config.ts",
     "balance-checker": "node --env-file=.env balance-checker.js",
     "balance-checker:ts": "tsx --env-file=.env balance-checker.ts",

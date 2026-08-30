@@ -1,4 +1,5 @@
 node_modules
+.next
 .env
 my-swap/.env
 pubkey.pem

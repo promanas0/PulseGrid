@@ -606,26 +606,6 @@ function handleWalletClick() {
     }
 }
 
-async function onWalletConnected(account, providerName) {
-    if (!account) return;
-    localStorage.setItem('pulsegrid_connected_wallet', account);
-    localStorage.setItem('pulsegrid_provider_name', providerName || 'MetaMask');
-    closeWalletConnectModal();
-    await fetchRealOnChainBalances(account);
-    updateTokenBalancesUI();
-    updateWalletUI();
-    updateAuthStatusUI();
-    renderWalletView();
-    renderPortfolioView();
-    if (typeof loadQuestState === 'function') {
-        loadQuestState(account);
-    }
-    if (typeof renderUserCreatedTokens === 'function') {
-        renderUserCreatedTokens();
-    }
-    showToast('Wallet Connected! 🚀', `Connected via ${providerName}: ${account.substring(0, 6)}...${account.substring(account.length - 4)}`, 'success');
-}
-
 const WALLET_CONFIGS = [
     {
         id: 'metamask',
@@ -793,54 +773,6 @@ async function manualSwitchToArcNetwork() {
         } else {
             showToast('Network Notice', err.message || 'Network switch requested in wallet', 'info');
         }
-    }
-}
-
-let walletConnectProvider = null;
-
-async function initWalletConnectProvider() {
-    try {
-        if (walletConnectProvider) return walletConnectProvider;
-        const WCProvider = window['@walletconnect/ethereum-provider']?.EthereumProvider || window.EthereumProvider || window.WalletConnectEthereumProvider;
-        if (!WCProvider) {
-            console.warn("WalletConnect / Reown SDK not loaded in browser.");
-            return null;
-        }
-
-        walletConnectProvider = await WCProvider.init({
-            projectId: '20272da6a3b2b8d0e527d9255a40f1a6',
-            chains: [5042002],
-            showQrModal: true,
-            qrModalOptions: {
-                themeMode: 'light'
-            },
-            rpcMap: {
-                5042002: 'https://rpc.testnet.arc.network'
-            },
-            metadata: {
-                name: 'PulseGrid',
-                description: 'Arc L1 Web3 Ecosystem & DEX Engine',
-                url: window.location.origin || 'https://pulsegrid-hub.vercel.app',
-                icons: ['https://pulsegrid-hub.vercel.app/logo.png']
-            }
-        });
-
-        walletConnectProvider.on('accountsChanged', (accounts) => {
-            if (accounts && accounts.length > 0) {
-                onWalletConnected(accounts[0], 'WalletConnect');
-            } else {
-                disconnectWallet();
-            }
-        });
-
-        walletConnectProvider.on('disconnect', () => {
-            disconnectWallet();
-        });
-
-        return walletConnectProvider;
-    } catch (err) {
-        console.warn("WalletConnect init error:", err);
-        return null;
     }
 }
 

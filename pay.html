@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PulsePay • Instant USDC Checkout on Circle Arc L1</title>
+    <link rel="icon" type="image/png" href="logo.png">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Silkscreen:wght@400;700&family=Space+Mono:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Ethers.js v5 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0B0F17;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(123, 44, 191, 0.18) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.12) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(15, 23, 42, 0.8) 0px, transparent 100%);
+            min-height: 100vh;
+        }
+
+        .font-pixel { font-family: 'VT323', monospace; }
+        .font-silkscreen { font-family: 'Silkscreen', monospace; }
+        .font-mono { font-family: 'Space Mono', monospace; }
+
+        .neo-card {
+            background: #FFFFFF;
+            border: 3px solid #0F172A;
+            box-shadow: 6px 6px 0px #0F172A;
+            border-radius: 24px;
+        }
+
+        .btn-neo {
+            border: 2.5px solid #0F172A;
+            box-shadow: 4px 4px 0px #0F172A;
+            transition: all 0.15s ease;
+        }
+        .btn-neo:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px #0F172A;
+        }
+        .btn-neo:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px #0F172A;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center p-4 sm:p-6 text-slate-900 selection:bg-purple-500 selection:text-white">
+
+    <!-- Header Brand Pill -->
+    <div class="mb-6 flex items-center gap-2.5">
+        <a href="archpulse.html" class="flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all">
+            <div class="w-7 h-7 rounded-lg bg-purple-600 flex items-center justify-center font-pixel font-bold text-lg text-white">⚡</div>
+            <span class="font-pixel text-xl font-bold tracking-wider">PulsePay</span>
+            <span class="text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-400/40">ARC L1</span>
+        </a>
+    </div>
+
+    <!-- Main Payment Container -->
+    <main class="w-full max-w-md">
+        <div class="neo-card p-6 sm:p-8 space-y-6 relative overflow-hidden">
+            
+            <!-- Top Status Indicator -->
+            <div class="flex items-center justify-between border-b-2 border-slate-950 pb-4">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="font-silkscreen text-xs font-bold text-slate-900 uppercase">USDC Checkout</span>
+                </div>
+                <span id="networkPill" class="text-[10px] font-mono font-bold bg-purple-100 text-purple-900 border border-purple-300 px-2.5 py-1 rounded-lg">
+                    Arc Testnet L1
+                </span>
+            </div>
+
+            <!-- Amount Hero Display -->
+            <div class="text-center py-2 space-y-1">
+                <div class="text-xs font-bold text-slate-500 font-mono uppercase tracking-wider">Requested Amount</div>
+                <div class="flex items-baseline justify-center gap-2">
+                    <span id="displayAmount" class="font-pixel text-5xl sm:text-6xl font-black text-slate-950">10.00</span>
+                    <span id="displayToken" class="font-pixel text-2xl font-bold text-purple-700">USDC</span>
+                </div>
+                <div class="text-[11px] font-mono text-emerald-600 font-bold flex items-center justify-center gap-1">
+                    <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                    <span>Sub-Second Finality (~0.4s)</span>
+                </div>
+            </div>
+
+            <!-- Custom Attached Message / Note Card -->
+            <div id="messageCard" class="p-4 rounded-2xl bg-purple-50/70 border-2 border-purple-700/60 space-y-1">
+                <div class="flex items-center gap-1.5 text-[11px] font-bold text-purple-900 uppercase font-silkscreen">
+                    <i data-lucide="message-square" class="w-3.5 h-3.5 text-purple-700"></i>
+                    <span>Message from Merchant:</span>
+                </div>
+                <p id="displayMessage" class="text-xs font-medium text-slate-800 font-sans italic leading-relaxed">
+                    "Payment for Arc Ecosystem Services"
+                </p>
+            </div>
+
+            <!-- Payment Details Meta Table -->
+            <div class="p-4 rounded-2xl bg-slate-50 border-2 border-slate-950 space-y-2.5 font-mono text-xs">
+                <div class="flex justify-between items-center text-slate-600">
+                    <span>Payee (Merchant):</span>
+                    <span id="displayRecipient" class="font-bold text-purple-700 truncate max-w-[170px]" title="Recipient Address">0x...</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-600">
+                    <span>Invoice Ref:</span>
+                    <strong id="displayRefId" class="text-slate-900">ARC-PAY-XXXX</strong>
+                </div>
+                <div class="flex justify-between items-center text-slate-600">
+                    <span>Gas Token:</span>
+                    <strong class="text-emerald-700">Native USDC (No ETH needed)</strong>
+                </div>
+            </div>
+
+            <!-- Status Banner & Auto Prompt Message -->
+            <div id="statusBanner" class="p-3.5 rounded-xl bg-amber-50 border-2 border-amber-400 text-amber-900 text-xs font-mono font-bold flex items-center gap-2">
+                <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-amber-700 shrink-0"></i>
+                <span id="statusBannerText">Connecting wallet &amp; requesting payment popup...</span>
+            </div>
+
+            <!-- Main Interactive Pay Button -->
+            <div class="space-y-3">
+                <button id="payNowBtn" onclick="triggerPayment()" class="btn-neo w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-600 to-purple-600 hover:from-emerald-400 hover:to-purple-500 text-white font-pixel text-xl font-bold flex items-center justify-center gap-2">
+                    <i data-lucide="wallet" class="w-5 h-5"></i>
+                    <span id="payNowBtnText">Pay with MetaMask</span>
+                </button>
+
+                <button id="switchWalletBtn" onclick="switchConnectedWallet()" class="w-full py-2 text-center text-xs font-mono text-slate-500 hover:text-purple-700 hover:underline">
+                    Connect different wallet
+                </button>
+            </div>
+
+            <!-- Success Receipt (Hidden initially) -->
+            <div id="successReceiptCard" class="hidden p-5 rounded-2xl bg-emerald-50 border-3 border-emerald-600 space-y-3 font-mono text-xs">
+                <div class="flex items-center gap-2 text-emerald-900 font-bold text-sm font-pixel">
+                    <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-600"></i>
+                    <span>Payment Confirmed on Arc L1!</span>
+                </div>
+                <p class="text-[11px] text-slate-600">
+                    The transaction was settled on-chain in sub-second time.
+                </p>
+                <div class="pt-2 border-t border-emerald-200 flex justify-between items-center">
+                    <span class="text-slate-500">Transaction Receipt:</span>
+                    <a id="receiptTxLink" href="#" target="_blank" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-bold text-[11px] flex items-center gap-1 hover:bg-emerald-700">
+                        <span>View ArcScan</span>
+                        <i data-lucide="external-link" class="w-3 h-3"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Footer Protocol Verification -->
+            <div class="pt-2 border-t border-slate-200 text-center">
+                <div class="text-[10px] font-mono text-slate-400 flex items-center justify-center gap-1">
+                    <i data-lucide="shield-check" class="w-3.5 h-3.5 text-purple-600"></i>
+                    <span>Powered by PulsePay Protocol • Circle Arc Testnet (5042002)</span>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Protocol Constants
+        const ARC_CHAIN_ID_HEX = "0x4CEF52";
+        const ARC_CHAIN_ID_DEC = 5042002;
+        const ARC_RPC_URL = "https://rpc.testnet.arc.network";
+        const PULSEPAY_CONTRACT_ADDRESS = "0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947";
+        const PULSEPAY_ABI = [
+            "function payInvoice(bytes32 invoiceId, address payable recipient, string calldata memo) external payable",
+            "function directPay(address payable recipient, string calldata memo) external payable"
+        ];
+
+        let targetRecipient = "0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947";
+        let targetAmount = 10.00;
+        let targetToken = "USDC";
+        let targetMemo = "Arc Ecosystem Payment";
+        let targetRef = "ARC-PAY-INV";
+        let currentAccount = null;
+
+        function safeInitIcons() {
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        // 1. Parse URL Parameters
+        function parseParams() {
+            const params = new URLSearchParams(window.location.search);
+            
+            if (params.has('to') || params.has('pay')) {
+                targetRecipient = params.get('to') || params.get('pay');
+            }
+            if (params.has('amt') || params.has('amount')) {
+                targetAmount = parseFloat(params.get('amt') || params.get('amount') || "10.00");
+                if (isNaN(targetAmount) || targetAmount <= 0) targetAmount = 10.00;
+            }
+            if (params.has('token') || params.has('coin')) {
+                targetToken = params.get('token') || params.get('coin') || "USDC";
+            }
+            if (params.has('msg') || params.has('memo') || params.has('note')) {
+                targetMemo = params.get('msg') || params.get('memo') || params.get('note') || "Payment for Services";
+            }
+            if (params.has('ref') || params.has('id')) {
+                targetRef = params.get('ref') || params.get('id') || "ARC-PAY-INV";
+            }
+
+            // Update UI
+            document.getElementById('displayAmount').innerText = targetAmount.toFixed(2);
+            document.getElementById('displayToken').innerText = targetToken;
+            document.getElementById('displayMessage').innerText = `"${targetMemo}"`;
+            document.getElementById('displayRefId').innerText = targetRef;
+            
+            const shortRec = targetRecipient.length > 12 ? `${targetRecipient.substring(0, 6)}...${targetRecipient.substring(targetRecipient.length - 4)}` : targetRecipient;
+            document.getElementById('displayRecipient').innerText = shortRec;
+            document.getElementById('displayRecipient').title = targetRecipient;
+            document.getElementById('payNowBtnText').innerText = `Pay ${targetAmount.toFixed(2)} ${targetToken} (MetaMask)`;
+            
+            safeInitIcons();
+        }
+
+        // 2. Network Switcher to Arc Testnet
+        async function ensureArcNetwork(provider) {
+            try {
+                await provider.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: ARC_CHAIN_ID_HEX }]
+                });
+                return true;
+            } catch (switchError) {
+                if (switchError.code === 4902 || switchError.code === -32603) {
+                    try {
+                        await provider.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [{
+                                chainId: ARC_CHAIN_ID_HEX,
+                                chainName: 'Arc Testnet',
+                                nativeCurrency: { name: 'USD Coin', symbol: 'USDC', decimals: 18 },
+                                rpcUrls: [ARC_RPC_URL],
+                                blockExplorerUrls: ['https://testnet.arcscan.app']
+                            }]
+                        });
+                        return true;
+                    } catch (addErr) {
+                        console.error("Failed to add Arc network:", addErr);
+                        return false;
+                    }
+                }
+                return false;
+            }
+        }
+
+        // 3. Connect Wallet & Auto-Trigger Payment
+        async function triggerPayment(isAuto = false) {
+            const provider = window.ethereum;
+            const banner = document.getElementById('statusBanner');
+            const bannerText = document.getElementById('statusBannerText');
+            const payBtn = document.getElementById('payNowBtn');
+            const payBtnText = document.getElementById('payNowBtnText');
+
+            if (!provider) {
+                banner.className = 'p-3.5 rounded-xl bg-rose-50 border-2 border-rose-400 text-rose-900 text-xs font-mono font-bold flex items-center gap-2';
+                bannerText.innerText = "No Web3 wallet found. Please open this link in MetaMask or OKX browser.";
+                return;
+            }
+
+            try {
+                banner.className = 'p-3.5 rounded-xl bg-purple-50 border-2 border-purple-400 text-purple-900 text-xs font-mono font-bold flex items-center gap-2';
+                bannerText.innerText = "Connecting wallet to Arc L1...";
+                payBtn.disabled = true;
+
+                // Request accounts
+                const accounts = await provider.request({ method: 'eth_requestAccounts' });
+                if (!accounts || accounts.length === 0) throw new Error("No accounts selected");
+                currentAccount = accounts[0];
+
+                // Ensure Arc network
+                bannerText.innerText = "Switching to Arc Testnet L1...";
+                await ensureArcNetwork(provider);
+
+                // Prepare ethers provider
+                const ethersProvider = new ethers.providers.Web3Provider(provider);
+                const signer = ethersProvider.getSigner();
+
+                bannerText.innerText = `Please confirm ${targetAmount.toFixed(2)} ${targetToken} in your wallet...`;
+                payBtnText.innerText = "Confirming in Wallet...";
+
+                let txHash = null;
+
+                // Execute via PulsePay Smart Contract or direct native send
+                try {
+                    const contract = new ethers.Contract(PULSEPAY_CONTRACT_ADDRESS, PULSEPAY_ABI, signer);
+                    const amountWei = ethers.utils.parseEther(targetAmount.toString());
+                    const cleanRef = (targetRef || 'ARC-PAY').replace(/[^a-zA-Z0-9-]/g, '').substring(0, 31);
+                    const invoiceBytes32 = ethers.utils.formatBytes32String(cleanRef);
+
+                    const tx = await contract.payInvoice(invoiceBytes32, targetRecipient, targetMemo, {
+                        value: amountWei
+                    });
+                    txHash = tx.hash;
+                } catch (contractErr) {
+                    console.warn("Falling back to direct native USDC transfer:", contractErr);
+                    const tx = await signer.sendTransaction({
+                        to: targetRecipient,
+                        value: ethers.utils.parseEther(targetAmount.toString())
+                    });
+                    txHash = tx.hash;
+                }
+
+                // Awaiting confirmation
+                bannerText.innerText = "Settling transaction on Arc L1 (<0.5s)...";
+                payBtnText.innerText = "Settling on Arc L1...";
+
+                const txReceipt = await ethersProvider.waitForTransaction(txHash);
+
+                // Success!
+                banner.className = 'p-3.5 rounded-xl bg-emerald-50 border-2 border-emerald-400 text-emerald-900 text-xs font-mono font-bold flex items-center gap-2';
+                bannerText.innerText = "Payment settled & verified on Arc L1!";
+                
+                payBtn.disabled = false;
+                payBtn.className = "btn-neo w-full py-4 rounded-2xl bg-emerald-600 text-white font-pixel text-xl font-bold flex items-center justify-center gap-2";
+                payBtnText.innerText = `✓ Paid ${targetAmount.toFixed(2)} ${targetToken}`;
+
+                // Show Receipt
+                const receiptCard = document.getElementById('successReceiptCard');
+                const receiptLink = document.getElementById('receiptTxLink');
+                if (receiptCard) receiptCard.classList.remove('hidden');
+                if (receiptLink) receiptLink.href = `https://testnet.arcscan.app/tx/${txHash}`;
+
+                // Trigger celebratory confetti
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                }
+
+            } catch (err) {
+                console.error("Payment error:", err);
+                payBtn.disabled = false;
+                payBtnText.innerText = `Pay ${targetAmount.toFixed(2)} ${targetToken} (MetaMask)`;
+                
+                banner.className = 'p-3.5 rounded-xl bg-rose-50 border-2 border-rose-400 text-rose-900 text-xs font-mono font-bold flex items-center gap-2';
+                bannerText.innerText = err.message ? (err.message.substring(0, 70) + '...') : "Payment rejected or failed.";
+            }
+        }
+
+        function switchConnectedWallet() {
+            if (window.ethereum && typeof window.ethereum.request === 'function') {
+                window.ethereum.request({
+                    method: 'wallet_requestPermissions',
+                    params: [{ eth_accounts: {} }]
+                }).then(() => triggerPayment()).catch(console.warn);
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            parseParams();
+
+            // Auto-trigger wallet payment popup after slight delay
+            setTimeout(() => {
+                if (window.ethereum) {
+                    triggerPayment(true);
+                } else {
+                    const banner = document.getElementById('statusBanner');
+                    const bannerText = document.getElementById('statusBannerText');
+                    banner.className = 'p-3.5 rounded-xl bg-slate-100 border-2 border-slate-400 text-slate-700 text-xs font-mono font-bold flex items-center gap-2';
+                    bannerText.innerText = "Click Pay with MetaMask below to connect & send.";
+                }
+            }, 600);
+        });
+    </script>
+</body>
+</html>

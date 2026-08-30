@@ -585,7 +585,9 @@ function openWalletConnectModal() {
     if (modal) {
         modal.classList.remove('hidden');
         modal.style.display = 'flex';
-        detectInstalledWallets();
+        try {
+            detectInstalledWallets();
+        } catch (e) { }
         safeInitIcons();
     }
 }
@@ -600,18 +602,19 @@ function closeWalletConnectModal() {
 
 function handleWalletClick() {
     if (currentAccount) {
-        if (window.reownAppKit && typeof window.reownAppKit.open === 'function') {
+        disconnectWallet();
+        return;
+    }
+
+    if (window.reownAppKit && typeof window.reownAppKit.open === 'function') {
+        try {
             window.reownAppKit.open();
-        } else {
-            disconnectWallet();
-        }
-    } else {
-        if (window.reownAppKit && typeof window.reownAppKit.open === 'function') {
-            window.reownAppKit.open();
-        } else {
-            openWalletConnectModal();
+            return;
+        } catch (e) {
+            console.warn("Reown open notice:", e);
         }
     }
+    openWalletConnectModal();
 }
 
 const WALLET_CONFIGS = [

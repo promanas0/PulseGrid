@@ -71,9 +71,6 @@ All contracts are deployed, functional, and verified on Circle Arc L1 Testnet (C
 | **PulseBridge Router** | Cross-Chain CCTP Relayer & Bridge Router | `0x6a15E3D63F94F6877153515d663074a739F63db9` | [View on ArcScan](https://testnet.arcscan.app/address/0x6a15E3D63F94F6877153515d663074a739F63db9) |
 | **Prediction Market** | On-Chain Binary & AI Predictive Settlement | `0x14519dB645becb71867A657b0b461E301954800F` | [View on ArcScan](https://testnet.arcscan.app/address/0x14519dB645becb71867A657b0b461E301954800F) |
 | **Token Factory** | 1-Click ERC-20 Token Deployer & Bytecode Factory | `0x0De23effB0606a595d15578635AD0c0D1659e08e` | [View on ArcScan](https://testnet.arcscan.app/address/0x0De23effB0606a595d15578635AD0c0D1659e08e) |
-| **Native ERC-20 USDC** | Arc L1 Native Gas & ERC-20 Interop Address | `0x3600000000000000000000000000000000000000` | [View on ArcScan](https://testnet.arcscan.app/address/0x3600000000000000000000000000000000000000) |
-| **Circle EURC Token** | Official Euro Stablecoin on Arc L1 Testnet | `0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a` | [View on ArcScan](https://testnet.arcscan.app/address/0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a) |
-| **Arc Wrapped Bitcoin** | eBTC Testnet Wrapped Asset | `0x054f15d7f21226065582f7c00e12d46e2730bf18` | [View on ArcScan](https://testnet.arcscan.app/address/0x054f15d7f21226065582f7c00e12d46e2730bf18) |
 
 ---
 

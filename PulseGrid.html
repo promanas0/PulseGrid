@@ -897,7 +897,7 @@
                 <div class="absolute -top-24 -right-24 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-teal-500/20 rounded-full blur-3xl pointer-events-none"></div>
 
-                <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div class="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
                     <div class="space-y-2 max-w-2xl">
                         <div class="flex flex-wrap items-center gap-2">
                             <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 font-silkscreen text-[11px] font-bold">
@@ -922,11 +922,25 @@
                         </p>
                     </div>
 
-                    <!-- Right Action Tools with 3-Dots Menu -->
-                    <div class="flex items-center gap-2.5 relative">
+                    <!-- Right Action Tools with Quick Buttons & 3-Dots Menu -->
+                    <div class="flex items-center gap-2.5 relative shrink-0">
+                        
+                        <!-- Quick Staking Portfolio Button -->
+                        <button onclick="openStakingPortfolioModal()" class="px-3.5 py-3 rounded-xl bg-purple-500/30 hover:bg-purple-500/40 border-2 border-purple-400/50 text-purple-100 font-mono text-xs font-bold flex items-center gap-2 transition-colors shadow-sm">
+                            <i data-lucide="wallet" class="w-4 h-4 text-purple-300"></i>
+                            <span class="hidden sm:inline">My Portfolio</span>
+                        </button>
+
+                        <!-- Quick Leaderboard Button -->
+                        <button onclick="openStakingLeaderboardModal()" class="px-3.5 py-3 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 border-2 border-amber-400/50 text-amber-200 font-mono text-xs font-bold flex items-center gap-2 transition-colors shadow-sm">
+                            <i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i>
+                            <span class="hidden sm:inline">Leaderboard</span>
+                        </button>
+
+                        <!-- Sync Data Button -->
                         <button onclick="refreshStakingTelemetry()" class="btn-pixel px-4 py-3 rounded-xl bg-white hover:bg-slate-100 text-slate-950 font-pixel font-bold text-xs flex items-center gap-2 shadow-[3px_3px_0px_#0F172A]">
                             <i data-lucide="refresh-cw" id="stakingRefreshIcon" class="w-4 h-4 text-purple-700"></i>
-                            <span class="hidden sm:inline">Sync Data</span>
+                            <span class="hidden md:inline">Sync Data</span>
                         </button>
 
                         <!-- 3-DOTS (⋮) MENU BUTTON -->
@@ -936,23 +950,27 @@
                             </button>
 
                             <!-- DROPDOWN MENU -->
-                            <div id="pulseStakeDropdownMenu" class="hidden absolute right-0 top-full mt-2 w-56 bg-white border-2 border-slate-950 rounded-2xl shadow-[6px_6px_0px_#0F172A] z-40 p-2 space-y-1 font-mono text-xs text-slate-900 animate-in fade-in zoom-in-95 duration-150">
+                            <div id="pulseStakeDropdownMenu" class="hidden absolute right-0 top-full mt-2 w-64 bg-white border-2 border-slate-950 rounded-2xl shadow-[6px_6px_0px_#0F172A] z-50 p-2 space-y-1 font-mono text-xs text-slate-900 animate-in fade-in zoom-in-95 duration-150">
                                 <button onclick="openStakingLeaderboardModal(); togglePulseStakeDropdownMenu();" class="w-full px-3 py-2.5 rounded-xl hover:bg-purple-50 hover:text-purple-900 flex items-center gap-2.5 font-bold transition-colors text-left">
                                     <i data-lucide="trophy" class="w-4 h-4 text-amber-500"></i>
                                     <span>🏆 On-Chain Leaderboard</span>
                                 </button>
+                                <button onclick="openStakingPortfolioModal(); togglePulseStakeDropdownMenu();" class="w-full px-3 py-2.5 rounded-xl hover:bg-purple-50 hover:text-purple-900 flex items-center gap-2.5 font-bold transition-colors text-left">
+                                    <i data-lucide="wallet" class="w-4 h-4 text-purple-600"></i>
+                                    <span>💼 My Staking Portfolio</span>
+                                </button>
                                 <a href="https://testnet.arcscan.app/address/0x9F6baFB6961aAd0fC133d32A559CaFdf32582801" target="_blank" class="w-full px-3 py-2.5 rounded-xl hover:bg-purple-50 hover:text-purple-900 flex items-center gap-2.5 font-bold transition-colors">
-                                    <i data-lucide="file-code" class="w-4 h-4 text-purple-700"></i>
-                                    <span>View Contract (ArcScan)</span>
+                                    <i data-lucide="file-code" class="w-4 h-4 text-indigo-700"></i>
+                                    <span>📄 View Contract (ArcScan)</span>
                                 </a>
                                 <a href="https://testnet.arcscan.app/address/0x9EE52CC50435aa46b51092fCC964debDb21C6510" target="_blank" class="w-full px-3 py-2.5 rounded-xl hover:bg-purple-50 hover:text-purple-900 flex items-center gap-2.5 font-bold transition-colors">
                                     <i data-lucide="coins" class="w-4 h-4 text-teal-600"></i>
-                                    <span>$pUSDC Token (ArcScan)</span>
+                                    <span>🪙 $pUSDC Token (ArcScan)</span>
                                 </a>
                                 <div class="border-t border-slate-200 my-1"></div>
                                 <button onclick="refreshStakingTelemetry(); togglePulseStakeDropdownMenu();" class="w-full px-3 py-2.5 rounded-xl hover:bg-purple-50 hover:text-purple-900 flex items-center gap-2.5 font-bold transition-colors text-left text-slate-600">
                                     <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                                    <span>Sync Telemetry</span>
+                                    <span>🔄 Sync Telemetry</span>
                                 </button>
                             </div>
                         </div>
@@ -1019,64 +1037,6 @@
                 </div>
             </div>
 
-            <!-- USER'S LIVE STAKING PORTFOLIO & REAL-TIME REWARDS TICKER -->
-            <div class="pixel-card-purple p-6 sm:p-8 bg-gradient-to-br from-purple-900 via-slate-900 to-slate-950 text-white shadow-[6px_6px_0px_#0F172A] relative overflow-hidden">
-                <div class="relative z-10 space-y-6">
-                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/15 pb-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-11 h-11 rounded-2xl bg-purple-500/20 border border-purple-400/40 flex items-center justify-center text-purple-300">
-                                <i data-lucide="wallet" class="w-6 h-6"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-pixel text-2xl font-bold text-white tracking-wide">My Staking Portfolio</h3>
-                                <p class="text-xs text-slate-300 font-mono">Connected: <span id="pulseStakeUserWalletDisplay" class="text-purple-300 font-bold">Connect Wallet</span></p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-2">
-                            <button onclick="openStakingLeaderboardModal()" class="px-3 py-1.5 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 border border-amber-400/40 text-amber-300 font-mono text-xs font-bold flex items-center gap-1.5 transition-colors">
-                                <i data-lucide="trophy" class="w-3.5 h-3.5 text-amber-400"></i>
-                                <span>Leaderboard</span>
-                            </button>
-                            <span class="text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 px-3 py-1.5 rounded-full border border-emerald-400/40 flex items-center gap-1">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                                Live Real-Time Ticker
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Portfolio Metrics Grid -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        <div class="bg-white/10 backdrop-blur-md border border-white/20 p-5 rounded-2xl space-y-1">
-                            <div class="text-[11px] text-slate-300 font-bold uppercase font-mono">My Total Staked</div>
-                            <div class="font-pixel text-3xl sm:text-4xl font-black text-white" id="myTotalStakedAmount">0.00 USDC</div>
-                            <div class="text-[10px] text-slate-300 font-mono">Earning daily rewards on Arc L1</div>
-                        </div>
-
-                        <div class="bg-gradient-to-br from-emerald-500/20 to-teal-600/20 border-2 border-emerald-400/50 p-5 rounded-2xl space-y-1 relative shadow-inner">
-                            <div class="flex items-center justify-between text-[11px] text-emerald-300 font-bold uppercase font-mono">
-                                <span>Unclaimed Yield ($pUSDC)</span>
-                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                            </div>
-                            <div class="font-pixel text-3xl sm:text-4xl font-black text-emerald-300 tracking-wider" id="myLiveAccruingRewards">
-                                0.00000000 <span class="text-xl">pUSDC</span>
-                            </div>
-                            <div class="text-[10px] text-emerald-200/80 font-mono">Incrementing live every fraction of a second!</div>
-                        </div>
-
-                        <div class="bg-white/10 backdrop-blur-md border border-white/20 p-5 rounded-2xl flex flex-col justify-center gap-2.5">
-                            <button id="btnClaimAllRewards" onclick="claimAllStakingRewards()" class="btn-pixel w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-pixel font-bold text-xs flex items-center justify-center gap-2 shadow-[2px_2px_0px_#0F172A]">
-                                <i data-lucide="sparkles" class="w-4 h-4 text-slate-950"></i>
-                                <span>Claim All Rewards ($pUSDC)</span>
-                            </button>
-                            <div class="text-center text-[10px] text-slate-300 font-mono">
-                                Auto-mints $pUSDC rewards directly into your wallet
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- PULSESTAKE 2-TAB TERMINAL: 1. STAKE USDC | 2. UNSTAKE USDC -->
             <div class="pixel-card p-6 sm:p-8 bg-white space-y-6" id="pulseStakeTerminalContainer">
                 
@@ -1093,8 +1053,12 @@
                         </button>
                     </div>
 
-                    <!-- 3-Dots Quick Trigger Menu on right of tabs -->
+                    <!-- Quick Action Links on right of tabs -->
                     <div class="flex items-center gap-2 self-end sm:self-center">
+                        <button onclick="openStakingPortfolioModal()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 border-2 border-purple-300 text-purple-900 font-mono text-xs font-bold transition-colors shadow-sm">
+                            <i data-lucide="wallet" class="w-4 h-4 text-purple-600"></i>
+                            <span>My Portfolio</span>
+                        </button>
                         <button onclick="openStakingLeaderboardModal()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 border-2 border-amber-300 text-amber-900 font-mono text-xs font-bold transition-colors shadow-sm">
                             <i data-lucide="trophy" class="w-4 h-4 text-amber-600"></i>
                             <span>Leaderboard</span>
@@ -4551,9 +4515,75 @@
         </div>
     </div>
 
-    <!-- PULSESTAKE: DEDICATED REAL ON-CHAIN LEADERBOARD MODAL (Triggered via 3-dots menu) -->
-    <div id="pulseStakeLeaderboardModal" class="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-md hidden flex items-center justify-center p-4">
-        <div class="pixel-card-purple w-full max-w-2xl p-6 sm:p-8 space-y-5 animate-in fade-in zoom-in-95 duration-200 bg-white max-h-[90vh] overflow-y-auto">
+    <!-- PULSESTAKE: MY STAKING PORTFOLIO MODAL (Triggered via 3-dots menu & quick button) -->
+    <div id="pulseStakePortfolioModal" class="fixed inset-0 z-[99999] bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="pixel-card-purple w-full max-w-xl p-6 sm:p-8 space-y-6 animate-in fade-in zoom-in-95 duration-200 bg-gradient-to-br from-purple-900 via-slate-900 to-slate-950 text-white max-h-[90vh] overflow-y-auto border-2 border-purple-400/40 shadow-[8px_8px_0px_#0F172A]">
+            
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between pb-4 border-b border-white/15">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-2xl bg-purple-500/20 border border-purple-400/40 flex items-center justify-center text-purple-300">
+                        <i data-lucide="wallet" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-pixel text-2xl font-bold text-white tracking-wide">My Staking Portfolio</h3>
+                        <p class="text-xs text-slate-300 font-mono">Connected: <span id="pulseStakeUserWalletDisplay" class="text-purple-300 font-bold">Connect Wallet</span></p>
+                    </div>
+                </div>
+                <button onclick="closeStakingPortfolioModal()" class="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 font-bold text-sm text-white transition-colors">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Portfolio Metrics Grid (Vertical / Grid) -->
+            <div class="space-y-4 font-mono">
+                
+                <!-- My Total Staked -->
+                <div class="bg-white/10 backdrop-blur-md border border-white/20 p-5 rounded-2xl space-y-1">
+                    <div class="text-[11px] text-slate-300 font-bold uppercase">My Total Pooled Stake</div>
+                    <div class="font-pixel text-3xl sm:text-4xl font-black text-white" id="myTotalStakedAmount">0.00 USDC</div>
+                    <div class="text-[10px] text-slate-300">Actively validating blocks on Circle Arc L1</div>
+                </div>
+
+                <!-- Live Real-Time Ticking Unclaimed Rewards -->
+                <div class="bg-gradient-to-br from-emerald-500/20 to-teal-600/20 border-2 border-emerald-400/50 p-5 rounded-2xl space-y-1 relative shadow-inner">
+                    <div class="flex items-center justify-between text-[11px] text-emerald-300 font-bold uppercase">
+                        <span>Unclaimed Real-Time Yield ($pUSDC)</span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                    </div>
+                    <div class="font-pixel text-3xl sm:text-4xl font-black text-emerald-300 tracking-wider" id="myLiveAccruingRewards">
+                        0.00000000 <span class="text-xl">pUSDC</span>
+                    </div>
+                    <div class="text-[10px] text-emerald-200/80">Accruing continuously every fraction of a second!</div>
+                </div>
+
+                <!-- Claim All Rewards Button -->
+                <div class="pt-2 space-y-3">
+                    <button id="btnClaimAllRewards" onclick="claimAllStakingRewards()" class="btn-pixel w-full py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-pixel font-bold text-sm flex items-center justify-center gap-2 shadow-[4px_4px_0px_#0F172A]">
+                        <i data-lucide="sparkles" class="w-5 h-5 text-slate-950"></i>
+                        <span>Claim All Rewards ($pUSDC)</span>
+                    </button>
+                    <p class="text-center text-[10px] text-slate-300">
+                        Automatically mints <strong class="text-white">$pUSDC</strong> tokens directly into your wallet.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Footer Quick Switch to Terminal -->
+            <div class="pt-3 border-t border-white/15 flex items-center justify-between font-mono text-xs text-slate-300">
+                <button onclick="closeStakingPortfolioModal(); switchPulseStakeTab('stake');" class="text-purple-300 hover:underline font-bold flex items-center gap-1">
+                    <span>+ Stake More USDC</span>
+                </button>
+                <button onclick="closeStakingPortfolioModal(); switchPulseStakeTab('unstake');" class="text-rose-300 hover:underline font-bold flex items-center gap-1">
+                    <span>- Unstake Principal</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PULSESTAKE: DEDICATED REAL ON-CHAIN LEADERBOARD MODAL (Triggered via 3-dots menu & quick button) -->
+    <div id="pulseStakeLeaderboardModal" class="fixed inset-0 z-[99999] bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="pixel-card-purple w-full max-w-2xl p-6 sm:p-8 space-y-5 animate-in fade-in zoom-in-95 duration-200 bg-white max-h-[90vh] overflow-y-auto border-2 border-slate-950 shadow-[8px_8px_0px_#0F172A]">
             
             <!-- Modal Header -->
             <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
@@ -4569,7 +4599,7 @@
                         <div class="text-xs text-slate-500 font-mono">Ranked by real pooled stakes on Circle Arc L1 (Chain ID: 5042002)</div>
                     </div>
                 </div>
-                <button onclick="closeStakingLeaderboardModal()" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 border-2 border-slate-950 font-bold text-xs text-slate-700 transition-colors">
+                <button onclick="closeStakingLeaderboardModal()" class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border-2 border-slate-950 font-bold text-sm text-slate-700 transition-colors">
                     ✕
                 </button>
             </div>

@@ -8615,7 +8615,7 @@ function updateUserStakingTierBanner(totalStaked) {
 }
 
 /* =========================================================================
-   3-DOTS (⋮) MENU & REAL ON-CHAIN LEADERBOARD MODAL CONTROLS
+   3-DOTS (⋮) MENU, PORTFOLIO MODAL & REAL ON-CHAIN LEADERBOARD MODAL CONTROLS
    ========================================================================= */
 
 function togglePulseStakeDropdownMenu() {
@@ -8625,9 +8625,10 @@ function togglePulseStakeDropdownMenu() {
     }
 }
 
-// Close dropdown if user clicks outside
+// Close dropdown or modals if user clicks outside
 if (typeof document !== 'undefined') {
     document.addEventListener('click', (e) => {
+        // Dropdown toggle dismiss
         const toggleBtn = document.getElementById('pulseStakeMenuToggleBtn');
         const menu = document.getElementById('pulseStakeDropdownMenu');
         if (menu && !menu.classList.contains('hidden')) {
@@ -8635,13 +8636,46 @@ if (typeof document !== 'undefined') {
                 menu.classList.add('hidden');
             }
         }
+
+        // Leaderboard modal backdrop dismiss
+        const lbModal = document.getElementById('pulseStakeLeaderboardModal');
+        if (lbModal && e.target === lbModal) {
+            closeStakingLeaderboardModal();
+        }
+
+        // Portfolio modal backdrop dismiss
+        const portModal = document.getElementById('pulseStakePortfolioModal');
+        if (portModal && e.target === portModal) {
+            closeStakingPortfolioModal();
+        }
     });
+}
+
+function openStakingPortfolioModal() {
+    const modal = document.getElementById('pulseStakePortfolioModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+        safeInitIcons();
+        if (typeof startLiveStakingTicker === 'function') {
+            startLiveStakingTicker();
+        }
+    }
+}
+
+function closeStakingPortfolioModal() {
+    const modal = document.getElementById('pulseStakePortfolioModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+    }
 }
 
 function openStakingLeaderboardModal() {
     const modal = document.getElementById('pulseStakeLeaderboardModal');
     if (modal) {
         modal.classList.remove('hidden');
+        modal.style.display = 'flex';
         renderStakingLeaderboard();
         safeInitIcons();
     }
@@ -8651,6 +8685,7 @@ function closeStakingLeaderboardModal() {
     const modal = document.getElementById('pulseStakeLeaderboardModal');
     if (modal) {
         modal.classList.add('hidden');
+        modal.style.display = 'none';
     }
 }
 

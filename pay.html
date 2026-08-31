@@ -337,6 +337,36 @@
 
                 const txReceipt = await ethersProvider.waitForTransaction(txHash);
 
+                // Determine channel (QR vs Link)
+                const params = new URLSearchParams(window.location.search);
+                const paymentChannel = (params.get('src') === 'qr' || params.get('channel') === 'qr') ? 'qr' : 'link';
+
+                // Save to local PulsePay transaction history
+                try {
+                    const existingRaw = localStorage.getItem('pulsepay_transactions_v2');
+                    const txList = existingRaw ? JSON.parse(existingRaw) : [];
+                    const newTx = {
+                        id: `TX-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+                        refId: targetRef || 'ARC-PAY-INV',
+                        type: 'paid',
+                        amount: targetAmount,
+                        token: targetToken,
+                        sender: currentAccount || 'Connected Wallet',
+                        recipient: targetRecipient,
+                        memo: targetMemo,
+                        channel: paymentChannel,
+                        channelLabel: paymentChannel === 'qr' ? 'QR Code Scan' : 'Payment Link',
+                        status: 'Settled',
+                        finality: '~0.4s',
+                        txHash: txHash,
+                        timestamp: Date.now()
+                    };
+                    txList.unshift(newTx);
+                    localStorage.setItem('pulsepay_transactions_v2', JSON.stringify(txList.slice(0, 100)));
+                } catch(storageErr) {
+                    console.warn("Could not save PulsePay transaction locally:", storageErr);
+                }
+
                 // Success!
                 banner.className = 'p-3.5 rounded-xl bg-emerald-50 border-2 border-emerald-400 text-emerald-900 text-xs font-mono font-bold flex items-center gap-2';
                 bannerText.innerText = "Payment settled & verified on Arc L1!";

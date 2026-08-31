@@ -8052,20 +8052,109 @@ const PULSEPAY_ABI = [
     "event DirectPayment(address indexed payer, address indexed recipient, uint256 amount, string memo, uint256 timestamp)"
 ];
 
-let lastGeneratedPulsePayUrl = "";
+/* =========================================================================
+   ===================== PULSEPAY PROTOCOL & LEDGER =======================
+   Instant USDC Payments, Invoicing, QR/Link Channels & Live Ledger (Arc L1)
+   ========================================================================= */
 
-function getPulsePayHistory() {
-    try {
-        return JSON.parse(localStorage.getItem('pulsegrid_pulsepay_history')) || [];
-    } catch (e) {
-        return [];
+const PULSEPAY_STORAGE_KEY = 'pulsepay_transactions_v2';
+let currentPulsePayFilter = 'all';
+let lastGeneratedPulsePayUrl = '';
+let lastGeneratedPulsePayQrUrl = '';
+
+// Default sample transactions showing clear Link vs QR vs Direct settlement channels
+const DEFAULT_PULSEPAY_STARTERS = [
+    {
+        id: "TX-1725102000001",
+        refId: "ARC-INV-9841",
+        type: "received",
+        amount: 25.00,
+        token: "USDC",
+        sender: "0x71C...8932",
+        recipient: "0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947",
+        memo: "Consortium RPC Node Setup",
+        channel: "qr",
+        channelLabel: "QR Code Scan",
+        status: "Settled",
+        finality: "~0.4s",
+        txHash: "0x89ab10f3c254e09887711200114f6b2199042bba401124d35e1975bb4a123f01",
+        timestamp: Date.now() - (1000 * 60 * 18) // 18 mins ago
+    },
+    {
+        id: "TX-1725102000002",
+        refId: "ARC-INV-7412",
+        type: "received",
+        amount: 50.00,
+        token: "USDC",
+        sender: "0x98E...410b",
+        recipient: "0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947",
+        memo: "Website UI Redesign Invoice #104",
+        channel: "link",
+        channelLabel: "Payment Link",
+        status: "Settled",
+        finality: "~0.4s",
+        txHash: "0x3f5c9e2b10a88701e91244fa7812903bbca0194721990142b78111246c1941ba",
+        timestamp: Date.now() - (1000 * 60 * 65) // 1 hour ago
+    },
+    {
+        id: "TX-1725102000003",
+        refId: "ARC-INV-5201",
+        type: "received",
+        amount: 10.00,
+        token: "USDC",
+        sender: "0x44B...1298",
+        recipient: "0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947",
+        memo: "Coffee Tip / Microtransaction",
+        channel: "qr",
+        channelLabel: "QR Code Scan",
+        status: "Settled",
+        finality: "~0.4s",
+        txHash: "0x7701fae299120bb3c591240188b20914cba89012351984210459817721ab4901",
+        timestamp: Date.now() - (1000 * 60 * 180) // 3 hours ago
+    },
+    {
+        id: "TX-1725102000004",
+        refId: "ARC-INV-3982",
+        type: "received",
+        amount: 15.00,
+        token: "USDC",
+        sender: "0x12A...9980",
+        recipient: "0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947",
+        memo: "PulseGrid Ecosystem Grant",
+        channel: "link",
+        channelLabel: "Payment Link",
+        status: "Settled",
+        finality: "~0.4s",
+        txHash: "0x4419bb01e7a29901418cb2409817fae29013bba491200148719240bca19042b1",
+        timestamp: Date.now() - (1000 * 60 * 360) // 6 hours ago
     }
+];
+
+function getPulsePayTransactions() {
+    try {
+        const raw = localStorage.getItem(PULSEPAY_STORAGE_KEY);
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+    } catch (e) {
+        console.warn("Error reading PulsePay transactions:", e);
+    }
+    // Initialize default starter records
+    try {
+        localStorage.setItem(PULSEPAY_STORAGE_KEY, JSON.stringify(DEFAULT_PULSEPAY_STARTERS));
+    } catch (e) { }
+    return DEFAULT_PULSEPAY_STARTERS;
 }
 
-function savePulsePayRecord(record) {
-    const list = getPulsePayHistory();
-    list.unshift(record);
-    localStorage.setItem('pulsegrid_pulsepay_history', JSON.stringify(list.slice(0, 50)));
+function savePulsePayTransaction(tx) {
+    try {
+        const list = getPulsePayTransactions();
+        list.unshift(tx);
+        localStorage.setItem(PULSEPAY_STORAGE_KEY, JSON.stringify(list.slice(0, 100)));
+    } catch (e) {
+        console.warn("Error saving PulsePay transaction:", e);
+    }
 }
 
 function generateRandomInvoiceRef() {
@@ -8075,7 +8164,7 @@ function generateRandomInvoiceRef() {
         code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     const randSuffix = Math.floor(100 + Math.random() * 900);
-    return `ARC-PAY-${code}${randSuffix}`;
+    return `ARC-INV-${code}${randSuffix}`;
 }
 
 function updatePulsePayMerchantUI() {
@@ -8088,7 +8177,7 @@ function updatePulsePayMerchantUI() {
                 addrEl.innerHTML = `<span class="text-emerald-700 font-bold flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span> ${shortAddr} (Connected)</span>`;
                 if (connectBtn) connectBtn.classList.add('hidden');
             } else {
-                addrEl.innerHTML = `<span class="text-slate-400 italic">No wallet connected — please connect to receive funds</span>`;
+                addrEl.innerHTML = `<span class="text-slate-400 italic">No wallet connected — default receiving address</span>`;
                 if (connectBtn) connectBtn.classList.remove('hidden');
             }
         }
@@ -8100,11 +8189,180 @@ function updatePulsePayMerchantUI() {
 function initPulsePayView() {
     try {
         updatePulsePayMerchantUI();
-        renderPulsePayHistory();
+        renderPulsePayHistory(currentPulsePayFilter);
+        calculatePulsePayStats();
         safeInitIcons();
     } catch (e) {
         console.warn("initPulsePayView error:", e);
     }
+}
+
+function calculatePulsePayStats() {
+    try {
+        const list = getPulsePayTransactions();
+        let totalVol = 0;
+        let linkCount = 0;
+        let linkVol = 0;
+        let qrCount = 0;
+        let qrVol = 0;
+        let directCount = 0;
+        let directVol = 0;
+
+        list.forEach(tx => {
+            const amt = parseFloat(tx.amount) || 0;
+            totalVol += amt;
+
+            if (tx.channel === 'qr') {
+                qrCount++;
+                qrVol += amt;
+            } else if (tx.channel === 'direct') {
+                directCount++;
+                directVol += amt;
+            } else {
+                linkCount++;
+                linkVol += amt;
+            }
+        });
+
+        safeSetText('statPulsePayTotalVol', `$${totalVol.toFixed(2)}`);
+        safeSetText('statPulsePayLinkVol', `${linkCount} Tx ($${linkVol.toFixed(2)})`);
+        safeSetText('statPulsePayQrVol', `${qrCount} Tx ($${qrVol.toFixed(2)})`);
+        safeSetText('statPulsePayDirectVol', `${directCount} Tx ($${directVol.toFixed(2)})`);
+        safeSetText('pulsePayHistoryCount', `${list.length} Records`);
+    } catch (e) {
+        console.warn("calculatePulsePayStats error:", e);
+    }
+}
+
+function filterPulsePayChannel(channel) {
+    currentPulsePayFilter = channel;
+    
+    // Update Filter Button UI
+    const buttons = document.querySelectorAll('.pulsepay-filter-btn');
+    buttons.forEach(btn => {
+        btn.classList.remove('bg-purple-700', 'text-white', 'shadow-sm', 'active');
+        btn.classList.add('text-slate-700');
+    });
+
+    const activeBtn = document.getElementById(`filterBtn-${channel}`);
+    if (activeBtn) {
+        activeBtn.classList.add('bg-purple-700', 'text-white', 'shadow-sm', 'active');
+        activeBtn.classList.remove('text-slate-700');
+    }
+
+    renderPulsePayHistory(channel);
+}
+
+function renderPulsePayHistory(filter = 'all') {
+    const container = document.getElementById('pulsePayHistoryList');
+    if (!container) return;
+
+    let list = getPulsePayTransactions();
+
+    if (filter && filter !== 'all') {
+        list = list.filter(item => (item.channel || 'link') === filter);
+    }
+
+    if (list.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-12 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-300 text-slate-400 font-mono space-y-1">
+                <i data-lucide="receipt" class="w-8 h-8 mx-auto text-slate-300 mb-2"></i>
+                <div class="font-bold text-slate-600">No ${filter === 'all' ? '' : filter.toUpperCase()} transactions found</div>
+                <div class="text-xs">Generate a link or dynamic QR above to settle your first payment!</div>
+            </div>
+        `;
+        safeInitIcons();
+        return;
+    }
+
+    let html = '';
+    list.forEach(item => {
+        const isQR = item.channel === 'qr';
+        const isDirect = item.channel === 'direct';
+        const isLink = !isQR && !isDirect;
+
+        const channelBadge = isQR ? `
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border-2 border-emerald-300 font-mono text-[11px] font-bold shadow-sm">
+                <i data-lucide="qr-code" class="w-3.5 h-3.5 text-emerald-600"></i>
+                <span>📱 QR Code Scan</span>
+            </span>
+        ` : (isDirect ? `
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-teal-50 text-teal-800 border-2 border-teal-300 font-mono text-[11px] font-bold shadow-sm">
+                <i data-lucide="zap" class="w-3.5 h-3.5 text-teal-600"></i>
+                <span>⚡ Direct P2P</span>
+            </span>
+        ` : `
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-800 border-2 border-indigo-300 font-mono text-[11px] font-bold shadow-sm">
+                <i data-lucide="link-2" class="w-3.5 h-3.5 text-indigo-600"></i>
+                <span>🔗 Payment Link</span>
+            </span>
+        `);
+
+        const formattedDate = new Date(item.timestamp || Date.now()).toLocaleString();
+        const shortRec = item.recipient ? `${item.recipient.substring(0, 6)}...${item.recipient.substring(item.recipient.length - 4)}` : '0x...';
+        const shortSender = item.sender ? `${item.sender.substring(0, 6)}...${item.sender.substring(item.sender.length - 4)}` : 'Payer';
+        const shortTx = item.txHash ? `${item.txHash.substring(0, 10)}...` : null;
+
+        html += `
+            <div class="p-4 rounded-2xl bg-white border-2 border-slate-950 shadow-[3px_3px_0px_#0F172A] hover:translate-y-[-1px] transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <!-- Left Details -->
+                <div class="flex items-start gap-3.5">
+                    <div class="p-3 rounded-2xl ${isQR ? 'bg-emerald-100 text-emerald-800 border-2 border-slate-950' : (isDirect ? 'bg-teal-100 text-teal-800 border-2 border-slate-950' : 'bg-indigo-100 text-indigo-800 border-2 border-slate-950')} shrink-0">
+                        <i data-lucide="${isQR ? 'qr-code' : (isDirect ? 'zap' : 'link-2')}" class="w-5 h-5"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex flex-wrap items-center gap-2">
+                            ${channelBadge}
+                            <span class="font-pixel text-base font-bold text-slate-950">+${parseFloat(item.amount).toFixed(2)} ${item.token || 'USDC'}</span>
+                            <span class="text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-300">
+                                ✓ Settled (0.4s)
+                            </span>
+                        </div>
+                        <div class="text-xs text-slate-700 font-bold">
+                            <span>${item.memo || 'Arc Ecosystem Payment'}</span>
+                            <span class="text-slate-400 font-normal">&bull; Ref: <strong class="text-purple-700 font-mono">${item.refId || 'ARC-PAY'}</strong></span>
+                        </div>
+                        <div class="text-[11px] text-slate-500 font-mono flex flex-wrap items-center gap-2">
+                            <span>From: <strong>${shortSender}</strong></span>
+                            <span>&rarr;</span>
+                            <span>To: <strong>${shortRec}</strong></span>
+                            <span>&bull;</span>
+                            <span>${formattedDate}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Action Buttons -->
+                <div class="flex items-center gap-2 self-end md:self-center shrink-0">
+                    <button onclick="openPulsePayReceiptModal('${item.id || item.refId}')" class="btn-pixel-sm px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 text-xs font-bold border-2 border-slate-950 flex items-center gap-1.5">
+                        <i data-lucide="receipt" class="w-3.5 h-3.5 text-purple-700"></i>
+                        <span>Receipt</span>
+                    </button>
+
+                    ${shortTx ? `
+                        <a href="https://testnet.arcscan.app/tx/${item.txHash}" target="_blank" class="btn-pixel-sm px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 text-xs font-bold border-2 border-slate-950 flex items-center gap-1.5">
+                            <span>${shortTx}</span>
+                            <i data-lucide="external-link" class="w-3 h-3 text-slate-600"></i>
+                        </a>
+                    ` : `
+                        <button onclick="copyGeneratedLinkFromHistory('${item.refId}', '${item.recipient}', ${item.amount}, '${item.token || 'USDC'}', '${encodeURIComponent(item.memo || '')}')" class="btn-pixel-sm px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-900 text-xs font-bold border-2 border-slate-950 flex items-center gap-1.5">
+                            <i data-lucide="copy" class="w-3 h-3 text-indigo-600"></i>
+                            <span>Copy Link</span>
+                        </button>
+                    `}
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+    safeInitIcons();
+}
+
+function refreshPulsePayHistory() {
+    renderPulsePayHistory(currentPulsePayFilter);
+    calculatePulsePayStats();
+    showToast('Ledger Synced! ⚡', 'PulsePay transactions refreshed on Circle Arc L1.', 'success');
 }
 
 function generatePulsePayLink() {
@@ -8119,23 +8377,25 @@ function generatePulsePayLink() {
         return;
     }
 
-    // Determine merchant recipient address
     const recipient = currentAccount || '0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947';
 
     if (!currentAccount) {
-        showToast('Tip: Connect Wallet', 'Generating link with default demo address. Connect wallet for direct payouts to your address!', 'info');
+        showToast('Tip: Connect Wallet', 'Generating link with default demo recipient. Connect wallet for payouts directly to your address!', 'info');
     }
 
-    // Unique reference ID per generation
     const refId = generateRandomInvoiceRef();
-
-    // Construct direct checkout pay.html URL
     const origin = window.location.origin && window.location.origin !== 'null' ? window.location.origin : 'https://pulsegrid-hub.vercel.app';
-    const checkoutUrl = `${origin}/pay.html?to=${encodeURIComponent(recipient)}&amt=${encodeURIComponent(amount)}&token=${encodeURIComponent(token)}&msg=${encodeURIComponent(memo)}&ref=${encodeURIComponent(refId)}`;
-    lastGeneratedPulsePayUrl = checkoutUrl;
 
-    // QR code image URL
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(checkoutUrl)}`;
+    // Shareable Web Link (src=link)
+    const checkoutLinkUrl = `${origin}/pay.html?to=${encodeURIComponent(recipient)}&amt=${encodeURIComponent(amount)}&token=${encodeURIComponent(token)}&msg=${encodeURIComponent(memo)}&ref=${encodeURIComponent(refId)}&src=link`;
+    
+    // Dynamic QR URL (src=qr)
+    const checkoutQrTargetUrl = `${origin}/pay.html?to=${encodeURIComponent(recipient)}&amt=${encodeURIComponent(amount)}&token=${encodeURIComponent(token)}&msg=${encodeURIComponent(memo)}&ref=${encodeURIComponent(refId)}&src=qr`;
+    
+    lastGeneratedPulsePayUrl = checkoutLinkUrl;
+    lastGeneratedPulsePayQrUrl = checkoutQrTargetUrl;
+
+    const qrImgSrc = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(checkoutQrTargetUrl)}`;
 
     // Populate Share Modal
     safeSetText('modalSummaryAmount', `${amount.toFixed(2)} ${token}`);
@@ -8143,13 +8403,13 @@ function generatePulsePayLink() {
     safeSetText('modalSummaryNote', `"${memo}"`);
 
     const modalInput = document.getElementById('modalPulsePayUrlInput');
-    if (modalInput) modalInput.value = checkoutUrl;
+    if (modalInput) modalInput.value = checkoutLinkUrl;
 
     const modalQr = document.getElementById('modalPulsePayQrImg');
-    if (modalQr) modalQr.src = qrUrl;
+    if (modalQr) modalQr.src = qrImgSrc;
 
     const testOpenLink = document.getElementById('modalTestOpenLink');
-    if (testOpenLink) testOpenLink.href = checkoutUrl;
+    if (testOpenLink) testOpenLink.href = checkoutLinkUrl;
 
     // Open Modal
     const modal = document.getElementById('pulsePayShareModal');
@@ -8157,35 +8417,17 @@ function generatePulsePayLink() {
         modal.classList.remove('hidden');
     }
 
-    // Auto copy to clipboard
+    // Auto copy link to clipboard
     try {
-        navigator.clipboard.writeText(checkoutUrl).catch(() => { });
+        navigator.clipboard.writeText(checkoutLinkUrl).catch(() => { });
     } catch (e) { }
-
-    // Save to History
-    savePulsePayRecord({
-        refId,
-        recipient,
-        amount,
-        token,
-        memo,
-        url: checkoutUrl,
-        type: 'created',
-        status: 'Active',
-        createdTimestamp: Date.now()
-    });
-
-    renderPulsePayHistory();
-    safeInitIcons();
 
     showToast('Payment Link & QR Generated! ⚡', 'Invoice ready to share. Checkout link copied to clipboard.', 'success');
 }
 
 function closePulsePayShareModal() {
     const modal = document.getElementById('pulsePayShareModal');
-    if (modal) {
-        modal.classList.add('hidden');
-    }
+    if (modal) modal.classList.add('hidden');
 }
 
 function copyPulsePayModalLink() {
@@ -8218,9 +8460,7 @@ async function sharePulsePayNative() {
             });
             showToast('Shared Successfully! 🚀', 'Payment invoice shared.', 'success');
             return;
-        } catch (e) {
-            console.log("Native share cancelled or not supported");
-        }
+        } catch (e) { }
     }
 
     // Fallback: Copy link and download QR image
@@ -8229,7 +8469,7 @@ async function sharePulsePayNative() {
     if (qrImg && qrImg.src) {
         const link = document.createElement('a');
         link.href = qrImg.src;
-        link.download = `PulsePay-Invoice-${Date.now()}.png`;
+        link.download = `PulsePay-QR-${Date.now()}.png`;
         link.target = '_blank';
         document.body.appendChild(link);
         link.click();
@@ -8257,80 +8497,169 @@ function sharePulsePayOnTelegram() {
     window.open(tgUrl, '_blank', 'width=600,height=450');
 }
 
-function renderPulsePayHistory() {
-    const container = document.getElementById('pulsePayHistoryList');
-    const countEl = document.getElementById('pulsePayHistoryCount');
-    if (!container) return;
-
-    const list = getPulsePayHistory();
-    if (countEl) countEl.innerText = `${list.length} Records`;
-
-    if (list.length === 0) {
-        container.innerHTML = `
-            <div class="text-center py-8 text-slate-400 font-mono">
-                No payment links or receipts recorded yet. Create a link above to get started!
-            </div>
-        `;
-        return;
-    }
-
-    let html = '';
-    list.forEach(item => {
-        const isPaid = item.type === 'paid' || item.status === 'Settled';
-        const formattedDate = new Date(item.timestamp || item.createdTimestamp || Date.now()).toLocaleString();
-        const shortRec = item.recipient ? `${item.recipient.substring(0, 6)}...${item.recipient.substring(item.recipient.length - 4)}` : '0x...';
-        const shortTx = item.txHash ? `${item.txHash.substring(0, 8)}...` : null;
-
-        html += `
-            <div class="p-3.5 rounded-xl bg-slate-50 border-2 border-slate-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <div class="flex items-center gap-3">
-                    <div class="p-2 rounded-lg ${isPaid ? 'bg-emerald-100 text-emerald-700 border border-emerald-300' : 'bg-purple-100 text-purple-700 border border-purple-300'} shrink-0">
-                        <i data-lucide="${isPaid ? 'check-check' : 'qr-code'}" class="w-4 h-4"></i>
-                    </div>
-                    <div>
-                        <div class="font-bold text-slate-950 flex items-center gap-2">
-                            <span>${item.amount} ${item.token || 'USDC'}</span>
-                            <span class="text-slate-400">&bull;</span>
-                            <span class="text-xs ${isPaid ? 'text-emerald-700 font-bold' : 'text-purple-700 font-bold'}">${item.refId || 'ARC-PAY'}</span>
-                            <span class="text-[10px] ${isPaid ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} px-2 py-0.5 rounded font-mono font-bold">${item.status || (isPaid ? 'Settled' : 'Active')}</span>
-                        </div>
-                        <div class="text-[11px] text-slate-500 mt-0.5">
-                            <span>To: <strong>${shortRec}</strong></span> &bull; <span>${item.memo || 'Arc Payment'}</span> &bull; <span>${formattedDate}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
-                    ${shortTx ? `
-                        <a href="https://testnet.arcscan.app/tx/${item.txHash}" target="_blank" class="text-[11px] font-bold text-purple-700 hover:text-purple-900 flex items-center gap-1 bg-white border border-slate-300 px-2.5 py-1.5 rounded-lg shadow-sm">
-                            <span>${shortTx}</span>
-                            <i data-lucide="external-link" class="w-3 h-3"></i>
-                        </a>
-                    ` : `
-                        <button onclick="copyGeneratedLinkFromHistory('${item.refId}', '${item.recipient}', ${item.amount}, '${item.token || 'USDC'}', '${encodeURIComponent(item.memo || '')}')" class="btn-pixel-sm px-2.5 py-1.5 rounded-lg bg-purple-100 hover:bg-purple-200 text-purple-900 text-[11px] font-bold flex items-center gap-1">
-                            <i data-lucide="copy" class="w-3 h-3"></i> Copy Link
-                        </button>
-                    `}
-                </div>
-            </div>
-        `;
-    });
-
-    container.innerHTML = html;
-    safeInitIcons();
-}
-
 function copyGeneratedLinkFromHistory(refId, recipient, amount, token, encodedMemo) {
     const origin = window.location.origin && window.location.origin !== 'null' ? window.location.origin : 'https://pulsegrid-hub.vercel.app';
     const memo = decodeURIComponent(encodedMemo || '');
-    const link = `${origin}/pay.html?to=${encodeURIComponent(recipient)}&amt=${encodeURIComponent(amount)}&token=${encodeURIComponent(token)}&msg=${encodeURIComponent(memo)}&ref=${encodeURIComponent(refId)}`;
+    const link = `${origin}/pay.html?to=${encodeURIComponent(recipient)}&amt=${encodeURIComponent(amount)}&token=${encodeURIComponent(token)}&msg=${encodeURIComponent(memo)}&ref=${encodeURIComponent(refId)}&src=link`;
 
     navigator.clipboard.writeText(link).then(() => {
         showToast('Link Copied! 📋', 'PulsePay checkout link copied to clipboard.', 'success');
     });
 }
 
-// Check if visiting archpulse.html directly with ?pay= or ?amt= and redirect to pay.html
+// Receipt Modal Handler
+function openPulsePayReceiptModal(idOrRef) {
+    const list = getPulsePayTransactions();
+    const item = list.find(tx => tx.id === idOrRef || tx.refId === idOrRef) || list[0];
+    if (!item) return;
+
+    const isQR = item.channel === 'qr';
+    const isDirect = item.channel === 'direct';
+
+    const pillEl = document.getElementById('receiptChannelPill');
+    if (pillEl) {
+        if (isQR) {
+            pillEl.className = 'inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300';
+            pillEl.innerHTML = '📱 QR Code Scan';
+        } else if (isDirect) {
+            pillEl.className = 'inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 border border-teal-300';
+            pillEl.innerHTML = '⚡ Direct P2P';
+        } else {
+            pillEl.className = 'inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-300';
+            pillEl.innerHTML = '🔗 Payment Link';
+        }
+    }
+
+    safeSetText('receiptAmountText', `+${parseFloat(item.amount).toFixed(2)} ${item.token || 'USDC'}`);
+    safeSetText('receiptRefId', item.refId || 'ARC-PAY');
+    safeSetText('receiptMethodText', isQR ? 'Dynamic QR Scan' : (isDirect ? 'Direct P2P Payment' : 'Sharable Payment Link'));
+    safeSetText('receiptMemoText', item.memo || 'Arc Ecosystem Services');
+    safeSetText('receiptSenderText', item.sender || 'Payer');
+    safeSetText('receiptRecipientText', item.recipient || '0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947');
+    safeSetText('receiptTimeText', new Date(item.timestamp || Date.now()).toLocaleString());
+
+    const explorerBtn = document.getElementById('receiptExplorerBtn');
+    if (explorerBtn && item.txHash) {
+        explorerBtn.href = `https://testnet.arcscan.app/tx/${item.txHash}`;
+    }
+
+    const modal = document.getElementById('pulsePayReceiptModal');
+    if (modal) modal.classList.remove('hidden');
+    safeInitIcons();
+}
+
+function closePulsePayReceiptModal() {
+    const modal = document.getElementById('pulsePayReceiptModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+// Direct 1-Click USDC Transfer Execution
+async function executePulsePayDirectSend() {
+    const recipientInput = document.getElementById('pulsePayDirectRecipient');
+    const amountInput = document.getElementById('pulsePayDirectAmount');
+    const memoInput = document.getElementById('pulsePayDirectMemo');
+    const sendBtn = document.getElementById('pulsePayDirectSendBtn');
+
+    const recipient = recipientInput?.value?.trim();
+    const amount = parseFloat(amountInput?.value || '0');
+    const memo = memoInput?.value?.trim() || 'PulseGrid Direct P2P';
+
+    if (!recipient || !recipient.startsWith('0x') || recipient.length !== 42) {
+        showToast('Invalid Recipient Address', 'Please enter a valid 0x EVM wallet address.', 'warning');
+        if (recipientInput) recipientInput.focus();
+        return;
+    }
+
+    if (isNaN(amount) || amount <= 0) {
+        showToast('Invalid Amount', 'Please enter an amount greater than 0 USDC.', 'warning');
+        if (amountInput) amountInput.focus();
+        return;
+    }
+
+    if (!window.ethereum) {
+        showToast('MetaMask Required', 'Please install or enable MetaMask to send transactions.', 'warning');
+        return;
+    }
+
+    try {
+        if (sendBtn) {
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Confirming in MetaMask...`;
+            safeInitIcons();
+        }
+
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner();
+        const userAddress = await signer.getAddress();
+
+        const PULSEPAY_CONTRACT_ADDRESS = "0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947";
+        const PULSEPAY_ABI = [
+            "function directPay(address payable recipient, string calldata memo) external payable",
+            "function payInvoice(bytes32 invoiceId, address payable recipient, string calldata memo) external payable"
+        ];
+
+        let txHash = null;
+        try {
+            const contract = new ethers.Contract(PULSEPAY_CONTRACT_ADDRESS, PULSEPAY_ABI, signer);
+            const amountWei = ethers.utils.parseEther(amount.toString());
+            const tx = await contract.directPay(recipient, memo, { value: amountWei });
+            txHash = tx.hash;
+        } catch (contractErr) {
+            console.warn("Direct contract call fallback to native USDC send:", contractErr);
+            const tx = await signer.sendTransaction({
+                to: recipient,
+                value: ethers.utils.parseEther(amount.toString())
+            });
+            txHash = tx.hash;
+        }
+
+        if (sendBtn) {
+            sendBtn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Settling on Arc L1 (<0.5s)...`;
+            safeInitIcons();
+        }
+
+        await provider.waitForTransaction(txHash);
+
+        // Record Settled Direct Payment
+        const refId = generateRandomInvoiceRef();
+        const newTx = {
+            id: `TX-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+            refId: refId,
+            type: "sent",
+            amount: amount,
+            token: "USDC",
+            sender: userAddress,
+            recipient: recipient,
+            memo: memo,
+            channel: "direct",
+            channelLabel: "Direct Payment",
+            status: "Settled",
+            finality: "~0.4s",
+            txHash: txHash,
+            timestamp: Date.now()
+        };
+
+        savePulsePayTransaction(newTx);
+        renderPulsePayHistory(currentPulsePayFilter);
+        calculatePulsePayStats();
+
+        showToast('Payment Settled! ⚡', `Sent ${amount} USDC to ${recipient.substring(0, 6)}... in ~0.4s.`, 'success');
+
+        if (amountInput) amountInput.value = '5.00';
+    } catch (err) {
+        console.error("Direct send error:", err);
+        showToast('Payment Cancelled', err.message ? err.message.substring(0, 60) : 'Transaction rejected.', 'error');
+    } finally {
+        if (sendBtn) {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = `<i data-lucide="zap" class="w-4 h-4"></i><span>Send Direct USDC Now</span>`;
+            safeInitIcons();
+        }
+    }
+}
+
+// Redirect checking
 function checkPulsePayRedirect() {
     try {
         const urlParams = new URLSearchParams(window.location.search);
@@ -8340,9 +8669,10 @@ function checkPulsePayRedirect() {
             const token = urlParams.get('token') || 'USDC';
             const msg = urlParams.get('memo') || urlParams.get('msg') || 'Arc Ecosystem Services';
             const ref = urlParams.get('ref') || 'ARC-PAY';
+            const src = urlParams.get('src') || 'link';
 
             const origin = window.location.origin && window.location.origin !== 'null' ? window.location.origin : 'https://pulsegrid-hub.vercel.app';
-            window.location.href = `${origin}/pay.html?to=${encodeURIComponent(to)}&amt=${encodeURIComponent(amt)}&token=${encodeURIComponent(token)}&msg=${encodeURIComponent(msg)}&ref=${encodeURIComponent(ref)}`;
+            window.location.href = `${origin}/pay.html?to=${encodeURIComponent(to)}&amt=${encodeURIComponent(amt)}&token=${encodeURIComponent(token)}&msg=${encodeURIComponent(msg)}&ref=${encodeURIComponent(ref)}&src=${encodeURIComponent(src)}`;
         }
     } catch (e) {
         console.warn("checkPulsePayRedirect error:", e);

@@ -3730,12 +3730,19 @@ async function refreshTelemetry() {
 function openFaucetModal() {
     safeSetText('faucetTargetAddrText', currentAccount || '0x... (Connect Wallet)');
     const modal = document.getElementById('faucetModal');
-    if (modal) modal.classList.remove('hidden');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+        safeInitIcons();
+    }
 }
 
 function closeFaucetModal() {
     const modal = document.getElementById('faucetModal');
-    if (modal) modal.classList.add('hidden');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+    }
 }
 
 function claimInAppFaucet() {
@@ -3802,12 +3809,19 @@ function openTxHistoryModal() {
         }
     }
     const modal = document.getElementById('txHistoryModal');
-    if (modal) modal.classList.remove('hidden');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+        safeInitIcons();
+    }
 }
 
 function closeTxHistoryModal() {
     const modal = document.getElementById('txHistoryModal');
-    if (modal) modal.classList.add('hidden');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+    }
 }
 
 function showToast(title, message, type = 'info') {

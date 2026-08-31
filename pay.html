@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +10,9 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Silkscreen:wght@400;700&family=Space+Mono:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Silkscreen:wght@400;700&family=Space+Mono:wght@400;700&family=VT323&display=swap"
+        rel="stylesheet">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -27,16 +30,24 @@
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: #0B0F17;
-            background-image: 
+            background-image:
                 radial-gradient(at 0% 0%, rgba(123, 44, 191, 0.25) 0px, transparent 50%),
                 radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.15) 0px, transparent 50%),
                 radial-gradient(at 50% 50%, rgba(15, 23, 42, 0.85) 0px, transparent 100%);
             min-height: 100vh;
         }
 
-        .font-pixel { font-family: 'VT323', monospace; }
-        .font-silkscreen { font-family: 'Silkscreen', monospace; }
-        .font-mono { font-family: 'Space Mono', monospace; }
+        .font-pixel {
+            font-family: 'VT323', monospace;
+        }
+
+        .font-silkscreen {
+            font-family: 'Silkscreen', monospace;
+        }
+
+        .font-mono {
+            font-family: 'Space Mono', monospace;
+        }
 
         .neo-card {
             background: #FFFFFF;
@@ -50,38 +61,48 @@
             box-shadow: 4px 4px 0px #0F172A;
             transition: all 0.15s ease;
         }
+
         .btn-neo:hover {
             transform: translate(-2px, -2px);
             box-shadow: 6px 6px 0px #0F172A;
         }
+
         .btn-neo:active {
             transform: translate(2px, 2px);
             box-shadow: 2px 2px 0px #0F172A;
         }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center p-4 sm:p-6 text-slate-900 selection:bg-purple-500 selection:text-white">
+
+<body
+    class="flex flex-col items-center justify-center p-4 sm:p-6 text-slate-900 selection:bg-purple-500 selection:text-white">
 
     <!-- Header Brand Pill with PulseGrid Official Logo -->
     <div class="mb-5 flex items-center gap-2.5">
-        <a href="PulseGrid.html" class="flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all shadow-lg">
-            <img src="logo.png" alt="PulseGrid Logo" class="w-7 h-7 rounded-lg border border-white/30 object-cover bg-white p-0.5 shadow-sm">
+        <a href="PulseGrid.html"
+            class="flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all shadow-lg">
+            <img src="logo.png" alt="PulseGrid Logo"
+                class="w-7 h-7 rounded-lg border border-white/30 object-cover bg-white p-0.5 shadow-sm">
             <span class="font-pixel text-xl font-bold tracking-wider text-white">PulseGrid</span>
             <span class="text-purple-400 font-bold font-pixel text-lg">• PulsePay</span>
-            <span class="text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-400/40">ARC L1</span>
+            <span
+                class="text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-400/40">ARC
+                L1</span>
         </a>
     </div>
 
     <!-- Main Payment Container -->
     <main class="w-full max-w-md">
         <div class="neo-card p-6 sm:p-8 space-y-5 relative overflow-hidden">
-            
+
             <!-- Top Status & Logo Indicator -->
             <div class="flex items-center justify-between border-b-2 border-slate-950 pb-3.5">
                 <div class="flex items-center gap-2.5">
-                    <img src="logo.png" alt="PulseGrid" class="w-8 h-8 rounded-xl border-2 border-slate-950 bg-white p-0.5 shadow-[2px_2px_0px_#0F172A] shrink-0">
+                    <img src="logo.png" alt="PulseGrid"
+                        class="w-8 h-8 rounded-xl border-2 border-slate-950 bg-white p-0.5 shadow-[2px_2px_0px_#0F172A] shrink-0">
                     <div>
-                        <div class="font-silkscreen text-xs font-bold text-slate-950 uppercase flex items-center gap-1.5">
+                        <div
+                            class="font-silkscreen text-xs font-bold text-slate-950 uppercase flex items-center gap-1.5">
                             <span>PulsePay Checkout</span>
                         </div>
                         <div class="text-[10px] font-mono text-emerald-600 font-bold flex items-center gap-1">
@@ -90,7 +111,8 @@
                         </div>
                     </div>
                 </div>
-                <span id="networkPill" class="text-[10px] font-mono font-bold bg-purple-100 text-purple-900 border border-purple-300 px-2.5 py-1 rounded-lg">
+                <span id="networkPill"
+                    class="text-[10px] font-mono font-bold bg-purple-100 text-purple-900 border border-purple-300 px-2.5 py-1 rounded-lg">
                     Arc Testnet
                 </span>
             </div>
@@ -99,7 +121,8 @@
             <div class="text-center py-1 space-y-1">
                 <div class="text-xs font-bold text-slate-500 font-mono uppercase tracking-wider">Amount to Pay</div>
                 <div class="flex items-baseline justify-center gap-2">
-                    <span id="displayAmount" class="font-pixel text-5xl sm:text-6xl font-black text-slate-950">10.00</span>
+                    <span id="displayAmount"
+                        class="font-pixel text-5xl sm:text-6xl font-black text-slate-950">10.00</span>
                     <span id="displayToken" class="font-pixel text-2xl font-bold text-purple-700">USDC</span>
                 </div>
                 <div class="text-[11px] font-mono text-emerald-600 font-bold flex items-center justify-center gap-1">
@@ -123,7 +146,8 @@
             <div class="p-4 rounded-2xl bg-slate-50 border-2 border-slate-950 space-y-2 font-mono text-xs">
                 <div class="flex justify-between items-center text-slate-600">
                     <span>Payee (Merchant):</span>
-                    <span id="displayRecipient" class="font-bold text-purple-700 truncate max-w-[170px]" title="Recipient Address">0x...</span>
+                    <span id="displayRecipient" class="font-bold text-purple-700 truncate max-w-[170px]"
+                        title="Recipient Address">0x...</span>
                 </div>
                 <div class="flex justify-between items-center text-slate-600">
                     <span>Invoice Reference:</span>
@@ -136,25 +160,29 @@
             </div>
 
             <!-- Status Banner (Shows info or progress during payment) -->
-            <div id="statusBanner" class="p-3.5 rounded-xl bg-slate-100 border-2 border-slate-300 text-slate-700 text-xs font-mono font-bold flex items-center gap-2">
+            <div id="statusBanner"
+                class="p-3.5 rounded-xl bg-slate-100 border-2 border-slate-300 text-slate-700 text-xs font-mono font-bold flex items-center gap-2">
                 <i data-lucide="shield-check" class="w-4 h-4 text-purple-600 shrink-0"></i>
                 <span id="statusBannerText">Click the button below to connect &amp; pay via MetaMask</span>
             </div>
 
             <!-- Main Interactive Pay Button -->
             <div class="space-y-2.5">
-                <button id="payNowBtn" onclick="triggerPayment()" class="btn-neo w-full py-4.5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-purple-700 hover:from-emerald-500 hover:to-purple-600 text-white font-pixel text-2xl font-bold flex items-center justify-center gap-2 shadow-[4px_4px_0px_#0F172A] cursor-pointer">
+                <button id="payNowBtn" onclick="triggerPayment()"
+                    class="btn-neo w-full py-4.5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-purple-700 hover:from-emerald-500 hover:to-purple-600 text-white font-pixel text-2xl font-bold flex items-center justify-center gap-2 shadow-[4px_4px_0px_#0F172A] cursor-pointer">
                     <i data-lucide="wallet" class="w-5 h-5"></i>
                     <span id="payNowBtnText">Pay 10.00 USDC (MetaMask)</span>
                 </button>
 
-                <button id="switchWalletBtn" onclick="switchConnectedWallet()" class="w-full py-1 text-center text-xs font-mono text-slate-500 hover:text-purple-700 hover:underline">
+                <button id="switchWalletBtn" onclick="switchConnectedWallet()"
+                    class="w-full py-1 text-center text-xs font-mono text-slate-500 hover:text-purple-700 hover:underline">
                     Connect different wallet
                 </button>
             </div>
 
             <!-- Success Receipt (Shows after payment confirmation) -->
-            <div id="successReceiptCard" class="hidden p-5 rounded-2xl bg-emerald-50 border-3 border-emerald-600 space-y-3 font-mono text-xs animate-in zoom-in-95 duration-200">
+            <div id="successReceiptCard"
+                class="hidden p-5 rounded-2xl bg-emerald-50 border-3 border-emerald-600 space-y-3 font-mono text-xs animate-in zoom-in-95 duration-200">
                 <div class="flex items-center gap-2 text-emerald-900 font-bold text-base font-pixel">
                     <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-600"></i>
                     <span>Payment Confirmed on Arc L1!</span>
@@ -164,7 +192,8 @@
                 </p>
                 <div class="pt-2 border-t border-emerald-200 flex justify-between items-center">
                     <span class="text-slate-500">Receipt on Explorer:</span>
-                    <a id="receiptTxLink" href="#" target="_blank" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-bold text-[11px] flex items-center gap-1 hover:bg-emerald-700 shadow-sm">
+                    <a id="receiptTxLink" href="#" target="_blank"
+                        class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-bold text-[11px] flex items-center gap-1 hover:bg-emerald-700 shadow-sm">
                         <span>View ArcScan</span>
                         <i data-lucide="external-link" class="w-3 h-3"></i>
                     </a>
@@ -207,7 +236,7 @@
         // 1. Parse URL Parameters
         function parseParams() {
             const params = new URLSearchParams(window.location.search);
-            
+
             if (params.has('to') || params.has('pay')) {
                 targetRecipient = params.get('to') || params.get('pay');
             }
@@ -230,12 +259,12 @@
             document.getElementById('displayToken').innerText = targetToken;
             document.getElementById('displayMessage').innerText = `"${targetMemo}"`;
             document.getElementById('displayRefId').innerText = targetRef;
-            
+
             const shortRec = targetRecipient.length > 12 ? `${targetRecipient.substring(0, 6)}...${targetRecipient.substring(targetRecipient.length - 4)}` : targetRecipient;
             document.getElementById('displayRecipient').innerText = shortRec;
             document.getElementById('displayRecipient').title = targetRecipient;
             document.getElementById('payNowBtnText').innerText = `Pay ${targetAmount.toFixed(2)} ${targetToken} (MetaMask)`;
-            
+
             safeInitIcons();
         }
 
@@ -344,7 +373,7 @@
                 // Save to local PulsePay transaction & received payment history
                 try {
                     const newTx = {
-                        id: `TX-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+                        id: `TX-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
                         refId: targetRef || 'ARC-PAY-INV',
                         type: 'received',
                         amount: targetAmount,
@@ -369,14 +398,14 @@
                     const txList = existingRaw ? JSON.parse(existingRaw) : [];
                     txList.unshift(newTx);
                     localStorage.setItem('pulsepay_transactions_v2', JSON.stringify(txList.slice(0, 100)));
-                } catch(storageErr) {
+                } catch (storageErr) {
                     console.warn("Could not save PulsePay transaction locally:", storageErr);
                 }
 
                 // Success!
                 banner.className = 'p-3.5 rounded-xl bg-emerald-50 border-2 border-emerald-400 text-emerald-900 text-xs font-mono font-bold flex items-center gap-2';
                 bannerText.innerText = "Payment settled & verified on Arc L1!";
-                
+
                 payBtn.disabled = false;
                 payBtn.className = "btn-neo w-full py-4.5 rounded-2xl bg-emerald-600 text-white font-pixel text-2xl font-bold flex items-center justify-center gap-2";
                 payBtnText.innerText = `✓ Paid ${targetAmount.toFixed(2)} ${targetToken}`;
@@ -396,7 +425,7 @@
                 console.error("Payment error:", err);
                 payBtn.disabled = false;
                 payBtnText.innerText = `Pay ${targetAmount.toFixed(2)} ${targetToken} (MetaMask)`;
-                
+
                 banner.className = 'p-3.5 rounded-xl bg-rose-50 border-2 border-rose-400 text-rose-900 text-xs font-mono font-bold flex items-center gap-2';
                 bannerText.innerText = err.message ? (err.message.substring(0, 75) + '...') : "Payment cancelled or rejected.";
             }
@@ -418,4 +447,5 @@
         });
     </script>
 </body>
+
 </html>

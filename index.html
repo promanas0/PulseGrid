@@ -1,267 +1,983 @@
 <!DOCTYPE html>
-<html lang="en" class="dark scroll-smooth">
+<html lang="en">
 <head>
     <link rel="icon" type="image/png" href="logo.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agent Ai | AI Infrastructure &amp; Revenue Operations Platform</title>
-    <meta name="description" content="Agent Ai gives revenue teams the data layer, workflow tools, integrations, and intelligent agents they need to automate go-to-market operations safely.">
-    <meta property="og:title" content="Agent Ai | AI Infrastructure for Revenue Teams">
-    <meta property="og:description" content="Launch autonomous AI agents that prospect, engage, qualify, and support customers while continuously learning from every interaction.">
+    <title>PulseGrid — Arc L1 Web3 Ecosystem & DEX Engine</title>
+    <meta name="description" content="PulseGrid is a professional Web3 dApp ecosystem built on Circle Arc L1. Sub-second finality, micro USDC gas, institutional consortium validator security.">
+    <meta property="og:title" content="PulseGrid — Arc L1 Web3 Ecosystem">
+    <meta property="og:description" content="Sub-second finality, micro USDC gas fees, institutional validator security on Circle Arc L1 Testnet.">
 
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
-                    colors: {
-                        neutral: {
-                            950: '#0a0a0a',
-                            900: '#171717',
-                            800: '#262626',
-                            700: '#404040',
-                        }
-                    },
+                    borderWidth: { '3': '3px', '4': '4px' },
                     fontFamily: {
                         sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
                         mono: ['"Fira Code"', 'monospace'],
-                    },
-                    animation: {
-                        'marquee': 'marquee 30s linear infinite',
-                        'marquee-reverse': 'marquee-reverse 30s linear infinite',
-                        'accordion-down': 'accordionDown 0.2s ease-out',
-                        'accordion-up': 'accordionUp 0.2s ease-out',
-                    },
-                    keyframes: {
-                        marquee: {
-                            '0%': { transform: 'translateX(0%)' },
-                            '100%': { transform: 'translateX(-50%)' }
-                        },
-                        'marquee-reverse': {
-                            '0%': { transform: 'translateX(-50%)' },
-                            '100%': { transform: 'translateX(0%)' }
-                        },
-                        accordionDown: {
-                            from: { height: '0', opacity: '0' },
-                            to: { height: 'var(--radix-accordion-content-height)', opacity: '1' }
-                        },
-                        accordionUp: {
-                            from: { height: 'var(--radix-accordion-content-height)', opacity: '1' },
-                            to: { height: '0', opacity: '0' }
-                        }
                     }
                 }
             }
         }
     </script>
 
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
-    
-    <!-- Lucide Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300..800&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
         *, *::before, *::after { box-sizing: border-box; }
+
         body {
             font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-            background-color: #0a0a0a;
-            color: #ffffff;
+            background: #FAFAFA;
+            color: #0F172A;
             overflow-x: hidden;
         }
 
-        .bg-gradient {
-            background-image: radial-gradient(120% 80% at 50% 0%, rgba(255, 200, 150, 0.055), transparent 60%);
+        /* Subtle dot grid */
+        .dot-grid {
+            background-color: #F8FAFC;
+            background-image: radial-gradient(circle, #CBD5E1 1px, transparent 1px);
+            background-size: 30px 30px;
         }
 
-        /* Marquee Animation Support */
-        .marquee-container {
-            position: relative;
-            width: 100%;
-            overflow: hidden;
-            mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
-            -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
-        }
-        .marquee-track {
-            display: flex;
-            width: max-content;
-            animation: marquee 25s linear infinite;
-            gap: 3rem;
+        /* Pixel design tokens */
+        .btn-primary {
+            display: inline-flex;
             align-items: center;
+            gap: 8px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 800;
+            font-size: 14px;
+            background: linear-gradient(135deg, #6D28D9, #4F46E5, #0D9488);
+            color: white;
+            border: 2.5px solid #0F172A;
+            box-shadow: 4px 4px 0px #0F172A;
+            border-radius: 14px;
+            padding: 14px 28px;
+            cursor: pointer;
+            transition: all 0.12s ease;
+            text-decoration: none;
         }
-        .marquee-track:hover {
-            animation-play-state: paused;
+        .btn-primary:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px #0F172A;
+            filter: brightness(1.08);
+        }
+        .btn-primary:active {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0px #0F172A;
         }
 
-        /* FAQ Accordion Transitions */
-        .faq-content {
-            display: none;
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            color: white;
+            background: rgba(255,255,255,0.08);
+            border: 2px solid rgba(255,255,255,0.25);
+            border-radius: 14px;
+            padding: 14px 24px;
+            cursor: pointer;
+            transition: all 0.12s ease;
+            text-decoration: none;
+        }
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            color: #334155;
+            background: white;
+            border: 2px solid #E2E8F0;
+            border-radius: 12px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: all 0.12s ease;
+            text-decoration: none;
+        }
+        .btn-outline:hover {
+            border-color: #7B2CBF;
+            color: #7B2CBF;
+            box-shadow: 0 0 0 3px rgba(123,44,191,0.1);
+        }
+
+        /* Navbar */
+        .navbar {
+            background: rgba(255,255,255,0.97);
+            border: 2.5px solid #0F172A;
+            border-radius: 18px;
+            box-shadow: 4px 4px 0px #0F172A;
+            backdrop-filter: blur(20px);
+        }
+
+        /* Hero */
+        .hero-banner {
+            background: linear-gradient(145deg, #0F172A 0%, #1E1B4B 25%, #312E81 55%, #0D6E6E 100%);
+            border: 4px solid #0F172A;
+            border-radius: 24px;
+            box-shadow: 8px 8px 0px #0F172A;
+            position: relative;
             overflow: hidden;
-            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
-        }
-        .faq-content.open {
-            display: block;
-        }
-        .faq-icon {
-            transition: transform 0.2s ease;
-        }
-        .faq-icon.rotate-45 {
-            transform: rotate(45deg);
         }
 
-        /* Tab Switcher in Infrastructure */
-        .infra-tab-content {
-            display: none;
-        }
-        .infra-tab-content.active {
-            display: block;
-            animation: fadeIn 0.3s ease forwards;
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(70px);
+            pointer-events: none;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(6px); }
+        /* Cards */
+        .card {
+            background: white;
+            border: 2.5px solid #0F172A;
+            border-radius: 18px;
+            box-shadow: 4px 4px 0px #0F172A;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .card:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 7px 7px 0px #6D28D9;
+        }
+
+        /* Metric */
+        .metric-pill {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 16px;
+            padding: 16px 20px;
+        }
+
+        /* Status dot */
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #10B981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
+            50% { opacity: 0.9; box-shadow: 0 0 0 6px rgba(16,185,129,0); }
+        }
+
+        /* Partner badge — clickable */
+        .partner-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            border: 1.5px solid #E2E8F0;
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-weight: 700;
+            font-size: 13px;
+            color: #334155;
+            box-shadow: 2px 2px 0px #E2E8F0;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+        .partner-badge:hover {
+            border-color: #7B2CBF;
+            box-shadow: 3px 3px 0px #7B2CBF;
+            color: #1E293B;
+            transform: translate(-1px, -1px);
+        }
+
+        /* Spec table row */
+        .spec-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid #F1F5F9;
+        }
+        .spec-row:last-child { border-bottom: none; }
+
+        /* Section badge */
+        .section-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 14px;
+            background: #F0EDFB;
+            border: 1px solid #C4B5FD;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #5B21B6;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+        }
+
+        /* Roadmap step */
+        .roadmap-step {
+            display: flex;
+            gap: 20px;
+            position: relative;
+        }
+        .roadmap-line {
+            position: absolute;
+            left: 17px;
+            top: 40px;
+            bottom: -20px;
+            width: 2px;
+            background: linear-gradient(to bottom, #7B2CBF, transparent);
+        }
+        .roadmap-dot {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 3px solid #0F172A;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 12px;
+            font-weight: 800;
+            box-shadow: 2px 2px 0px #0F172A;
+        }
+        .roadmap-dot.active {
+            background: linear-gradient(135deg, #6D28D9, #0D9488);
+            color: white;
+        }
+        .roadmap-dot.done {
+            background: #ECFDF5;
+            color: #059669;
+            border-color: #059669;
+        }
+
+        /* Fade in */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        .fade-up { animation: fadeUp 0.55s ease both; }
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #0a0a0a; }
-        ::-webkit-scrollbar-thumb { background: #262626; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #404040; }
+        /* Divider */
+        hr.pixel { border: none; border-top: 2.5px solid #0F172A; margin: 0; }
+
+        /* Mobile menu */
+        #mobile-nav { display: none; }
+        #mobile-nav.open { display: flex; }
+
+        /* Section separator */
+        .section-sep {
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, #6D28D9, #0D9488);
+            border-radius: 4px;
+            margin: 12px 0 0 0;
+        }
+
+        /* Feature icon box */
+        .feat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            border: 2.5px solid #0F172A;
+            box-shadow: 2px 2px 0px #0F172A;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* dApp card */
+        .dapp-card {
+            background: white;
+            border: 2.5px solid #0F172A;
+            border-radius: 18px;
+            box-shadow: 4px 4px 0px #0F172A;
+            transition: all 0.18s ease;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+        }
+        .dapp-card:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 7px 7px 0px #6D28D9;
+        }
     </style>
 </head>
 
-<body class="bg-neutral-950 text-white min-h-screen selection:bg-white selection:text-neutral-950">
+<body class="dot-grid min-h-screen">
 
-    <!-- ════════════════════════ STICKY NAVBAR ════════════════════════ -->
-    <nav class="sticky top-0 z-50 w-full bg-neutral-950/90 backdrop-blur-md border-b border-white/[0.06]">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16 md:h-20">
-                
-                <!-- Logo -->
-                <a class="flex items-center gap-2 text-white z-50 group" href="index.html">
-                    <img alt="logo" width="28" height="28" class="rounded-lg border border-white/20 p-0.5 bg-neutral-900 object-cover" src="logo.png"/>
-                    <span class="text-lg font-semibold tracking-tight text-white group-hover:text-white/80 transition-colors">Agent Ai</span>
+    <!-- ════════════════════════ NAVBAR ════════════════════════ -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6">
+        <nav class="navbar px-5 sm:px-8 py-4 flex items-center justify-between gap-4">
+            <!-- Logo -->
+            <a href="index.html" class="flex items-center gap-3" aria-label="PulseGrid Home">
+                <img src="logo.png" alt="PulseGrid Logo" class="w-10 h-10 rounded-xl border-2 border-slate-900 shadow-[2px_2px_0px_#0F172A] object-cover bg-white p-0.5">
+                <div>
+                    <span class="text-xl sm:text-2xl font-black tracking-tight text-slate-950">PulseGrid</span>
+                    <span class="ml-2 hidden sm:inline-block px-2 py-0.5 rounded-md bg-violet-100 text-violet-800 border border-violet-300 text-[10px] font-mono font-bold uppercase tracking-wide">Arc L1 Testnet</span>
+                </div>
+            </a>
+
+            <!-- Desktop links -->
+            <div class="hidden md:flex items-center gap-7 text-sm font-semibold text-slate-500">
+                <a href="#dapps" class="hover:text-violet-700 transition-colors">dApps</a>
+                <a href="#protocol" class="hover:text-violet-700 transition-colors">Protocol</a>
+                <a href="#roadmap" class="hover:text-violet-700 transition-colors">Roadmap</a>
+                <a href="https://testnet.arcscan.app" target="_blank" rel="noopener" class="hover:text-violet-700 transition-colors">Explorer</a>
+            </div>
+
+            <!-- CTA -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <a href="archpulse.html" class="btn-primary text-sm px-4 sm:px-6 py-2.5">
+                    <i data-lucide="compass" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Explore dApps</span>
+                    <span class="sm:hidden">Launch</span>
                 </a>
-
-                <!-- Desktop Navigation Links -->
-                <div class="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
-                    <a class="text-sm text-white/55 hover:text-white transition-colors font-medium" href="#overview">Overview</a>
-                    <a class="text-sm text-white/55 hover:text-white transition-colors font-medium" href="#customers">Customers</a>
-                    <a class="text-sm text-white/55 hover:text-white transition-colors font-medium" href="#capabilities">Platform</a>
-                    <a class="text-sm text-white/55 hover:text-white transition-colors font-medium" href="#pricing">Pricing</a>
-                    <a class="text-sm text-white/55 hover:text-white transition-colors font-medium" href="#faq">FAQ</a>
-                </div>
-
-                <!-- Auth / Action Buttons -->
-                <div class="hidden md:flex items-center gap-4">
-                    <a class="text-sm text-white/55 hover:text-white transition-colors font-medium" href="archpulse.html?page=wallet">Login</a>
-                    <a class="bg-white text-neutral-950 text-sm font-semibold px-4 py-2 rounded-lg hover:bg-neutral-200 transition-colors shadow-sm" href="archpulse.html">Launch App</a>
-                </div>
-
-                <!-- Mobile Menu Button -->
-                <button id="mobile-menu-btn" onclick="toggleMobileNav()" class="md:hidden text-white p-2 rounded-lg hover:bg-white/5" aria-label="Toggle menu">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M4 5h16"></path><path d="M4 12h16"></path><path d="M4 19h16"></path></svg>
+                <button id="mobile-btn" onclick="toggleNav()" class="md:hidden p-2.5 rounded-xl border-2 border-slate-900 bg-white shadow-[2px_2px_0px_#0F172A]">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
                 </button>
             </div>
-        </div>
+        </nav>
 
-        <!-- Mobile Menu Dropdown -->
-        <div id="mobile-menu" class="hidden md:hidden bg-neutral-950/95 border-b border-white/[0.08] px-6 py-5 flex-col gap-4 text-sm font-medium">
-            <a class="text-white/70 hover:text-white py-1" href="#overview" onclick="toggleMobileNav()">Overview</a>
-            <a class="text-white/70 hover:text-white py-1" href="#customers" onclick="toggleMobileNav()">Customers</a>
-            <a class="text-white/70 hover:text-white py-1" href="#capabilities" onclick="toggleMobileNav()">Platform</a>
-            <a class="text-white/70 hover:text-white py-1" href="#pricing" onclick="toggleMobileNav()">Pricing</a>
-            <a class="text-white/70 hover:text-white py-1" href="#faq" onclick="toggleMobileNav()">FAQ</a>
-            <div class="pt-3 border-t border-white/10 flex gap-3">
-                <a class="flex-1 text-center py-2 rounded-lg border border-white/20 text-white text-xs font-semibold" href="archpulse.html?page=wallet">Login</a>
-                <a class="flex-1 text-center py-2 rounded-lg bg-white text-neutral-950 text-xs font-bold" href="archpulse.html">Launch App</a>
+        <!-- Mobile menu -->
+        <div id="mobile-nav" class="md:hidden mt-2 navbar px-5 py-4 flex-col gap-3 text-sm font-semibold text-slate-700">
+            <a href="#dapps" onclick="toggleNav()" class="hover:text-violet-700 py-1">dApps</a>
+            <a href="#protocol" onclick="toggleNav()" class="hover:text-violet-700 py-1">Protocol</a>
+            <a href="#roadmap" onclick="toggleNav()" class="hover:text-violet-700 py-1">Roadmap</a>
+            <a href="https://testnet.arcscan.app" target="_blank" rel="noopener" class="hover:text-violet-700 py-1">Block Explorer</a>
+        </div>
+    </div>
+
+    <!-- ════════════════════════ HERO ════════════════════════ -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 mt-5">
+        <div class="hero-banner p-7 sm:p-12 lg:p-16">
+            <div class="orb w-[500px] h-[500px] bg-violet-600/20 -top-32 -right-32"></div>
+            <div class="orb w-80 h-80 bg-teal-500/15 -bottom-20 -left-20"></div>
+            <div class="orb w-60 h-60 bg-indigo-500/10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
+
+            <div class="relative z-10 space-y-9">
+                <!-- Status -->
+                <div class="fade-up inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-slate-300 text-xs font-mono font-semibold">
+                    <div class="live-dot"></div>
+                    Circle Arc L1 Testnet — Chain ID 5042002 — Live
+                </div>
+
+                <!-- Headline -->
+                <div class="fade-up delay-1 max-w-4xl space-y-5">
+                    <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.05] text-transparent bg-clip-text bg-gradient-to-br from-white via-violet-200 to-teal-300">
+                        Arc Web3 Ecosystem<br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-300 via-violet-300 to-white">
+                            &amp; DEX Engine
+                        </span>
+                    </h1>
+                    <p class="text-slate-300 text-base sm:text-xl font-medium leading-relaxed max-w-2xl">
+                        A next-generation institutional blockchain stack with sub-second finality, USDC-denominated gas, permissioned consortium validation, and a full suite of on-chain decentralized applications.
+                    </p>
+                </div>
+
+                <!-- CTAs -->
+                <div class="fade-up delay-2 flex flex-wrap items-center gap-4">
+                    <a href="archpulse.html" class="btn-primary text-sm sm:text-base px-7 sm:px-9 py-3.5 sm:py-4 rounded-2xl">
+                        <i data-lucide="compass" class="w-5 h-5"></i>
+                        Explore dApps
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </a>
+                    <a href="archpulse.html?page=swap" class="btn-secondary text-sm px-6 py-3.5 rounded-2xl">
+                        <i data-lucide="arrow-left-right" class="w-4 h-4 text-violet-300"></i>
+                        Launch Web3 Swap
+                    </a>
+                    <a href="https://testnet.arcscan.app" target="_blank" rel="noopener" class="btn-secondary text-sm px-6 py-3.5 rounded-2xl">
+                        <i data-lucide="external-link" class="w-4 h-4 text-teal-300"></i>
+                        Block Explorer
+                    </a>
+                </div>
+
+                <!-- Metrics -->
+                <div class="fade-up delay-3 grid grid-cols-2 sm:grid-cols-4 gap-3 pt-8 border-t border-white/10">
+                    <div class="metric-pill">
+                        <div class="text-[10px] font-mono uppercase tracking-widest text-violet-300 mb-1">Block Finality</div>
+                        <div class="text-2xl sm:text-3xl font-black font-mono text-white">&lt;1 Sec</div>
+                        <div class="text-[10px] text-violet-300 font-semibold mt-1">Sub-Second Settlement</div>
+                    </div>
+                    <div class="metric-pill">
+                        <div class="text-[10px] font-mono uppercase tracking-widest text-indigo-300 mb-1">Native Gas</div>
+                        <div class="text-2xl sm:text-3xl font-black font-mono text-white">0.001</div>
+                        <div class="text-[10px] text-indigo-300 font-semibold mt-1">USDC per Transaction</div>
+                    </div>
+                    <div class="metric-pill">
+                        <div class="text-[10px] font-mono uppercase tracking-widest text-teal-300 mb-1">Validators</div>
+                        <div class="text-2xl sm:text-3xl font-black font-mono text-white">12</div>
+                        <div class="text-[10px] text-teal-300 font-semibold mt-1">Active Consortium Nodes</div>
+                    </div>
+                    <div class="metric-pill">
+                        <div class="text-[10px] font-mono uppercase tracking-widest text-amber-300 mb-1">Mainnet Target</div>
+                        <div class="text-2xl sm:text-3xl font-black font-mono text-white">Sept 16</div>
+                        <div class="text-[10px] text-amber-300 font-semibold mt-1">2026 Official Launch</div>
+                    </div>
+                </div>
             </div>
         </div>
-    </nav>
+    </div>
 
-    <!-- ════════════════════════ MAIN CONTENT (12 SECTIONS) ════════════════════════ -->
-    <main id="overview" class="w-full min-h-screen bg-neutral-950">
-        <section class="relative isolate bg-neutral-950 px-1 pb-12 md:pb-16" data-section="hero"><div class="relative mx-auto max-w-[1400px] overflow-hidden rounded-b-[20px] pt-12 md:pt-20 bg-neutral-950 bg-gradient"><div class="layout-shell relative z-10 flex flex-col gap-8 px-6 md:px-10 lg:flex-row lg:items-end lg:gap-16 xl:gap-24"><h1 class="flex-1 text-balance text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-normal leading-[1.05] tracking-tight text-white">Deploy AI employees across your entire revenue engine</h1><div class="flex w-full shrink-0 flex-col gap-5 lg:max-w-[360px]"><p class="max-w-[360px] text-base md:text-lg text-white/55 leading-relaxed">Launch autonomous AI agents that prospect, engage, qualify, and support customers while continuously learning from every interaction.</p><div class="flex items-center gap-2"><a class="whitespace-nowrap rounded-[10px] bg-white px-5 py-2 font-medium text-[13px] leading-[18px] text-neutral-950 hover:bg-neutral-200 transition-colors" href="archpulse.html?page=assistant">Book a Demo</a></div></div></div><div class="relative z-10 w-full pt-10 md:pt-14 px-6 md:px-10"><section class="w-full bg-inherit overflow-hidden py-6 md:py-8"><div class="marquee-container"><div class="marquee-fade-left"></div><div class="marquee-fade-right"></div><div class="marquee-track"><div class="marquee-logo"><img alt="Claude" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/claude-wordmark.svg?updatedAt=1774506029294"/></div><div class="marquee-logo"><img alt="Turso" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/turso-wordmark.svg?updatedAt=1774506020002"/></div><div class="marquee-logo"><img alt="OpenAI" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/openai-wordmark.svg?updatedAt=1774506018846"/></div><div class="marquee-logo"><img alt="Clerk" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/clerk-wordmark.svg?updatedAt=1774506017732"/></div><div class="marquee-logo"><img alt="GitHub" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/github-wordmark.svg?updatedAt=1774506017773"/></div><div class="marquee-logo"><img alt="Supabase" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/supabase-wordmark.svg?updatedAt=1774506029294"/></div><div class="marquee-logo"><img alt="Nvidia" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/nvidia-wordmark.svg?updatedAt=1774505932822"/></div><div class="marquee-logo"><img alt="Claude" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/claude-wordmark.svg?updatedAt=1774506029294"/></div><div class="marquee-logo"><img alt="Turso" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/turso-wordmark.svg?updatedAt=1774506020002"/></div><div class="marquee-logo"><img alt="OpenAI" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/openai-wordmark.svg?updatedAt=1774506018846"/></div><div class="marquee-logo"><img alt="Clerk" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/clerk-wordmark.svg?updatedAt=1774506017732"/></div><div class="marquee-logo"><img alt="GitHub" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/github-wordmark.svg?updatedAt=1774506017773"/></div><div class="marquee-logo"><img alt="Supabase" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/supabase-wordmark.svg?updatedAt=1774506029294"/></div><div class="marquee-logo"><img alt="Nvidia" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/nvidia-wordmark.svg?updatedAt=1774505932822"/></div></div></div></section></div><div class="relative w-full mt-4 md:mt-8 px-6 md:px-10 pb-6 md:pb-10"><div class="relative w-full overflow-hidden rounded-2xl"><div class="relative w-full" style="aspect-ratio:1240/724"><div class="absolute inset-0 rounded-[20px] p-1 md:p-1.5 bg-neutral-800/40 backdrop-blur-md overflow-hidden"><div class="pointer-events-none absolute inset-0 z-50 rounded-[20px]" style="background:conic-gradient(from 315deg at 50% 50%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.03) 12%, rgba(255,255,255,0.03) 38%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0.03) 62%, rgba(255,255,255,0.03) 88%, rgba(255,255,255,0.18) 100%);padding:1px;-webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude"></div><div class="flex h-full w-full overflow-hidden rounded-[10px] md:rounded-[12px] bg-neutral-950"><img alt="Hero Dashboard Illustration" decoding="async" data-nimg="fill" class="object-cover object-top grayscale-75" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0;color:transparent" src="hero-bg.png"/></div></div></div></div></div><div aria-hidden="true" class="pointer-events-none absolute inset-y-0 right-0 z-0 w-[140px] hidden lg:block bg-gradient-to-l from-neutral-950 to-transparent"></div></div></section><section class="relative w-full bg-neutral-950" data-section="video"><div class="w-full border-t border-b border-white/[0.08]"><div class="max-w-7xl mx-auto px-4 bg-gradient border-l border-r border-white/[0.08]"><div class="flex flex-col items-center text-center gap-6 px-6 md:px-12 pt-16 md:pt-24 pb-12 md:pb-16 max-w-3xl mx-auto"><p class="text-sm font-medium text-white/55">Watch the demo</p><h2 class="text-2xl md:text-4xl lg:text-5xl font-normal tracking-tight text-white leading-[1.05] text-balance">See Agent Ai in action</h2><p class="text-base md:text-lg text-white/55 leading-relaxed max-w-xl text-balance">Take a 2-minute tour of the platform and see how revenue teams deploy agents, unify data, and automate workflows.</p></div><div class="px-6 md:px-12 pb-16 md:pb-24"><div class="relative w-full overflow-hidden rounded-2xl"><div class="relative w-full" style="aspect-ratio:16/9"><div class="absolute inset-0 rounded-[20px] p-1 md:p-1.5 bg-neutral-800/40 backdrop-blur-md overflow-hidden"><div class="pointer-events-none absolute inset-0 z-50 rounded-[20px]" style="background:conic-gradient(from 315deg at 50% 50%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.03) 12%, rgba(255,255,255,0.03) 38%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0.03) 62%, rgba(255,255,255,0.03) 88%, rgba(255,255,255,0.18) 100%);padding:1px;-webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude"></div><div class="relative flex h-full w-full overflow-hidden rounded-[10px] md:rounded-[12px] bg-neutral-950"><img alt="Product demo preview" decoding="async" data-nimg="fill" class="object-cover object-center grayscale" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0;color:transparent" src="video-poster.png"/><div class="absolute inset-0 bg-gradient-to-t from-neutral-950/60 via-transparent to-neutral-950/20"></div><button aria-label="Play video" class="group absolute inset-0 flex items-center justify-center"><span class="absolute w-20 h-20 md:w-24 md:h-24 rounded-full bg-white/10 backdrop-blur-md group-hover:scale-110 transition-transform"></span><span class="absolute w-20 h-20 md:w-24 md:h-24 rounded-full bg-white/10 animate-ping opacity-50"></span><span class="relative w-16 h-16 md:w-20 md:h-20 rounded-full bg-white flex items-center justify-center shadow-2xl group-hover:scale-105 transition-transform"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-play w-5 h-5 md:w-6 md:h-6 text-neutral-950 fill-neutral-950 ml-1" aria-hidden="true"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"></path></svg></span></button><div class="absolute bottom-4 right-4 px-2.5 py-1 rounded-md bg-neutral-950/70 backdrop-blur-md border border-white/[0.08]"><span class="text-xs font-mono text-white/80">2:35</span></div><iframe src="https://www.youtube.com/embed/mRql2VJ99gM?si=-tBOiiI0B218wssy" class="w-full h-full" allow="autoplay; encrypted-media" allowFullScreen=""></iframe></div></div></div></div></div></div></div></section><section class="relative w-full bg-neutral-950  py-16 md:py-24" data-section="infrastructure"><div class="w-full border-t border-b border-white/[0.08]"><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 bg-[radial-gradient(120%_80%_at_50%_0%,rgba(255,200,150,0.055),transparent_60%)] border-l border-r border-white/[0.08]"><div class="max-w-3xl pb-12 px-6 pt-12 md:px-10 md:pt-16 "><p class="text-sm font-medium text-white/55 mb-3">Introducing Agent Ai</p><h2 class="text-2xl md:text-4xl lg:text-5xl font-normal tracking-tight text-white leading-[1.05]">The infrastructure agents need<br/>to run on your revenue stack</h2></div><div class="border-t border-white/[0.08]"><div class="grid grid-cols-1 lg:grid-cols-12 lg:divide-x lg:divide-white/[0.08] items-start"><aside class="lg:col-span-3 lg:sticky lg:top-0 h-fit lg:px-8"><nav class="flex flex-col divide-y divide-white/[0.08]"><a href="#data" class="group block py-6 first:pt-8 last:pb-0 p-4"><div class="flex items-center gap-2 mb-2"><div class="text-green-400"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-database w-4 h-4" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5V19A9 3 0 0 0 21 19V5"></path><path d="M3 12A9 3 0 0 0 21 12"></path></svg></div><span class="font-medium text-white text-sm">Knowledge</span></div><p class="text-sm text-white/50 leading-relaxed group-hover:text-white/70 transition-colors">Connect documents, databases, and apps into a unified AI knowledge layer.</p></a><a href="#tools" class="group block py-6 first:pt-8 last:pb-0 p-4"><div class="flex items-center gap-2 mb-2"><div class="text-purple-400"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-wrench w-4 h-4" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"></path></svg></div><span class="font-medium text-white text-sm">Automation</span></div><p class="text-sm text-white/50 leading-relaxed group-hover:text-white/70 transition-colors">Give agents access to workflows, integrations, and business actions.</p></a><a href="#agent" class="group block py-6 first:pt-8 last:pb-0 p-4"><div class="flex items-center gap-2 mb-2"><div class="text-orange-400"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bot w-4 h-4" aria-hidden="true"><path d="M12 8V4H8"></path><rect width="16" height="12" x="4" y="8" rx="2"></rect><path d="M2 14h2"></path><path d="M20 14h2"></path><path d="M15 13v2"></path><path d="M9 13v2"></path></svg></div><span class="font-medium text-white text-sm">Agents</span></div><p class="text-sm text-white/50 leading-relaxed group-hover:text-white/70 transition-colors">Create specialized AI agents that reason, execute, and collaborate.</p></a><a href="#governance" class="group block py-6 first:pt-8 last:pb-0 p-4"><div class="flex items-center gap-2 mb-2"><div class="text-blue-400"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield w-4 h-4" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path></svg></div><span class="font-medium text-white text-sm">Control</span></div><p class="text-sm text-white/50 leading-relaxed group-hover:text-white/70 transition-colors">Monitor, manage, and secure every AI action from one place.</p></a></nav></aside><div class="lg:col-span-9 lg:px-10 pt-8 pb-8 flex flex-col gap-6"><article id="data" class="relative rounded-2xl border border-white/[0.06] bg-neutral-950/50 p-6 md:p-10 overflow-hidden"><div class="inline-flex items-center gap-1.5 mb-6 px-2.5 py-1 rounded-md bg-green-500/10 border border-green-500/20"><div class="text-green-400"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-database w-4 h-4" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5V19A9 3 0 0 0 21 19V5"></path><path d="M3 12A9 3 0 0 0 21 12"></path></svg></div><span class="text-xs font-medium text-green-400">Knowledge</span></div><h3 class="text-2xl md:text-4xl font-normal text-white mb-4 tracking-tight leading-tight max-w-2xl">A shared knowledge base for every AI agent</h3><p class="text-base md:text-lg text-white/55 mb-6 leading-relaxed max-w-2xl">Centralize company knowledge from documents, CRMs, databases, websites, and internal tools so every agent operates with accurate, real-time context.</p><a class="inline-flex items-center gap-1.5 mb-8 px-4 py-2 rounded-lg bg-white text-neutral-950 text-sm font-medium hover:bg-neutral-200 transition-colors" href="/data">Learn More<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right w-3.5 h-3.5" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a><div class="relative w-full overflow-hidden rounded-2xl"><div class="relative w-full" style="aspect-ratio:1240/724"><div class="absolute inset-0 rounded-[20px] p-1 md:p-1.5 bg-neutral-800/40 backdrop-blur-md overflow-hidden"><div class="pointer-events-none absolute inset-0 z-50 rounded-[20px]" style="background:conic-gradient(from 315deg at 50% 50%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.03) 12%, rgba(255,255,255,0.03) 38%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0.03) 62%, rgba(255,255,255,0.03) 88%, rgba(255,255,255,0.18) 100%);padding:1px;-webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude"></div><div class="flex h-full w-full overflow-hidden rounded-[10px] md:rounded-[12px] bg-neutral-950"><img alt="Knowledge Dashboard" loading="lazy" decoding="async" data-nimg="fill" class="object-cover object-top" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0;color:transparent" src="images/dashboard-data.png"/></div></div></div></div></article><article id="tools" class="relative rounded-2xl border border-white/[0.06] bg-neutral-950/50 p-6 md:p-10 overflow-hidden"><div class="inline-flex items-center gap-1.5 mb-6 px-2.5 py-1 rounded-md bg-purple-500/10 border border-purple-500/20"><div class="text-purple-400"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-wrench w-4 h-4" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"></path></svg></div><span class="text-xs font-medium text-purple-400">Automation</span></div><h3 class="text-2xl md:text-4xl font-normal text-white mb-4 tracking-tight leading-tight max-w-2xl">Connect agents to the tools your business runs on</h3><p class="text-base md:text-lg text-white/55 mb-6 leading-relaxed max-w-2xl">Integrate with your existing stack and let agents automate workflows, update systems, trigger actions, and coordinate processes across teams.</p><a class="inline-flex items-center gap-1.5 mb-8 px-4 py-2 rounded-lg bg-white text-neutral-950 text-sm font-medium hover:bg-neutral-200 transition-colors" href="/tools">Learn More<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right w-3.5 h-3.5" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a><div class="relative w-full overflow-hidden rounded-2xl"><div class="relative w-full" style="aspect-ratio:1240/724"><div class="absolute inset-0 rounded-[20px] p-1 md:p-1.5 bg-neutral-800/40 backdrop-blur-md overflow-hidden"><div class="pointer-events-none absolute inset-0 z-50 rounded-[20px]" style="background:conic-gradient(from 315deg at 50% 50%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.03) 12%, rgba(255,255,255,0.03) 38%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0.03) 62%, rgba(255,255,255,0.03) 88%, rgba(255,255,255,0.18) 100%);padding:1px;-webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude"></div><div class="flex h-full w-full overflow-hidden rounded-[10px] md:rounded-[12px] bg-neutral-950"><img alt="Automation Dashboard" loading="lazy" decoding="async" data-nimg="fill" class="object-cover object-top" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0;color:transparent" src="images/dashboard-automation.png"/></div></div></div></div></article><article id="agent" class="relative rounded-2xl border border-white/[0.06] bg-neutral-950/50 p-6 md:p-10 overflow-hidden"><div class="inline-flex items-center gap-1.5 mb-6 px-2.5 py-1 rounded-md bg-orange-500/10 border border-orange-500/20"><div class="text-orange-400"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bot w-4 h-4" aria-hidden="true"><path d="M12 8V4H8"></path><rect width="16" height="12" x="4" y="8" rx="2"></rect><path d="M2 14h2"></path><path d="M20 14h2"></path><path d="M15 13v2"></path><path d="M9 13v2"></path></svg></div><span class="text-xs font-medium text-orange-400">Agents</span></div><h3 class="text-2xl md:text-4xl font-normal text-white mb-4 tracking-tight leading-tight max-w-2xl">AI agents that work like your best team members</h3><p class="text-base md:text-lg text-white/55 mb-6 leading-relaxed max-w-2xl">Deploy intelligent agents that understand goals, make decisions, perform tasks, and continuously improve through real-world interactions.</p><a class="inline-flex items-center gap-1.5 mb-8 px-4 py-2 rounded-lg bg-white text-neutral-950 text-sm font-medium hover:bg-neutral-200 transition-colors" href="/agent">Learn More<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right w-3.5 h-3.5" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a><div class="relative w-full overflow-hidden rounded-2xl"><div class="relative w-full" style="aspect-ratio:1240/724"><div class="absolute inset-0 rounded-[20px] p-1 md:p-1.5 bg-neutral-800/40 backdrop-blur-md overflow-hidden"><div class="pointer-events-none absolute inset-0 z-50 rounded-[20px]" style="background:conic-gradient(from 315deg at 50% 50%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.03) 12%, rgba(255,255,255,0.03) 38%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0.03) 62%, rgba(255,255,255,0.03) 88%, rgba(255,255,255,0.18) 100%);padding:1px;-webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude"></div><div class="flex h-full w-full overflow-hidden rounded-[10px] md:rounded-[12px] bg-neutral-950"><img alt="Agents Dashboard" loading="lazy" decoding="async" data-nimg="fill" class="object-cover object-top" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0;color:transparent" src="images/dashboard-agent.png"/></div></div></div></div></article><article id="governance" class="relative rounded-2xl border border-white/[0.06] bg-neutral-950/50 p-6 md:p-10 overflow-hidden"><div class="inline-flex items-center gap-1.5 mb-6 px-2.5 py-1 rounded-md bg-blue-500/10 border border-blue-500/20"><div class="text-blue-400"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield w-4 h-4" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path></svg></div><span class="text-xs font-medium text-blue-400">Control</span></div><h3 class="text-2xl md:text-4xl font-normal text-white mb-4 tracking-tight leading-tight max-w-2xl">Enterprise-grade oversight for autonomous systems</h3><p class="text-base md:text-lg text-white/55 mb-6 leading-relaxed max-w-2xl">Track activity, define permissions, review decisions, and maintain complete visibility with built-in security, governance, and compliance controls.</p><a class="inline-flex items-center gap-1.5 mb-8 px-4 py-2 rounded-lg bg-white text-neutral-950 text-sm font-medium hover:bg-neutral-200 transition-colors" href="/governance">Learn More<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right w-3.5 h-3.5" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a><div class="relative w-full overflow-hidden rounded-2xl"><div class="relative w-full" style="aspect-ratio:1240/724"><div class="absolute inset-0 rounded-[20px] p-1 md:p-1.5 bg-neutral-800/40 backdrop-blur-md overflow-hidden"><div class="pointer-events-none absolute inset-0 z-50 rounded-[20px]" style="background:conic-gradient(from 315deg at 50% 50%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.03) 12%, rgba(255,255,255,0.03) 38%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0.03) 62%, rgba(255,255,255,0.03) 88%, rgba(255,255,255,0.18) 100%);padding:1px;-webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude"></div><div class="flex h-full w-full overflow-hidden rounded-[10px] md:rounded-[12px] bg-neutral-950"><img alt="Control Dashboard" loading="lazy" decoding="async" data-nimg="fill" class="object-cover object-top" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0;color:transparent" src="images/dashboard-governance.png"/></div></div></div></div></article></div></div></div></div></div></section><section class="relative w-full bg-neutral-950" data-section="how-it-works"><div class="w-full border-t border-b border-white/[0.08]"><div class="max-w-7xl mx-auto px-4 bg-gradient sm:px-6 lg:px-12 border-l border-r border-white/[0.08]"><div class="flex flex-col gap-4 px-6 md:px-12 pt-16 md:pt-24 pb-12 md:pb-16 max-w-3xl"><p class="text-sm font-medium text-white/55">How it works</p><h2 class="text-2xl md:text-4xl lg:text-5xl font-normal tracking-tight text-white leading-[1.05] text-balance">From kickoff to deployed agents in days, not months</h2><p class="text-base md:text-lg text-white/55 leading-relaxed max-w-xl mt-2">A simple 3-step process that gets your team running on Agent Ai — without ripping out what already works.</p></div><div class="grid grid-cols-1 md:grid-cols-3 gap-[6px]"><div class="relative flex flex-col gap-6 rounded-xl border border-white/[0.08] bg-white/[0.02] overflow-hidden"><div aria-hidden="true" class="absolute top-4 right-5 text-6xl md:text-7xl font-normal text-white/[0.04] tracking-tighter leading-none select-none">01</div><div class="relative w-full aspect-[4/3] overflow-hidden border-b border-white/[0.06]"><img alt="Connect your stack" loading="lazy" decoding="async" data-nimg="fill" class="object-cover object-top " style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0;color:transparent" src="images/how-it-works/step-1.png"/></div><div class="relative flex flex-col gap-3 px-6 pb-6"><div class="flex items-center gap-3 mb-1"><div class="w-9 h-9 rounded-lg flex items-center justify-center bg-green-500/10 border border-green-500/20"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2 lucide-link-2 w-4 h-4 text-green-400" aria-hidden="true"><path d="M9 17H7A5 5 0 0 1 7 7h2"></path><path d="M15 7h2a5 5 0 1 1 0 10h-2"></path><line x1="8" x2="16" y1="12" y2="12"></line></svg></div><span class="text-xs font-medium text-green-400">Step <!-- -->01</span></div><h3 class="text-xl md:text-2xl font-normal text-white leading-tight">Connect your stack</h3><p class="text-sm md:text-base text-white/55 leading-relaxed">Bi-directional sync with your CRM, communication tools, and data warehouse. Most teams are up in under an hour.</p></div></div><div class="relative flex flex-col gap-6 rounded-xl border border-white/[0.08] bg-white/[0.02] overflow-hidden"><div aria-hidden="true" class="absolute top-4 right-5 text-6xl md:text-7xl font-normal text-white/[0.04] tracking-tighter leading-none select-none">02</div><div class="relative w-full aspect-[4/3] overflow-hidden border-b border-white/[0.06]"><img alt="Configure your workflows" loading="lazy" decoding="async" data-nimg="fill" class="object-cover object-top " style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0;color:transparent" src="images/how-it-works/step-2.png"/></div><div class="relative flex flex-col gap-3 px-6 pb-6"><div class="flex items-center gap-3 mb-1"><div class="w-9 h-9 rounded-lg flex items-center justify-center bg-purple-500/10 border border-purple-500/20"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings w-4 h-4 text-purple-400" aria-hidden="true"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"></path><circle cx="12" cy="12" r="3"></circle></svg></div><span class="text-xs font-medium text-purple-400">Step <!-- -->02</span></div><h3 class="text-xl md:text-2xl font-normal text-white leading-tight">Configure your workflows</h3><p class="text-sm md:text-base text-white/55 leading-relaxed">Build agents and automations visually — or describe what you want and let our AI build it for you. No code required.</p></div></div><div class="relative flex flex-col gap-6 rounded-xl border border-white/[0.08] bg-white/[0.02] overflow-hidden"><div aria-hidden="true" class="absolute top-4 right-5 text-6xl md:text-7xl font-normal text-white/[0.04] tracking-tighter leading-none select-none">03</div><div class="relative w-full aspect-[4/3] overflow-hidden border-b border-white/[0.06]"><img alt="Deploy with confidence" loading="lazy" decoding="async" data-nimg="fill" class="object-cover object-top " style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0;color:transparent" src="images/how-it-works/step-3.png"/></div><div class="relative flex flex-col gap-3 px-6 pb-6"><div class="flex items-center gap-3 mb-1"><div class="w-9 h-9 rounded-lg flex items-center justify-center bg-orange-500/10 border border-orange-500/20"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rocket w-4 h-4 text-orange-400" aria-hidden="true"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"></path><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"></path></svg></div><span class="text-xs font-medium text-orange-400">Step <!-- -->03</span></div><h3 class="text-xl md:text-2xl font-normal text-white leading-tight">Deploy with confidence</h3><p class="text-sm md:text-base text-white/55 leading-relaxed">Approve agent actions, monitor every decision, and roll back instantly. Your team stays in the driver&#x27;s seat.</p></div></div></div><div class="px-6 md:px-12 py-12 md:py-16 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 border-t border-white/[0.08]"><div class="flex flex-col gap-2"><p class="text-sm font-medium text-white">Average time to first deployed workflow</p><p class="text-3xl md:text-4xl font-normal text-white tracking-tight">3 days</p></div><a class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-[10px] border border-white/[0.12] bg-white/[0.02] text-sm font-medium text-white hover:bg-white/[0.06] transition-colors" href="#customers">Read customer stories<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg></a></div></div></div></section><section class="relative w-full bg-neutral-950" data-section="testimonial"><div class="w-full border-b border-white/[0.08] "><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12  border-l border-r border-white/[0.08] bg-[radial-gradient(120%_80%_at_50%_0%,rgba(255,200,150,0.055),transparent_60%)]"><div class="py-20 md:py-32 px-6 md:px-10"><div class="max-w-4xl mx-auto text-center "><div class="animate-fadeIn"><blockquote class="text-2xl md:text-4xl lg:text-5xl font-normal text-white leading-[1.2] tracking-tight mb-12 md:mb-16">“<!-- -->We deployed AI agents across support and operations in days, not months. The impact was immediate.<!-- -->”</blockquote><div class="flex items-center justify-center mb-6"><svg viewBox="0 0 40 40" fill="none" class="w-8 h-8 text-white/90"><path d="M20 4 L36 20 L20 36 L4 20 Z M20 12 L28 20 L20 28 L12 20 Z" stroke="currentColor" stroke-width="1.5" fill="none"></path><circle cx="20" cy="20" r="2" fill="currentColor"></circle></svg></div><div class="space-y-1"><p class="text-base md:text-lg font-medium text-white">Michael Carter</p><p class="text-sm md:text-base text-white/50">Chief Operations Officer<!-- -->, <!-- -->ScaleFlow</p></div></div><div class="flex items-center justify-center gap-2 mt-12 md:mt-16"><button aria-label="Show testimonial 1" aria-current="true" class="group relative p-2"><span class="block h-1.5 rounded-full transition-all duration-500 w-8 bg-white"></span></button><button aria-label="Show testimonial 2" aria-current="false" class="group relative p-2"><span class="block h-1.5 rounded-full transition-all duration-500 w-1.5 bg-white/25 group-hover:bg-white/50"></span></button><button aria-label="Show testimonial 3" aria-current="false" class="group relative p-2"><span class="block h-1.5 rounded-full transition-all duration-500 w-1.5 bg-white/25 group-hover:bg-white/50"></span></button></div></div></div></div></div></section><section class="relative isolate w-full overflow-hidden bg-neutral-950 border-t border-white/[0.08]" data-section="capabilities"><div aria-hidden="true" class="pointer-events-none absolute inset-0"><div class="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-12"><span class="absolute inset-y-0 left-0 w-px bg-white/[0.08]"></span><span class="absolute inset-y-0 right-0 w-px bg-white/[0.08]"></span></div></div><div class="relative max-w-7xl mx-auto bg-[radial-gradient(120%_80%_at_50%_0%,rgba(255,200,150,0.055),transparent_60%)]"><div class="flex flex-col gap-4 px-6 md:px-12 pt-16 md:pt-24"><span class="text-sm font-medium text-white/55">Capabilities</span><h2 class="text-3xl md:text-5xl lg:text-6xl font-normal tracking-tight text-white leading-[1.05] max-w-2xl text-balance">Your Operating System For Agents</h2></div><div class="mt-16 md:mt-20"><div aria-hidden="true" class="mx-px h-px bg-white/[0.08]"></div><ul class="grid grid-cols-1 gap-[6px] p-[6px] md:grid-cols-2"><li data-card="knowledge-access" class="relative isolate flex flex-col overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02]"><div class="relative w-full overflow-hidden" style="aspect-ratio:567 / 278;container-type:inline-size"><div class="absolute top-0 left-0" style="height:278px;width:567px;transform:scale(min(1, calc(100cqw / 567px)));transform-origin:top left"><img alt="Knowledge access" loading="lazy" decoding="async" data-nimg="fill" class="absolute inset-0 object-cover" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0;color:transparent" src="images/capabilities/native-access.png"/></div></div><div class="flex flex-col gap-2 p-[18px] md:p-[28px]"><span class="inline-flex flex-wrap items-center gap-2"><span class="font-medium text-[15px] text-white leading-[22px]">Knowledge access</span><span class="inline-flex items-center rounded-md bg-white/10 px-2.5 py-0.5 font-medium text-xs text-white/60 leading-[1.4]">In beta</span></span><p class="max-w-[426px] text-[15px] text-white/55 leading-[22px]">Give every AI agent secure access to your documents, databases, APIs, and business knowledge.</p></div></li><li data-card="workflow-automation" class="relative isolate flex flex-col overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02]"><div class="relative w-full overflow-hidden" style="aspect-ratio:567 / 278;container-type:inline-size"><div class="absolute top-0 left-0" style="height:278px;width:567px;transform:scale(min(1, calc(100cqw / 567px)));transform-origin:top left"><img alt="Workflow automation" loading="lazy" decoding="async" data-nimg="fill" class="absolute inset-0 object-cover" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0;color:transparent" src="images/capabilities/integrations.png"/></div></div><div class="flex flex-col gap-2 p-[18px] md:p-[28px]"><span class="inline-flex flex-wrap items-center gap-2"><span class="font-medium text-[15px] text-white leading-[22px]">Workflow automation</span></span><p class="max-w-[426px] text-[15px] text-white/55 leading-[22px]">Connect agents to your existing tools and automate repetitive tasks across departments.</p></div></li><li data-card="agent-memory" class="relative isolate flex flex-col overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02]"><div class="relative w-full overflow-hidden" style="aspect-ratio:567 / 278;container-type:inline-size"><div class="absolute top-0 left-0" style="height:278px;width:567px;transform:scale(min(1, calc(100cqw / 567px)));transform-origin:top left"><img alt="Agent memory" loading="lazy" decoding="async" data-nimg="fill" class="absolute inset-0 object-cover" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0;color:transparent" src="images/capabilities/unified-data.png"/></div></div><div class="flex flex-col gap-2 p-[18px] md:p-[28px]"><span class="inline-flex flex-wrap items-center gap-2"><span class="font-medium text-[15px] text-white leading-[22px]">Agent memory</span></span><p class="max-w-[426px] text-[15px] text-white/55 leading-[22px]">Persistent context and long-term memory help agents learn, adapt, and improve over time.</p></div></li><li data-card="agent-governance" class="relative isolate flex flex-col overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02]"><div class="relative w-full overflow-hidden" style="aspect-ratio:567 / 278;container-type:inline-size"><div class="absolute top-0 left-0" style="height:278px;width:567px;transform:scale(min(1, calc(100cqw / 567px)));transform-origin:top left"><img alt="Agent governance" loading="lazy" decoding="async" data-nimg="fill" class="absolute inset-0 object-cover" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0;color:transparent" src="images/capabilities/audit-logs.png"/></div></div><div class="flex flex-col gap-2 p-[18px] md:p-[28px]"><span class="inline-flex flex-wrap items-center gap-2"><span class="font-medium text-[15px] text-white leading-[22px]">Agent governance</span></span><p class="max-w-[426px] text-[15px] text-white/55 leading-[22px]">Monitor actions, review decisions, and maintain complete control with built-in safeguards.</p></div></li></ul></div><div class="mt-px flex flex-col items-start gap-10 px-6 md:flex-row md:items-center md:gap-6 md:px-12 py-16 md:py-20"><div class="flex w-full max-w-2xl flex-col items-start justify-center gap-6"><span class="text-sm font-medium text-white/55">Security</span><div class="flex flex-col gap-3"><h3 class="text-white/90" style="font-size:32px;font-weight:500;letter-spacing:-0.8px;line-height:1">Enterprise-ready</h3><p class="text-white/70 text-base leading-[22px]">SOC 2 Type II, SSO/SAML, role-based permissions, and dedicated support.</p></div></div><div role="img" aria-label="Enterprise compliance — SOC 2 and SSO/SAML" class="flex shrink-0 items-center gap-7"><div class="relative shrink-0 w-[148px] h-[148px]"><img alt="" loading="lazy" width="160" height="160" decoding="async" data-nimg="1" class="absolute -inset-[6px] max-w-none" style="color:transparent" src="images/compliance/aicpa-soc.png"/></div><div class="relative shrink-0 w-[148px] h-[148px]"><img alt="" loading="lazy" width="148" height="182" decoding="async" data-nimg="1" class="absolute -top-[6px] left-0 max-w-none" style="color:transparent" src="images/compliance/sso-saml.png"/></div></div></div></div></section><section class="relative w-full bg-neutral-950" data-section="stats"><div class="w-full border-t border-b border-white/[0.08]"><div class="max-w-7xl mx-auto px-4 bg-gradient border-l border-r border-white/[0.08]"><div class="flex flex-col items-center text-center gap-4 px-6 md:px-12 pt-16 md:pt-24 pb-12 md:pb-16 max-w-3xl mx-auto"><p class="text-sm font-medium text-white/55">By the numbers</p><h2 class="text-2xl md:text-4xl lg:text-5xl font-normal tracking-tight text-white leading-[1.05] text-balance">Trusted by the world&#x27;s fastest-growing teams</h2></div><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-t border-white/[0.08]"><div class="lg:border-r border-white/[0.08] border-b sm:border-b sm:border-r  lg:border-b-0 border-white/[0.08]"><div class="flex flex-col gap-3 p-6 md:p-8"><p class="text-2xl md:text-4xl lg:text-5xl font-normal text-white tracking-tight leading-none tabular-nums">$<!-- -->0<span class="text-white/85">B+</span></p><div class="flex flex-col gap-1.5"><p class="text-sm md:text-base font-medium text-white">ARR managed</p><p class="text-xs md:text-sm text-white/45 leading-relaxed">Across 500+ revenue teams</p></div></div></div><div class="lg:border-r border-white/[0.08] border-b sm:border-b sm:border-r-0  lg:border-b-0 border-white/[0.08]"><div class="flex flex-col gap-3 p-6 md:p-8"><p class="text-2xl md:text-4xl lg:text-5xl font-normal text-white tracking-tight leading-none tabular-nums">0.00<span class="text-white/85">%</span></p><div class="flex flex-col gap-1.5"><p class="text-sm md:text-base font-medium text-white">Uptime SLA</p><p class="text-xs md:text-sm text-white/45 leading-relaxed">Monitored 24/7 by our SRE team</p></div></div></div><div class="lg:border-r border-white/[0.08] border-b sm:border-b sm:border-r sm:border-b-0 lg:border-b-0 border-white/[0.08]"><div class="flex flex-col gap-3 p-6 md:p-8"><p class="text-2xl md:text-4xl lg:text-5xl font-normal text-white tracking-tight leading-none tabular-nums">0<span class="text-white/85">x</span></p><div class="flex flex-col gap-1.5"><p class="text-sm md:text-base font-medium text-white">Faster deployment</p><p class="text-xs md:text-sm text-white/45 leading-relaxed">vs. building in-house</p></div></div></div><div class="  sm:border-r-0 sm:border-b-0 lg:border-b-0 border-white/[0.08]"><div class="flex flex-col gap-3 p-6 md:p-8"><p class="text-2xl md:text-4xl lg:text-5xl font-normal text-white tracking-tight leading-none tabular-nums">0.00<span class="text-white/85">B</span></p><div class="flex flex-col gap-1.5"><p class="text-sm md:text-base font-medium text-white">Agent actions / mo</p><p class="text-xs md:text-sm text-white/45 leading-relaxed">Logged, reviewed, reversible</p></div></div></div></div></div></div></section><section class="relative w-full bg-neutral-950" data-section="customers"><div class="w-full border-t border-b border-white/[0.08]"><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 bg-gradient border-l border-r border-white/[0.08]"><div class="flex flex-col items-center text-center gap-6 px-6 md:px-12 pt-16 md:pt-24 pb-12 md:pb-16"><p class="text-sm font-medium text-white/55">Customer success stories</p><h2 class="text-2xl md:text-4xl lg:text-5xl font-normal tracking-tight text-white leading-[1.05] max-w-4xl text-balance">Teams trust Agent Ai to power autonomous work at scale</h2></div><div class="pb-12 md:pb-16"><section class="w-full bg-inherit overflow-hidden py-6 md:py-8"><div class="marquee-container"><div class="marquee-fade-left"></div><div class="marquee-fade-right"></div><div class="marquee-track"><div class="marquee-logo"><img alt="Claude" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/claude-wordmark.svg?updatedAt=1774506029294"/></div><div class="marquee-logo"><img alt="Turso" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/turso-wordmark.svg?updatedAt=1774506020002"/></div><div class="marquee-logo"><img alt="OpenAI" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/openai-wordmark.svg?updatedAt=1774506018846"/></div><div class="marquee-logo"><img alt="Clerk" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/clerk-wordmark.svg?updatedAt=1774506017732"/></div><div class="marquee-logo"><img alt="GitHub" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/github-wordmark.svg?updatedAt=1774506017773"/></div><div class="marquee-logo"><img alt="Supabase" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/supabase-wordmark.svg?updatedAt=1774506029294"/></div><div class="marquee-logo"><img alt="Nvidia" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/nvidia-wordmark.svg?updatedAt=1774505932822"/></div><div class="marquee-logo"><img alt="Claude" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/claude-wordmark.svg?updatedAt=1774506029294"/></div><div class="marquee-logo"><img alt="Turso" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/turso-wordmark.svg?updatedAt=1774506020002"/></div><div class="marquee-logo"><img alt="OpenAI" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/openai-wordmark.svg?updatedAt=1774506018846"/></div><div class="marquee-logo"><img alt="Clerk" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/clerk-wordmark.svg?updatedAt=1774506017732"/></div><div class="marquee-logo"><img alt="GitHub" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/github-wordmark.svg?updatedAt=1774506017773"/></div><div class="marquee-logo"><img alt="Supabase" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/supabase-wordmark.svg?updatedAt=1774506029294"/></div><div class="marquee-logo"><img alt="Nvidia" loading="lazy" width="120" height="40" decoding="async" data-nimg="1" class="h-6 md:h-7 w-auto object-contain grayscale invert opacity-45" style="color:transparent" src="https://ik.imagekit.io/nextjsshop/logo-cloud/nvidia-wordmark.svg?updatedAt=1774505932822"/></div></div></div></section></div></div></div></section><section class="relative w-full bg-neutral-950" data-section="testimonial-grid"><div class="w-full border-t border-b border-white/[0.08]"><div class="max-w-7xl mx-auto p-2 border-l border-r border-white/[0.08]"><div class=""><ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[6px]"><li class="flex flex-col justify-between rounded-xl border border-white/[0.08] bg-white/[0.02] p-6 md:p-8 min-h-[280px]"><blockquote class="text-[15px] md:text-base text-white/85 leading-[1.55] mb-8">“<!-- -->Agent Ai transformed how we operate. Our AI agents now handle repetitive workflows around the clock, freeing our team to focus on strategic work.<!-- -->”</blockquote><div class="flex items-center gap-3"><div class="relative w-9 h-9 rounded-full overflow-hidden bg-white/10 shrink-0"><img alt="Michael Carter" loading="lazy" decoding="async" data-nimg="fill" class="object-cover" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0;color:transparent" src="https://i.pravatar.cc/300?img=11"/></div><div class="flex flex-col"><span class="text-sm font-medium text-white leading-tight">Michael Carter</span><span class="text-xs text-white/50 leading-tight mt-0.5">Chief Operations Officer<!-- -->, <!-- -->ScaleFlow</span></div></div></li><li class="flex flex-col justify-between rounded-xl border border-white/[0.08] bg-white/[0.02] p-6 md:p-8 min-h-[280px]"><blockquote class="text-[15px] md:text-base text-white/85 leading-[1.55] mb-8">“<!-- -->We went from experimenting with AI to running production-grade agents across multiple departments in just a few weeks.<!-- -->”</blockquote><div class="flex items-center gap-3"><div class="relative w-9 h-9 rounded-full overflow-hidden bg-white/10 shrink-0"><img alt="Emma Wilson" loading="lazy" decoding="async" data-nimg="fill" class="object-cover" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0;color:transparent" src="https://i.pravatar.cc/300?img=32"/></div><div class="flex flex-col"><span class="text-sm font-medium text-white leading-tight">Emma Wilson</span><span class="text-xs text-white/50 leading-tight mt-0.5">VP of AI Strategy<!-- -->, <!-- -->Nova Labs</span></div></div></li><li class="flex flex-col justify-between rounded-xl border border-white/[0.08] bg-white/[0.02] p-6 md:p-8 min-h-[280px]"><blockquote class="text-[15px] md:text-base text-white/85 leading-[1.55] mb-8">“<!-- -->The platform gives our agents access to the knowledge and tools they need to make decisions and execute work autonomously.<!-- -->”</blockquote><div class="flex items-center gap-3"><div class="relative w-9 h-9 rounded-full overflow-hidden bg-white/10 shrink-0"><img alt="Sophia Martinez" loading="lazy" decoding="async" data-nimg="fill" class="object-cover" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0;color:transparent" src="https://i.pravatar.cc/300?img=47"/></div><div class="flex flex-col"><span class="text-sm font-medium text-white leading-tight">Sophia Martinez</span><span class="text-xs text-white/50 leading-tight mt-0.5">Head of AI Operations<!-- -->, <!-- -->Vertex</span></div></div></li><li class="flex flex-col justify-between rounded-xl border border-white/[0.08] bg-white/[0.02] p-6 md:p-8 min-h-[280px]"><blockquote class="text-[15px] md:text-base text-white/85 leading-[1.55] mb-8">“<!-- -->The impact was immediate. Tasks that previously required hours of manual effort are now completed automatically by our AI workforce.<!-- -->”</blockquote><div class="flex items-center gap-3"><div class="relative w-9 h-9 rounded-full overflow-hidden bg-white/10 shrink-0"><img alt="David Kim" loading="lazy" decoding="async" data-nimg="fill" class="object-cover" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0;color:transparent" src="https://i.pravatar.cc/300?img=15"/></div><div class="flex flex-col"><span class="text-sm font-medium text-white leading-tight">David Kim</span><span class="text-xs text-white/50 leading-tight mt-0.5">Director of Innovation<!-- -->, <!-- -->LaunchGrid</span></div></div></li><li class="flex flex-col justify-between rounded-xl border border-white/[0.08] bg-white/[0.02] p-6 md:p-8 min-h-[280px]"><blockquote class="text-[15px] md:text-base text-white/85 leading-[1.55] mb-8">“<!-- -->Agent Ai made deploying and managing AI agents incredibly simple. It has become a core part of our technology stack.<!-- -->”</blockquote><div class="flex items-center gap-3"><div class="relative w-9 h-9 rounded-full overflow-hidden bg-white/10 shrink-0"><img alt="Alex Thompson" loading="lazy" decoding="async" data-nimg="fill" class="object-cover" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0;color:transparent" src="https://i.pravatar.cc/300?img=68"/></div><div class="flex flex-col"><span class="text-sm font-medium text-white leading-tight">Alex Thompson</span><span class="text-xs text-white/50 leading-tight mt-0.5">Founder &amp; CEO<!-- -->, <!-- -->FlowCore</span></div></div></li><li class="flex flex-col justify-between rounded-xl border border-white/[0.08] bg-white/[0.02] p-6 md:p-8 min-h-[280px]"><blockquote class="text-[15px] md:text-base text-white/85 leading-[1.55] mb-8">“<!-- -->Having agent memory, automation, and governance in one platform gives us the confidence to scale AI across the entire organization.<!-- -->”</blockquote><div class="flex items-center gap-3"><div class="relative w-9 h-9 rounded-full overflow-hidden bg-white/10 shrink-0"><img alt="Olivia Parker" loading="lazy" decoding="async" data-nimg="fill" class="object-cover" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0;color:transparent" src="https://i.pravatar.cc/300?img=25"/></div><div class="flex flex-col"><span class="text-sm font-medium text-white leading-tight">Olivia Parker</span><span class="text-xs text-white/50 leading-tight mt-0.5">AI Program Manager<!-- -->, <!-- -->CloudForge</span></div></div></li></ul></div></div></div></section><section class="relative w-full bg-neutral-950" data-section="pricing-preview"><div class="w-full border-t border-b border-white/[0.08]"><div class="max-w-7xl mx-auto px-4 bg-gradient border-l border-r border-white/[0.08]"><div class="flex flex-col items-center text-center gap-6 px-6 md:px-12 pt-16 md:pt-24 pb-12 md:pb-16 max-w-3xl mx-auto"><p class="text-sm font-medium text-white/55">Pricing</p><h2 class="text-2xl md:text-4xl lg:text-5xl font-normal tracking-tight text-white leading-[1.05] text-balance">Simple pricing that scales with you</h2><p class="text-base md:text-lg text-white/55 leading-relaxed max-w-xl text-balance">Start free, upgrade when you need more. All plans include core features, integrations, and SOC 2 compliance.</p></div><div class="px-6 md:px-12 pb-12 md:pb-16"><div class="grid grid-cols-1 lg:grid-cols-3 gap-[6px]"><div class="relative flex flex-col rounded-2xl border overflow-hidden border-white/[0.08] bg-white/[0.02]"><div class="flex flex-col gap-6 p-8 md:p-10"><div class="flex flex-col gap-2"><h3 class="text-xl font-medium text-white/85">Starter</h3><p class="text-sm text-white/55 leading-relaxed min-h-[40px]">Perfect for small teams getting started with agent-powered GTM.</p></div><div class="flex flex-col gap-1 pb-6 border-b border-white/[0.06]"><div class="flex items-baseline gap-2"><span class="text-4xl md:text-5xl font-normal tracking-tight text-white/85">$0</span></div><p class="text-xs text-white/45">free for 14 days</p></div><ul class="flex flex-col gap-3 flex-1"><li class="flex items-start gap-2.5"><div class="shrink-0 w-4 h-4 rounded-full flex items-center justify-center mt-0.5 bg-white/[0.06]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check w-2.5 h-2.5 text-white/70" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></div><span class="text-sm text-white/70 leading-relaxed">Up to 5 users</span></li><li class="flex items-start gap-2.5"><div class="shrink-0 w-4 h-4 rounded-full flex items-center justify-center mt-0.5 bg-white/[0.06]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check w-2.5 h-2.5 text-white/70" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></div><span class="text-sm text-white/70 leading-relaxed">10,000 records</span></li><li class="flex items-start gap-2.5"><div class="shrink-0 w-4 h-4 rounded-full flex items-center justify-center mt-0.5 bg-white/[0.06]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check w-2.5 h-2.5 text-white/70" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></div><span class="text-sm text-white/70 leading-relaxed">Core integrations</span></li><li class="flex items-start gap-2.5"><div class="shrink-0 w-4 h-4 rounded-full flex items-center justify-center mt-0.5 bg-white/[0.06]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check w-2.5 h-2.5 text-white/70" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></div><span class="text-sm text-white/70 leading-relaxed">Community support</span></li><li class="flex items-start gap-2.5"><div class="shrink-0 w-4 h-4 rounded-full flex items-center justify-center mt-0.5 bg-white/[0.06]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check w-2.5 h-2.5 text-white/70" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></div><span class="text-sm text-white/70 leading-relaxed">Basic workflows</span></li></ul><a class="inline-flex items-center justify-center gap-1.5 rounded-[10px] px-5 py-2.5 font-medium text-sm transition-colors mt-2 border border-white/[0.12] bg-white/[0.02] text-white hover:bg-white/[0.06]" href="archpulse.html">Start free trial<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right w-4 h-4" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a></div></div><div class="relative flex flex-col rounded-2xl border overflow-hidden border-white/[0.18] bg-gradient-to-b from-white/[0.06] to-white/[0.02]"><div class="flex flex-col gap-6 p-8 md:p-10"><div class="flex flex-col gap-2"><h3 class="text-xl font-medium text-white">Pro</h3><p class="text-sm text-white/55 leading-relaxed min-h-[40px]">For growing teams ready to deploy production-grade agents at scale.</p></div><div class="flex flex-col gap-1 pb-6 border-b border-white/[0.06]"><div class="flex items-baseline gap-2"><span class="text-4xl md:text-5xl font-normal tracking-tight text-white">$499</span></div><p class="text-xs text-white/45">per month, billed annually</p></div><ul class="flex flex-col gap-3 flex-1"><li class="flex items-start gap-2.5"><div class="shrink-0 w-4 h-4 rounded-full flex items-center justify-center mt-0.5 bg-white/15"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check w-2.5 h-2.5 text-white" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></div><span class="text-sm text-white/70 leading-relaxed">Up to 25 users</span></li><li class="flex items-start gap-2.5"><div class="shrink-0 w-4 h-4 rounded-full flex items-center justify-center mt-0.5 bg-white/15"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check w-2.5 h-2.5 text-white" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></div><span class="text-sm text-white/70 leading-relaxed">100,000 records</span></li><li class="flex items-start gap-2.5"><div class="shrink-0 w-4 h-4 rounded-full flex items-center justify-center mt-0.5 bg-white/15"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check w-2.5 h-2.5 text-white" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></div><span class="text-sm text-white/70 leading-relaxed">All integrations</span></li><li class="flex items-start gap-2.5"><div class="shrink-0 w-4 h-4 rounded-full flex items-center justify-center mt-0.5 bg-white/15"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check w-2.5 h-2.5 text-white" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></div><span class="text-sm text-white/70 leading-relaxed">Priority support</span></li><li class="flex items-start gap-2.5"><div class="shrink-0 w-4 h-4 rounded-full flex items-center justify-center mt-0.5 bg-white/15"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check w-2.5 h-2.5 text-white" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></div><span class="text-sm text-white/70 leading-relaxed">Advanced workflows</span></li><li class="flex items-start gap-2.5"><div class="shrink-0 w-4 h-4 rounded-full flex items-center justify-center mt-0.5 bg-white/15"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check w-2.5 h-2.5 text-white" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></div><span class="text-sm text-white/70 leading-relaxed">Custom routing rules</span></li><li class="flex items-start gap-2.5"><div class="shrink-0 w-4 h-4 rounded-full flex items-center justify-center mt-0.5 bg-white/15"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check w-2.5 h-2.5 text-white" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></div><span class="text-sm text-white/70 leading-relaxed">SSO/SAML included</span></li></ul><a class="inline-flex items-center justify-center gap-1.5 rounded-[10px] px-5 py-2.5 font-medium text-sm transition-colors mt-2 bg-white text-neutral-950 hover:bg-neutral-200" href="archpulse.html">Start free trial<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right w-4 h-4" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a></div></div><div class="relative flex flex-col rounded-2xl border overflow-hidden border-white/[0.08] bg-white/[0.02]"><div class="flex flex-col gap-6 p-8 md:p-10"><div class="flex flex-col gap-2"><h3 class="text-xl font-medium text-white/85">Enterprise</h3><p class="text-sm text-white/55 leading-relaxed min-h-[40px]">For organizations with custom compliance, scale, and support needs.</p></div><div class="flex flex-col gap-1 pb-6 border-b border-white/[0.06]"><div class="flex items-baseline gap-2"><span class="text-4xl md:text-5xl font-normal tracking-tight text-white/85">Custom</span></div><p class="text-xs text-white/45">tailored to your needs</p></div><ul class="flex flex-col gap-3 flex-1"><li class="flex items-start gap-2.5"><div class="shrink-0 w-4 h-4 rounded-full flex items-center justify-center mt-0.5 bg-white/[0.06]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check w-2.5 h-2.5 text-white/70" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></div><span class="text-sm text-white/70 leading-relaxed">Unlimited users</span></li><li class="flex items-start gap-2.5"><div class="shrink-0 w-4 h-4 rounded-full flex items-center justify-center mt-0.5 bg-white/[0.06]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check w-2.5 h-2.5 text-white/70" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></div><span class="text-sm text-white/70 leading-relaxed">Unlimited records</span></li><li class="flex items-start gap-2.5"><div class="shrink-0 w-4 h-4 rounded-full flex items-center justify-center mt-0.5 bg-white/[0.06]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check w-2.5 h-2.5 text-white/70" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></div><span class="text-sm text-white/70 leading-relaxed">Custom integrations</span></li><li class="flex items-start gap-2.5"><div class="shrink-0 w-4 h-4 rounded-full flex items-center justify-center mt-0.5 bg-white/[0.06]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check w-2.5 h-2.5 text-white/70" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></div><span class="text-sm text-white/70 leading-relaxed">Dedicated CSM</span></li><li class="flex items-start gap-2.5"><div class="shrink-0 w-4 h-4 rounded-full flex items-center justify-center mt-0.5 bg-white/[0.06]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check w-2.5 h-2.5 text-white/70" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></div><span class="text-sm text-white/70 leading-relaxed">99.99% uptime SLA</span></li><li class="flex items-start gap-2.5"><div class="shrink-0 w-4 h-4 rounded-full flex items-center justify-center mt-0.5 bg-white/[0.06]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check w-2.5 h-2.5 text-white/70" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></div><span class="text-sm text-white/70 leading-relaxed">HIPAA / BAA available</span></li><li class="flex items-start gap-2.5"><div class="shrink-0 w-4 h-4 rounded-full flex items-center justify-center mt-0.5 bg-white/[0.06]"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check w-2.5 h-2.5 text-white/70" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></div><span class="text-sm text-white/70 leading-relaxed">Custom contracts</span></li></ul><a class="inline-flex items-center justify-center gap-1.5 rounded-[10px] px-5 py-2.5 font-medium text-sm transition-colors mt-2 border border-white/[0.12] bg-white/[0.02] text-white hover:bg-white/[0.06]" href="archpulse.html?page=assistant">Contact sales<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right w-4 h-4" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a></div></div></div></div><div class="px-6 md:px-12 pb-16 md:pb-20 flex items-center justify-center"><a class="group inline-flex items-center gap-1.5 text-sm text-white/70 hover:text-white transition-colors" href="#pricing">View full pricing details &amp; feature comparison<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a></div></div></div></section><section class="relative w-full bg-neutral-950" data-section="faq"><div class="w-full border-t border-b border-white/[0.08]"><div class="max-w-7xl mx-auto px-4 bg-gradient border-l border-r border-white/[0.08]"><div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 px-6 md:px-12 py-16 md:py-24"><div class="lg:col-span-4"><div class="lg:sticky lg:top-24 flex flex-col gap-6"><p class="text-sm font-medium text-white/55">FAQ</p><h2 class="text-3xl md:text-4xl lg:text-5xl font-normal tracking-tight text-white leading-[1.05] text-balance">Frequently asked questions</h2><p class="text-base text-white/55 leading-relaxed max-w-md">Everything you need to know about Agent Ai. Can&#x27;t find what you&#x27;re looking for? Reach out to our team.</p><a class="group inline-flex items-center gap-3 mt-4 p-5 rounded-xl border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.14] transition-all w-fit" href="archpulse.html?page=assistant"><div class="w-9 h-9 rounded-lg bg-white/[0.06] border border-white/[0.08] flex items-center justify-center shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle w-4 h-4 text-white/70" aria-hidden="true"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"></path></svg></div><div class="flex flex-col gap-0.5"><p class="text-sm font-medium text-white">Still have questions?</p><p class="text-xs text-white/55">Chat with our team</p></div><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right w-3.5 h-3.5 text-white/40 group-hover:text-white/80 group-hover:translate-x-0.5 transition-all ml-2" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a></div></div><div class="lg:col-span-8 flex flex-col gap-6"><div class="flex flex-wrap items-center gap-2"><button class="px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors bg-white text-neutral-950">All</button><button class="px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors bg-white/[0.04] text-white/60 border border-white/[0.08] hover:bg-white/[0.08] hover:text-white">General</button><button class="px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors bg-white/[0.04] text-white/60 border border-white/[0.08] hover:bg-white/[0.08] hover:text-white">Pricing</button><button class="px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors bg-white/[0.04] text-white/60 border border-white/[0.08] hover:bg-white/[0.08] hover:text-white">Security</button><button class="px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors bg-white/[0.04] text-white/60 border border-white/[0.08] hover:bg-white/[0.08] hover:text-white">Integrations</button><button class="px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors bg-white/[0.04] text-white/60 border border-white/[0.08] hover:bg-white/[0.08] hover:text-white">Support</button></div><div class="rounded-2xl border border-white/[0.08] bg-white/[0.02] overflow-hidden px-6 md:px-8"><div class="border-b border-white/[0.06] last:border-b-0"><button aria-expanded="false" aria-controls="faq-what-is-default-answer" class="w-full flex items-start justify-between gap-4 py-5 md:py-6 text-left group"><span class="text-base md:text-lg font-medium leading-snug transition-colors text-white/85 group-hover:text-white">What is Agent Ai?</span><span class="shrink-0 w-7 h-7 rounded-full border border-white/[0.1] bg-white/[0.02] flex items-center justify-center text-white/55 transition-all duration-300 group-hover:border-white/20 group-hover:text-white "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-3.5 h-3.5" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></span></button><div id="faq-what-is-default-answer" role="region" aria-labelledby="faq-what-is-default-question" style="height:0px" class="overflow-hidden transition-[height] duration-300 ease-out"><div class="pb-5 md:pb-6 pr-12"><p class="text-sm md:text-base text-white/55 leading-relaxed">Agent Ai is the infrastructure that revenue teams use to deploy agents, unify data, and automate workflows across their entire go-to-market stack. Think of it as the operating system for your revenue motion.</p></div></div></div><div class="border-b border-white/[0.06] last:border-b-0"><button aria-expanded="false" aria-controls="faq-how-is-default-different-answer" class="w-full flex items-start justify-between gap-4 py-5 md:py-6 text-left group"><span class="text-base md:text-lg font-medium leading-snug transition-colors text-white/85 group-hover:text-white">How is Agent Ai different from other revenue tools?</span><span class="shrink-0 w-7 h-7 rounded-full border border-white/[0.1] bg-white/[0.02] flex items-center justify-center text-white/55 transition-all duration-300 group-hover:border-white/20 group-hover:text-white "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-3.5 h-3.5" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></span></button><div id="faq-how-is-default-different-answer" role="region" aria-labelledby="faq-how-is-default-different-question" style="height:0px" class="overflow-hidden transition-[height] duration-300 ease-out"><div class="pb-5 md:pb-6 pr-12"><p class="text-sm md:text-base text-white/55 leading-relaxed">Most tools solve one piece of the puzzle — a CRM, an enrichment vendor, a routing tool. Agent Ai unifies all of these into a single platform with a shared data layer and agent infrastructure. Your team works from one system of truth instead of patching together five.</p></div></div></div><div class="border-b border-white/[0.06] last:border-b-0"><button aria-expanded="false" aria-controls="faq-who-is-default-for-answer" class="w-full flex items-start justify-between gap-4 py-5 md:py-6 text-left group"><span class="text-base md:text-lg font-medium leading-snug transition-colors text-white/85 group-hover:text-white">Who is Agent Ai built for?</span><span class="shrink-0 w-7 h-7 rounded-full border border-white/[0.1] bg-white/[0.02] flex items-center justify-center text-white/55 transition-all duration-300 group-hover:border-white/20 group-hover:text-white "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-3.5 h-3.5" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></span></button><div id="faq-who-is-default-for-answer" role="region" aria-labelledby="faq-who-is-default-for-question" style="height:0px" class="overflow-hidden transition-[height] duration-300 ease-out"><div class="pb-5 md:pb-6 pr-12"><p class="text-sm md:text-base text-white/55 leading-relaxed">Agent Ai is built for revenue operations, sales, and marketing teams at growing B2B companies. Our customers range from 20-person startups to 1000+ person public companies.</p></div></div></div><div class="border-b border-white/[0.06] last:border-b-0"><button aria-expanded="false" aria-controls="faq-how-long-to-implement-answer" class="w-full flex items-start justify-between gap-4 py-5 md:py-6 text-left group"><span class="text-base md:text-lg font-medium leading-snug transition-colors text-white/85 group-hover:text-white">How long does implementation take?</span><span class="shrink-0 w-7 h-7 rounded-full border border-white/[0.1] bg-white/[0.02] flex items-center justify-center text-white/55 transition-all duration-300 group-hover:border-white/20 group-hover:text-white "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-3.5 h-3.5" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></span></button><div id="faq-how-long-to-implement-answer" role="region" aria-labelledby="faq-how-long-to-implement-question" style="height:0px" class="overflow-hidden transition-[height] duration-300 ease-out"><div class="pb-5 md:pb-6 pr-12"><p class="text-sm md:text-base text-white/55 leading-relaxed">Most teams are up and running in 1–3 weeks. Simple setups can launch in days; complex migrations from multiple legacy tools typically take 4–6 weeks with our solutions team supporting you the entire way.</p></div></div></div><div class="border-b border-white/[0.06] last:border-b-0"><button aria-expanded="false" aria-controls="faq-pricing-model-answer" class="w-full flex items-start justify-between gap-4 py-5 md:py-6 text-left group"><span class="text-base md:text-lg font-medium leading-snug transition-colors text-white/85 group-hover:text-white">How does Agent Ai&#x27;s pricing work?</span><span class="shrink-0 w-7 h-7 rounded-full border border-white/[0.1] bg-white/[0.02] flex items-center justify-center text-white/55 transition-all duration-300 group-hover:border-white/20 group-hover:text-white "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-3.5 h-3.5" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></span></button><div id="faq-pricing-model-answer" role="region" aria-labelledby="faq-pricing-model-question" style="height:0px" class="overflow-hidden transition-[height] duration-300 ease-out"><div class="pb-5 md:pb-6 pr-12"><p class="text-sm md:text-base text-white/55 leading-relaxed">Agent Ai is priced based on the number of seats and the volume of records in your data layer. We offer transparent pricing on our website, with custom Enterprise plans for teams with specific compliance or scale requirements.</p></div></div></div><div class="border-b border-white/[0.06] last:border-b-0"><button aria-expanded="false" aria-controls="faq-free-trial-answer" class="w-full flex items-start justify-between gap-4 py-5 md:py-6 text-left group"><span class="text-base md:text-lg font-medium leading-snug transition-colors text-white/85 group-hover:text-white">Is there a free trial?</span><span class="shrink-0 w-7 h-7 rounded-full border border-white/[0.1] bg-white/[0.02] flex items-center justify-center text-white/55 transition-all duration-300 group-hover:border-white/20 group-hover:text-white "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-3.5 h-3.5" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></span></button><div id="faq-free-trial-answer" role="region" aria-labelledby="faq-free-trial-question" style="height:0px" class="overflow-hidden transition-[height] duration-300 ease-out"><div class="pb-5 md:pb-6 pr-12"><p class="text-sm md:text-base text-white/55 leading-relaxed">Yes — every plan starts with a 14-day free trial. No credit card required. You&#x27;ll get full access to the platform so you can evaluate it with real data before committing.</p></div></div></div><div class="border-b border-white/[0.06] last:border-b-0"><button aria-expanded="false" aria-controls="faq-cancellation-answer" class="w-full flex items-start justify-between gap-4 py-5 md:py-6 text-left group"><span class="text-base md:text-lg font-medium leading-snug transition-colors text-white/85 group-hover:text-white">Can I cancel anytime?</span><span class="shrink-0 w-7 h-7 rounded-full border border-white/[0.1] bg-white/[0.02] flex items-center justify-center text-white/55 transition-all duration-300 group-hover:border-white/20 group-hover:text-white "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-3.5 h-3.5" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></span></button><div id="faq-cancellation-answer" role="region" aria-labelledby="faq-cancellation-question" style="height:0px" class="overflow-hidden transition-[height] duration-300 ease-out"><div class="pb-5 md:pb-6 pr-12"><p class="text-sm md:text-base text-white/55 leading-relaxed">Absolutely. You can cancel your subscription at any time from your account settings. We&#x27;ll retain your data for 30 days in case you want to come back or export anything.</p></div></div></div><div class="border-b border-white/[0.06] last:border-b-0"><button aria-expanded="false" aria-controls="faq-soc2-compliant-answer" class="w-full flex items-start justify-between gap-4 py-5 md:py-6 text-left group"><span class="text-base md:text-lg font-medium leading-snug transition-colors text-white/85 group-hover:text-white">Is Agent Ai SOC 2 compliant?</span><span class="shrink-0 w-7 h-7 rounded-full border border-white/[0.1] bg-white/[0.02] flex items-center justify-center text-white/55 transition-all duration-300 group-hover:border-white/20 group-hover:text-white "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-3.5 h-3.5" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></span></button><div id="faq-soc2-compliant-answer" role="region" aria-labelledby="faq-soc2-compliant-question" style="height:0px" class="overflow-hidden transition-[height] duration-300 ease-out"><div class="pb-5 md:pb-6 pr-12"><p class="text-sm md:text-base text-white/55 leading-relaxed">Yes. Agent Ai is SOC 2 Type II certified, audited annually by an independent third party. We&#x27;re also GDPR and CCPA compliant, with HIPAA-ready options available for Enterprise customers.</p></div></div></div><div class="border-b border-white/[0.06] last:border-b-0"><button aria-expanded="false" aria-controls="faq-data-encryption-answer" class="w-full flex items-start justify-between gap-4 py-5 md:py-6 text-left group"><span class="text-base md:text-lg font-medium leading-snug transition-colors text-white/85 group-hover:text-white">How is my data encrypted?</span><span class="shrink-0 w-7 h-7 rounded-full border border-white/[0.1] bg-white/[0.02] flex items-center justify-center text-white/55 transition-all duration-300 group-hover:border-white/20 group-hover:text-white "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-3.5 h-3.5" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></span></button><div id="faq-data-encryption-answer" role="region" aria-labelledby="faq-data-encryption-question" style="height:0px" class="overflow-hidden transition-[height] duration-300 ease-out"><div class="pb-5 md:pb-6 pr-12"><p class="text-sm md:text-base text-white/55 leading-relaxed">All data is encrypted in transit using TLS 1.3 and at rest using AES-256. Encryption keys are managed via AWS KMS with automatic rotation. You can read more in our Security page.</p></div></div></div><div class="border-b border-white/[0.06] last:border-b-0"><button aria-expanded="false" aria-controls="faq-sso-saml-answer" class="w-full flex items-start justify-between gap-4 py-5 md:py-6 text-left group"><span class="text-base md:text-lg font-medium leading-snug transition-colors text-white/85 group-hover:text-white">Do you support SSO/SAML?</span><span class="shrink-0 w-7 h-7 rounded-full border border-white/[0.1] bg-white/[0.02] flex items-center justify-center text-white/55 transition-all duration-300 group-hover:border-white/20 group-hover:text-white "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-3.5 h-3.5" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></span></button><div id="faq-sso-saml-answer" role="region" aria-labelledby="faq-sso-saml-question" style="height:0px" class="overflow-hidden transition-[height] duration-300 ease-out"><div class="pb-5 md:pb-6 pr-12"><p class="text-sm md:text-base text-white/55 leading-relaxed">Yes — SSO/SAML is included on every plan. We support Okta, Google Workspace, Microsoft Entra ID, and any SAML 2.0 provider out of the box.</p></div></div></div><div class="border-b border-white/[0.06] last:border-b-0"><button aria-expanded="false" aria-controls="faq-available-integrations-answer" class="w-full flex items-start justify-between gap-4 py-5 md:py-6 text-left group"><span class="text-base md:text-lg font-medium leading-snug transition-colors text-white/85 group-hover:text-white">Which integrations do you support?</span><span class="shrink-0 w-7 h-7 rounded-full border border-white/[0.1] bg-white/[0.02] flex items-center justify-center text-white/55 transition-all duration-300 group-hover:border-white/20 group-hover:text-white "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-3.5 h-3.5" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></span></button><div id="faq-available-integrations-answer" role="region" aria-labelledby="faq-available-integrations-question" style="height:0px" class="overflow-hidden transition-[height] duration-300 ease-out"><div class="pb-5 md:pb-6 pr-12"><p class="text-sm md:text-base text-white/55 leading-relaxed">Agent Ai offers bi-directional sync with all major CRMs (Salesforce, HubSpot), communication tools (Slack, Gmail, Outlook), enrichment vendors (Clearbit, Apollo, ZoomInfo), and data warehouses (Snowflake, BigQuery). See our full integrations directory for the complete list.</p></div></div></div><div class="border-b border-white/[0.06] last:border-b-0"><button aria-expanded="false" aria-controls="faq-custom-integration-answer" class="w-full flex items-start justify-between gap-4 py-5 md:py-6 text-left group"><span class="text-base md:text-lg font-medium leading-snug transition-colors text-white/85 group-hover:text-white">Can I build a custom integration?</span><span class="shrink-0 w-7 h-7 rounded-full border border-white/[0.1] bg-white/[0.02] flex items-center justify-center text-white/55 transition-all duration-300 group-hover:border-white/20 group-hover:text-white "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-3.5 h-3.5" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></span></button><div id="faq-custom-integration-answer" role="region" aria-labelledby="faq-custom-integration-question" style="height:0px" class="overflow-hidden transition-[height] duration-300 ease-out"><div class="pb-5 md:pb-6 pr-12"><p class="text-sm md:text-base text-white/55 leading-relaxed">Yes. Agent Ai has a full REST API and webhook system. You can build any integration you need, or our solutions team can build it for you on Enterprise plans.</p></div></div></div><div class="border-b border-white/[0.06] last:border-b-0"><button aria-expanded="false" aria-controls="faq-sync-frequency-answer" class="w-full flex items-start justify-between gap-4 py-5 md:py-6 text-left group"><span class="text-base md:text-lg font-medium leading-snug transition-colors text-white/85 group-hover:text-white">How often does data sync?</span><span class="shrink-0 w-7 h-7 rounded-full border border-white/[0.1] bg-white/[0.02] flex items-center justify-center text-white/55 transition-all duration-300 group-hover:border-white/20 group-hover:text-white "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-3.5 h-3.5" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></span></button><div id="faq-sync-frequency-answer" role="region" aria-labelledby="faq-sync-frequency-question" style="height:0px" class="overflow-hidden transition-[height] duration-300 ease-out"><div class="pb-5 md:pb-6 pr-12"><p class="text-sm md:text-base text-white/55 leading-relaxed">Most integrations sync in real time using webhooks. For sources that don&#x27;t support webhooks, we poll every 5 minutes. Bulk historical syncs typically complete within an hour.</p></div></div></div><div class="border-b border-white/[0.06] last:border-b-0"><button aria-expanded="false" aria-controls="faq-support-channels-answer" class="w-full flex items-start justify-between gap-4 py-5 md:py-6 text-left group"><span class="text-base md:text-lg font-medium leading-snug transition-colors text-white/85 group-hover:text-white">What support channels are available?</span><span class="shrink-0 w-7 h-7 rounded-full border border-white/[0.1] bg-white/[0.02] flex items-center justify-center text-white/55 transition-all duration-300 group-hover:border-white/20 group-hover:text-white "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-3.5 h-3.5" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></span></button><div id="faq-support-channels-answer" role="region" aria-labelledby="faq-support-channels-question" style="height:0px" class="overflow-hidden transition-[height] duration-300 ease-out"><div class="pb-5 md:pb-6 pr-12"><p class="text-sm md:text-base text-white/55 leading-relaxed">Every customer gets access to email support with 24-hour response times. Pro and Enterprise plans include live chat and dedicated Slack channels. Enterprise customers get a dedicated Customer Success Manager.</p></div></div></div><div class="border-b border-white/[0.06] last:border-b-0"><button aria-expanded="false" aria-controls="faq-training-answer" class="w-full flex items-start justify-between gap-4 py-5 md:py-6 text-left group"><span class="text-base md:text-lg font-medium leading-snug transition-colors text-white/85 group-hover:text-white">Do you offer training and onboarding?</span><span class="shrink-0 w-7 h-7 rounded-full border border-white/[0.1] bg-white/[0.02] flex items-center justify-center text-white/55 transition-all duration-300 group-hover:border-white/20 group-hover:text-white "><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus w-3.5 h-3.5" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></span></button><div id="faq-training-answer" role="region" aria-labelledby="faq-training-question" style="height:0px" class="overflow-hidden transition-[height] duration-300 ease-out"><div class="pb-5 md:pb-6 pr-12"><p class="text-sm md:text-base text-white/55 leading-relaxed">Yes. All paid plans include guided onboarding from our solutions team. We also offer self-serve resources including documentation, video tutorials, and live workshops.</p></div></div></div></div></div></div></div></div></section><section class="relative w-full bg-neutral-950 overflow-hidden" data-section="cta"><div class="w-full border-t border-b border-white/[0.08]"><div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 border-l border-r border-white/[0.08]"><div aria-hidden="true" class="pointer-events-none absolute inset-0 bg-gradient"></div><div class="relative flex flex-col items-center text-center gap-8 px-6 md:px-12 py-24 md:py-32"><p class="text-sm font-medium text-white/55">Get started</p><h2 class="text-3xl md:text-4xl lg:text-5xl font-normal tracking-tight text-white leading-[1.02] max-w-4xl text-balance">Run your go-to-market on Agent Ai</h2><p class="text-base md:text-lg text-white/55 leading-relaxed max-w-xl text-balance">Deploy agents that work across your revenue stack. Get up and running in days, not months.</p><div class="flex flex-col sm:flex-row items-center gap-3 mt-2"><a class="inline-flex items-center justify-center gap-1.5 rounded-[10px] bg-white px-5 py-2.5 font-medium text-sm text-neutral-950 hover:bg-neutral-200 transition-colors" href="archpulse.html">Request a Demo<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right w-4 h-4" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a><a class="inline-flex items-center justify-center rounded-[10px] border border-white/[0.12] bg-white/[0.02] px-5 py-2.5 font-medium text-sm text-white hover:bg-white/[0.06] transition-colors" href="archpulse.html?page=assistant">Talk to Sales</a></div></div></div></div></section>
-    </main>
+    <!-- ════════════════════════ EXPLORE dAPPS ════════════════════════ -->
+    <div id="dapps" class="max-w-7xl mx-auto px-4 sm:px-6 mt-20 sm:mt-28">
+        <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-5 mb-10">
+            <div>
+                <div class="section-badge"><i data-lucide="layout-grid" class="w-3 h-3"></i> dApp Suite</div>
+                <h2 class="text-3xl sm:text-5xl font-black text-slate-950 mt-3 leading-tight">Explore Arc dApps</h2>
+                <div class="section-sep"></div>
+                <p class="text-slate-500 text-sm font-medium mt-4 max-w-lg leading-relaxed">
+                    Select any decentralized application below to enter the live Web3 testnet workstation with full wallet and chain integration.
+                </p>
+            </div>
+            <a href="archpulse.html" class="btn-primary text-sm px-5 py-3 rounded-xl shrink-0">
+                <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                Launch Full Suite
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+            <a href="archpulse.html?page=monitor" class="dapp-card p-6 group">
+                <div class="flex items-center justify-between mb-5">
+                    <div class="feat-icon bg-violet-50 text-violet-700 group-hover:bg-violet-600 group-hover:text-white transition-colors">
+                        <i data-lucide="activity" class="w-5 h-5"></i>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300 text-[10px] font-mono font-bold uppercase">Live Telemetry</span>
+                </div>
+                <h3 class="font-black text-lg text-slate-900 group-hover:text-violet-700 transition-colors mb-2">Network Monitor</h3>
+                <p class="text-xs text-slate-500 leading-relaxed flex-1">Real-time block telemetry, throughput statistics, gas monitoring, and validator node health dashboard for Arc L1.</p>
+                <div class="flex items-center justify-between mt-5 pt-4 border-t border-slate-100 text-xs font-bold text-violet-700">
+                    <span>Launch Telemetry</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                </div>
+            </a>
+
+            <a href="archpulse.html?page=swap" class="dapp-card p-6 group">
+                <div class="flex items-center justify-between mb-5">
+                    <div class="feat-icon bg-indigo-50 text-indigo-700 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                        <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-300 text-[10px] font-mono font-bold uppercase">DEX SWAP</span>
+                </div>
+                <h3 class="font-black text-lg text-slate-900 group-hover:text-indigo-700 transition-colors mb-2">Swap Engine</h3>
+                <p class="text-xs text-slate-500 leading-relaxed flex-1">Instant 1:1 USDC to EURC stablecoin swaps with Spender Router smart contracts. Zero slippage, zero spread.</p>
+                <div class="flex items-center justify-between mt-5 pt-4 border-t border-slate-100 text-xs font-bold text-indigo-700">
+                    <span>Explore Swap</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                </div>
+            </a>
+
+            <a href="archpulse.html?page=pulsepay" class="dapp-card p-6 group border-2 border-emerald-500/30 hover:border-emerald-500">
+                <div class="flex items-center justify-between mb-5">
+                    <div class="feat-icon bg-emerald-50 text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                        <i data-lucide="credit-card" class="w-5 h-5"></i>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-mono font-bold uppercase">NEW • 0.4s Pay</span>
+                </div>
+                <h3 class="font-black text-lg text-slate-900 group-hover:text-emerald-700 transition-colors mb-2">PulsePay Engine</h3>
+                <p class="text-xs text-slate-500 leading-relaxed flex-1">Instant USDC payment links, dynamic QR invoicing, and 1-click on-chain settlement on Arc L1 with native USDC gas.</p>
+                <div class="flex items-center justify-between mt-5 pt-4 border-t border-slate-100 text-xs font-bold text-emerald-700">
+                    <span>Launch PulsePay</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                </div>
+            </a>
+
+            <a href="archpulse.html?page=wallet" class="dapp-card p-6 group">
+                <div class="flex items-center justify-between mb-5">
+                    <div class="feat-icon bg-teal-50 text-teal-700 group-hover:bg-teal-600 group-hover:text-white transition-colors">
+                        <i data-lucide="wallet" class="w-5 h-5"></i>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-300 text-[10px] font-mono font-bold uppercase">SCA Wallet</span>
+                </div>
+                <h3 class="font-black text-lg text-slate-900 group-hover:text-teal-700 transition-colors mb-2">Arc Web3 Wallet</h3>
+                <p class="text-xs text-slate-500 leading-relaxed flex-1">Manage USDC gas balances, send tokens peer-to-peer, scan QR codes, and connect via WalletConnect v2 protocol.</p>
+                <div class="flex items-center justify-between mt-5 pt-4 border-t border-slate-100 text-xs font-bold text-teal-700">
+                    <span>Open Wallet</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                </div>
+            </a>
+
+            <a href="archpulse.html?page=escrow" class="dapp-card p-6 group">
+                <div class="flex items-center justify-between mb-5">
+                    <div class="feat-icon bg-amber-50 text-amber-700 group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                        <i data-lucide="shield-check" class="w-5 h-5"></i>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-300 text-[10px] font-mono font-bold uppercase">ERC-8183 Vault</span>
+                </div>
+                <h3 class="font-black text-lg text-slate-900 group-hover:text-amber-700 transition-colors mb-2">Circle Escrow Vault</h3>
+                <p class="text-xs text-slate-500 leading-relaxed flex-1">Lock USDC in secure multi-signature conditional escrow smart contracts with arbitration and dispute resolution.</p>
+                <div class="flex items-center justify-between mt-5 pt-4 border-t border-slate-100 text-xs font-bold text-amber-700">
+                    <span>Open Escrow</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                </div>
+            </a>
+
+            <a href="archpulse.html?page=assistant" class="dapp-card p-6 group">
+                <div class="flex items-center justify-between mb-5">
+                    <div class="feat-icon bg-rose-50 text-rose-700 group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                        <i data-lucide="bot" class="w-5 h-5"></i>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-300 text-[10px] font-mono font-bold uppercase">Gemini 2.0 AI</span>
+                </div>
+                <h3 class="font-black text-lg text-slate-900 group-hover:text-rose-700 transition-colors mb-2">Pro AI Assistant</h3>
+                <p class="text-xs text-slate-500 leading-relaxed flex-1">Intelligent Web3 AI for real-time chain telemetry interpretation, smart contract debugging, and on-chain market analysis.</p>
+                <div class="flex items-center justify-between mt-5 pt-4 border-t border-slate-100 text-xs font-bold text-rose-700">
+                    <span>Chat with AI</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                </div>
+            </a>
+
+            <a href="archpulse.html?page=daily" class="dapp-card p-6 group">
+                <div class="flex items-center justify-between mb-5">
+                    <div class="feat-icon bg-emerald-50 text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                        <i data-lucide="trophy" class="w-5 h-5"></i>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300 text-[10px] font-mono font-bold uppercase">Quest Rewards</span>
+                </div>
+                <h3 class="font-black text-lg text-slate-900 group-hover:text-emerald-700 transition-colors mb-2">Daily Quests &amp; NFT Badges</h3>
+                <p class="text-xs text-slate-500 leading-relaxed flex-1">Complete daily check-ins, execute testnet DEX swaps, and claim exclusive Arc Protocol NFT Badges as on-chain achievements.</p>
+                <div class="flex items-center justify-between mt-5 pt-4 border-t border-slate-100 text-xs font-bold text-emerald-700">
+                    <span>Claim Rewards</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                </div>
+            </a>
+
+            <a href="archpulse.html?page=validators" class="dapp-card p-6 group">
+                <div class="flex items-center justify-between mb-5">
+                    <div class="feat-icon bg-purple-50 text-purple-700 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                        <i data-lucide="layers" class="w-5 h-5"></i>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300 text-[10px] font-mono font-bold uppercase">14% Max APY</span>
+                </div>
+                <h3 class="font-black text-lg text-slate-900 group-hover:text-purple-700 transition-colors mb-2">PulseStake (Liquid Staking)</h3>
+                <p class="text-xs text-slate-500 leading-relaxed flex-1">Stake native USDC to Arc L1 consortium validator nodes, receive liquid $pUSDC tokens, earn continuous real-time yield, and climb the staker leaderboard.</p>
+                <div class="flex items-center justify-between mt-5 pt-4 border-t border-slate-100 text-xs font-bold text-purple-700">
+                    <span>Stake &amp; Earn Yield</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                </div>
+            </a>
+
+            <a href="archpulse.html?page=prediction" class="dapp-card p-6 group">
+                <div class="flex items-center justify-between mb-5">
+                    <div class="feat-icon bg-purple-50 text-purple-700 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                        <i data-lucide="trending-up" class="w-5 h-5"></i>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-300 text-[10px] font-mono font-bold uppercase">89.4% AI Accuracy</span>
+                </div>
+                <h3 class="font-black text-lg text-slate-900 group-hover:text-purple-700 transition-colors mb-2">Prediction Markets &amp; AI</h3>
+                <p class="text-xs text-slate-500 leading-relaxed flex-1">Multi-timeframe dynamic technical charts, live binary event prediction pools with USDC shares, and institutional forecast models.</p>
+                <div class="flex items-center justify-between mt-5 pt-4 border-t border-slate-100 text-xs font-bold text-purple-700">
+                    <span>Explore Predictions</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- ════════════════════════ PROTOCOL INFO ════════════════════════ -->
+    <div id="protocol" class="max-w-7xl mx-auto px-4 sm:px-6 mt-24 sm:mt-32">
+        <div class="text-center mb-14">
+            <div class="section-badge mx-auto">Protocol Architecture</div>
+            <h2 class="text-3xl sm:text-5xl font-black text-slate-950 mt-3">Built on Circle Arc L1</h2>
+            <div class="section-sep mx-auto"></div>
+            <p class="text-slate-500 text-sm font-medium mt-4 max-w-2xl mx-auto leading-relaxed">
+                Arc L1 is a purpose-built Layer 1 blockchain designed for institutional finance — combining programmable stablecoin rails, sub-second finality, and consortium-grade validator infrastructure.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+            <!-- Features -->
+            <div class="card p-8 space-y-6">
+                <h3 class="font-black text-xl text-slate-950">Core Protocol Features</h3>
+                <div class="space-y-5">
+                    <div class="flex gap-4">
+                        <div class="feat-icon bg-violet-50 text-violet-700"><i data-lucide="zap" class="w-5 h-5"></i></div>
+                        <div>
+                            <div class="font-bold text-sm text-slate-900">Sub-second Block Finality</div>
+                            <div class="text-xs text-slate-500 mt-1 leading-relaxed">Arc L1 achieves ~450ms block confirmation times using a delegated Byzantine Fault Tolerant (BFT) consensus mechanism, enabling real-time DeFi operations.</div>
+                        </div>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="feat-icon bg-teal-50 text-teal-700"><i data-lucide="dollar-sign" class="w-5 h-5"></i></div>
+                        <div>
+                            <div class="font-bold text-sm text-slate-900">USDC-Denominated Gas Fees</div>
+                            <div class="text-xs text-slate-500 mt-1 leading-relaxed">Unlike ETH-based networks, Arc L1 uses USDC as the native gas currency. Transaction fees start at 0.001 USDC, offering stable and predictable transaction costs for enterprise users.</div>
+                        </div>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="feat-icon bg-indigo-50 text-indigo-700"><i data-lucide="shield" class="w-5 h-5"></i></div>
+                        <div>
+                            <div class="font-bold text-sm text-slate-900">Permissioned Consortium Validators</div>
+                            <div class="text-xs text-slate-500 mt-1 leading-relaxed">12 globally distributed validator nodes operated by regulated financial institutions including Circle Financial, BlackRock, Visa, DTCC, and BNY Mellon ensure institutional-grade security.</div>
+                        </div>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="feat-icon bg-rose-50 text-rose-700"><i data-lucide="code-2" class="w-5 h-5"></i></div>
+                        <div>
+                            <div class="font-bold text-sm text-slate-900">EVM-Compatible Smart Contracts</div>
+                            <div class="text-xs text-slate-500 mt-1 leading-relaxed">Full Ethereum Virtual Machine compatibility allows developers to deploy existing Solidity smart contracts without code changes. Supports all major ERC standards.</div>
+                        </div>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="feat-icon bg-amber-50 text-amber-700"><i data-lucide="link" class="w-5 h-5"></i></div>
+                        <div>
+                            <div class="font-bold text-sm text-slate-900">Cross-Chain CCTP Bridge</div>
+                            <div class="text-xs text-slate-500 mt-1 leading-relaxed">Native Circle Cross-Chain Transfer Protocol (CCTP) integration enables secure, canonical USDC transfers between Arc L1 and Ethereum, Polygon, Avalanche, and Base.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Technical Specs -->
+            <div class="card p-8">
+                <h3 class="font-black text-xl text-slate-950 mb-6">Technical Specifications</h3>
+                <div>
+                    <div class="spec-row">
+                        <div class="text-xs font-semibold text-slate-500">Chain ID</div>
+                        <div class="font-mono text-sm font-bold text-slate-900">5042002</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="text-xs font-semibold text-slate-500">Network Name</div>
+                        <div class="font-mono text-sm font-bold text-slate-900">Arc Testnet</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="text-xs font-semibold text-slate-500">RPC Endpoint (Primary - Circle)</div>
+                        <div class="font-mono text-xs font-bold text-violet-700 break-all text-right">https://rpc.testnet.arc.io</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="text-xs font-semibold text-slate-500">RPC Endpoint (dRPC)</div>
+                        <div class="font-mono text-xs font-bold text-violet-700 break-all text-right">https://rpc.drpc.testnet.arc.io</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="text-xs font-semibold text-slate-500">RPC Endpoint (QuickNode)</div>
+                        <div class="font-mono text-xs font-bold text-violet-700 break-all text-right">https://rpc.quicknode.testnet.arc.io</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="text-xs font-semibold text-slate-500">RPC Endpoint (Blockdaemon)</div>
+                        <div class="font-mono text-xs font-bold text-violet-700 break-all text-right">https://rpc.blockdaemon.testnet.arc.io</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="text-xs font-semibold text-slate-500">Native Gas Token</div>
+                        <div class="font-mono text-sm font-bold text-slate-900">USDC (ERC-20)</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="text-xs font-semibold text-slate-500">Block Explorer</div>
+                        <div class="font-mono text-xs font-bold text-violet-700">testnet.arcscan.app</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="text-xs font-semibold text-slate-500">Consensus</div>
+                        <div class="font-mono text-sm font-bold text-slate-900">dBFT — Delegated BFT</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="text-xs font-semibold text-slate-500">Block Time</div>
+                        <div class="font-mono text-sm font-bold text-emerald-700">~450ms avg.</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="text-xs font-semibold text-slate-500">TPS (Peak)</div>
+                        <div class="font-mono text-sm font-bold text-slate-900">2,500+ tx/s</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="text-xs font-semibold text-slate-500">EVM Compatibility</div>
+                        <div class="font-mono text-sm font-bold text-emerald-700">Full (Solidity 0.8.x)</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="text-xs font-semibold text-slate-500">Mainnet Launch</div>
+                        <div class="font-mono text-sm font-bold text-amber-600">September 16, 2026</div>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-5 border-t border-slate-100 flex gap-3">
+                    <a href="archpulse.html?page=wallet" class="btn-primary text-xs px-4 py-2.5 rounded-xl flex-1 justify-center">
+                        <i data-lucide="plug" class="w-3.5 h-3.5"></i>
+                        Connect Wallet
+                    </a>
+                    <a href="https://testnet.arcscan.app" target="_blank" rel="noopener" class="btn-outline text-xs px-4 py-2.5 rounded-xl flex-1 justify-center">
+                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                        Block Explorer
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════ HOW IT WORKS ════════════════════════ -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 mt-24 sm:mt-32">
+        <div class="text-center mb-14">
+            <div class="section-badge mx-auto">Get Started</div>
+            <h2 class="text-3xl sm:text-5xl font-black text-slate-950 mt-3">How to Use PulseGrid</h2>
+            <div class="section-sep mx-auto"></div>
+            <p class="text-slate-500 text-sm font-medium mt-4 max-w-xl mx-auto leading-relaxed">
+                Three steps to start exploring Web3 on the Arc L1 testnet with a live wallet and real on-chain interactions.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="card p-8 text-center space-y-4">
+                <div class="w-14 h-14 mx-auto rounded-2xl border-3 border-slate-900 bg-violet-600 flex items-center justify-center text-white shadow-[3px_3px_0px_#0F172A]">
+                    <i data-lucide="wallet" class="w-6 h-6"></i>
+                </div>
+                <div class="text-[10px] font-mono font-bold text-violet-600 uppercase tracking-wider">Step 01</div>
+                <h3 class="font-black text-xl text-slate-950">Connect Your Wallet</h3>
+                <p class="text-sm text-slate-500 leading-relaxed">Connect MetaMask or any WalletConnect v2 compatible wallet. PulseGrid will automatically prompt you to add the Arc L1 testnet (Chain ID 5042002) to your wallet.</p>
+            </div>
+
+            <div class="card p-8 text-center space-y-4">
+                <div class="w-14 h-14 mx-auto rounded-2xl border-3 border-slate-900 bg-teal-600 flex items-center justify-center text-white shadow-[3px_3px_0px_#0F172A]">
+                    <i data-lucide="droplets" class="w-6 h-6"></i>
+                </div>
+                <div class="text-[10px] font-mono font-bold text-teal-600 uppercase tracking-wider">Step 02</div>
+                <h3 class="font-black text-xl text-slate-950">Claim Testnet Tokens</h3>
+                <p class="text-sm text-slate-500 leading-relaxed">Use the built-in USDC and EURC Faucet to claim testnet tokens. These tokens are required for gas fees and to interact with DEX swaps, escrow, and other on-chain features.</p>
+            </div>
+
+            <div class="card p-8 text-center space-y-4">
+                <div class="w-14 h-14 mx-auto rounded-2xl border-3 border-slate-900 bg-indigo-600 flex items-center justify-center text-white shadow-[3px_3px_0px_#0F172A]">
+                    <i data-lucide="play-circle" class="w-6 h-6"></i>
+                </div>
+                <div class="text-[10px] font-mono font-bold text-indigo-600 uppercase tracking-wider">Step 03</div>
+                <h3 class="font-black text-xl text-slate-950">Explore All dApps</h3>
+                <p class="text-sm text-slate-500 leading-relaxed">Navigate the full PulseGrid workstation — swap stablecoins, monitor the network, use the AI assistant, complete daily quests, and manage your portfolio in real-time.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════ ROADMAP ════════════════════════ -->
+    <div id="roadmap" class="max-w-7xl mx-auto px-4 sm:px-6 mt-24 sm:mt-32">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+            <div>
+                <div class="section-badge">Protocol Roadmap</div>
+                <h2 class="text-3xl sm:text-5xl font-black text-slate-950 mt-3 leading-tight">Arc L1 Development Milestones</h2>
+                <div class="section-sep"></div>
+                <p class="text-slate-500 text-sm font-medium mt-4 leading-relaxed max-w-md">
+                    The Arc L1 testnet has been running since early 2025. Mainnet is scheduled for September 16, 2026, followed by DeFi primitive launches and cross-chain expansions.
+                </p>
+                <div class="mt-8 space-y-6">
+                    <div class="roadmap-step">
+                        <div>
+                            <div class="roadmap-dot done"><i data-lucide="check" class="w-3.5 h-3.5"></i></div>
+                        </div>
+                        <div class="pb-6 border-l-2 border-slate-100 pl-5 ml-[-33px]">
+                            <div class="text-[10px] font-mono font-bold text-emerald-600 uppercase tracking-wide mb-1">Completed — Q1 2025</div>
+                            <div class="font-bold text-sm text-slate-900">Testnet Genesis Block</div>
+                            <div class="text-xs text-slate-500 mt-1 leading-relaxed">Arc L1 testnet launched with 12 consortium validator nodes. Basic EVM compatibility verified. USDC gas model activated.</div>
+                        </div>
+                    </div>
+                    <div class="roadmap-step">
+                        <div>
+                            <div class="roadmap-dot done"><i data-lucide="check" class="w-3.5 h-3.5"></i></div>
+                        </div>
+                        <div class="pb-6 border-l-2 border-slate-100 pl-5 ml-[-33px]">
+                            <div class="text-[10px] font-mono font-bold text-emerald-600 uppercase tracking-wide mb-1">Completed — Q3 2025</div>
+                            <div class="font-bold text-sm text-slate-900">DEX Swap + Escrow Contracts</div>
+                            <div class="text-xs text-slate-500 mt-1 leading-relaxed">Spender Router deployed for USDC/EURC swaps. ERC-8183 escrow vaults launched with multi-sig conditional release.</div>
+                        </div>
+                    </div>
+                    <div class="roadmap-step">
+                        <div>
+                            <div class="roadmap-dot active">3</div>
+                        </div>
+                        <div class="pb-6 border-l-2 border-slate-100 pl-5 ml-[-33px]">
+                            <div class="text-[10px] font-mono font-bold text-violet-600 uppercase tracking-wide mb-1">In Progress — Q1–Q3 2026</div>
+                            <div class="font-bold text-sm text-slate-900">Testnet Public Phase + PulseGrid dApp Suite</div>
+                            <div class="text-xs text-slate-500 mt-1 leading-relaxed">Open testnet with public faucet, PulseGrid dApp workstation, CCTP bridge integration, AI assistant, daily quests, and NFT badge rewards.</div>
+                        </div>
+                    </div>
+                    <div class="roadmap-step">
+                        <div>
+                            <div class="roadmap-dot">4</div>
+                        </div>
+                        <div class="pb-6 pl-5 ml-[-33px]">
+                            <div class="text-[10px] font-mono font-bold text-amber-600 uppercase tracking-wide mb-1">Upcoming — September 16, 2026</div>
+                            <div class="font-bold text-sm text-slate-900">Mainnet Genesis — Official Launch</div>
+                            <div class="text-xs text-slate-500 mt-1 leading-relaxed">Arc L1 mainnet goes live with real USDC liquidity, institutional validator activation, and full DeFi primitive suite. Token generation event and staking program begins.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Key Differentiators -->
+            <div class="space-y-4">
+                <h3 class="font-black text-xl text-slate-950 mb-6">Why Arc L1 Over Other Chains?</h3>
+                <div class="card p-5 flex gap-4">
+                    <div class="feat-icon bg-violet-50 text-violet-700 shrink-0"><i data-lucide="trending-up" class="w-5 h-5"></i></div>
+                    <div>
+                        <div class="font-bold text-sm text-slate-900 mb-1">Stablecoin-Native Economics</div>
+                        <div class="text-xs text-slate-500 leading-relaxed">No volatile native token required. Gas fees paid in USDC provide CFOs and developers predictable transaction cost models — essential for enterprise adoption.</div>
+                    </div>
+                </div>
+                <div class="card p-5 flex gap-4">
+                    <div class="feat-icon bg-teal-50 text-teal-700 shrink-0"><i data-lucide="building-2" class="w-5 h-5"></i></div>
+                    <div>
+                        <div class="font-bold text-sm text-slate-900 mb-1">Institutional Validator Trust</div>
+                        <div class="text-xs text-slate-500 leading-relaxed">Unlike public PoS networks, Arc L1's validators are permissioned financial institutions operating under regulatory frameworks, providing compliance-ready infrastructure.</div>
+                    </div>
+                </div>
+                <div class="card p-5 flex gap-4">
+                    <div class="feat-icon bg-indigo-50 text-indigo-700 shrink-0"><i data-lucide="globe" class="w-5 h-5"></i></div>
+                    <div>
+                        <div class="font-bold text-sm text-slate-900 mb-1">CCTP Cross-Chain Liquidity</div>
+                        <div class="text-xs text-slate-500 leading-relaxed">Native Circle CCTP support means USDC moves natively between Arc L1 and all major EVM chains without wrapped token risks or third-party bridge dependencies.</div>
+                    </div>
+                </div>
+                <div class="card p-5 flex gap-4">
+                    <div class="feat-icon bg-rose-50 text-rose-700 shrink-0"><i data-lucide="cpu" class="w-5 h-5"></i></div>
+                    <div>
+                        <div class="font-bold text-sm text-slate-900 mb-1">AI-Augmented On-Chain Operations</div>
+                        <div class="text-xs text-slate-500 leading-relaxed">PulseGrid embeds Gemini 2.0 AI directly in the dApp layer — chain data interpretation, smart contract debugging, and market analysis all happen in-context without leaving the interface.</div>
+                    </div>
+                </div>
+                <div class="card p-5 flex gap-4">
+                    <div class="feat-icon bg-amber-50 text-amber-700 shrink-0"><i data-lucide="lock" class="w-5 h-5"></i></div>
+                    <div>
+                        <div class="font-bold text-sm text-slate-900 mb-1">ERC-8183 Programmable Escrow</div>
+                        <div class="text-xs text-slate-500 leading-relaxed">Arc L1 introduces the ERC-8183 standard for conditional USDC release — enabling trustless escrow for trade settlement, payroll automation, and conditional payments.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════ CONSORTIUM PARTNERS ════════════════════════ -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 mt-24 sm:mt-32">
+        <div class="card p-10 sm:p-14 bg-gradient-to-br from-slate-50 via-white to-violet-50">
+            <div class="text-center mb-10">
+                <div class="section-badge mx-auto">
+                    <i data-lucide="shield" class="w-3 h-3"></i>
+                    Institutional Validator Security
+                </div>
+                <h2 class="text-3xl sm:text-4xl font-black text-slate-950 mt-3">Backed by Global Financial Leaders</h2>
+                <div class="section-sep mx-auto"></div>
+                <p class="text-slate-500 text-sm font-medium mt-4 max-w-xl mx-auto leading-relaxed">
+                    Arc L1 testnet consortium nodes are operated by permissioned enterprise infrastructure from the world's most regulated and trusted financial institutions.
+                </p>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+                <a href="https://www.circle.com" target="_blank" rel="noopener" class="partner-badge">
+                    <span class="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0"></span>
+                    Circle Financial
+                    <i data-lucide="external-link" class="w-3 h-3 text-slate-400 ml-1"></i>
+                </a>
+                <a href="https://www.blackrock.com" target="_blank" rel="noopener" class="partner-badge">
+                    <span class="w-2.5 h-2.5 rounded-full bg-slate-900 shrink-0"></span>
+                    BlackRock
+                    <i data-lucide="external-link" class="w-3 h-3 text-slate-400 ml-1"></i>
+                </a>
+                <a href="https://www.visa.com" target="_blank" rel="noopener" class="partner-badge">
+                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-600 shrink-0"></span>
+                    Visa International
+                    <i data-lucide="external-link" class="w-3 h-3 text-slate-400 ml-1"></i>
+                </a>
+                <a href="https://www.dtcc.com" target="_blank" rel="noopener" class="partner-badge">
+                    <span class="w-2.5 h-2.5 rounded-full bg-teal-600 shrink-0"></span>
+                    DTCC Global
+                    <i data-lucide="external-link" class="w-3 h-3 text-slate-400 ml-1"></i>
+                </a>
+                <a href="https://www.bnymellon.com" target="_blank" rel="noopener" class="partner-badge">
+                    <span class="w-2.5 h-2.5 rounded-full bg-violet-600 shrink-0"></span>
+                    BNY Mellon
+                    <i data-lucide="external-link" class="w-3 h-3 text-slate-400 ml-1"></i>
+                </a>
+            </div>
+
+            <div class="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6 border-t border-slate-200 pt-10">
+                <div class="text-center">
+                    <div class="text-3xl font-black text-slate-950 font-mono">$2.4T+</div>
+                    <div class="text-xs font-semibold text-slate-500 mt-1 uppercase tracking-wide">Combined AUM Under Management</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-black text-slate-950 font-mono">175+</div>
+                    <div class="text-xs font-semibold text-slate-500 mt-1 uppercase tracking-wide">Years Combined Financial Experience</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-black text-slate-950 font-mono">12</div>
+                    <div class="text-xs font-semibold text-slate-500 mt-1 uppercase tracking-wide">Active Global Validator Nodes</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════ FOOTER CTA ════════════════════════ -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 mt-20 sm:mt-28">
+        <div class="hero-banner p-10 sm:p-16 text-center relative overflow-hidden">
+            <div class="orb w-80 h-80 bg-violet-600/20 -top-24 -right-24"></div>
+            <div class="orb w-72 h-72 bg-teal-500/15 -bottom-20 -left-16"></div>
+            <div class="relative z-10 space-y-6">
+                <h2 class="text-3xl sm:text-5xl font-black text-white leading-tight">
+                    Ready to explore<br>Arc L1 Web3?
+                </h2>
+                <p class="text-slate-300 text-base sm:text-lg max-w-lg mx-auto leading-relaxed font-medium">
+                    Enter the full PulseGrid dApp workstation — real on-chain interactions, live network telemetry, stablecoin swaps, and institutional-grade Web3 infrastructure.
+                </p>
+                <div class="flex flex-wrap justify-center gap-4 pt-2">
+                    <a href="archpulse.html" class="btn-primary text-base px-10 py-4 rounded-2xl">
+                        <i data-lucide="compass" class="w-5 h-5"></i>
+                        Enter dApp Suite
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </a>
+                    <a href="https://testnet.arcscan.app" target="_blank" rel="noopener" class="btn-secondary text-sm px-8 py-4 rounded-2xl">
+                        <i data-lucide="external-link" class="w-4 h-4"></i>
+                        Arc Block Explorer
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- ════════════════════════ FOOTER ════════════════════════ -->
-    <footer class="relative w-full bg-neutral-950" data-section="footer"><div class="w-full border-t border-white/[0.08]"><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 border-l border-r border-white/[0.08]"><div class="grid grid-cols-2 md:grid-cols-6 gap-8 md:gap-12 px-6 md:px-12 pt-16 md:pt-20 pb-12 md:pb-16"><div class="col-span-2 flex flex-col gap-6"><a class="flex items-center gap-2 text-white w-fit" href="/"><img alt="logo" loading="lazy" width="22" height="22" decoding="async" data-nimg="1" style="color:transparent" src="logo.png"/><span class="text-lg font-medium">Agent Ai</span></a><p class="text-sm text-white/55 leading-relaxed max-w-xs">The infrastructure agents need to run on your revenue stack.</p><div class="flex items-center gap-1"><a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter" class="flex items-center justify-center w-9 h-9 rounded-md text-white/55 hover:text-white hover:bg-white/[0.06] transition-colors"><svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg></a><a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" class="flex items-center justify-center w-9 h-9 rounded-md text-white/55 hover:text-white hover:bg-white/[0.06] transition-colors"><svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.063 2.063 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"></path></svg></a><a href="https://github.com" target="_blank" rel="noopener noreferrer" aria-label="GitHub" class="flex items-center justify-center w-9 h-9 rounded-md text-white/55 hover:text-white hover:bg-white/[0.06] transition-colors"><svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"></path></svg></a><a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="flex items-center justify-center w-9 h-9 rounded-md text-white/55 hover:text-white hover:bg-white/[0.06] transition-colors"><svg viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"></path></svg></a></div></div><div class="flex flex-col gap-4"><h3 class="text-sm font-medium text-white">Platform</h3><ul class="flex flex-col gap-3"><li><a class="text-sm text-white/55 hover:text-white transition-colors" href="archpulse.html?page=assistant">Agent</a></li><li><a class="text-sm text-white/55 hover:text-white transition-colors" href="archpulse.html?page=monitor">Data Layer</a></li><li><a class="text-sm text-white/55 hover:text-white transition-colors" href="archpulse.html?page=swap">Tables</a></li><li><a class="text-sm text-white/55 hover:text-white transition-colors" href="archpulse.html?page=swap">Workflows</a></li><li><a class="text-sm text-white/55 hover:text-white transition-colors" href="archpulse.html?page=swap">Routing</a></li><li><a class="text-sm text-white/55 hover:text-white transition-colors" href="archpulse.html?page=swap">Scheduling</a></li></ul></div><div class="flex flex-col gap-4"><h3 class="text-sm font-medium text-white">Resources</h3><ul class="flex flex-col gap-3"><li><a class="text-sm text-white/55 hover:text-white transition-colors" href="https://testnet.arcscan.app">Documentation</a></li><li><a class="text-sm text-white/55 hover:text-white transition-colors" href="#roadmap">Changelog</a></li><li><a class="text-sm text-white/55 hover:text-white transition-colors" href="/blog">Blog</a></li><li><a class="text-sm text-white/55 hover:text-white transition-colors" href="/customers">Customers</a></li><li><a class="text-sm text-white/55 hover:text-white transition-colors" href="#capabilities">Integrations</a></li></ul></div><div class="flex flex-col gap-4"><h3 class="text-sm font-medium text-white">Company</h3><ul class="flex flex-col gap-3"><li><a class="text-sm text-white/55 hover:text-white transition-colors" href="/about">About</a></li><li><a class="text-sm text-white/55 hover:text-white transition-colors" href="/careers">Careers</a></li><li><a class="text-sm text-white/55 hover:text-white transition-colors" href="/press">Press</a></li><li><a class="text-sm text-white/55 hover:text-white transition-colors" href="/contact">Contact</a></li></ul></div><div class="flex flex-col gap-4"><h3 class="text-sm font-medium text-white">Legal</h3><ul class="flex flex-col gap-3"><li><a class="text-sm text-white/55 hover:text-white transition-colors" href="/privacy">Privacy</a></li><li><a class="text-sm text-white/55 hover:text-white transition-colors" href="/terms">Terms</a></li><li><a class="text-sm text-white/55 hover:text-white transition-colors" href="/security">Security</a></li><li><a class="text-sm text-white/55 hover:text-white transition-colors" href="/cookies">Cookies</a></li></ul></div></div><div class="border-t border-white/[0.06] px-6 md:px-12 py-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"><p class="text-xs text-white/45">© <!-- -->2026<!-- --> Agent Ai, Inc. All rights reserved.</p><div class="flex items-center gap-6"><a class="flex items-center gap-2 text-xs text-white/45 hover:text-white/70 transition-colors" href="archpulse.html?page=monitor"><span class="relative flex w-2 h-2"><span class="absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75 animate-ping"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span>All systems operational</a><a class="text-xs text-white/45 hover:text-white/70 transition-colors" href="/sitemap">Sitemap</a></div></div></div></div></footer>
+    <footer class="max-w-7xl mx-auto px-4 sm:px-6 py-10 mt-10 border-t border-slate-200">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <img src="logo.png" alt="PulseGrid" class="w-8 h-8 rounded-lg border border-slate-300 object-cover bg-white">
+                <div>
+                    <div class="font-black text-sm text-slate-900">PulseGrid</div>
+                    <div class="text-[10px] text-slate-400 font-mono">Arc L1 Web3 Ecosystem v1.0</div>
+                </div>
+            </div>
+            <div class="flex items-center gap-5 text-xs font-semibold text-slate-400">
+                <a href="https://testnet.arcscan.app" target="_blank" rel="noopener" class="hover:text-violet-700 transition-colors">Block Explorer</a>
+                <a href="archpulse.html" class="hover:text-violet-700 transition-colors">Launch dApp</a>
+                <span class="font-mono">Chain 5042002</span>
+            </div>
+        </div>
+    </footer>
 
-    <!-- ════════════════════════ INTERACTIVE SCRIPTS ════════════════════════ -->
     <script>
-        // Initialize Lucide icons
-        if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        function toggleNav() {
+            const nav = document.getElementById('mobile-nav');
+            nav.classList.toggle('open');
         }
 
-        // Mobile Nav Toggle
-        function toggleMobileNav() {
-            const menu = document.getElementById('mobile-menu');
-            if (menu) {
-                menu.classList.toggle('hidden');
-                menu.classList.toggle('flex');
-            }
-        }
-
-        // Infrastructure Tab Switcher Logic
-        document.addEventListener('DOMContentLoaded', () => {
-            const tabLinks = document.querySelectorAll('section[data-section="infrastructure"] nav a');
-            const tabPanels = document.querySelectorAll('section[data-section="infrastructure"] .lg\:col-span-9 > article');
-
-            if (tabLinks.length && tabPanels.length) {
-                // Ensure the first panel is visible and others are displayed properly
-                tabLinks.forEach((link, idx) => {
-                    link.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        
-                        // Update active styling on nav
-                        tabLinks.forEach(l => {
-                            l.classList.remove('bg-white/[0.04]', 'border-l-2', 'border-white');
-                            l.classList.add('opacity-70');
-                        });
-                        link.classList.add('bg-white/[0.04]', 'border-l-2', 'border-white');
-                        link.classList.remove('opacity-70');
-
-                        // Scroll smoothly to target or show target panel
-                        const targetId = link.getAttribute('href').replace('#', '');
-                        const targetArticle = document.getElementById(targetId);
-                        if (targetArticle) {
-                            targetArticle.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }
-                    });
-                });
-            }
-
-            // FAQ Accordions Toggle Logic
-            const faqItems = document.querySelectorAll('section[data-section="faq"] [data-state]');
-            faqItems.forEach(item => {
-                const trigger = item.querySelector('button') || item.querySelector('h3') || item.firstElementChild;
-                const content = item.querySelector('[role="region"]') || item.querySelector('div:last-child');
-                const icon = item.querySelector('svg');
-
-                if (trigger && content) {
-                    trigger.style.cursor = 'pointer';
-                    trigger.addEventListener('click', () => {
-                        const isExpanded = item.getAttribute('data-state') === 'open';
-                        
-                        if (isExpanded) {
-                            item.setAttribute('data-state', 'closed');
-                            content.style.display = 'none';
-                            if (icon) icon.style.transform = 'rotate(0deg)';
-                        } else {
-                            item.setAttribute('data-state', 'open');
-                            content.style.display = 'block';
-                            if (icon) icon.style.transform = 'rotate(45deg)';
-                        }
-                    });
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(a => {
+            a.addEventListener('click', e => {
+                const target = document.querySelector(a.getAttribute('href'));
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             });
         });
     </script>
 </body>
 </html>
+

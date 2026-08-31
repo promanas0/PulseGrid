@@ -889,20 +889,20 @@
         </section>
 
         <!-- PAGE: VALIDATOR STATUS & TELEMETRY MATRIX VIEW -->
-        <!-- PULSESTAKE: VALIDATOR LIQUID STAKING & ON-CHAIN YIELD HUB -->
+        <!-- PULSESTAKE: 2-TAB LIQUID STAKING TERMINAL & ON-CHAIN YIELD HUB -->
         <section id="view-validators" class="page-view hidden space-y-8">
             
-            <!-- Hero Banner with Deployed Contract Badges -->
-            <div class="pixel-hero-gradient p-6 sm:p-10 text-white relative overflow-hidden shadow-[6px_6px_0px_#0F172A]">
+            <!-- Hero Banner with Deployed Contract Badges & 3-Dots Action Menu -->
+            <div class="pixel-hero-gradient p-6 sm:p-8 text-white relative overflow-hidden shadow-[6px_6px_0px_#0F172A]">
                 <div class="absolute -top-24 -right-24 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-teal-500/20 rounded-full blur-3xl pointer-events-none"></div>
 
-                <div class="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-                    <div class="space-y-2.5 max-w-2xl">
+                <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                    <div class="space-y-2 max-w-2xl">
                         <div class="flex flex-wrap items-center gap-2">
                             <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 font-silkscreen text-[11px] font-bold">
                                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                                Circle Arc L1 Liquid Staking Engine
+                                Circle Arc L1 Liquid Staking
                             </span>
                             <a href="https://testnet.arcscan.app/address/0x9F6baFB6961aAd0fC133d32A559CaFdf32582801" target="_blank" class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-400/40 text-purple-200 font-mono text-[11px] font-bold hover:bg-purple-500/30 transition-colors">
                                 <span>Contract: 0x9F6b...2801</span>
@@ -915,18 +915,47 @@
                         </div>
                         <h1 class="font-pixel text-3xl sm:text-5xl font-black tracking-wide text-white drop-shadow-md flex items-center gap-3">
                             <i data-lucide="layers" class="w-9 h-9 text-purple-300"></i>
-                            PulseStake Protocol
+                            PulseStake Terminal
                         </h1>
                         <p class="text-slate-200 text-xs sm:text-sm font-sans leading-relaxed">
-                            Stake native USDC to Circle Arc L1 institutional consortium nodes, receive liquid <strong class="text-white">$pUSDC</strong> tokens, earn continuous sub-second yield (up to 14.0% APY), and climb the on-chain Staking Leaderboard!
+                            Stake native USDC to Circle Arc L1 institutional consortium nodes, receive liquid <strong class="text-white">$pUSDC</strong> tokens, and earn continuous real-time yield (up to 14.0% APY).
                         </p>
                     </div>
 
-                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0 w-full lg:w-auto">
-                        <button onclick="refreshStakingTelemetry()" class="btn-pixel px-5 py-3.5 rounded-xl bg-white hover:bg-slate-100 text-slate-950 font-pixel font-bold text-xs flex items-center justify-center gap-2 shadow-[3px_3px_0px_#0F172A]">
+                    <!-- Right Action Tools with 3-Dots Menu -->
+                    <div class="flex items-center gap-2.5 relative">
+                        <button onclick="refreshStakingTelemetry()" class="btn-pixel px-4 py-3 rounded-xl bg-white hover:bg-slate-100 text-slate-950 font-pixel font-bold text-xs flex items-center gap-2 shadow-[3px_3px_0px_#0F172A]">
                             <i data-lucide="refresh-cw" id="stakingRefreshIcon" class="w-4 h-4 text-purple-700"></i>
-                            Sync Staking Data
+                            <span class="hidden sm:inline">Sync Data</span>
                         </button>
+
+                        <!-- 3-DOTS (⋮) MENU BUTTON -->
+                        <div class="relative">
+                            <button id="pulseStakeMenuToggleBtn" onclick="togglePulseStakeDropdownMenu()" class="p-3 rounded-xl bg-white/15 hover:bg-white/25 border-2 border-white/30 text-white font-bold text-lg flex items-center justify-center transition-colors shadow-[2px_2px_0px_#0F172A]" title="Staking Menu Options">
+                                <i data-lucide="more-vertical" class="w-5 h-5"></i>
+                            </button>
+
+                            <!-- DROPDOWN MENU -->
+                            <div id="pulseStakeDropdownMenu" class="hidden absolute right-0 top-full mt-2 w-56 bg-white border-2 border-slate-950 rounded-2xl shadow-[6px_6px_0px_#0F172A] z-40 p-2 space-y-1 font-mono text-xs text-slate-900 animate-in fade-in zoom-in-95 duration-150">
+                                <button onclick="openStakingLeaderboardModal(); togglePulseStakeDropdownMenu();" class="w-full px-3 py-2.5 rounded-xl hover:bg-purple-50 hover:text-purple-900 flex items-center gap-2.5 font-bold transition-colors text-left">
+                                    <i data-lucide="trophy" class="w-4 h-4 text-amber-500"></i>
+                                    <span>🏆 On-Chain Leaderboard</span>
+                                </button>
+                                <a href="https://testnet.arcscan.app/address/0x9F6baFB6961aAd0fC133d32A559CaFdf32582801" target="_blank" class="w-full px-3 py-2.5 rounded-xl hover:bg-purple-50 hover:text-purple-900 flex items-center gap-2.5 font-bold transition-colors">
+                                    <i data-lucide="file-code" class="w-4 h-4 text-purple-700"></i>
+                                    <span>View Contract (ArcScan)</span>
+                                </a>
+                                <a href="https://testnet.arcscan.app/address/0x9EE52CC50435aa46b51092fCC964debDb21C6510" target="_blank" class="w-full px-3 py-2.5 rounded-xl hover:bg-purple-50 hover:text-purple-900 flex items-center gap-2.5 font-bold transition-colors">
+                                    <i data-lucide="coins" class="w-4 h-4 text-teal-600"></i>
+                                    <span>$pUSDC Token (ArcScan)</span>
+                                </a>
+                                <div class="border-t border-slate-200 my-1"></div>
+                                <button onclick="refreshStakingTelemetry(); togglePulseStakeDropdownMenu();" class="w-full px-3 py-2.5 rounded-xl hover:bg-purple-50 hover:text-purple-900 flex items-center gap-2.5 font-bold transition-colors text-left text-slate-600">
+                                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                    <span>Sync Telemetry</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -934,57 +963,57 @@
             <!-- Top Metric Cards (4 Cards) -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 <!-- Card 1: Total Pooled USDC Staked -->
-                <div class="pixel-card p-6 bg-white">
+                <div class="pixel-card p-5 bg-white">
                     <div class="flex items-center justify-between text-slate-500 mb-2">
-                        <span class="font-silkscreen text-xs font-bold uppercase tracking-wider">Total Staked (Arc L1)</span>
-                        <div class="p-2.5 rounded-xl bg-purple-100 text-purple-700 border border-purple-300">
-                            <i data-lucide="vault" class="w-5 h-5"></i>
+                        <span class="font-silkscreen text-[11px] font-bold uppercase tracking-wider">Total Staked (Arc L1)</span>
+                        <div class="p-2 rounded-xl bg-purple-100 text-purple-700 border border-purple-300">
+                            <i data-lucide="vault" class="w-4 h-4"></i>
                         </div>
                     </div>
-                    <div class="text-3xl font-black font-mono text-slate-950" id="pulseStakeTotalStaked">0.00 USDC</div>
-                    <p class="text-xs text-purple-700 mt-2 flex items-center gap-1 font-bold font-mono">
+                    <div class="text-2xl sm:text-3xl font-black font-mono text-slate-950" id="pulseStakeTotalStaked">0.00 USDC</div>
+                    <p class="text-[11px] text-purple-700 mt-1 flex items-center gap-1 font-bold font-mono">
                         <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span> On-Chain Pooled Liquidity
                     </p>
                 </div>
 
                 <!-- Card 2: Highest Validator APY -->
-                <div class="pixel-card p-6 bg-white">
+                <div class="pixel-card p-5 bg-white">
                     <div class="flex items-center justify-between text-slate-500 mb-2">
-                        <span class="font-silkscreen text-xs font-bold uppercase tracking-wider">Max Staking Yield</span>
-                        <div class="p-2.5 rounded-xl bg-emerald-100 text-emerald-700 border border-emerald-300">
-                            <i data-lucide="trending-up" class="w-5 h-5"></i>
+                        <span class="font-silkscreen text-[11px] font-bold uppercase tracking-wider">Max Staking Yield</span>
+                        <div class="p-2 rounded-xl bg-emerald-100 text-emerald-700 border border-emerald-300">
+                            <i data-lucide="trending-up" class="w-4 h-4"></i>
                         </div>
                     </div>
-                    <div class="text-3xl font-black font-mono text-emerald-600" id="pulseStakeMaxApy">14.00% APY</div>
-                    <p class="text-xs text-emerald-700 mt-2 flex items-center gap-1 font-bold font-mono">
+                    <div class="text-2xl sm:text-3xl font-black font-mono text-emerald-600" id="pulseStakeMaxApy">14.00% APY</div>
+                    <p class="text-[11px] text-emerald-700 mt-1 flex items-center gap-1 font-bold font-mono">
                         <i data-lucide="zap" class="w-3.5 h-3.5"></i> Per-Second Real-Time Accrual
                     </p>
                 </div>
 
                 <!-- Card 3: Total Rewards Paid -->
-                <div class="pixel-card p-6 bg-white">
+                <div class="pixel-card p-5 bg-white">
                     <div class="flex items-center justify-between text-slate-500 mb-2">
-                        <span class="font-silkscreen text-xs font-bold uppercase tracking-wider">Total Yield Distributed</span>
-                        <div class="p-2.5 rounded-xl bg-teal-100 text-teal-700 border border-teal-300">
-                            <i data-lucide="coins" class="w-5 h-5"></i>
+                        <span class="font-silkscreen text-[11px] font-bold uppercase tracking-wider">Total Yield Distributed</span>
+                        <div class="p-2 rounded-xl bg-teal-100 text-teal-700 border border-teal-300">
+                            <i data-lucide="coins" class="w-4 h-4"></i>
                         </div>
                     </div>
-                    <div class="text-3xl font-black font-mono text-teal-700" id="pulseStakeTotalRewardsPaid">0.00 pUSDC</div>
-                    <p class="text-xs text-teal-600 mt-2 flex items-center gap-1 font-bold font-mono">
+                    <div class="text-2xl sm:text-3xl font-black font-mono text-teal-700" id="pulseStakeTotalRewardsPaid">0.00 pUSDC</div>
+                    <p class="text-[11px] text-teal-600 mt-1 flex items-center gap-1 font-bold font-mono">
                         <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Liquid Staking Mint Verified
                     </p>
                 </div>
 
                 <!-- Card 4: Active Stakers Quorum -->
-                <div class="pixel-card p-6 bg-white">
+                <div class="pixel-card p-5 bg-white">
                     <div class="flex items-center justify-between text-slate-500 mb-2">
-                        <span class="font-silkscreen text-xs font-bold uppercase tracking-wider">Consortium Nodes</span>
-                        <div class="p-2.5 rounded-xl bg-indigo-100 text-indigo-700 border border-indigo-300">
-                            <i data-lucide="server" class="w-5 h-5"></i>
+                        <span class="font-silkscreen text-[11px] font-bold uppercase tracking-wider">Consortium Nodes</span>
+                        <div class="p-2 rounded-xl bg-indigo-100 text-indigo-700 border border-indigo-300">
+                            <i data-lucide="server" class="w-4 h-4"></i>
                         </div>
                     </div>
-                    <div class="text-3xl font-black font-mono text-slate-950" id="pulseStakeActiveNodesCount">5 / 5 Verified</div>
-                    <p class="text-xs text-indigo-700 mt-2 flex items-center gap-1 font-bold font-mono">
+                    <div class="text-2xl sm:text-3xl font-black font-mono text-slate-950" id="pulseStakeActiveNodesCount">5 / 5 Verified</div>
+                    <p class="text-[11px] text-indigo-700 mt-1 flex items-center gap-1 font-bold font-mono">
                         <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Circle, Coinbase, Jump, Galaxy
                     </p>
                 </div>
@@ -1005,7 +1034,11 @@
                         </div>
 
                         <div class="flex items-center gap-2">
-                            <span class="text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full border border-emerald-400/40 flex items-center gap-1">
+                            <button onclick="openStakingLeaderboardModal()" class="px-3 py-1.5 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 border border-amber-400/40 text-amber-300 font-mono text-xs font-bold flex items-center gap-1.5 transition-colors">
+                                <i data-lucide="trophy" class="w-3.5 h-3.5 text-amber-400"></i>
+                                <span>Leaderboard</span>
+                            </button>
+                            <span class="text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 px-3 py-1.5 rounded-full border border-emerald-400/40 flex items-center gap-1">
                                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                                 Live Real-Time Ticker
                             </span>
@@ -1014,15 +1047,13 @@
 
                     <!-- Portfolio Metrics Grid -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        <!-- My Staked Balance -->
-                        <div class="bg-white/10 backdrop-blur-md border border-white/20 p-4 sm:p-5 rounded-2xl space-y-1">
+                        <div class="bg-white/10 backdrop-blur-md border border-white/20 p-5 rounded-2xl space-y-1">
                             <div class="text-[11px] text-slate-300 font-bold uppercase font-mono">My Total Staked</div>
                             <div class="font-pixel text-3xl sm:text-4xl font-black text-white" id="myTotalStakedAmount">0.00 USDC</div>
                             <div class="text-[10px] text-slate-300 font-mono">Earning daily rewards on Arc L1</div>
                         </div>
 
-                        <!-- Live Real-Time Ticking Rewards Counter -->
-                        <div class="bg-gradient-to-br from-emerald-500/20 to-teal-600/20 border-2 border-emerald-400/50 p-4 sm:p-5 rounded-2xl space-y-1 relative shadow-inner">
+                        <div class="bg-gradient-to-br from-emerald-500/20 to-teal-600/20 border-2 border-emerald-400/50 p-5 rounded-2xl space-y-1 relative shadow-inner">
                             <div class="flex items-center justify-between text-[11px] text-emerald-300 font-bold uppercase font-mono">
                                 <span>Unclaimed Yield ($pUSDC)</span>
                                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
@@ -1033,329 +1064,277 @@
                             <div class="text-[10px] text-emerald-200/80 font-mono">Incrementing live every fraction of a second!</div>
                         </div>
 
-                        <!-- Staking Actions Box -->
-                        <div class="bg-white/10 backdrop-blur-md border border-white/20 p-4 sm:p-5 rounded-2xl flex flex-col justify-center gap-2.5">
-                            <button id="btnClaimAllRewards" onclick="claimAllStakingRewards()" class="btn-pixel w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-pixel font-bold text-xs flex items-center justify-center gap-2 shadow-[2px_2px_0px_#0F172A]">
+                        <div class="bg-white/10 backdrop-blur-md border border-white/20 p-5 rounded-2xl flex flex-col justify-center gap-2.5">
+                            <button id="btnClaimAllRewards" onclick="claimAllStakingRewards()" class="btn-pixel w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-pixel font-bold text-xs flex items-center justify-center gap-2 shadow-[2px_2px_0px_#0F172A]">
                                 <i data-lucide="sparkles" class="w-4 h-4 text-slate-950"></i>
                                 <span>Claim All Rewards ($pUSDC)</span>
                             </button>
-                            <button id="btnUnstakeAllOpen" onclick="openUnstakeModal(1)" class="btn-pixel w-full py-2.5 rounded-xl bg-white/15 hover:bg-white/25 border border-white/30 text-white font-mono font-bold text-xs flex items-center justify-center gap-2">
-                                <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
-                                <span>Unstake USDC Principal</span>
-                            </button>
+                            <div class="text-center text-[10px] text-slate-300 font-mono">
+                                Auto-mints $pUSDC rewards directly into your wallet
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- INTERACTIVE VALIDATOR STAKING NODES (5 CARDS) -->
-            <div class="space-y-4">
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b-2 border-slate-950 pb-3">
-                    <div class="flex items-center gap-2.5">
-                        <i data-lucide="server" class="w-6 h-6 text-purple-700"></i>
-                        <div>
-                            <h3 class="font-pixel text-xl font-bold text-slate-950">Institutional Validator Staking Pools</h3>
-                            <p class="text-xs text-slate-500 font-mono">Select any consortium node to stake USDC and earn automated pUSDC yield</p>
-                        </div>
-                    </div>
-                    <span class="text-xs font-mono font-bold bg-purple-50 text-purple-700 px-3 py-1.5 rounded-xl border border-purple-200">5 Active Pools</span>
-                </div>
-
-                <!-- Grid of 5 Validator Staking Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="validatorStakingCardsGrid">
-                    
-                    <!-- 1. Circle Genesis Node -->
-                    <div class="pixel-card p-6 bg-white space-y-4 hover:shadow-[6px_6px_0px_#0F172A] transition-all flex flex-col justify-between">
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2.5">
-                                    <div class="w-10 h-10 rounded-xl bg-blue-50 border-2 border-slate-950 flex items-center justify-center text-blue-700 font-black font-pixel text-lg shadow-[2px_2px_0px_#0F172A]">
-                                        ⬡
-                                    </div>
-                                    <div>
-                                        <h4 class="font-bold text-slate-950 text-sm font-sans flex items-center gap-1.5">
-                                            <span>Circle Genesis Node</span>
-                                            <i data-lucide="check-circle-2" class="w-4 h-4 text-blue-600"></i>
-                                        </h4>
-                                        <span class="text-[10px] text-slate-500 font-mono">Circle Institutional Corp</span>
-                                    </div>
-                                </div>
-                                <span class="font-pixel text-lg font-black bg-emerald-100 text-emerald-900 border border-emerald-300 px-2.5 py-0.5 rounded-lg">13.20% APY</span>
-                            </div>
-
-                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 font-mono text-xs space-y-1.5">
-                                <div class="flex justify-between text-slate-600">
-                                    <span>Pooled Stake:</span>
-                                    <strong class="text-slate-900" id="valPoolStake-1">0.00 USDC</strong>
-                                </div>
-                                <div class="flex justify-between text-slate-600">
-                                    <span>My Staked:</span>
-                                    <strong class="text-purple-700" id="valUserStake-1">0.00 USDC</strong>
-                                </div>
-                                <div class="flex justify-between text-slate-600">
-                                    <span>Unclaimed Yield:</span>
-                                    <strong class="text-emerald-600" id="valUserPending-1">0.00 pUSDC</strong>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="pt-2 flex items-center gap-2 font-mono">
-                            <button onclick="openStakeModal(1, 'Circle Genesis Node', 13.20)" class="btn-pixel flex-1 py-3 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_#0F172A]">
-                                <i data-lucide="plus-circle" class="w-4 h-4"></i> Stake USDC
-                            </button>
-                            <button onclick="openUnstakeModal(1, 'Circle Genesis Node')" class="btn-pixel-sm px-3.5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center" title="Unstake from this pool">
-                                <i data-lucide="minus" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- 2. Coinbase Cloud Arc -->
-                    <div class="pixel-card p-6 bg-white space-y-4 hover:shadow-[6px_6px_0px_#0F172A] transition-all flex flex-col justify-between">
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2.5">
-                                    <div class="w-10 h-10 rounded-xl bg-blue-600 border-2 border-slate-950 flex items-center justify-center text-white font-black font-pixel text-lg shadow-[2px_2px_0px_#0F172A]">
-                                        C
-                                    </div>
-                                    <div>
-                                        <h4 class="font-bold text-slate-950 text-sm font-sans flex items-center gap-1.5">
-                                            <span>Coinbase Cloud Arc</span>
-                                            <i data-lucide="check-circle-2" class="w-4 h-4 text-blue-600"></i>
-                                        </h4>
-                                        <span class="text-[10px] text-slate-500 font-mono">Coinbase Institutional</span>
-                                    </div>
-                                </div>
-                                <span class="font-pixel text-lg font-black bg-emerald-100 text-emerald-900 border border-emerald-300 px-2.5 py-0.5 rounded-lg">12.50% APY</span>
-                            </div>
-
-                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 font-mono text-xs space-y-1.5">
-                                <div class="flex justify-between text-slate-600">
-                                    <span>Pooled Stake:</span>
-                                    <strong class="text-slate-900" id="valPoolStake-2">0.00 USDC</strong>
-                                </div>
-                                <div class="flex justify-between text-slate-600">
-                                    <span>My Staked:</span>
-                                    <strong class="text-purple-700" id="valUserStake-2">0.00 USDC</strong>
-                                </div>
-                                <div class="flex justify-between text-slate-600">
-                                    <span>Unclaimed Yield:</span>
-                                    <strong class="text-emerald-600" id="valUserPending-2">0.00 pUSDC</strong>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="pt-2 flex items-center gap-2 font-mono">
-                            <button onclick="openStakeModal(2, 'Coinbase Cloud Arc', 12.50)" class="btn-pixel flex-1 py-3 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_#0F172A]">
-                                <i data-lucide="plus-circle" class="w-4 h-4"></i> Stake USDC
-                            </button>
-                            <button onclick="openUnstakeModal(2, 'Coinbase Cloud Arc')" class="btn-pixel-sm px-3.5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center" title="Unstake from this pool">
-                                <i data-lucide="minus" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- 3. Jump Crypto Infrastructure (Highest APY) -->
-                    <div class="pixel-card-purple p-6 bg-white space-y-4 hover:shadow-[6px_6px_0px_#0F172A] transition-all flex flex-col justify-between relative overflow-hidden">
-                        <div class="space-y-3 relative z-10">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2.5">
-                                    <div class="w-10 h-10 rounded-xl bg-amber-100 border-2 border-slate-950 flex items-center justify-center text-amber-900 font-black font-pixel text-lg shadow-[2px_2px_0px_#0F172A]">
-                                        ⚡
-                                    </div>
-                                    <div>
-                                        <h4 class="font-bold text-slate-950 text-sm font-sans flex items-center gap-1.5">
-                                            <span>Jump Crypto Node</span>
-                                            <span class="text-[9px] bg-amber-100 text-amber-900 font-mono px-1.5 py-0.2 rounded font-bold border border-amber-300">BOOSTED</span>
-                                        </h4>
-                                        <span class="text-[10px] text-slate-500 font-mono">Jump Crypto Infrastructure</span>
-                                    </div>
-                                </div>
-                                <span class="font-pixel text-xl font-black bg-gradient-to-r from-amber-500 to-orange-500 text-white border border-amber-600 px-3 py-0.5 rounded-lg shadow-sm">14.00% APY</span>
-                            </div>
-
-                            <div class="p-3 bg-amber-50/60 rounded-xl border border-amber-200 font-mono text-xs space-y-1.5">
-                                <div class="flex justify-between text-slate-600">
-                                    <span>Pooled Stake:</span>
-                                    <strong class="text-slate-900" id="valPoolStake-3">0.00 USDC</strong>
-                                </div>
-                                <div class="flex justify-between text-slate-600">
-                                    <span>My Staked:</span>
-                                    <strong class="text-purple-700" id="valUserStake-3">0.00 USDC</strong>
-                                </div>
-                                <div class="flex justify-between text-slate-600">
-                                    <span>Unclaimed Yield:</span>
-                                    <strong class="text-emerald-600" id="valUserPending-3">0.00 pUSDC</strong>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="pt-2 flex items-center gap-2 font-mono relative z-10">
-                            <button onclick="openStakeModal(3, 'Jump Crypto Infrastructure', 14.00)" class="btn-pixel flex-1 py-3 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_#0F172A]">
-                                <i data-lucide="zap" class="w-4 h-4"></i> Stake with 14% APY
-                            </button>
-                            <button onclick="openUnstakeModal(3, 'Jump Crypto Infrastructure')" class="btn-pixel-sm px-3.5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center" title="Unstake from this pool">
-                                <i data-lucide="minus" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- 4. Galaxy Digital Validator -->
-                    <div class="pixel-card p-6 bg-white space-y-4 hover:shadow-[6px_6px_0px_#0F172A] transition-all flex flex-col justify-between">
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2.5">
-                                    <div class="w-10 h-10 rounded-xl bg-purple-100 border-2 border-slate-950 flex items-center justify-center text-purple-800 font-black font-pixel text-lg shadow-[2px_2px_0px_#0F172A]">
-                                        G
-                                    </div>
-                                    <div>
-                                        <h4 class="font-bold text-slate-950 text-sm font-sans flex items-center gap-1.5">
-                                            <span>Galaxy Digital Node</span>
-                                            <i data-lucide="check-circle-2" class="w-4 h-4 text-purple-600"></i>
-                                        </h4>
-                                        <span class="text-[10px] text-slate-500 font-mono">Galaxy Digital Asset Mgmt</span>
-                                    </div>
-                                </div>
-                                <span class="font-pixel text-lg font-black bg-emerald-100 text-emerald-900 border border-emerald-300 px-2.5 py-0.5 rounded-lg">11.80% APY</span>
-                            </div>
-
-                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 font-mono text-xs space-y-1.5">
-                                <div class="flex justify-between text-slate-600">
-                                    <span>Pooled Stake:</span>
-                                    <strong class="text-slate-900" id="valPoolStake-4">0.00 USDC</strong>
-                                </div>
-                                <div class="flex justify-between text-slate-600">
-                                    <span>My Staked:</span>
-                                    <strong class="text-purple-700" id="valUserStake-4">0.00 USDC</strong>
-                                </div>
-                                <div class="flex justify-between text-slate-600">
-                                    <span>Unclaimed Yield:</span>
-                                    <strong class="text-emerald-600" id="valUserPending-4">0.00 pUSDC</strong>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="pt-2 flex items-center gap-2 font-mono">
-                            <button onclick="openStakeModal(4, 'Galaxy Digital Validator', 11.80)" class="btn-pixel flex-1 py-3 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_#0F172A]">
-                                <i data-lucide="plus-circle" class="w-4 h-4"></i> Stake USDC
-                            </button>
-                            <button onclick="openUnstakeModal(4, 'Galaxy Digital Validator')" class="btn-pixel-sm px-3.5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center" title="Unstake from this pool">
-                                <i data-lucide="minus" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- 5. Figment Staking Node -->
-                    <div class="pixel-card p-6 bg-white space-y-4 hover:shadow-[6px_6px_0px_#0F172A] transition-all flex flex-col justify-between">
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2.5">
-                                    <div class="w-10 h-10 rounded-xl bg-teal-100 border-2 border-slate-950 flex items-center justify-center text-teal-800 font-black font-pixel text-lg shadow-[2px_2px_0px_#0F172A]">
-                                        F
-                                    </div>
-                                    <div>
-                                        <h4 class="font-bold text-slate-950 text-sm font-sans flex items-center gap-1.5">
-                                            <span>Figment Node</span>
-                                            <i data-lucide="check-circle-2" class="w-4 h-4 text-teal-600"></i>
-                                        </h4>
-                                        <span class="text-[10px] text-slate-500 font-mono">Figment Enterprise Staking</span>
-                                    </div>
-                                </div>
-                                <span class="font-pixel text-lg font-black bg-emerald-100 text-emerald-900 border border-emerald-300 px-2.5 py-0.5 rounded-lg">12.00% APY</span>
-                            </div>
-
-                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 font-mono text-xs space-y-1.5">
-                                <div class="flex justify-between text-slate-600">
-                                    <span>Pooled Stake:</span>
-                                    <strong class="text-slate-900" id="valPoolStake-5">0.00 USDC</strong>
-                                </div>
-                                <div class="flex justify-between text-slate-600">
-                                    <span>My Staked:</span>
-                                    <strong class="text-purple-700" id="valUserStake-5">0.00 USDC</strong>
-                                </div>
-                                <div class="flex justify-between text-slate-600">
-                                    <span>Unclaimed Yield:</span>
-                                    <strong class="text-emerald-600" id="valUserPending-5">0.00 pUSDC</strong>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="pt-2 flex items-center gap-2 font-mono">
-                            <button onclick="openStakeModal(5, 'Figment Staking Node', 12.00)" class="btn-pixel flex-1 py-3 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_#0F172A]">
-                                <i data-lucide="plus-circle" class="w-4 h-4"></i> Stake USDC
-                            </button>
-                            <button onclick="openUnstakeModal(5, 'Figment Staking Node')" class="btn-pixel-sm px-3.5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center" title="Unstake from this pool">
-                                <i data-lucide="minus" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- LIVE REAL-TIME STAKING LEADERBOARD & RECENT ACTIVITY TICKER -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <!-- PULSESTAKE 2-TAB TERMINAL: 1. STAKE USDC | 2. UNSTAKE USDC -->
+            <div class="pixel-card p-6 sm:p-8 bg-white space-y-6" id="pulseStakeTerminalContainer">
                 
-                <!-- LEFT: Top Stakers Leaderboard (7 Cols) -->
-                <div class="lg:col-span-7 pixel-card p-6 sm:p-8 space-y-5 bg-white">
-                    <div class="flex items-center justify-between border-b-2 border-slate-950 pb-3">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-9 h-9 rounded-xl bg-amber-100 border-2 border-slate-950 flex items-center justify-center text-amber-700 shadow-[2px_2px_0px_#0F172A]">
-                                <i data-lucide="trophy" class="w-5 h-5"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-pixel text-xl font-bold text-slate-950">Top Stakers Leaderboard</h3>
-                                <p class="text-xs text-slate-500 font-mono">Ranked by total pooled stake on Arc L1</p>
-                            </div>
-                        </div>
-                        <span class="text-[10px] font-mono font-bold bg-amber-50 text-amber-800 px-2.5 py-1 rounded-lg border border-amber-300">Live Ranking</span>
+                <!-- Tab Navigation Switcher -->
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b-2 border-slate-950 pb-4">
+                    <div class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl border-2 border-slate-950 font-pixel text-xs w-full sm:w-auto">
+                        <button id="tabBtnStake" onclick="switchPulseStakeTab('stake')" class="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl bg-purple-700 text-white font-bold shadow-[2px_2px_0px_#0F172A] transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                            <span>1. Stake USDC</span>
+                        </button>
+                        <button id="tabBtnUnstake" onclick="switchPulseStakeTab('unstake')" class="flex-1 sm:flex-initial px-5 py-2.5 rounded-xl text-slate-700 hover:text-slate-950 font-bold transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="minus-circle" class="w-4 h-4"></i>
+                            <span>2. Unstake USDC</span>
+                        </button>
                     </div>
 
-                    <!-- User's Personal Rank Pill (if staking) -->
-                    <div id="userStakingRankBanner" class="p-3.5 rounded-2xl bg-purple-50 border-2 border-purple-300 flex items-center justify-between font-mono text-xs">
-                        <div class="flex items-center gap-2">
-                            <span class="w-6 h-6 rounded-full bg-purple-700 text-white font-bold flex items-center justify-center text-[10px]" id="userStakingRankPos">#--</span>
-                            <div>
-                                <div class="font-bold text-purple-900 text-xs">Your Staking Tier: <span id="userStakingTierText" class="text-emerald-700">Novice Staker</span></div>
-                                <div class="text-[10px] text-purple-600">Stake USDC to level up and earn Staker XP!</div>
-                            </div>
-                        </div>
-                        <span class="font-bold font-pixel text-sm text-purple-900" id="userStakingPointsDisplay">+0 XP</span>
-                    </div>
-
-                    <!-- Leaderboard Table -->
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left font-mono text-xs border-collapse">
-                            <thead>
-                                <tr class="border-b-2 border-slate-950 text-slate-500 text-[10px] uppercase font-bold">
-                                    <th class="py-2.5 px-3">Rank</th>
-                                    <th class="py-2.5 px-3">Staker Wallet</th>
-                                    <th class="py-2.5 px-3">Total Staked</th>
-                                    <th class="py-2.5 px-3">Earned Yield</th>
-                                    <th class="py-2.5 px-3 text-right">Badge</th>
-                                </tr>
-                            </thead>
-                            <tbody id="stakingLeaderboardBody" class="divide-y divide-slate-100">
-                                <!-- Injected dynamically via app.js -->
-                            </tbody>
-                        </table>
+                    <!-- 3-Dots Quick Trigger Menu on right of tabs -->
+                    <div class="flex items-center gap-2 self-end sm:self-center">
+                        <button onclick="openStakingLeaderboardModal()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 border-2 border-amber-300 text-amber-900 font-mono text-xs font-bold transition-colors shadow-sm">
+                            <i data-lucide="trophy" class="w-4 h-4 text-amber-600"></i>
+                            <span>Leaderboard</span>
+                        </button>
                     </div>
                 </div>
 
-                <!-- RIGHT: Live On-Chain Staking Activity Stream (5 Cols) -->
-                <div class="lg:col-span-5 pixel-card p-6 sm:p-7 space-y-4 bg-white">
-                    <div class="flex items-center justify-between border-b-2 border-slate-950 pb-3">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <h3 class="font-pixel text-lg font-bold text-slate-950">Live Staking Stream</h3>
+                <!-- TAB CONTENT 1: STAKE USDC -->
+                <div id="tabContentStake" class="space-y-6">
+                    
+                    <!-- Step 1: Select Validator Node -->
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-bold uppercase font-silkscreen text-slate-800 flex items-center gap-1.5">
+                                <span class="w-5 h-5 rounded-full bg-purple-700 text-white flex items-center justify-center text-[10px] font-mono">1</span>
+                                <span>Select Consortium Validator Node</span>
+                            </label>
+                            <span class="text-xs text-purple-700 font-mono font-bold" id="selectedNodeLabelDisplay">Selected: Circle Genesis Node (13.20% APY)</span>
                         </div>
-                        <span class="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">Arc L1 Events</span>
+
+                        <!-- 5 Interactive Selectable Node Cards -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5" id="stakeValidatorNodeSelectorGrid">
+                            
+                            <!-- Node 1: Circle Genesis -->
+                            <div onclick="selectTerminalStakeNode(1, 'Circle Genesis Node', 13.20)" id="nodeSelectorCard-1" class="node-select-card p-4 rounded-2xl border-2 border-purple-700 bg-purple-50/70 shadow-[3px_3px_0px_#0F172A] cursor-pointer transition-all space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 font-pixel font-bold flex items-center justify-center text-sm">⬡</div>
+                                        <div>
+                                            <div class="font-bold text-slate-950 text-xs font-sans">Circle Genesis Node</div>
+                                            <div class="text-[10px] text-slate-500 font-mono">Circle Institutional</div>
+                                        </div>
+                                    </div>
+                                    <span class="font-pixel text-sm font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-md">13.20% APY</span>
+                                </div>
+                                <div class="text-[11px] font-mono text-slate-600 flex justify-between pt-1 border-t border-purple-200">
+                                    <span>Pooled: <strong class="text-slate-900" id="valPoolStake-1">45,000 USDC</strong></span>
+                                    <span>My Stake: <strong class="text-purple-700" id="valUserStake-1">0.00</strong></span>
+                                </div>
+                            </div>
+
+                            <!-- Node 2: Coinbase Cloud Arc -->
+                            <div onclick="selectTerminalStakeNode(2, 'Coinbase Cloud Arc', 12.50)" id="nodeSelectorCard-2" class="node-select-card p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-purple-400 cursor-pointer transition-all space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-8 h-8 rounded-lg bg-blue-600 text-white font-pixel font-bold flex items-center justify-center text-sm">C</div>
+                                        <div>
+                                            <div class="font-bold text-slate-950 text-xs font-sans">Coinbase Cloud Arc</div>
+                                            <div class="text-[10px] text-slate-500 font-mono">Coinbase Institutional</div>
+                                        </div>
+                                    </div>
+                                    <span class="font-pixel text-sm font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-md">12.50% APY</span>
+                                </div>
+                                <div class="text-[11px] font-mono text-slate-600 flex justify-between pt-1 border-t border-slate-100">
+                                    <span>Pooled: <strong class="text-slate-900" id="valPoolStake-2">38,200 USDC</strong></span>
+                                    <span>My Stake: <strong class="text-purple-700" id="valUserStake-2">0.00</strong></span>
+                                </div>
+                            </div>
+
+                            <!-- Node 3: Jump Crypto Node (Boosted 14%) -->
+                            <div onclick="selectTerminalStakeNode(3, 'Jump Crypto Infrastructure', 14.00)" id="nodeSelectorCard-3" class="node-select-card p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-purple-400 cursor-pointer transition-all space-y-2 relative overflow-hidden">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-900 font-pixel font-bold flex items-center justify-center text-sm">⚡</div>
+                                        <div>
+                                            <div class="font-bold text-slate-950 text-xs font-sans flex items-center gap-1">
+                                                <span>Jump Crypto Node</span>
+                                                <span class="text-[8px] bg-amber-200 text-amber-900 font-bold px-1 rounded">BOOST</span>
+                                            </div>
+                                            <div class="text-[10px] text-slate-500 font-mono">Jump Crypto Infra</div>
+                                        </div>
+                                    </div>
+                                    <span class="font-pixel text-sm font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md">14.00% APY</span>
+                                </div>
+                                <div class="text-[11px] font-mono text-slate-600 flex justify-between pt-1 border-t border-slate-100">
+                                    <span>Pooled: <strong class="text-slate-900" id="valPoolStake-3">62,000 USDC</strong></span>
+                                    <span>My Stake: <strong class="text-purple-700" id="valUserStake-3">0.00</strong></span>
+                                </div>
+                            </div>
+
+                            <!-- Node 4: Galaxy Digital Validator -->
+                            <div onclick="selectTerminalStakeNode(4, 'Galaxy Digital Validator', 11.80)" id="nodeSelectorCard-4" class="node-select-card p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-purple-400 cursor-pointer transition-all space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-8 h-8 rounded-lg bg-purple-100 text-purple-900 font-pixel font-bold flex items-center justify-center text-sm">G</div>
+                                        <div>
+                                            <div class="font-bold text-slate-950 text-xs font-sans">Galaxy Digital Node</div>
+                                            <div class="text-[10px] text-slate-500 font-mono">Galaxy Digital Mgmt</div>
+                                        </div>
+                                    </div>
+                                    <span class="font-pixel text-sm font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-md">11.80% APY</span>
+                                </div>
+                                <div class="text-[11px] font-mono text-slate-600 flex justify-between pt-1 border-t border-slate-100">
+                                    <span>Pooled: <strong class="text-slate-900" id="valPoolStake-4">29,500 USDC</strong></span>
+                                    <span>My Stake: <strong class="text-purple-700" id="valUserStake-4">0.00</strong></span>
+                                </div>
+                            </div>
+
+                            <!-- Node 5: Figment Node -->
+                            <div onclick="selectTerminalStakeNode(5, 'Figment Staking Node', 12.00)" id="nodeSelectorCard-5" class="node-select-card p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-purple-400 cursor-pointer transition-all space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-8 h-8 rounded-lg bg-teal-100 text-teal-900 font-pixel font-bold flex items-center justify-center text-sm">F</div>
+                                        <div>
+                                            <div class="font-bold text-slate-950 text-xs font-sans">Figment Staking Node</div>
+                                            <div class="text-[10px] text-slate-500 font-mono">Figment Enterprise</div>
+                                        </div>
+                                    </div>
+                                    <span class="font-pixel text-sm font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-md">12.00% APY</span>
+                                </div>
+                                <div class="text-[11px] font-mono text-slate-600 flex justify-between pt-1 border-t border-slate-100">
+                                    <span>Pooled: <strong class="text-slate-900" id="valPoolStake-5">31,000 USDC</strong></span>
+                                    <span>My Stake: <strong class="text-purple-700" id="valUserStake-5">0.00</strong></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div id="stakingActivityFeed" class="space-y-2.5 font-mono text-xs max-h-[380px] overflow-y-auto pr-1">
-                        <!-- Injected live events -->
+                    <!-- Step 2: Enter Amount to Stake -->
+                    <div class="space-y-2 font-mono text-xs">
+                        <div class="flex justify-between items-center">
+                            <label class="text-xs font-bold uppercase font-silkscreen text-slate-800 flex items-center gap-1.5">
+                                <span class="w-5 h-5 rounded-full bg-purple-700 text-white flex items-center justify-center text-[10px] font-mono">2</span>
+                                <span>Enter Amount to Stake</span>
+                            </label>
+                            <span class="text-slate-600">
+                                Available: <strong id="terminalAvailableBalance" class="text-purple-700 font-bold">0.00</strong> USDC
+                            </span>
+                        </div>
+
+                        <div class="flex items-center bg-slate-50 border-2 border-slate-950 rounded-2xl px-4 py-3 focus-within:border-purple-700 transition-colors shadow-inner">
+                            <input type="number" id="terminalStakeAmountInput" step="0.1" min="0.1" placeholder="10.00" value="10.00" oninput="updateTerminalStakeYieldEstimate()" class="w-full bg-transparent text-3xl font-black font-mono text-slate-950 outline-none">
+                            <span class="text-xs font-bold font-mono text-purple-700 bg-purple-100 px-3 py-1.5 rounded-xl border border-purple-300 shrink-0">USDC</span>
+                        </div>
+
+                        <!-- Percentage Quick Select -->
+                        <div class="grid grid-cols-4 gap-2.5 pt-1">
+                            <button type="button" onclick="setTerminalStakePercentage(25)" class="py-2 rounded-xl bg-slate-100 hover:bg-purple-100 border border-slate-300 font-bold text-slate-700 hover:text-purple-900 transition-colors">25%</button>
+                            <button type="button" onclick="setTerminalStakePercentage(50)" class="py-2 rounded-xl bg-slate-100 hover:bg-purple-100 border border-slate-300 font-bold text-slate-700 hover:text-purple-900 transition-colors">50%</button>
+                            <button type="button" onclick="setTerminalStakePercentage(75)" class="py-2 rounded-xl bg-slate-100 hover:bg-purple-100 border border-slate-300 font-bold text-slate-700 hover:text-purple-900 transition-colors">75%</button>
+                            <button type="button" onclick="setTerminalStakePercentage(100)" class="py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold shadow-[2px_2px_0px_#0F172A] transition-colors">MAX</button>
+                        </div>
                     </div>
+
+                    <!-- Step 3: Yield Calculation & Liquid Token Minting Summary -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
+                        <!-- Yield Estimates -->
+                        <div class="p-4 rounded-2xl bg-slate-50 border-2 border-slate-200 space-y-2">
+                            <div class="text-[11px] text-slate-600 font-bold uppercase flex items-center gap-1.5">
+                                <i data-lucide="calculator" class="w-4 h-4 text-purple-700"></i>
+                                <span>Estimated Yield Returns ($pUSDC):</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 text-center">
+                                <div class="p-2.5 bg-white rounded-xl border border-slate-200 shadow-sm">
+                                    <div class="text-[9px] text-slate-400 font-bold uppercase">Daily</div>
+                                    <div id="terminalEstYieldDaily" class="font-bold text-emerald-600 font-mono text-sm mt-0.5">+0.036</div>
+                                </div>
+                                <div class="p-2.5 bg-white rounded-xl border border-slate-200 shadow-sm">
+                                    <div class="text-[9px] text-slate-400 font-bold uppercase">Monthly</div>
+                                    <div id="terminalEstYieldMonthly" class="font-bold text-emerald-600 font-mono text-sm mt-0.5">+1.100</div>
+                                </div>
+                                <div class="p-2.5 bg-white rounded-xl border border-slate-200 shadow-sm">
+                                    <div class="text-[9px] text-slate-400 font-bold uppercase">Yearly</div>
+                                    <div id="terminalEstYieldYearly" class="font-bold text-emerald-600 font-mono text-sm mt-0.5">+13.200</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Liquid Token Info -->
+                        <div class="p-4 rounded-2xl bg-teal-50 border-2 border-teal-200 flex flex-col justify-between">
+                            <div class="space-y-1">
+                                <div class="text-[11px] text-teal-800 font-bold uppercase flex items-center gap-1.5">
+                                    <i data-lucide="sparkles" class="w-4 h-4 text-teal-600"></i>
+                                    <span>Instant Liquid Receipt Token</span>
+                                </div>
+                                <p class="text-teal-900 text-xs leading-relaxed">
+                                    You will receive 1:1 <strong class="text-teal-950 font-bold">$pUSDC</strong> liquid staking tokens in your wallet immediately upon confirmation.
+                                </p>
+                            </div>
+                            <div class="pt-2 text-[10px] text-teal-700 font-mono flex items-center gap-1">
+                                <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Circle Arc L1 Smart Contract Verified
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Big Action Button: Stake USDC -->
+                    <button type="button" id="btnExecuteTerminalStake" onclick="executeStakeFromTerminal()" class="btn-pixel w-full py-4 rounded-2xl bg-gradient-to-r from-purple-700 via-indigo-600 to-teal-600 hover:from-purple-800 hover:to-teal-700 text-white font-pixel font-bold text-sm flex items-center justify-center gap-2 shadow-[4px_4px_0px_#0F172A]">
+                        <i data-lucide="layers" class="w-5 h-5"></i>
+                        <span id="btnExecuteTerminalStakeText">Stake USDC on Arc L1</span>
+                    </button>
                 </div>
 
+                <!-- TAB CONTENT 2: UNSTAKE USDC -->
+                <div id="tabContentUnstake" class="hidden space-y-6">
+                    
+                    <!-- Step 1: Select Pool to Unstake -->
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-bold uppercase font-silkscreen text-slate-800 flex items-center gap-1.5">
+                                <span class="w-5 h-5 rounded-full bg-rose-600 text-white flex items-center justify-center text-[10px] font-mono">1</span>
+                                <span>Select Staked Pool to Withdraw</span>
+                            </label>
+                            <span class="text-xs text-rose-700 font-mono font-bold" id="selectedUnstakeNodeLabelDisplay">Selected: Circle Genesis Node</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5" id="unstakePoolSelectorGrid">
+                            <!-- Populated dynamically via app.js -->
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Amount to Unstake -->
+                    <div class="space-y-2 font-mono text-xs">
+                        <div class="flex justify-between items-center">
+                            <label class="text-xs font-bold uppercase font-silkscreen text-slate-800 flex items-center gap-1.5">
+                                <span class="w-5 h-5 rounded-full bg-rose-600 text-white flex items-center justify-center text-[10px] font-mono">2</span>
+                                <span>Enter Amount of USDC to Unstake</span>
+                            </label>
+                            <button type="button" onclick="setTerminalUnstakeMax()" class="text-xs text-rose-700 font-bold hover:underline">MAX AVAILABLE</button>
+                        </div>
+
+                        <div class="flex items-center bg-slate-50 border-2 border-slate-950 rounded-2xl px-4 py-3 focus-within:border-rose-700 transition-colors shadow-inner">
+                            <input type="number" id="terminalUnstakeAmountInput" step="0.1" min="0.1" placeholder="0.00" class="w-full bg-transparent text-3xl font-black font-mono text-slate-950 outline-none">
+                            <span class="text-xs font-bold font-mono text-slate-700 bg-slate-200 px-3 py-1.5 rounded-xl border border-slate-300 shrink-0">USDC</span>
+                        </div>
+                    </div>
+
+                    <!-- Notice Box -->
+                    <div class="p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 text-amber-900 font-mono text-xs leading-relaxed flex items-start gap-2.5">
+                        <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-700 shrink-0 mt-0.5"></i>
+                        <div>
+                            <strong>Instant Finality:</strong> Unstaking will burn your liquid <strong>$pUSDC</strong> and transfer native USDC directly back to your wallet with sub-second Arc L1 finality.
+                        </div>
+                    </div>
+
+                    <!-- Big Action Button: Unstake USDC -->
+                    <button type="button" id="btnExecuteTerminalUnstake" onclick="executeUnstakeFromTerminal()" class="btn-pixel w-full py-4 rounded-2xl bg-gradient-to-r from-rose-600 to-purple-700 hover:from-rose-700 hover:to-purple-800 text-white font-pixel font-bold text-sm flex items-center justify-center gap-2 shadow-[4px_4px_0px_#0F172A]">
+                        <i data-lucide="arrow-down-circle" class="w-5 h-5"></i>
+                        <span id="btnExecuteTerminalUnstakeText">Confirm Unstake &amp; Return USDC</span>
+                    </button>
+                </div>
             </div>
 
             <!-- CONSORTIUM TELEMETRY & NETWORK HEALTH MATRIX -->
@@ -4567,6 +4546,89 @@
                 <button type="button" id="btnExecuteUnstakeModal" onclick="executeUnstakeFromModal()" class="btn-pixel w-full py-4 rounded-xl bg-gradient-to-r from-rose-600 to-purple-700 hover:from-rose-700 hover:to-purple-800 text-white font-pixel font-bold text-sm flex items-center justify-center gap-2 shadow-[3px_3px_0px_#0F172A]">
                     <i data-lucide="arrow-down-circle" class="w-4 h-4"></i>
                     <span id="btnExecuteUnstakeText">Confirm Unstake &amp; Return USDC</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PULSESTAKE: DEDICATED REAL ON-CHAIN LEADERBOARD MODAL (Triggered via 3-dots menu) -->
+    <div id="pulseStakeLeaderboardModal" class="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="pixel-card-purple w-full max-w-2xl p-6 sm:p-8 space-y-5 animate-in fade-in zoom-in-95 duration-200 bg-white max-h-[90vh] overflow-y-auto">
+            
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-amber-100 border-2 border-slate-950 flex items-center justify-center text-amber-700 shadow-[2px_2px_0px_#0F172A]">
+                        <i data-lucide="trophy" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-pixel font-bold text-slate-950 text-2xl flex items-center gap-2">
+                            <span>Staking Leaderboard</span>
+                            <span class="text-[10px] font-mono bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded-full font-bold">Live On-Chain</span>
+                        </h3>
+                        <div class="text-xs text-slate-500 font-mono">Ranked by real pooled stakes on Circle Arc L1 (Chain ID: 5042002)</div>
+                    </div>
+                </div>
+                <button onclick="closeStakingLeaderboardModal()" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 border-2 border-slate-950 font-bold text-xs text-slate-700 transition-colors">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Connected User Rank Card -->
+            <div id="userStakingRankBanner" class="p-4 rounded-2xl bg-purple-50 border-2 border-purple-200 flex items-center justify-between font-mono text-xs">
+                <div class="flex items-center gap-3">
+                    <div class="font-pixel text-xl font-bold text-purple-700" id="userStakingRankPos">#--</div>
+                    <div>
+                        <div class="font-bold text-slate-900 text-sm">Your Staking Rank</div>
+                        <div id="userStakingTierText" class="text-slate-500">Connect wallet &amp; stake to earn rank</div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-[10px] text-purple-600 font-bold uppercase">Quest XP</div>
+                    <div id="userStakingPointsDisplay" class="font-bold text-purple-700 font-pixel text-base">+0 XP</div>
+                </div>
+            </div>
+
+            <!-- Leaderboard Table Container -->
+            <div class="overflow-x-auto rounded-2xl border-2 border-slate-950" id="stakingLeaderboardTableWrapper">
+                <table class="w-full text-left text-xs font-mono">
+                    <thead class="bg-slate-900 text-white font-silkscreen text-[10px] uppercase">
+                        <tr>
+                            <th class="py-3 px-3">Rank</th>
+                            <th class="py-3 px-3">Staker Address</th>
+                            <th class="py-3 px-3">Total Staked</th>
+                            <th class="py-3 px-3">Yield Accrued</th>
+                            <th class="py-3 px-3 text-right">Tier Badge</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stakingLeaderboardBody" class="divide-y divide-slate-200 bg-white">
+                        <!-- Filled dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty State (Shown when 0 users have staked on-chain) -->
+            <div id="stakingLeaderboardEmptyState" class="hidden text-center py-10 px-4 space-y-3 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-300">
+                <div class="w-12 h-12 rounded-full bg-amber-100 border border-amber-300 text-amber-700 mx-auto flex items-center justify-center">
+                    <i data-lucide="trophy" class="w-6 h-6"></i>
+                </div>
+                <div class="font-pixel text-lg font-bold text-slate-900">No Stakers on Leaderboard Yet!</div>
+                <p class="text-xs text-slate-500 font-mono max-w-sm mx-auto">
+                    Be the first staker on Circle Arc L1! Stake native USDC to consortium nodes to take the #1 spot on the leaderboard.
+                </p>
+                <button onclick="closeStakingLeaderboardModal(); switchPulseStakeTab('stake');" class="btn-pixel px-5 py-2.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-pixel font-bold text-xs shadow-[2px_2px_0px_#0F172A]">
+                    Stake USDC Now
+                </button>
+            </div>
+
+            <!-- Footer info -->
+            <div class="flex items-center justify-between text-[11px] font-mono text-slate-500 pt-2 border-t border-slate-100">
+                <div class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Directly synchronized with Arc L1 contract</span>
+                </div>
+                <button onclick="refreshStakingTelemetry()" class="text-purple-700 font-bold hover:underline flex items-center gap-1">
+                    <i data-lucide="refresh-cw" class="w-3 h-3"></i> Refresh List
                 </button>
             </div>
         </div>

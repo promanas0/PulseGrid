@@ -65,7 +65,7 @@ All contracts are deployed, functional, and verified on Circle Arc L1 Testnet (C
 | :--- | :--- | :--- | :--- |
 | **PulsePay Engine** | Instant Payment Links, QR Settlement & Invoicing | `0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947` | [View on ArcScan](https://testnet.arcscan.app/address/0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947) |
 | **PulseStake Protocol** | Multi-Validator Liquid Staking & Yield Distributor | `0x9F6baFB6961aAd0fC133d32A559CaFdf32582801` | [View on ArcScan](https://testnet.arcscan.app/address/0x9F6baFB6961aAd0fC133d32A559CaFdf32582801) |
-| **Liquid Staking Token** | PulseUSDC ($pUSDC) Derivative Token | `0x9EE52CC50435aa46b51092fCC964debDb21C6510` | [View on ArcScan](https://testnet.arcscan.app/address/0x9EE52CC50435aa46b51092fCC964debDb21C6510) |
+| **ArcPulse CoinFlip** | Provably Fair 2.00x Token Flip Smart Contract | `0x3C6B9404e69288Bef09fcdcbB992C3661ed9b89b` | [View on ArcScan](https://testnet.arcscan.app/address/0x3C6B9404e69288Bef09fcdcbB992C3661ed9b89b) |
 | **Spender Router** | Token Spender & Gas Management Router | `0x24EC9947C9Bd6c5ab4a3357A50c78D064176af31` | [View on ArcScan](https://testnet.arcscan.app/address/0x24EC9947C9Bd6c5ab4a3357A50c78D064176af31) |
 | **PulseSwap Router** | DEX AMM Liquidity & Stablecoin Swap Router | `0x2f9C432e1064D3b78A6e943454dAa7e0511d834B` | [View on ArcScan](https://testnet.arcscan.app/address/0x2f9C432e1064D3b78A6e943454dAa7e0511d834B) |
 | **PulseBridge Router** | Cross-Chain CCTP Relayer & Bridge Router | `0x6a15E3D63F94F6877153515d663074a739F63db9` | [View on ArcScan](https://testnet.arcscan.app/address/0x6a15E3D63F94F6877153515d663074a739F63db9) |

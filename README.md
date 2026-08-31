@@ -1,6 +1,6 @@
 # PulseGrid (ArchPulse) - High-Performance Circle Arc L1 Web3 Ecosystem Suite
 
-Next-Generation Institutional-Grade Web3 Infrastructure, Telemetry Matrix, PulsePay Invoicing, Liquid Staking, DEX AMM, and AI Intelligence Engine for Circle Arc L1.
+Next-Generation Institutional-Grade Web3 Infrastructure, Telemetry Matrix, PulsePay Invoicing, Liquid Staking, DEX AMM, Spender Router, and AI Intelligence Engine for Circle Arc L1.
 
 Live Application: https://pulsegrid-hub.vercel.app  
 Arc Documentation: https://docs.arc.network  
@@ -12,17 +12,20 @@ Circle Faucet: https://faucet.circle.com
 ## Table of Contents
 - [Executive Overview](#executive-overview)
 - [Circle Arc L1 Network Specifications](#circle-arc-l1-network-specifications)
-- [Verified Smart Contract Addresses](#verified-smart-contract-addresses)
-- [Complete Feature Breakdown](#complete-feature-breakdown)
+- [Verified Smart Contract Registry](#verified-smart-contract-registry)
+- [Complete Protocol and Feature Breakdown](#complete-protocol-and-feature-breakdown)
   - [1. PulsePay - Instant USDC Invoicing & QR Settlement Engine](#1-pulsepay---instant-usdc-invoicing--qr-settlement-engine)
   - [2. PulseStake - Validator Liquid Staking & Yield Protocol](#2-pulsestake---validator-liquid-staking--yield-protocol)
-  - [3. Precision DEX AMM Swap Engine](#3-precision-dex-amm-swap-engine)
-  - [4. ERC-20 Token Creator & Factory](#4-erc-20-token-creator--factory)
-  - [5. NFT Studio & Genesis Passes](#5-nft-studio--genesis-passes)
-  - [6. Live Telemetry & Network Pulse](#6-live-telemetry--network-pulse)
-  - [7. Daily Quests, Streaks & Builder XP](#7-daily-quests-streaks--builder-xp)
-  - [8. AI Copilot & Market Forecasting](#8-ai-copilot--market-forecasting)
-  - [9. Developer Tools Matrix](#9-developer-tools-matrix)
+  - [3. Spender Router & Gas Management Engine](#3-spender-router--gas-management-engine)
+  - [4. Precision DEX AMM Swap Engine](#4-precision-dex-amm-swap-engine)
+  - [5. PulseBridge - Cross-Chain Relayer Engine](#5-pulsebridge---cross-chain-relayer-engine)
+  - [6. Prediction Market Protocol](#6-prediction-market-protocol)
+  - [7. ERC-20 Token Factory & Creator](#7-erc-20-token-factory--creator)
+  - [8. NFT Studio & Genesis Passes](#8-nft-studio--genesis-passes)
+  - [9. Live Telemetry & Network Pulse Matrix](#9-live-telemetry--network-pulse-matrix)
+  - [10. Daily Quests, Streaks & Builder XP](#10-daily-quests-streaks--builder-xp)
+  - [11. AI Copilot & Market Intelligence](#11-ai-copilot--market-intelligence)
+  - [12. Developer Tools Matrix](#12-developer-tools-matrix)
 - [Architecture and Standards Compliance](#architecture-and-standards-compliance)
 - [Repository Structure](#repository-structure)
 - [Quick Start and Local Setup](#quick-start-and-local-setup)
@@ -34,7 +37,7 @@ Circle Faucet: https://faucet.circle.com
 
 PulseGrid (ArchPulse) is an institutional-grade, decentralized Web3 ecosystem and full workstation built specifically for Circle Arc L1. Circle Arc L1 is a high-throughput, sub-second finality Layer-1 blockchain featuring native USDC as its gas and settlement currency.
 
-PulseGrid provides a comprehensive suite of Web3 applications, including merchant payment-link invoicing (PulsePay), validator liquid staking (PulseStake), decentralized token swapping, instant ERC-20 token generation, NFT minting, real-time JSON-RPC network telemetry, EIP-4361 authenticated community quests, and AI-powered contract analysis.
+PulseGrid provides a comprehensive suite of Web3 applications, including merchant payment-link invoicing (PulsePay), validator liquid staking (PulseStake), gas allowance management (Spender Router), decentralized token swapping, cross-chain bridging, binary prediction markets, instant ERC-20 token generation, NFT minting, real-time JSON-RPC network telemetry, EIP-4361 authenticated community quests, and AI-powered contract analysis.
 
 ---
 
@@ -54,21 +57,27 @@ PulseGrid provides a comprehensive suite of Web3 applications, including merchan
 
 ---
 
-## Verified Smart Contract Addresses
+## Verified Smart Contract Registry
 
-All contracts are deployed and verified on Circle Arc L1 Testnet (Chain ID 5042002):
+All contracts are deployed, functional, and verified on Circle Arc L1 Testnet (Chain ID 5042002):
 
-| Protocol Module | Contract Name | Deployed Contract Address | Explorer Link |
+| Protocol Module | Contract Description | Deployed Contract Address | Explorer Link |
 | :--- | :--- | :--- | :--- |
-| **PulsePay Engine** | `PulsePay.sol` | `0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947` | [View on ArcScan](https://testnet.arcscan.app/address/0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947) |
-| **PulseStake Protocol** | `PulseStake.sol` | `0x9F6baFB6961aAd0fC133d32A559CaFdf32582801` | [View on ArcScan](https://testnet.arcscan.app/address/0x9F6baFB6961aAd0fC133d32A559CaFdf32582801) |
-| **Liquid Staking Token** | `PulseUSDC ($pUSDC)` | `0x9EE52CC50435aa46b51092fCC964debDb21C6510` | [View on ArcScan](https://testnet.arcscan.app/address/0x9EE52CC50435aa46b51092fCC964debDb21C6510) |
-| **Swap Router** | `PulseSwapRouter` | `0xD651528Ec9a15A1702fFf015949a0DFFD48b9C43` | [View on ArcScan](https://testnet.arcscan.app/address/0xD651528Ec9a15A1702fFf015949a0DFFD48b9C43) |
-| **Official EURC Token** | `EURC Token` | `0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a` | [View on ArcScan](https://testnet.arcscan.app/address/0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a) |
+| **PulsePay Engine** | Instant Payment Links, QR Settlement & Invoicing | `0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947` | [View on ArcScan](https://testnet.arcscan.app/address/0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947) |
+| **PulseStake Protocol** | Multi-Validator Liquid Staking & Yield Distributor | `0x9F6baFB6961aAd0fC133d32A559CaFdf32582801` | [View on ArcScan](https://testnet.arcscan.app/address/0x9F6baFB6961aAd0fC133d32A559CaFdf32582801) |
+| **Liquid Staking Token** | PulseUSDC ($pUSDC) Derivative Token | `0x9EE52CC50435aa46b51092fCC964debDb21C6510` | [View on ArcScan](https://testnet.arcscan.app/address/0x9EE52CC50435aa46b51092fCC964debDb21C6510) |
+| **Spender Router** | Token Spender & Gas Management Router | `0x24EC9947C9Bd6c5ab4a3357A50c78D064176af31` | [View on ArcScan](https://testnet.arcscan.app/address/0x24EC9947C9Bd6c5ab4a3357A50c78D064176af31) |
+| **PulseSwap Router** | DEX AMM Liquidity & Stablecoin Swap Router | `0x2f9C432e1064D3b78A6e943454dAa7e0511d834B` | [View on ArcScan](https://testnet.arcscan.app/address/0x2f9C432e1064D3b78A6e943454dAa7e0511d834B) |
+| **PulseBridge Router** | Cross-Chain CCTP Relayer & Bridge Router | `0x6a15E3D63F94F6877153515d663074a739F63db9` | [View on ArcScan](https://testnet.arcscan.app/address/0x6a15E3D63F94F6877153515d663074a739F63db9) |
+| **Prediction Market** | On-Chain Binary & AI Predictive Settlement | `0x14519dB645becb71867A657b0b461E301954800F` | [View on ArcScan](https://testnet.arcscan.app/address/0x14519dB645becb71867A657b0b461E301954800F) |
+| **Token Factory** | 1-Click ERC-20 Token Deployer & Bytecode Factory | `0x0De23effB0606a595d15578635AD0c0D1659e08e` | [View on ArcScan](https://testnet.arcscan.app/address/0x0De23effB0606a595d15578635AD0c0D1659e08e) |
+| **Native ERC-20 USDC** | Arc L1 Native Gas & ERC-20 Interop Address | `0x3600000000000000000000000000000000000000` | [View on ArcScan](https://testnet.arcscan.app/address/0x3600000000000000000000000000000000000000) |
+| **Circle EURC Token** | Official Euro Stablecoin on Arc L1 Testnet | `0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a` | [View on ArcScan](https://testnet.arcscan.app/address/0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a) |
+| **Arc Wrapped Bitcoin** | eBTC Testnet Wrapped Asset | `0x054f15d7f21226065582f7c00e12d46e2730bf18` | [View on ArcScan](https://testnet.arcscan.app/address/0x054f15d7f21226065582f7c00e12d46e2730bf18) |
 
 ---
 
-## Complete Feature Breakdown
+## Complete Protocol and Feature Breakdown
 
 ### 1. PulsePay - Instant USDC Invoicing & QR Settlement Engine
 PulsePay provides instantaneous, trustless payment link generation and dynamic QR checkout for merchants and peer-to-peer commerce on Arc L1.
@@ -85,42 +94,57 @@ PulseStake allows users to stake native USDC gas assets across Arc L1 consensus 
 - **Real-Time Reward Accrual**: On-chain reward accumulation with instant reward claim and unstake functionality.
 - **Protocol Analytics**: Real-time tracking of total value staked, active stakers, validator distributions, and historical protocol APY.
 
-### 3. Precision DEX AMM Swap Engine
-Decentralized constant-product automated market maker tailored for stablecoin and asset liquidity on Arc L1.
+### 3. Spender Router & Gas Management Engine
+The Spender Router contract (`0x24EC9947C9Bd6c5ab4a3357A50c78D064176af31`) provides programmatic token allowances, atomic batch execution, and optimized gas routing on Arc L1.
+- **Token Allowance Management**: Programmatically permits approved dApp modules to execute token settlements with minimal gas overhead.
+- **Batch Transaction Dispatch**: Bundles multi-step approvals and executions into a single atomic transaction.
+
+### 4. Precision DEX AMM Swap Engine
+Decentralized constant-product automated market maker tailored for stablecoin and asset liquidity on Arc L1 (`0x2f9C432e1064D3b78A6e943454dAa7e0511d834B`).
 - **Deterministic Stablecoin Routing**: Algorithmic exchange rates supporting instant conversion between native USDC, Circle EURC, and wrapped tokens.
 - **Configurable Slippage Tolerance**: Precision controls ranging from 0.1% to 1.0% with automated price impact calculation.
 - **Sub-Second Execution**: Swap execution settled directly through `PulseSwapRouter` on Arc L1 with instant receipt logging.
 
-### 4. ERC-20 Token Creator & Factory
-A no-code token deployment suite designed for developers and project founders on Arc L1.
+### 5. PulseBridge - Cross-Chain Relayer Engine
+Cross-chain liquidity bridge interface (`0x6a15E3D63F94F6877153515d663074a739F63db9`) connecting Arc L1 with external EVM ecosystems via Circle CCTP architecture.
+- **Native USDC Movement**: Cross-chain settlement avoiding wrapped asset bridge risks.
+- **Bridge Transaction Tracking**: Real-time relayer confirmations and source/destination chain telemetry.
+
+### 6. Prediction Market Protocol
+On-chain binary prediction market engine (`0x14519dB645becb71867A657b0b461E301954800F`).
+- **Cryptographic Position Staking**: Place deterministic predictions on cryptocurrency price thresholds and network milestones.
+- **Automated Settlement**: Smart contract oracle resolution with instant payouts distributed to winning positions.
+
+### 7. ERC-20 Token Factory & Creator
+A no-code token deployment suite designed for developers and project founders on Arc L1 (`0x0De23effB0606a595d15578635AD0c0D1659e08e`).
 - **1-Click Token Deployment**: Configure token name, symbol, total supply, and decimal precision.
 - **Standard EVM Compatibility**: Generates standard, audited OpenZeppelin-compatible ERC-20 bytecode directly on Arc Testnet.
 - **Wallet & Explorer Integration**: Automatic token import configuration for MetaMask and instant ArcScan contract verification.
 
-### 5. NFT Studio & Genesis Passes
+### 8. NFT Studio & Genesis Passes
 Digital asset creation and collection management engine.
 - **Arc Genesis Builder Pass**: Mint exclusive on-chain proof-of-builder NFTs with cryptographic metadata.
 - **Interactive NFT Gallery**: Inspect owned digital collectibles, token IDs, metadata attributes, and on-chain ownership history.
 
-### 6. Live Telemetry & Network Pulse
+### 9. Live Telemetry & Network Pulse Matrix
 Real-time infrastructure and consensus monitoring dashboard.
 - **Live JSON-RPC Telemetry Stream**: Continuously polls Arc L1 testnet nodes for block height, block time cadence, transaction velocity, and current throughput (TPS).
 - **Consensus Health Matrix**: Visualizes validator consortium block production health, network latency, and average finality.
 - **Gas Indexing**: Tracks deterministic micro-gas fees in real-time.
 
-### 7. Daily Quests, Streaks & Builder XP
+### 10. Daily Quests, Streaks & Builder XP
 Gamified on-chain activity tracker designed for community engagement and testnet participation.
 - **Cryptographic Daily Check-In**: Streak verification secured by EIP-4361 Sign-In with Ethereum (`personal_sign`) signature requests.
 - **On-Chain Builder XP**: Dynamic XP calculation rewarded for completing actions across swaps, staking, and payment link generation.
 - **Real-Time Leaderboard**: Transparent ranking of top network participants and builder achievements.
 
-### 8. AI Copilot & Market Forecasting
+### 11. AI Copilot & Market Intelligence
 Integrated machine learning and LLM intelligence layer powered by Google Gemini.
 - **Smart Contract Auditing**: Paste Solidity code or contract addresses for automated vulnerability analysis and gas optimization suggestions.
 - **On-Chain Analytics**: Natural language queries for Arc L1 network statistics, transaction deciphering, and wallet history interpretation.
 - **Market Forecast Matrix**: Predictive price trend analysis, support and resistance mapping, and volatility metrics for major cryptocurrency assets.
 
-### 9. Developer Tools Matrix
+### 12. Developer Tools Matrix
 Essential utilities for developers building on Circle Arc L1.
 - **Keccak-256 Hasher**: Compute cryptographic hashes for Solidity function selectors and event signatures.
 - **Unit Converter**: Instant two-way conversion between Wei, Gwei, and Ether / USDC decimal scales.

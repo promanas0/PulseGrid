@@ -1,4 +1,4 @@
-# PulseGrid- High-Performance Circle Arc L1 Web3 Ecosystem Suite
+# PulseGrid (ArcPulse)- High-Performance Circle Arc L1 Web3 Ecosystem Suite
 
 Next-Generation Institutional-Grade Web3 Infrastructure, Telemetry Matrix, PulsePay Invoicing, Liquid Staking, DEX AMM, Spender Router, and AI Intelligence Engine for Circle Arc L1.
 

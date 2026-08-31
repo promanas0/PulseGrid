@@ -1,32 +1,75 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth dark">
 <head>
     <link rel="icon" type="image/png" href="logo.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PulseGrid — Arc L1 Web3 Ecosystem & DEX Engine</title>
+    <title>PulseGrid — Arc L1 Web3 Ecosystem &amp; DEX Engine</title>
     <meta name="description" content="PulseGrid is a professional Web3 dApp ecosystem built on Circle Arc L1. Sub-second finality, micro USDC gas, institutional consortium validator security.">
     <meta property="og:title" content="PulseGrid — Arc L1 Web3 Ecosystem">
     <meta property="og:description" content="Sub-second finality, micro USDC gas fees, institutional validator security on Circle Arc L1 Testnet.">
 
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
-                    borderWidth: { '3': '3px', '4': '4px' },
+                    colors: {
+                        background: '#030712',
+                        foreground: '#F9FAFB',
+                        muted: '#9CA3AF',
+                        card: '#0B0F19',
+                        'card-border': 'rgba(255, 255, 255, 0.08)',
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                            950: '#172554',
+                        }
+                    },
                     fontFamily: {
                         sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
                         mono: ['"Fira Code"', 'monospace'],
+                    },
+                    animation: {
+                        'orbit': 'orbit calc(var(--duration)*1s) linear infinite',
+                        'pulse-glow': 'pulseGlow 4s ease-in-out infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        orbit: {
+                            '0%': { transform: 'rotate(calc(var(--angle) * 1deg)) translateY(calc(var(--radius) * 1px)) rotate(calc(var(--angle) * -1deg))' },
+                            '100%': { transform: 'rotate(calc(var(--angle) * 1deg + 360deg)) translateY(calc(var(--radius) * 1px)) rotate(calc(var(--angle) * -1deg - 360deg))' },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { opacity: '0.4', transform: 'scale(1)' },
+                            '50%': { opacity: '0.8', transform: 'scale(1.08)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
                     }
                 }
             }
         }
     </script>
 
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300..800&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
@@ -34,950 +77,1108 @@
 
         body {
             font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-            background: #FAFAFA;
-            color: #0F172A;
+            background-color: #030712;
+            color: #F9FAFB;
             overflow-x: hidden;
         }
 
-        /* Subtle dot grid */
-        .dot-grid {
-            background-color: #F8FAFC;
-            background-image: radial-gradient(circle, #CBD5E1 1px, transparent 1px);
-            background-size: 30px 30px;
+        /* Vetra Subtle Radial Grid Background */
+        .vetra-grid {
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.15) 0%, transparent 60%),
+                radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 100% 100%, 36px 36px;
         }
 
-        /* Pixel design tokens */
-        .btn-primary {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-weight: 800;
-            font-size: 14px;
-            background: linear-gradient(135deg, #6D28D9, #4F46E5, #0D9488);
-            color: white;
-            border: 2.5px solid #0F172A;
-            box-shadow: 4px 4px 0px #0F172A;
-            border-radius: 14px;
-            padding: 14px 28px;
-            cursor: pointer;
-            transition: all 0.12s ease;
-            text-decoration: none;
+        /* Vetra Glass Cards */
+        .vetra-card {
+            background: rgba(11, 15, 25, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .btn-primary:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 6px 6px 0px #0F172A;
-            filter: brightness(1.08);
-        }
-        .btn-primary:active {
-            transform: translate(2px, 2px);
-            box-shadow: 1px 1px 0px #0F172A;
+        .vetra-card:hover {
+            border-color: rgba(59, 130, 246, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px -10px rgba(59, 130, 246, 0.2);
         }
 
-        .btn-secondary {
+        /* Vetra Glowing Buttons */
+        .btn-vetra-primary {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
             font-weight: 700;
             font-size: 14px;
-            color: white;
-            background: rgba(255,255,255,0.08);
-            border: 2px solid rgba(255,255,255,0.25);
-            border-radius: 14px;
-            padding: 14px 24px;
-            cursor: pointer;
-            transition: all 0.12s ease;
-            text-decoration: none;
-        }
-        .btn-secondary:hover {
-            background: rgba(255,255,255,0.15);
-            border-color: rgba(255,255,255,0.5);
-        }
-
-        .btn-outline {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 700;
-            font-size: 13px;
-            color: #334155;
-            background: white;
-            border: 2px solid #E2E8F0;
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #60a5fa 100%);
+            color: #ffffff;
             border-radius: 12px;
-            padding: 10px 20px;
+            padding: 12px 24px;
             cursor: pointer;
-            transition: all 0.12s ease;
+            transition: all 0.25s ease;
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.45);
+            text-decoration: none;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .btn-vetra-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 35px rgba(59, 130, 246, 0.7);
+            filter: brightness(1.1);
+        }
+        .btn-vetra-primary:active {
+            transform: translateY(1px);
+        }
+
+        .btn-vetra-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #F3F4F6;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            padding: 12px 24px;
+            cursor: pointer;
+            backdrop-filter: blur(12px);
+            transition: all 0.25s ease;
             text-decoration: none;
         }
-        .btn-outline:hover {
-            border-color: #7B2CBF;
-            color: #7B2CBF;
-            box-shadow: 0 0 0 3px rgba(123,44,191,0.1);
+        .btn-vetra-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.25);
+            color: #FFFFFF;
+            transform: translateY(-2px);
         }
 
-        /* Navbar */
-        .navbar {
-            background: rgba(255,255,255,0.97);
-            border: 2.5px solid #0F172A;
-            border-radius: 18px;
-            box-shadow: 4px 4px 0px #0F172A;
-            backdrop-filter: blur(20px);
-        }
-
-        /* Hero */
-        .hero-banner {
-            background: linear-gradient(145deg, #0F172A 0%, #1E1B4B 25%, #312E81 55%, #0D6E6E 100%);
-            border: 4px solid #0F172A;
-            border-radius: 24px;
-            box-shadow: 8px 8px 0px #0F172A;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .orb {
+        /* Orbital Ring Animation Elements */
+        .orbit-container {
             position: absolute;
-            border-radius: 50%;
-            filter: blur(70px);
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             pointer-events: none;
+            z-index: 0;
         }
 
-        /* Cards */
-        .card {
-            background: white;
-            border: 2.5px solid #0F172A;
-            border-radius: 18px;
-            box-shadow: 4px 4px 0px #0F172A;
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        /* Spark Badge */
+        .spark-badge {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(12px);
+            transition: all 0.3s ease;
         }
-        .card:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 7px 7px 0px #6D28D9;
-        }
-
-        /* Metric */
-        .metric-pill {
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 16px;
-            padding: 16px 20px;
+        .spark-badge:hover {
+            border-color: rgba(59, 130, 246, 0.5);
+            background: rgba(59, 130, 246, 0.08);
         }
 
-        /* Status dot */
+        /* Glowing Dot */
         .live-dot {
             width: 8px;
             height: 8px;
             background: #10B981;
             border-radius: 50%;
-            animation: pulse 2s infinite;
+            box-shadow: 0 0 10px #10B981;
+            animation: livePulse 2s infinite;
         }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
-            50% { opacity: 0.9; box-shadow: 0 0 0 6px rgba(16,185,129,0); }
-        }
-
-        /* Partner badge — clickable */
-        .partner-badge {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: white;
-            border: 1.5px solid #E2E8F0;
-            border-radius: 12px;
-            padding: 10px 20px;
-            font-weight: 700;
-            font-size: 13px;
-            color: #334155;
-            box-shadow: 2px 2px 0px #E2E8F0;
-            text-decoration: none;
-            transition: all 0.15s ease;
-        }
-        .partner-badge:hover {
-            border-color: #7B2CBF;
-            box-shadow: 3px 3px 0px #7B2CBF;
-            color: #1E293B;
-            transform: translate(-1px, -1px);
+        @keyframes livePulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); box-shadow: 0 0 16px #10B981; }
         }
 
-        /* Spec table row */
-        .spec-row {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            padding: 16px 0;
-            border-bottom: 1px solid #F1F5F9;
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
         }
-        .spec-row:last-child { border-bottom: none; }
-
-        /* Section badge */
-        .section-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 14px;
-            background: #F0EDFB;
-            border: 1px solid #C4B5FD;
-            border-radius: 999px;
-            font-size: 11px;
-            font-weight: 700;
-            color: #5B21B6;
-            text-transform: uppercase;
-            letter-spacing: 0.07em;
+        ::-webkit-scrollbar-track {
+            background: #030712;
         }
-
-        /* Roadmap step */
-        .roadmap-step {
-            display: flex;
-            gap: 20px;
-            position: relative;
-        }
-        .roadmap-line {
-            position: absolute;
-            left: 17px;
-            top: 40px;
-            bottom: -20px;
-            width: 2px;
-            background: linear-gradient(to bottom, #7B2CBF, transparent);
-        }
-        .roadmap-dot {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border: 3px solid #0F172A;
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            font-size: 12px;
-            font-weight: 800;
-            box-shadow: 2px 2px 0px #0F172A;
-        }
-        .roadmap-dot.active {
-            background: linear-gradient(135deg, #6D28D9, #0D9488);
-            color: white;
-        }
-        .roadmap-dot.done {
-            background: #ECFDF5;
-            color: #059669;
-            border-color: #059669;
-        }
-
-        /* Fade in */
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(24px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .fade-up { animation: fadeUp 0.55s ease both; }
-        .delay-1 { animation-delay: 0.1s; }
-        .delay-2 { animation-delay: 0.2s; }
-        .delay-3 { animation-delay: 0.3s; }
-        .delay-4 { animation-delay: 0.4s; }
-
-        /* Divider */
-        hr.pixel { border: none; border-top: 2.5px solid #0F172A; margin: 0; }
-
-        /* Mobile menu */
-        #mobile-nav { display: none; }
-        #mobile-nav.open { display: flex; }
-
-        /* Section separator */
-        .section-sep {
-            width: 60px;
-            height: 4px;
-            background: linear-gradient(90deg, #6D28D9, #0D9488);
+        ::-webkit-scrollbar-thumb {
+            background: #1f2937;
             border-radius: 4px;
-            margin: 12px 0 0 0;
         }
-
-        /* Feature icon box */
-        .feat-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 14px;
-            border: 2.5px solid #0F172A;
-            box-shadow: 2px 2px 0px #0F172A;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        /* dApp card */
-        .dapp-card {
-            background: white;
-            border: 2.5px solid #0F172A;
-            border-radius: 18px;
-            box-shadow: 4px 4px 0px #0F172A;
-            transition: all 0.18s ease;
-            cursor: pointer;
-            text-decoration: none;
-            display: flex;
-            flex-direction: column;
-        }
-        .dapp-card:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 7px 7px 0px #6D28D9;
+        ::-webkit-scrollbar-thumb:hover {
+            background: #374151;
         }
     </style>
 </head>
 
-<body class="dot-grid min-h-screen">
+<body class="vetra-grid min-h-screen text-slate-100 selection:bg-blue-500 selection:text-white">
 
-    <!-- ════════════════════════ NAVBAR ════════════════════════ -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6">
-        <nav class="navbar px-5 sm:px-8 py-4 flex items-center justify-between gap-4">
-            <!-- Logo -->
-            <a href="index.html" class="flex items-center gap-3" aria-label="PulseGrid Home">
-                <img src="logo.png" alt="PulseGrid Logo" class="w-10 h-10 rounded-xl border-2 border-slate-900 shadow-[2px_2px_0px_#0F172A] object-cover bg-white p-0.5">
-                <div>
-                    <span class="text-xl sm:text-2xl font-black tracking-tight text-slate-950">PulseGrid</span>
-                    <span class="ml-2 hidden sm:inline-block px-2 py-0.5 rounded-md bg-violet-100 text-violet-800 border border-violet-300 text-[10px] font-mono font-bold uppercase tracking-wide">Arc L1 Testnet</span>
+    <!-- ════════════════════════ STICKY VETRA HEADER / NAVBAR ════════════════════════ -->
+    <header class="sticky top-0 w-full h-16 bg-[#030712]/80 backdrop-blur-md border-b border-white/[0.08] z-50 transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
+            
+            <!-- Logo Brand -->
+            <a href="index.html" class="flex items-center gap-3 group" aria-label="PulseGrid Home">
+                <div class="relative">
+                    <img src="logo.png" alt="PulseGrid Logo" class="w-9 h-9 rounded-xl border border-white/15 object-cover bg-slate-900 p-0.5 shadow-[0_0_15px_rgba(59,130,246,0.3)] group-hover:scale-105 transition-transform">
+                    <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-[#030712]"></span>
+                </div>
+                <div class="flex items-center">
+                    <span class="text-xl font-bold tracking-tight text-white group-hover:text-blue-400 transition-colors">PulseGrid</span>
+                    <span class="ml-2.5 px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] font-mono font-semibold">5042002</span>
                 </div>
             </a>
 
-            <!-- Desktop links -->
-            <div class="hidden md:flex items-center gap-7 text-sm font-semibold text-slate-500">
-                <a href="#dapps" class="hover:text-violet-700 transition-colors">dApps</a>
-                <a href="#protocol" class="hover:text-violet-700 transition-colors">Protocol</a>
-                <a href="#roadmap" class="hover:text-violet-700 transition-colors">Roadmap</a>
-                <a href="https://testnet.arcscan.app" target="_blank" rel="noopener" class="hover:text-violet-700 transition-colors">Explorer</a>
-            </div>
-
-            <!-- CTA -->
-            <div class="flex items-center gap-2 sm:gap-3">
-                <a href="archpulse.html" class="btn-primary text-sm px-4 sm:px-6 py-2.5">
-                    <i data-lucide="compass" class="w-4 h-4"></i>
-                    <span class="hidden sm:inline">Explore dApps</span>
-                    <span class="sm:hidden">Launch</span>
+            <!-- Desktop Links -->
+            <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+                <a href="#dapps" class="hover:text-white transition-colors">dApps Suite</a>
+                <a href="#protocol" class="hover:text-white transition-colors">Architecture</a>
+                <a href="#specs" class="hover:text-white transition-colors">Specs</a>
+                <a href="#roadmap" class="hover:text-white transition-colors">Roadmap</a>
+                <a href="https://testnet.arcscan.app" target="_blank" rel="noopener" class="flex items-center gap-1 hover:text-white transition-colors">
+                    <span>Explorer</span>
+                    <i data-lucide="external-link" class="w-3.5 h-3.5 text-slate-500"></i>
                 </a>
-                <button id="mobile-btn" onclick="toggleNav()" class="md:hidden p-2.5 rounded-xl border-2 border-slate-900 bg-white shadow-[2px_2px_0px_#0F172A]">
+            </nav>
+
+            <!-- Actions -->
+            <div class="flex items-center gap-3">
+                <a href="archpulse.html" class="btn-vetra-primary text-xs sm:text-sm !py-2 !px-4 sm:!px-5">
+                    <i data-lucide="compass" class="w-4 h-4"></i>
+                    <span>Launch App</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-80"></i>
+                </a>
+                <button id="mobile-btn" onclick="toggleNav()" class="md:hidden p-2 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:text-white hover:bg-white/10">
                     <i data-lucide="menu" class="w-5 h-5"></i>
                 </button>
             </div>
-        </nav>
-
-        <!-- Mobile menu -->
-        <div id="mobile-nav" class="md:hidden mt-2 navbar px-5 py-4 flex-col gap-3 text-sm font-semibold text-slate-700">
-            <a href="#dapps" onclick="toggleNav()" class="hover:text-violet-700 py-1">dApps</a>
-            <a href="#protocol" onclick="toggleNav()" class="hover:text-violet-700 py-1">Protocol</a>
-            <a href="#roadmap" onclick="toggleNav()" class="hover:text-violet-700 py-1">Roadmap</a>
-            <a href="https://testnet.arcscan.app" target="_blank" rel="noopener" class="hover:text-violet-700 py-1">Block Explorer</a>
         </div>
-    </div>
 
-    <!-- ════════════════════════ HERO ════════════════════════ -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 mt-5">
-        <div class="hero-banner p-7 sm:p-12 lg:p-16">
-            <div class="orb w-[500px] h-[500px] bg-violet-600/20 -top-32 -right-32"></div>
-            <div class="orb w-80 h-80 bg-teal-500/15 -bottom-20 -left-20"></div>
-            <div class="orb w-60 h-60 bg-indigo-500/10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
+        <!-- Mobile dropdown -->
+        <div id="mobile-nav" class="hidden md:hidden bg-[#0B0F19]/95 backdrop-blur-xl border-b border-white/10 px-6 py-4 flex-col gap-3.5 text-sm font-medium text-slate-300">
+            <a href="#dapps" onclick="toggleNav()" class="hover:text-white py-1">dApps Suite</a>
+            <a href="#protocol" onclick="toggleNav()" class="hover:text-white py-1">Architecture</a>
+            <a href="#specs" onclick="toggleNav()" class="hover:text-white py-1">Specs</a>
+            <a href="#roadmap" onclick="toggleNav()" class="hover:text-white py-1">Roadmap</a>
+            <a href="https://testnet.arcscan.app" target="_blank" rel="noopener" class="hover:text-white py-1 flex items-center justify-between">
+                <span>Arc Block Explorer</span>
+                <i data-lucide="external-link" class="w-4 h-4 text-slate-500"></i>
+            </a>
+            <div class="pt-2 border-t border-white/10">
+                <a href="archpulse.html" class="btn-vetra-primary w-full text-center justify-center py-2.5">
+                    Launch PulseGrid Workstation
+                </a>
+            </div>
+        </div>
+    </header>
 
-            <div class="relative z-10 space-y-9">
-                <!-- Status -->
-                <div class="fade-up inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-slate-300 text-xs font-mono font-semibold">
-                    <div class="live-dot"></div>
-                    Circle Arc L1 Testnet — Chain ID 5042002 — Live
+    <!-- ════════════════════════ HERO SECTION (VETRA CELESTIAL ORBITS & GLOWS) ════════════════════════ -->
+    <section class="relative overflow-hidden pt-12 sm:pt-20 pb-20 sm:pb-32">
+        
+        <!-- Ambient Top Glows -->
+        <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] sm:w-[900px] h-[350px] bg-gradient-to-tr from-blue-600/20 via-sky-500/15 to-indigo-600/20 blur-[130px] rounded-full pointer-events-none -z-10 animate-pulse-glow"></div>
+        <div class="absolute top-10 left-1/3 w-72 h-72 bg-blue-500/10 blur-[100px] rounded-full pointer-events-none -z-10"></div>
+
+        <!-- Vetra Concentric Orbital Dashed Rings (SVG) -->
+        <div class="orbit-container -top-10 opacity-40 sm:opacity-75">
+            <svg class="w-[850px] h-[850px] pointer-events-none absolute" viewBox="0 0 850 850" fill="none">
+                <!-- Outer Orbit (r=400) -->
+                <circle cx="425" cy="425" r="400" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="6 6" />
+                <!-- Middle Orbit (r=300) -->
+                <circle cx="425" cy="425" r="300" stroke="rgba(255,255,255,0.12)" stroke-width="1" stroke-dasharray="6 6" />
+                <!-- Inner Orbit (r=200) -->
+                <circle cx="425" cy="425" r="200" stroke="rgba(59,130,246,0.2)" stroke-width="1" stroke-dasharray="4 4" />
+            </svg>
+
+            <!-- Orbiting Particle 1 -->
+            <div style="--duration:35;--radius:300;--angle:30;--icon-size:24px" class="absolute flex size-[var(--icon-size)] transform-gpu animate-orbit items-center justify-center rounded-full bg-blue-500/20 border border-blue-400/50 shadow-[0_0_12px_#3b82f6]">
+                <div class="w-2 h-2 rounded-full bg-blue-400"></div>
+            </div>
+
+            <!-- Orbiting Particle 2 -->
+            <div style="--duration:55;--radius:400;--angle:190;--icon-size:20px" class="absolute flex size-[var(--icon-size)] transform-gpu animate-orbit items-center justify-center rounded-full bg-emerald-500/20 border border-emerald-400/50 shadow-[0_0_12px_#10b981]">
+                <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+            </div>
+
+            <!-- Orbiting Particle 3 -->
+            <div style="--duration:45;--radius:200;--angle:280;--icon-size:18px" class="absolute flex size-[var(--icon-size)] transform-gpu animate-orbit items-center justify-center rounded-full bg-indigo-500/20 border border-indigo-400/50 shadow-[0_0_12px_#6366f1]">
+                <div class="w-1.5 h-1.5 rounded-full bg-indigo-400"></div>
+            </div>
+        </div>
+
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-8">
+            
+            <!-- Spark Header Badge -->
+            <div class="inline-flex items-center justify-center">
+                <a href="archpulse.html" class="spark-badge rounded-full px-4 py-1.5 flex items-center gap-2.5 shadow-[0_0_20px_rgba(59,130,246,0.15)] group cursor-pointer">
+                    <span class="flex h-2 w-2 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span class="px-2 py-0.5 rounded-full bg-gradient-to-r from-sky-400 to-blue-600 text-[10px] font-bold text-white uppercase tracking-wider">LIVE</span>
+                    <span class="text-xs font-medium text-slate-200">Circle Arc L1 Testnet &bull; Chain ID 5042002</span>
+                    <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform"></i>
+                </a>
+            </div>
+
+            <!-- Main Hero Title -->
+            <div class="space-y-4 max-w-4xl mx-auto">
+                <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.08]">
+                    Arc Web3 Ecosystem <br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-sky-300 to-teal-300 drop-shadow-[0_0_35px_rgba(59,130,246,0.3)]">
+                        &amp; DEX Engine
+                    </span>
+                </h1>
+                <p class="text-slate-300 text-base sm:text-lg lg:text-xl font-normal leading-relaxed max-w-2xl mx-auto">
+                    A next-generation institutional blockchain stack with sub-second finality, USDC-denominated gas, permissioned consortium validation, and a full suite of on-chain decentralized applications.
+                </p>
+            </div>
+
+            <!-- Hero Action Buttons -->
+            <div class="flex flex-wrap items-center justify-center gap-4 pt-2">
+                <a href="archpulse.html" class="btn-vetra-primary text-base px-8 py-3.5 rounded-xl">
+                    <i data-lucide="compass" class="w-5 h-5"></i>
+                    <span>Explore dApps</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </a>
+                <a href="archpulse.html?page=swap" class="btn-vetra-secondary text-sm px-6 py-3.5 rounded-xl">
+                    <i data-lucide="arrow-left-right" class="w-4 h-4 text-blue-400"></i>
+                    <span>Launch Web3 Swap</span>
+                </a>
+                <a href="https://testnet.arcscan.app" target="_blank" rel="noopener" class="btn-vetra-secondary text-sm px-6 py-3.5 rounded-xl">
+                    <i data-lucide="external-link" class="w-4 h-4 text-teal-400"></i>
+                    <span>Block Explorer</span>
+                </a>
+            </div>
+
+            <!-- Floating Glassmorphic App Workstation Preview Card (Vetra Style) -->
+            <div class="relative rounded-2xl sm:rounded-3xl border border-white/10 p-2 sm:p-3 backdrop-blur-2xl bg-gradient-to-b from-white/[0.06] to-white/[0.01] shadow-[0_0_80px_rgba(59,130,246,0.18)] mt-12 max-w-5xl mx-auto">
+                <div class="absolute -top-10 left-1/2 -translate-x-1/2 w-3/4 h-20 bg-gradient-to-r from-blue-500 to-teal-400 blur-3xl opacity-20 pointer-events-none"></div>
+
+                <!-- Mockup Window Inside Glass Card -->
+                <div class="rounded-xl sm:rounded-2xl border border-white/10 bg-[#080D1A] overflow-hidden text-left font-mono">
+                    
+                    <!-- Top Window Nav Bar -->
+                    <div class="px-4 py-3 bg-[#0B1120] border-b border-white/[0.08] flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-rose-500/80 inline-block"></span>
+                            <span class="w-3 h-3 rounded-full bg-amber-500/80 inline-block"></span>
+                            <span class="w-3 h-3 rounded-full bg-emerald-500/80 inline-block"></span>
+                            <span class="text-xs text-slate-400 ml-2 hidden sm:inline-block font-sans font-medium">PulseGrid Workstation &bull; Circle Arc L1</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs text-slate-400">
+                            <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[11px]">Synced: 450ms BFT</span>
+                            <span class="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[11px]">Chain 5042002</span>
+                        </div>
+                    </div>
+
+                    <!-- Workstation Mock Content Preview -->
+                    <div class="p-4 sm:p-6 space-y-5">
+                        
+                        <!-- Top Telemetry Ribbon -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div class="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                                <div class="text-[10px] text-slate-400 uppercase font-sans font-semibold">Live Block Height</div>
+                                <div class="text-lg sm:text-xl font-bold text-white mt-0.5">#58,952,180</div>
+                                <div class="text-[10px] text-emerald-400 flex items-center gap-1 mt-0.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Sub-second Finality</div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                                <div class="text-[10px] text-slate-400 uppercase font-sans font-semibold">Peak Throughput</div>
+                                <div class="text-lg sm:text-xl font-bold text-blue-400 mt-0.5">2,500+ TPS</div>
+                                <div class="text-[10px] text-slate-400 mt-0.5">dBFT Consensus</div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                                <div class="text-[10px] text-slate-400 uppercase font-sans font-semibold">Native Gas Fee</div>
+                                <div class="text-lg sm:text-xl font-bold text-teal-300 mt-0.5">0.001 USDC</div>
+                                <div class="text-[10px] text-teal-400 mt-0.5">Predictable Stable Gas</div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                                <div class="text-[10px] text-slate-400 uppercase font-sans font-semibold">PulseStake Yield</div>
+                                <div class="text-lg sm:text-xl font-bold text-purple-400 mt-0.5">14.0% APY</div>
+                                <div class="text-[10px] text-purple-300 mt-0.5">Liquid $pUSDC</div>
+                            </div>
+                        </div>
+
+                        <!-- Interactive Mini Showcase -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- DEX Preview -->
+                            <div class="p-4 rounded-xl bg-gradient-to-br from-blue-950/40 to-slate-900/60 border border-blue-500/20 space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-sans font-bold text-white flex items-center gap-1.5"><i data-lucide="repeat" class="w-3.5 h-3.5 text-blue-400"></i> Spender DEX Swap</span>
+                                    <span class="text-[10px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-bold">1:1 Pegged</span>
+                                </div>
+                                <div class="p-2.5 rounded-lg bg-black/40 border border-white/5 flex items-center justify-between text-xs">
+                                    <span class="text-slate-400">100.00 USDC</span>
+                                    <span class="font-bold text-white">Native Arc</span>
+                                </div>
+                                <div class="p-2.5 rounded-lg bg-black/40 border border-white/5 flex items-center justify-between text-xs">
+                                    <span class="text-slate-400">113.29 EURC</span>
+                                    <span class="font-bold text-emerald-400">Zero Slippage</span>
+                                </div>
+                            </div>
+
+                            <!-- Consortium Nodes Preview -->
+                            <div class="p-4 rounded-xl bg-gradient-to-br from-purple-950/40 to-slate-900/60 border border-purple-500/20 space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-sans font-bold text-white flex items-center gap-1.5"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-purple-400"></i> Consortium Quorum</span>
+                                    <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-bold">12 / 12 Healthy</span>
+                                </div>
+                                <div class="space-y-1.5 text-[11px]">
+                                    <div class="flex justify-between text-slate-300"><span>Circle Genesis Alpha</span><span class="text-emerald-400">0.4ms</span></div>
+                                    <div class="flex justify-between text-slate-300"><span>Coinbase Cloud L1</span><span class="text-emerald-400">0.8ms</span></div>
+                                    <div class="flex justify-between text-slate-300"><span>Jump Consortium Node</span><span class="text-emerald-400">0.6ms</span></div>
+                                </div>
+                            </div>
+
+                            <!-- PulsePay Invoice Preview -->
+                            <div class="p-4 rounded-xl bg-gradient-to-br from-emerald-950/40 to-slate-900/60 border border-emerald-500/20 space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-sans font-bold text-white flex items-center gap-1.5"><i data-lucide="credit-card" class="w-3.5 h-3.5 text-emerald-400"></i> PulsePay Invoicing</span>
+                                    <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-bold">Sub-Second</span>
+                                </div>
+                                <div class="p-2.5 rounded-lg bg-black/40 border border-white/5 text-center space-y-1">
+                                    <div class="text-[10px] text-slate-400">Payable Amount:</div>
+                                    <div class="text-base font-bold text-white">50.00 USDC</div>
+                                    <div class="text-[10px] text-emerald-400">Direct 1-Click Settlement</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metrics Pills Row -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-8 max-w-4xl mx-auto">
+                <div class="vetra-card p-5 rounded-2xl text-center">
+                    <div class="text-[11px] font-mono uppercase tracking-wider text-blue-400 mb-1">Block Finality</div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-white">&lt;1 Sec</div>
+                    <div class="text-xs text-slate-400 mt-1">Sub-Second Settlement</div>
+                </div>
+                <div class="vetra-card p-5 rounded-2xl text-center">
+                    <div class="text-[11px] font-mono uppercase tracking-wider text-indigo-400 mb-1">Native Gas</div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-white">0.001</div>
+                    <div class="text-xs text-slate-400 mt-1">USDC per Transaction</div>
+                </div>
+                <div class="vetra-card p-5 rounded-2xl text-center">
+                    <div class="text-[11px] font-mono uppercase tracking-wider text-teal-400 mb-1">Consortium Nodes</div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-white">12</div>
+                    <div class="text-xs text-slate-400 mt-1">Active Validator Nodes</div>
+                </div>
+                <div class="vetra-card p-5 rounded-2xl text-center">
+                    <div class="text-[11px] font-mono uppercase tracking-wider text-amber-400 mb-1">Mainnet Target</div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-white">Sept 16</div>
+                    <div class="text-xs text-slate-400 mt-1">2026 Official Launch</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ════════════════════════ TRUSTED BY LEADING INSTITUTIONS LOGO ROW (VETRA STYLE) ════════════════════════ -->
+    <section class="py-12 border-y border-white/[0.08] bg-[#050914]/60">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
+            <h4 class="text-xs font-semibold uppercase tracking-widest text-slate-400">
+                Institutional Consensus &bull; Consortium Validator Security
+            </h4>
+            <div class="flex flex-wrap items-center justify-center gap-6 sm:gap-12 opacity-75 hover:opacity-100 transition-opacity">
+                <a href="https://www.circle.com" target="_blank" rel="noopener" class="flex items-center gap-2 text-slate-300 hover:text-white font-bold text-sm transition-colors">
+                    <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                    <span>Circle Financial</span>
+                </a>
+                <a href="https://www.blackrock.com" target="_blank" rel="noopener" class="flex items-center gap-2 text-slate-300 hover:text-white font-bold text-sm transition-colors">
+                    <span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
+                    <span>BlackRock</span>
+                </a>
+                <a href="https://www.visa.com" target="_blank" rel="noopener" class="flex items-center gap-2 text-slate-300 hover:text-white font-bold text-sm transition-colors">
+                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                    <span>Visa International</span>
+                </a>
+                <a href="https://www.dtcc.com" target="_blank" rel="noopener" class="flex items-center gap-2 text-slate-300 hover:text-white font-bold text-sm transition-colors">
+                    <span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span>
+                    <span>DTCC Global</span>
+                </a>
+                <a href="https://www.bnymellon.com" target="_blank" rel="noopener" class="flex items-center gap-2 text-slate-300 hover:text-white font-bold text-sm transition-colors">
+                    <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
+                    <span>BNY Mellon</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ════════════════════════ EXPLORE dAPPS SUITE (VETRA BENTO GRID) ════════════════════════ -->
+    <section id="dapps" class="py-24 sm:py-32 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+            
+            <!-- Section Title -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6">
+                <div class="space-y-3 max-w-2xl">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-mono font-semibold uppercase">
+                        <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+                        <span>On-Chain dApp Suite</span>
+                    </div>
+                    <h2 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+                        Explore Arc Decentralized Apps
+                    </h2>
+                    <p class="text-slate-400 text-sm sm:text-base font-normal leading-relaxed">
+                        Select any decentralized application below to enter the live Web3 testnet workstation with full wallet and chain integration.
+                    </p>
+                </div>
+                <a href="archpulse.html" class="btn-vetra-primary text-sm px-6 py-3 shrink-0">
+                    <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                    <span>Launch Full Suite</span>
+                </a>
+            </div>
+
+            <!-- Bento Cards Grid (9 dApps) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- 1. Network Monitor -->
+                <a href="archpulse.html?page=monitor" class="vetra-card p-7 rounded-2xl group flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="w-12 h-12 rounded-xl bg-violet-500/10 border border-violet-500/20 text-violet-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-violet-500/20 transition-all">
+                                <i data-lucide="activity" class="w-6 h-6"></i>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono font-bold uppercase">Live Telemetry</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white group-hover:text-blue-400 transition-colors">Network Monitor</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Real-time block telemetry, throughput statistics, gas monitoring, and validator node health dashboard for Arc L1.
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-between pt-5 mt-4 border-t border-white/[0.06] text-xs font-semibold text-blue-400 group-hover:text-blue-300">
+                        <span>Launch Telemetry</span>
+                        <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+                <!-- 2. Swap Engine -->
+                <a href="archpulse.html?page=swap" class="vetra-card p-7 rounded-2xl group flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-blue-500/20 transition-all">
+                                <i data-lucide="arrow-left-right" class="w-6 h-6"></i>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-300 border border-blue-500/20 text-[10px] font-mono font-bold uppercase">DEX SWAP</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white group-hover:text-blue-400 transition-colors">Swap Engine</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Instant 1:1 USDC to EURC stablecoin swaps with Spender Router smart contracts. Zero slippage, zero spread.
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-between pt-5 mt-4 border-t border-white/[0.06] text-xs font-semibold text-blue-400 group-hover:text-blue-300">
+                        <span>Explore Swap</span>
+                        <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+                <!-- 3. PulsePay Engine -->
+                <a href="archpulse.html?page=pulsepay" class="vetra-card p-7 rounded-2xl group flex flex-col justify-between border-emerald-500/30 hover:border-emerald-400/60">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-emerald-500/20 transition-all">
+                                <i data-lucide="credit-card" class="w-6 h-6"></i>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 text-[10px] font-mono font-bold uppercase">NEW &bull; 0.4s Pay</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white group-hover:text-emerald-400 transition-colors">PulsePay Engine</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Instant USDC payment links, dynamic QR invoicing, and 1-click on-chain settlement on Arc L1 with native USDC gas.
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-between pt-5 mt-4 border-t border-white/[0.06] text-xs font-semibold text-emerald-400 group-hover:text-emerald-300">
+                        <span>Launch PulsePay</span>
+                        <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+                <!-- 4. Arc Web3 Wallet -->
+                <a href="archpulse.html?page=wallet" class="vetra-card p-7 rounded-2xl group flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="w-12 h-12 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-teal-500/20 transition-all">
+                                <i data-lucide="wallet" class="w-6 h-6"></i>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full bg-teal-500/10 text-teal-300 border border-teal-500/20 text-[10px] font-mono font-bold uppercase">SCA Wallet</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white group-hover:text-teal-400 transition-colors">Arc Web3 Wallet</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Manage USDC gas balances, send tokens peer-to-peer, scan QR codes, and connect via WalletConnect v2 protocol.
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-between pt-5 mt-4 border-t border-white/[0.06] text-xs font-semibold text-teal-400 group-hover:text-teal-300">
+                        <span>Open Wallet</span>
+                        <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+                <!-- 5. Circle Escrow Vault -->
+                <a href="archpulse.html?page=escrow" class="vetra-card p-7 rounded-2xl group flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-amber-500/20 transition-all">
+                                <i data-lucide="shield-check" class="w-6 h-6"></i>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20 text-[10px] font-mono font-bold uppercase">ERC-8183 Vault</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white group-hover:text-amber-400 transition-colors">Circle Escrow Vault</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Lock USDC in secure multi-signature conditional escrow smart contracts with arbitration and dispute resolution.
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-between pt-5 mt-4 border-t border-white/[0.06] text-xs font-semibold text-amber-400 group-hover:text-amber-300">
+                        <span>Open Escrow</span>
+                        <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+                <!-- 6. Pro AI Assistant -->
+                <a href="archpulse.html?page=assistant" class="vetra-card p-7 rounded-2xl group flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-rose-500/20 transition-all">
+                                <i data-lucide="bot" class="w-6 h-6"></i>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-300 border border-rose-500/20 text-[10px] font-mono font-bold uppercase">Gemini 2.0 AI</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white group-hover:text-rose-400 transition-colors">Pro AI Assistant</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Intelligent Web3 AI for real-time chain telemetry interpretation, smart contract debugging, and on-chain market analysis.
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-between pt-5 mt-4 border-t border-white/[0.06] text-xs font-semibold text-rose-400 group-hover:text-rose-300">
+                        <span>Chat with AI</span>
+                        <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+                <!-- 7. Daily Quests & NFT Badges -->
+                <a href="archpulse.html?page=daily" class="vetra-card p-7 rounded-2xl group flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-emerald-500/20 transition-all">
+                                <i data-lucide="trophy" class="w-6 h-6"></i>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 text-[10px] font-mono font-bold uppercase">Quest Rewards</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white group-hover:text-emerald-400 transition-colors">Daily Quests &amp; NFT Badges</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Complete daily check-ins, execute testnet DEX swaps, and claim exclusive Arc Protocol NFT Badges as on-chain achievements.
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-between pt-5 mt-4 border-t border-white/[0.06] text-xs font-semibold text-emerald-400 group-hover:text-emerald-300">
+                        <span>Claim Rewards</span>
+                        <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+                <!-- 8. PulseStake (Liquid Staking) -->
+                <a href="archpulse.html?page=validators" class="vetra-card p-7 rounded-2xl group flex flex-col justify-between border-purple-500/30 hover:border-purple-400/60">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-purple-500/20 transition-all">
+                                <i data-lucide="layers" class="w-6 h-6"></i>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/30 text-[10px] font-mono font-bold uppercase">14% Max APY</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white group-hover:text-purple-400 transition-colors">PulseStake (Liquid Staking)</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Stake native USDC to Arc L1 consortium validator nodes, receive liquid $pUSDC tokens, earn continuous real-time yield, and climb the staker leaderboard.
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-between pt-5 mt-4 border-t border-white/[0.06] text-xs font-semibold text-purple-400 group-hover:text-purple-300">
+                        <span>Stake &amp; Earn Yield</span>
+                        <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+
+                <!-- 9. Prediction Markets & AI -->
+                <a href="archpulse.html?page=prediction" class="vetra-card p-7 rounded-2xl group flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-indigo-500/20 transition-all">
+                                <i data-lucide="trending-up" class="w-6 h-6"></i>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 text-[10px] font-mono font-bold uppercase">89.4% AI Accuracy</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white group-hover:text-indigo-400 transition-colors">Prediction Markets &amp; AI</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Multi-timeframe dynamic technical charts, live binary event prediction pools with USDC shares, and institutional forecast models.
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-between pt-5 mt-4 border-t border-white/[0.06] text-xs font-semibold text-indigo-400 group-hover:text-indigo-300">
+                        <span>Explore Predictions</span>
+                        <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ════════════════════════ PROTOCOL ARCHITECTURE & SPECS ════════════════════════ -->
+    <section id="protocol" class="py-24 border-t border-white/[0.08] relative bg-[#050814]/40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+            
+            <div class="text-center max-w-3xl mx-auto space-y-4">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-mono font-semibold uppercase">
+                    Protocol Architecture
+                </div>
+                <h2 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">Built on Circle Arc L1</h2>
+                <p class="text-slate-400 text-sm sm:text-base leading-relaxed">
+                    Arc L1 is a purpose-built Layer 1 blockchain designed for institutional finance — combining programmable stablecoin rails, sub-second finality, and consortium-grade validator infrastructure.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                
+                <!-- Core Protocol Features -->
+                <div class="vetra-card p-8 sm:p-10 rounded-3xl space-y-6">
+                    <h3 class="text-2xl font-bold text-white tracking-tight">Core Protocol Features</h3>
+                    <div class="space-y-6">
+                        
+                        <div class="flex gap-4">
+                            <div class="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
+                                <i data-lucide="zap" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-sm text-white">Sub-second Block Finality</div>
+                                <div class="text-xs text-slate-400 mt-1 leading-relaxed">Arc L1 achieves ~450ms block confirmation times using a delegated Byzantine Fault Tolerant (BFT) consensus mechanism, enabling real-time DeFi operations.</div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <div class="w-11 h-11 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center shrink-0">
+                                <i data-lucide="dollar-sign" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-sm text-white">USDC-Denominated Gas Fees</div>
+                                <div class="text-xs text-slate-400 mt-1 leading-relaxed">Unlike ETH-based networks, Arc L1 uses USDC as the native gas currency. Transaction fees start at 0.001 USDC, offering stable and predictable transaction costs for enterprise users.</div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <div class="w-11 h-11 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+                                <i data-lucide="shield" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-sm text-white">Permissioned Consortium Validators</div>
+                                <div class="text-xs text-slate-400 mt-1 leading-relaxed">12 globally distributed validator nodes operated by regulated financial institutions including Circle Financial, BlackRock, Visa, DTCC, and BNY Mellon ensure institutional-grade security.</div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <div class="w-11 h-11 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
+                                <i data-lucide="code-2" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-sm text-white">EVM-Compatible Smart Contracts</div>
+                                <div class="text-xs text-slate-400 mt-1 leading-relaxed">Full Ethereum Virtual Machine compatibility allows developers to deploy existing Solidity smart contracts without code changes. Supports all major ERC standards.</div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <div class="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                                <i data-lucide="link" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-sm text-white">Cross-Chain CCTP Bridge</div>
+                                <div class="text-xs text-slate-400 mt-1 leading-relaxed">Native Circle Cross-Chain Transfer Protocol (CCTP) integration enables secure, canonical USDC transfers between Arc L1 and Ethereum, Polygon, Avalanche, and Base.</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Headline -->
-                <div class="fade-up delay-1 max-w-4xl space-y-5">
-                    <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.05] text-transparent bg-clip-text bg-gradient-to-br from-white via-violet-200 to-teal-300">
-                        Arc Web3 Ecosystem<br>
-                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-300 via-violet-300 to-white">
-                            &amp; DEX Engine
-                        </span>
-                    </h1>
-                    <p class="text-slate-300 text-base sm:text-xl font-medium leading-relaxed max-w-2xl">
-                        A next-generation institutional blockchain stack with sub-second finality, USDC-denominated gas, permissioned consortium validation, and a full suite of on-chain decentralized applications.
+                <!-- Technical Specifications Table (ID: specs) -->
+                <div id="specs" class="vetra-card p-8 sm:p-10 rounded-3xl space-y-6">
+                    <h3 class="text-2xl font-bold text-white tracking-tight">Technical Specifications</h3>
+                    <div class="divide-y divide-white/[0.06] text-xs font-mono">
+                        
+                        <div class="flex items-center justify-between py-3">
+                            <span class="text-slate-400 font-sans">Chain ID</span>
+                            <span class="font-bold text-blue-400 px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/20">5042002</span>
+                        </div>
+
+                        <div class="flex items-center justify-between py-3">
+                            <span class="text-slate-400 font-sans">Network Name</span>
+                            <span class="font-bold text-white">Arc Testnet L1</span>
+                        </div>
+
+                        <div class="flex items-center justify-between py-3">
+                            <span class="text-slate-400 font-sans">Primary RPC (Circle)</span>
+                            <span class="font-bold text-blue-300 truncate max-w-[200px] sm:max-w-none">https://rpc.testnet.arc.network</span>
+                        </div>
+
+                        <div class="flex items-center justify-between py-3">
+                            <span class="text-slate-400 font-sans">Alternative RPC (dRPC)</span>
+                            <span class="font-bold text-blue-300 truncate max-w-[200px] sm:max-w-none">https://rpc.drpc.testnet.arc.io</span>
+                        </div>
+
+                        <div class="flex items-center justify-between py-3">
+                            <span class="text-slate-400 font-sans">Native Gas Currency</span>
+                            <span class="font-bold text-teal-300">Native USDC (18 Decimals)</span>
+                        </div>
+
+                        <div class="flex items-center justify-between py-3">
+                            <span class="text-slate-400 font-sans">Block Explorer</span>
+                            <a href="https://testnet.arcscan.app" target="_blank" class="text-blue-400 hover:underline flex items-center gap-1 font-bold">
+                                <span>testnet.arcscan.app</span>
+                                <i data-lucide="external-link" class="w-3 h-3"></i>
+                            </a>
+                        </div>
+
+                        <div class="flex items-center justify-between py-3">
+                            <span class="text-slate-400 font-sans">Consensus Engine</span>
+                            <span class="font-bold text-white">dBFT — Delegated Byzantine Fault Tolerant</span>
+                        </div>
+
+                        <div class="flex items-center justify-between py-3">
+                            <span class="text-slate-400 font-sans">Average Block Time</span>
+                            <span class="font-bold text-emerald-400">~450ms sub-second</span>
+                        </div>
+
+                        <div class="flex items-center justify-between py-3">
+                            <span class="text-slate-400 font-sans">Peak Network TPS</span>
+                            <span class="font-bold text-white">2,500+ tx/s</span>
+                        </div>
+
+                        <div class="flex items-center justify-between py-3">
+                            <span class="text-slate-400 font-sans">EVM Compatibility</span>
+                            <span class="font-bold text-emerald-400">Full (Solidity 0.8.x)</span>
+                        </div>
+
+                        <div class="flex items-center justify-between py-3">
+                            <span class="text-slate-400 font-sans">Mainnet Target Date</span>
+                            <span class="font-bold text-amber-400">September 16, 2026</span>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 flex gap-3">
+                        <a href="archpulse.html?page=wallet" class="btn-vetra-primary text-xs py-2.5 flex-1 justify-center">
+                            <i data-lucide="plug" class="w-3.5 h-3.5"></i>
+                            <span>Connect Wallet</span>
+                        </a>
+                        <a href="https://testnet.arcscan.app" target="_blank" rel="noopener" class="btn-vetra-secondary text-xs py-2.5 flex-1 justify-center">
+                            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                            <span>Block Explorer</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ════════════════════════ HOW IT WORKS (3 STEPS) ════════════════════════ -->
+    <section class="py-24 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+            
+            <div class="text-center max-w-2xl mx-auto space-y-4">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-mono font-semibold uppercase">
+                    Get Started
+                </div>
+                <h2 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">How to Use PulseGrid</h2>
+                <p class="text-slate-400 text-sm sm:text-base leading-relaxed">
+                    Three steps to start exploring Web3 on the Arc L1 testnet with a live wallet and real on-chain interactions.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                
+                <!-- Step 1 -->
+                <div class="vetra-card p-8 rounded-3xl text-center space-y-4 relative overflow-hidden">
+                    <div class="w-14 h-14 mx-auto rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center text-xl font-bold shadow-[0_0_20px_rgba(59,130,246,0.3)]">
+                        <i data-lucide="wallet" class="w-7 h-7"></i>
+                    </div>
+                    <div class="text-xs font-mono font-bold text-blue-400 uppercase tracking-widest">Step 01</div>
+                    <h3 class="text-xl font-bold text-white">Connect Your Wallet</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Connect MetaMask or any WalletConnect v2 compatible wallet. PulseGrid will automatically prompt you to add the Arc L1 testnet (Chain ID 5042002) to your wallet.
                     </p>
                 </div>
 
-                <!-- CTAs -->
-                <div class="fade-up delay-2 flex flex-wrap items-center gap-4">
-                    <a href="archpulse.html" class="btn-primary text-sm sm:text-base px-7 sm:px-9 py-3.5 sm:py-4 rounded-2xl">
-                        <i data-lucide="compass" class="w-5 h-5"></i>
-                        Explore dApps
-                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                    </a>
-                    <a href="archpulse.html?page=swap" class="btn-secondary text-sm px-6 py-3.5 rounded-2xl">
-                        <i data-lucide="arrow-left-right" class="w-4 h-4 text-violet-300"></i>
-                        Launch Web3 Swap
-                    </a>
-                    <a href="https://testnet.arcscan.app" target="_blank" rel="noopener" class="btn-secondary text-sm px-6 py-3.5 rounded-2xl">
-                        <i data-lucide="external-link" class="w-4 h-4 text-teal-300"></i>
-                        Block Explorer
-                    </a>
+                <!-- Step 2 -->
+                <div class="vetra-card p-8 rounded-3xl text-center space-y-4 relative overflow-hidden">
+                    <div class="w-14 h-14 mx-auto rounded-2xl bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center text-xl font-bold shadow-[0_0_20px_rgba(20,184,166,0.3)]">
+                        <i data-lucide="droplets" class="w-7 h-7"></i>
+                    </div>
+                    <div class="text-xs font-mono font-bold text-teal-400 uppercase tracking-widest">Step 02</div>
+                    <h3 class="text-xl font-bold text-white">Claim Testnet Tokens</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Use the built-in USDC and EURC Faucet to claim testnet tokens. These tokens are required for gas fees and to interact with DEX swaps, escrow, and other on-chain features.
+                    </p>
                 </div>
 
-                <!-- Metrics -->
-                <div class="fade-up delay-3 grid grid-cols-2 sm:grid-cols-4 gap-3 pt-8 border-t border-white/10">
-                    <div class="metric-pill">
-                        <div class="text-[10px] font-mono uppercase tracking-widest text-violet-300 mb-1">Block Finality</div>
-                        <div class="text-2xl sm:text-3xl font-black font-mono text-white">&lt;1 Sec</div>
-                        <div class="text-[10px] text-violet-300 font-semibold mt-1">Sub-Second Settlement</div>
+                <!-- Step 3 -->
+                <div class="vetra-card p-8 rounded-3xl text-center space-y-4 relative overflow-hidden">
+                    <div class="w-14 h-14 mx-auto rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center text-xl font-bold shadow-[0_0_20px_rgba(99,102,241,0.3)]">
+                        <i data-lucide="play-circle" class="w-7 h-7"></i>
                     </div>
-                    <div class="metric-pill">
-                        <div class="text-[10px] font-mono uppercase tracking-widest text-indigo-300 mb-1">Native Gas</div>
-                        <div class="text-2xl sm:text-3xl font-black font-mono text-white">0.001</div>
-                        <div class="text-[10px] text-indigo-300 font-semibold mt-1">USDC per Transaction</div>
+                    <div class="text-xs font-mono font-bold text-indigo-400 uppercase tracking-widest">Step 03</div>
+                    <h3 class="text-xl font-bold text-white">Explore All dApps</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Navigate the full PulseGrid workstation — swap stablecoins, monitor the network, use the AI assistant, complete daily quests, and manage your portfolio in real-time.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ════════════════════════ ROADMAP & WHY ARC L1 ════════════════════════ -->
+    <section id="roadmap" class="py-24 border-t border-white/[0.08] bg-[#050814]/40 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+                
+                <!-- Left: Roadmap -->
+                <div class="space-y-8">
+                    <div class="space-y-3">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-mono font-semibold uppercase">
+                            Protocol Roadmap
+                        </div>
+                        <h2 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+                            Arc L1 Development Milestones
+                        </h2>
+                        <p class="text-slate-400 text-sm leading-relaxed max-w-md">
+                            The Arc L1 testnet has been running since early 2025. Mainnet is scheduled for September 16, 2026, followed by DeFi primitive launches and cross-chain expansions.
+                        </p>
                     </div>
-                    <div class="metric-pill">
-                        <div class="text-[10px] font-mono uppercase tracking-widest text-teal-300 mb-1">Validators</div>
-                        <div class="text-2xl sm:text-3xl font-black font-mono text-white">12</div>
-                        <div class="text-[10px] text-teal-300 font-semibold mt-1">Active Consortium Nodes</div>
+
+                    <div class="space-y-8 border-l border-white/10 pl-6 ml-2 font-sans">
+                        
+                        <!-- Milestone 1 -->
+                        <div class="relative group">
+                            <span class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center text-[9px] text-emerald-300">
+                                ✓
+                            </span>
+                            <div class="text-xs font-mono font-bold text-emerald-400 uppercase tracking-wider mb-1">Completed — Q1 2025</div>
+                            <h4 class="text-base font-bold text-white">Testnet Genesis Block</h4>
+                            <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+                                Arc L1 testnet launched with 12 consortium validator nodes. Basic EVM compatibility verified. USDC gas model activated.
+                            </p>
+                        </div>
+
+                        <!-- Milestone 2 -->
+                        <div class="relative group">
+                            <span class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center text-[9px] text-emerald-300">
+                                ✓
+                            </span>
+                            <div class="text-xs font-mono font-bold text-emerald-400 uppercase tracking-wider mb-1">Completed — Q3 2025</div>
+                            <h4 class="text-base font-bold text-white">DEX Swap + Escrow Contracts</h4>
+                            <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+                                Spender Router deployed for USDC/EURC swaps. ERC-8183 escrow vaults launched with multi-sig conditional release.
+                            </p>
+                        </div>
+
+                        <!-- Milestone 3 -->
+                        <div class="relative group">
+                            <span class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-blue-500/30 border-2 border-blue-400 shadow-[0_0_10px_#3b82f6] animate-pulse"></span>
+                            <div class="text-xs font-mono font-bold text-blue-400 uppercase tracking-wider mb-1">In Progress — Q1–Q3 2026</div>
+                            <h4 class="text-base font-bold text-white">Testnet Public Phase + PulseGrid dApp Suite</h4>
+                            <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+                                Open testnet with public faucet, PulseGrid dApp workstation, CCTP bridge integration, AI assistant, daily quests, and NFT badge rewards.
+                            </p>
+                        </div>
+
+                        <!-- Milestone 4 -->
+                        <div class="relative group">
+                            <span class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-amber-500/20 border-2 border-amber-400"></span>
+                            <div class="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider mb-1">Upcoming — September 16, 2026</div>
+                            <h4 class="text-base font-bold text-white">Mainnet Genesis — Official Launch</h4>
+                            <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+                                Arc L1 mainnet goes live with real USDC liquidity, institutional validator activation, and full DeFi primitive suite. Token generation event and staking program begins.
+                            </p>
+                        </div>
                     </div>
-                    <div class="metric-pill">
-                        <div class="text-[10px] font-mono uppercase tracking-widest text-amber-300 mb-1">Mainnet Target</div>
-                        <div class="text-2xl sm:text-3xl font-black font-mono text-white">Sept 16</div>
-                        <div class="text-[10px] text-amber-300 font-semibold mt-1">2026 Official Launch</div>
+                </div>
+
+                <!-- Right: Why Arc L1 Over Other Chains? -->
+                <div class="space-y-4">
+                    <h3 class="text-2xl font-bold text-white tracking-tight mb-6">Why Arc L1 Over Other Chains?</h3>
+                    
+                    <div class="vetra-card p-5 rounded-2xl flex gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
+                            <i data-lucide="trending-up" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-sm text-white mb-1">Stablecoin-Native Economics</div>
+                            <div class="text-xs text-slate-400 leading-relaxed">No volatile native token required. Gas fees paid in USDC provide CFOs and developers predictable transaction cost models — essential for enterprise adoption.</div>
+                        </div>
+                    </div>
+
+                    <div class="vetra-card p-5 rounded-2xl flex gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center shrink-0">
+                            <i data-lucide="building-2" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-sm text-white mb-1">Institutional Validator Trust</div>
+                            <div class="text-xs text-slate-400 leading-relaxed">Unlike public PoS networks, Arc L1's validators are permissioned financial institutions operating under regulatory frameworks, providing compliance-ready infrastructure.</div>
+                        </div>
+                    </div>
+
+                    <div class="vetra-card p-5 rounded-2xl flex gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+                            <i data-lucide="globe" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-sm text-white mb-1">CCTP Cross-Chain Liquidity</div>
+                            <div class="text-xs text-slate-400 leading-relaxed">Native Circle CCTP support means USDC moves natively between Arc L1 and all major EVM chains without wrapped token risks or third-party bridge dependencies.</div>
+                        </div>
+                    </div>
+
+                    <div class="vetra-card p-5 rounded-2xl flex gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
+                            <i data-lucide="cpu" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-sm text-white mb-1">AI-Augmented On-Chain Operations</div>
+                            <div class="text-xs text-slate-400 leading-relaxed">PulseGrid embeds Gemini 2.0 AI directly in the dApp layer — chain data interpretation, smart contract debugging, and market analysis all happen in-context without leaving the interface.</div>
+                        </div>
+                    </div>
+
+                    <div class="vetra-card p-5 rounded-2xl flex gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                            <i data-lucide="lock" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-sm text-white mb-1">ERC-8183 Programmable Escrow</div>
+                            <div class="text-xs text-slate-400 leading-relaxed">Arc L1 introduces the ERC-8183 standard for conditional USDC release — enabling trustless escrow for trade settlement, payroll automation, and conditional payments.</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- ════════════════════════ EXPLORE dAPPS ════════════════════════ -->
-    <div id="dapps" class="max-w-7xl mx-auto px-4 sm:px-6 mt-20 sm:mt-28">
-        <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-5 mb-10">
-            <div>
-                <div class="section-badge"><i data-lucide="layout-grid" class="w-3 h-3"></i> dApp Suite</div>
-                <h2 class="text-3xl sm:text-5xl font-black text-slate-950 mt-3 leading-tight">Explore Arc dApps</h2>
-                <div class="section-sep"></div>
-                <p class="text-slate-500 text-sm font-medium mt-4 max-w-lg leading-relaxed">
-                    Select any decentralized application below to enter the live Web3 testnet workstation with full wallet and chain integration.
-                </p>
-            </div>
-            <a href="archpulse.html" class="btn-primary text-sm px-5 py-3 rounded-xl shrink-0">
-                <i data-lucide="layout-grid" class="w-4 h-4"></i>
-                Launch Full Suite
-            </a>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-            <a href="archpulse.html?page=monitor" class="dapp-card p-6 group">
-                <div class="flex items-center justify-between mb-5">
-                    <div class="feat-icon bg-violet-50 text-violet-700 group-hover:bg-violet-600 group-hover:text-white transition-colors">
-                        <i data-lucide="activity" class="w-5 h-5"></i>
+    <!-- ════════════════════════ CONSORTIUM PARTNERS & AUM ════════════════════════ -->
+    <section class="py-24 border-t border-white/[0.08] relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="vetra-card p-8 sm:p-14 rounded-3xl bg-gradient-to-b from-slate-900/80 to-slate-950/90 border border-white/10 text-center space-y-10 shadow-[0_0_60px_rgba(59,130,246,0.1)]">
+                
+                <div class="space-y-3 max-w-2xl mx-auto">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-mono font-semibold uppercase">
+                        <i data-lucide="shield" class="w-3.5 h-3.5"></i>
+                        <span>Institutional Validator Security</span>
                     </div>
-                    <span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300 text-[10px] font-mono font-bold uppercase">Live Telemetry</span>
-                </div>
-                <h3 class="font-black text-lg text-slate-900 group-hover:text-violet-700 transition-colors mb-2">Network Monitor</h3>
-                <p class="text-xs text-slate-500 leading-relaxed flex-1">Real-time block telemetry, throughput statistics, gas monitoring, and validator node health dashboard for Arc L1.</p>
-                <div class="flex items-center justify-between mt-5 pt-4 border-t border-slate-100 text-xs font-bold text-violet-700">
-                    <span>Launch Telemetry</span>
-                    <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-                </div>
-            </a>
-
-            <a href="archpulse.html?page=swap" class="dapp-card p-6 group">
-                <div class="flex items-center justify-between mb-5">
-                    <div class="feat-icon bg-indigo-50 text-indigo-700 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                        <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
-                    </div>
-                    <span class="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-300 text-[10px] font-mono font-bold uppercase">DEX SWAP</span>
-                </div>
-                <h3 class="font-black text-lg text-slate-900 group-hover:text-indigo-700 transition-colors mb-2">Swap Engine</h3>
-                <p class="text-xs text-slate-500 leading-relaxed flex-1">Instant 1:1 USDC to EURC stablecoin swaps with Spender Router smart contracts. Zero slippage, zero spread.</p>
-                <div class="flex items-center justify-between mt-5 pt-4 border-t border-slate-100 text-xs font-bold text-indigo-700">
-                    <span>Explore Swap</span>
-                    <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-                </div>
-            </a>
-
-            <a href="archpulse.html?page=pulsepay" class="dapp-card p-6 group border-2 border-emerald-500/30 hover:border-emerald-500">
-                <div class="flex items-center justify-between mb-5">
-                    <div class="feat-icon bg-emerald-50 text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                        <i data-lucide="credit-card" class="w-5 h-5"></i>
-                    </div>
-                    <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-mono font-bold uppercase">NEW • 0.4s Pay</span>
-                </div>
-                <h3 class="font-black text-lg text-slate-900 group-hover:text-emerald-700 transition-colors mb-2">PulsePay Engine</h3>
-                <p class="text-xs text-slate-500 leading-relaxed flex-1">Instant USDC payment links, dynamic QR invoicing, and 1-click on-chain settlement on Arc L1 with native USDC gas.</p>
-                <div class="flex items-center justify-between mt-5 pt-4 border-t border-slate-100 text-xs font-bold text-emerald-700">
-                    <span>Launch PulsePay</span>
-                    <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-                </div>
-            </a>
-
-            <a href="archpulse.html?page=wallet" class="dapp-card p-6 group">
-                <div class="flex items-center justify-between mb-5">
-                    <div class="feat-icon bg-teal-50 text-teal-700 group-hover:bg-teal-600 group-hover:text-white transition-colors">
-                        <i data-lucide="wallet" class="w-5 h-5"></i>
-                    </div>
-                    <span class="px-2.5 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-300 text-[10px] font-mono font-bold uppercase">SCA Wallet</span>
-                </div>
-                <h3 class="font-black text-lg text-slate-900 group-hover:text-teal-700 transition-colors mb-2">Arc Web3 Wallet</h3>
-                <p class="text-xs text-slate-500 leading-relaxed flex-1">Manage USDC gas balances, send tokens peer-to-peer, scan QR codes, and connect via WalletConnect v2 protocol.</p>
-                <div class="flex items-center justify-between mt-5 pt-4 border-t border-slate-100 text-xs font-bold text-teal-700">
-                    <span>Open Wallet</span>
-                    <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-                </div>
-            </a>
-
-            <a href="archpulse.html?page=escrow" class="dapp-card p-6 group">
-                <div class="flex items-center justify-between mb-5">
-                    <div class="feat-icon bg-amber-50 text-amber-700 group-hover:bg-amber-600 group-hover:text-white transition-colors">
-                        <i data-lucide="shield-check" class="w-5 h-5"></i>
-                    </div>
-                    <span class="px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-300 text-[10px] font-mono font-bold uppercase">ERC-8183 Vault</span>
-                </div>
-                <h3 class="font-black text-lg text-slate-900 group-hover:text-amber-700 transition-colors mb-2">Circle Escrow Vault</h3>
-                <p class="text-xs text-slate-500 leading-relaxed flex-1">Lock USDC in secure multi-signature conditional escrow smart contracts with arbitration and dispute resolution.</p>
-                <div class="flex items-center justify-between mt-5 pt-4 border-t border-slate-100 text-xs font-bold text-amber-700">
-                    <span>Open Escrow</span>
-                    <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-                </div>
-            </a>
-
-            <a href="archpulse.html?page=assistant" class="dapp-card p-6 group">
-                <div class="flex items-center justify-between mb-5">
-                    <div class="feat-icon bg-rose-50 text-rose-700 group-hover:bg-rose-600 group-hover:text-white transition-colors">
-                        <i data-lucide="bot" class="w-5 h-5"></i>
-                    </div>
-                    <span class="px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-300 text-[10px] font-mono font-bold uppercase">Gemini 2.0 AI</span>
-                </div>
-                <h3 class="font-black text-lg text-slate-900 group-hover:text-rose-700 transition-colors mb-2">Pro AI Assistant</h3>
-                <p class="text-xs text-slate-500 leading-relaxed flex-1">Intelligent Web3 AI for real-time chain telemetry interpretation, smart contract debugging, and on-chain market analysis.</p>
-                <div class="flex items-center justify-between mt-5 pt-4 border-t border-slate-100 text-xs font-bold text-rose-700">
-                    <span>Chat with AI</span>
-                    <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-                </div>
-            </a>
-
-            <a href="archpulse.html?page=daily" class="dapp-card p-6 group">
-                <div class="flex items-center justify-between mb-5">
-                    <div class="feat-icon bg-emerald-50 text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                        <i data-lucide="trophy" class="w-5 h-5"></i>
-                    </div>
-                    <span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300 text-[10px] font-mono font-bold uppercase">Quest Rewards</span>
-                </div>
-                <h3 class="font-black text-lg text-slate-900 group-hover:text-emerald-700 transition-colors mb-2">Daily Quests &amp; NFT Badges</h3>
-                <p class="text-xs text-slate-500 leading-relaxed flex-1">Complete daily check-ins, execute testnet DEX swaps, and claim exclusive Arc Protocol NFT Badges as on-chain achievements.</p>
-                <div class="flex items-center justify-between mt-5 pt-4 border-t border-slate-100 text-xs font-bold text-emerald-700">
-                    <span>Claim Rewards</span>
-                    <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-                </div>
-            </a>
-
-            <a href="archpulse.html?page=validators" class="dapp-card p-6 group">
-                <div class="flex items-center justify-between mb-5">
-                    <div class="feat-icon bg-purple-50 text-purple-700 group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                        <i data-lucide="layers" class="w-5 h-5"></i>
-                    </div>
-                    <span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300 text-[10px] font-mono font-bold uppercase">14% Max APY</span>
-                </div>
-                <h3 class="font-black text-lg text-slate-900 group-hover:text-purple-700 transition-colors mb-2">PulseStake (Liquid Staking)</h3>
-                <p class="text-xs text-slate-500 leading-relaxed flex-1">Stake native USDC to Arc L1 consortium validator nodes, receive liquid $pUSDC tokens, earn continuous real-time yield, and climb the staker leaderboard.</p>
-                <div class="flex items-center justify-between mt-5 pt-4 border-t border-slate-100 text-xs font-bold text-purple-700">
-                    <span>Stake &amp; Earn Yield</span>
-                    <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-                </div>
-            </a>
-
-            <a href="archpulse.html?page=prediction" class="dapp-card p-6 group">
-                <div class="flex items-center justify-between mb-5">
-                    <div class="feat-icon bg-purple-50 text-purple-700 group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                        <i data-lucide="trending-up" class="w-5 h-5"></i>
-                    </div>
-                    <span class="px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-300 text-[10px] font-mono font-bold uppercase">89.4% AI Accuracy</span>
-                </div>
-                <h3 class="font-black text-lg text-slate-900 group-hover:text-purple-700 transition-colors mb-2">Prediction Markets &amp; AI</h3>
-                <p class="text-xs text-slate-500 leading-relaxed flex-1">Multi-timeframe dynamic technical charts, live binary event prediction pools with USDC shares, and institutional forecast models.</p>
-                <div class="flex items-center justify-between mt-5 pt-4 border-t border-slate-100 text-xs font-bold text-purple-700">
-                    <span>Explore Predictions</span>
-                    <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-                </div>
-            </a>
-        </div>
-    </div>
-
-    <!-- ════════════════════════ PROTOCOL INFO ════════════════════════ -->
-    <div id="protocol" class="max-w-7xl mx-auto px-4 sm:px-6 mt-24 sm:mt-32">
-        <div class="text-center mb-14">
-            <div class="section-badge mx-auto">Protocol Architecture</div>
-            <h2 class="text-3xl sm:text-5xl font-black text-slate-950 mt-3">Built on Circle Arc L1</h2>
-            <div class="section-sep mx-auto"></div>
-            <p class="text-slate-500 text-sm font-medium mt-4 max-w-2xl mx-auto leading-relaxed">
-                Arc L1 is a purpose-built Layer 1 blockchain designed for institutional finance — combining programmable stablecoin rails, sub-second finality, and consortium-grade validator infrastructure.
-            </p>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-            <!-- Features -->
-            <div class="card p-8 space-y-6">
-                <h3 class="font-black text-xl text-slate-950">Core Protocol Features</h3>
-                <div class="space-y-5">
-                    <div class="flex gap-4">
-                        <div class="feat-icon bg-violet-50 text-violet-700"><i data-lucide="zap" class="w-5 h-5"></i></div>
-                        <div>
-                            <div class="font-bold text-sm text-slate-900">Sub-second Block Finality</div>
-                            <div class="text-xs text-slate-500 mt-1 leading-relaxed">Arc L1 achieves ~450ms block confirmation times using a delegated Byzantine Fault Tolerant (BFT) consensus mechanism, enabling real-time DeFi operations.</div>
-                        </div>
-                    </div>
-                    <div class="flex gap-4">
-                        <div class="feat-icon bg-teal-50 text-teal-700"><i data-lucide="dollar-sign" class="w-5 h-5"></i></div>
-                        <div>
-                            <div class="font-bold text-sm text-slate-900">USDC-Denominated Gas Fees</div>
-                            <div class="text-xs text-slate-500 mt-1 leading-relaxed">Unlike ETH-based networks, Arc L1 uses USDC as the native gas currency. Transaction fees start at 0.001 USDC, offering stable and predictable transaction costs for enterprise users.</div>
-                        </div>
-                    </div>
-                    <div class="flex gap-4">
-                        <div class="feat-icon bg-indigo-50 text-indigo-700"><i data-lucide="shield" class="w-5 h-5"></i></div>
-                        <div>
-                            <div class="font-bold text-sm text-slate-900">Permissioned Consortium Validators</div>
-                            <div class="text-xs text-slate-500 mt-1 leading-relaxed">12 globally distributed validator nodes operated by regulated financial institutions including Circle Financial, BlackRock, Visa, DTCC, and BNY Mellon ensure institutional-grade security.</div>
-                        </div>
-                    </div>
-                    <div class="flex gap-4">
-                        <div class="feat-icon bg-rose-50 text-rose-700"><i data-lucide="code-2" class="w-5 h-5"></i></div>
-                        <div>
-                            <div class="font-bold text-sm text-slate-900">EVM-Compatible Smart Contracts</div>
-                            <div class="text-xs text-slate-500 mt-1 leading-relaxed">Full Ethereum Virtual Machine compatibility allows developers to deploy existing Solidity smart contracts without code changes. Supports all major ERC standards.</div>
-                        </div>
-                    </div>
-                    <div class="flex gap-4">
-                        <div class="feat-icon bg-amber-50 text-amber-700"><i data-lucide="link" class="w-5 h-5"></i></div>
-                        <div>
-                            <div class="font-bold text-sm text-slate-900">Cross-Chain CCTP Bridge</div>
-                            <div class="text-xs text-slate-500 mt-1 leading-relaxed">Native Circle Cross-Chain Transfer Protocol (CCTP) integration enables secure, canonical USDC transfers between Arc L1 and Ethereum, Polygon, Avalanche, and Base.</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Technical Specs -->
-            <div class="card p-8">
-                <h3 class="font-black text-xl text-slate-950 mb-6">Technical Specifications</h3>
-                <div>
-                    <div class="spec-row">
-                        <div class="text-xs font-semibold text-slate-500">Chain ID</div>
-                        <div class="font-mono text-sm font-bold text-slate-900">5042002</div>
-                    </div>
-                    <div class="spec-row">
-                        <div class="text-xs font-semibold text-slate-500">Network Name</div>
-                        <div class="font-mono text-sm font-bold text-slate-900">Arc Testnet</div>
-                    </div>
-                    <div class="spec-row">
-                        <div class="text-xs font-semibold text-slate-500">RPC Endpoint (Primary - Circle)</div>
-                        <div class="font-mono text-xs font-bold text-violet-700 break-all text-right">https://rpc.testnet.arc.io</div>
-                    </div>
-                    <div class="spec-row">
-                        <div class="text-xs font-semibold text-slate-500">RPC Endpoint (dRPC)</div>
-                        <div class="font-mono text-xs font-bold text-violet-700 break-all text-right">https://rpc.drpc.testnet.arc.io</div>
-                    </div>
-                    <div class="spec-row">
-                        <div class="text-xs font-semibold text-slate-500">RPC Endpoint (QuickNode)</div>
-                        <div class="font-mono text-xs font-bold text-violet-700 break-all text-right">https://rpc.quicknode.testnet.arc.io</div>
-                    </div>
-                    <div class="spec-row">
-                        <div class="text-xs font-semibold text-slate-500">RPC Endpoint (Blockdaemon)</div>
-                        <div class="font-mono text-xs font-bold text-violet-700 break-all text-right">https://rpc.blockdaemon.testnet.arc.io</div>
-                    </div>
-                    <div class="spec-row">
-                        <div class="text-xs font-semibold text-slate-500">Native Gas Token</div>
-                        <div class="font-mono text-sm font-bold text-slate-900">USDC (ERC-20)</div>
-                    </div>
-                    <div class="spec-row">
-                        <div class="text-xs font-semibold text-slate-500">Block Explorer</div>
-                        <div class="font-mono text-xs font-bold text-violet-700">testnet.arcscan.app</div>
-                    </div>
-                    <div class="spec-row">
-                        <div class="text-xs font-semibold text-slate-500">Consensus</div>
-                        <div class="font-mono text-sm font-bold text-slate-900">dBFT — Delegated BFT</div>
-                    </div>
-                    <div class="spec-row">
-                        <div class="text-xs font-semibold text-slate-500">Block Time</div>
-                        <div class="font-mono text-sm font-bold text-emerald-700">~450ms avg.</div>
-                    </div>
-                    <div class="spec-row">
-                        <div class="text-xs font-semibold text-slate-500">TPS (Peak)</div>
-                        <div class="font-mono text-sm font-bold text-slate-900">2,500+ tx/s</div>
-                    </div>
-                    <div class="spec-row">
-                        <div class="text-xs font-semibold text-slate-500">EVM Compatibility</div>
-                        <div class="font-mono text-sm font-bold text-emerald-700">Full (Solidity 0.8.x)</div>
-                    </div>
-                    <div class="spec-row">
-                        <div class="text-xs font-semibold text-slate-500">Mainnet Launch</div>
-                        <div class="font-mono text-sm font-bold text-amber-600">September 16, 2026</div>
-                    </div>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+                        Backed by Global Financial Leaders
+                    </h2>
+                    <p class="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                        Arc L1 testnet consortium nodes are operated by permissioned enterprise infrastructure from the world's most regulated and trusted financial institutions.
+                    </p>
                 </div>
 
-                <div class="mt-6 pt-5 border-t border-slate-100 flex gap-3">
-                    <a href="archpulse.html?page=wallet" class="btn-primary text-xs px-4 py-2.5 rounded-xl flex-1 justify-center">
-                        <i data-lucide="plug" class="w-3.5 h-3.5"></i>
-                        Connect Wallet
+                <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+                    <a href="https://www.circle.com" target="_blank" rel="noopener" class="btn-vetra-secondary !py-2.5 !px-5 text-xs font-bold">
+                        <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                        <span>Circle Financial</span>
+                        <i data-lucide="external-link" class="w-3 h-3 text-slate-400 ml-1"></i>
                     </a>
-                    <a href="https://testnet.arcscan.app" target="_blank" rel="noopener" class="btn-outline text-xs px-4 py-2.5 rounded-xl flex-1 justify-center">
-                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                        Block Explorer
+                    <a href="https://www.blackrock.com" target="_blank" rel="noopener" class="btn-vetra-secondary !py-2.5 !px-5 text-xs font-bold">
+                        <span class="w-2 h-2 rounded-full bg-slate-200"></span>
+                        <span>BlackRock</span>
+                        <i data-lucide="external-link" class="w-3 h-3 text-slate-400 ml-1"></i>
+                    </a>
+                    <a href="https://www.visa.com" target="_blank" rel="noopener" class="btn-vetra-secondary !py-2.5 !px-5 text-xs font-bold">
+                        <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                        <span>Visa International</span>
+                        <i data-lucide="external-link" class="w-3 h-3 text-slate-400 ml-1"></i>
+                    </a>
+                    <a href="https://www.dtcc.com" target="_blank" rel="noopener" class="btn-vetra-secondary !py-2.5 !px-5 text-xs font-bold">
+                        <span class="w-2 h-2 rounded-full bg-teal-500"></span>
+                        <span>DTCC Global</span>
+                        <i data-lucide="external-link" class="w-3 h-3 text-slate-400 ml-1"></i>
+                    </a>
+                    <a href="https://www.bnymellon.com" target="_blank" rel="noopener" class="btn-vetra-secondary !py-2.5 !px-5 text-xs font-bold">
+                        <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+                        <span>BNY Mellon</span>
+                        <i data-lucide="external-link" class="w-3 h-3 text-slate-400 ml-1"></i>
                     </a>
                 </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- ════════════════════════ HOW IT WORKS ════════════════════════ -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 mt-24 sm:mt-32">
-        <div class="text-center mb-14">
-            <div class="section-badge mx-auto">Get Started</div>
-            <h2 class="text-3xl sm:text-5xl font-black text-slate-950 mt-3">How to Use PulseGrid</h2>
-            <div class="section-sep mx-auto"></div>
-            <p class="text-slate-500 text-sm font-medium mt-4 max-w-xl mx-auto leading-relaxed">
-                Three steps to start exploring Web3 on the Arc L1 testnet with a live wallet and real on-chain interactions.
-            </p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="card p-8 text-center space-y-4">
-                <div class="w-14 h-14 mx-auto rounded-2xl border-3 border-slate-900 bg-violet-600 flex items-center justify-center text-white shadow-[3px_3px_0px_#0F172A]">
-                    <i data-lucide="wallet" class="w-6 h-6"></i>
-                </div>
-                <div class="text-[10px] font-mono font-bold text-violet-600 uppercase tracking-wider">Step 01</div>
-                <h3 class="font-black text-xl text-slate-950">Connect Your Wallet</h3>
-                <p class="text-sm text-slate-500 leading-relaxed">Connect MetaMask or any WalletConnect v2 compatible wallet. PulseGrid will automatically prompt you to add the Arc L1 testnet (Chain ID 5042002) to your wallet.</p>
-            </div>
-
-            <div class="card p-8 text-center space-y-4">
-                <div class="w-14 h-14 mx-auto rounded-2xl border-3 border-slate-900 bg-teal-600 flex items-center justify-center text-white shadow-[3px_3px_0px_#0F172A]">
-                    <i data-lucide="droplets" class="w-6 h-6"></i>
-                </div>
-                <div class="text-[10px] font-mono font-bold text-teal-600 uppercase tracking-wider">Step 02</div>
-                <h3 class="font-black text-xl text-slate-950">Claim Testnet Tokens</h3>
-                <p class="text-sm text-slate-500 leading-relaxed">Use the built-in USDC and EURC Faucet to claim testnet tokens. These tokens are required for gas fees and to interact with DEX swaps, escrow, and other on-chain features.</p>
-            </div>
-
-            <div class="card p-8 text-center space-y-4">
-                <div class="w-14 h-14 mx-auto rounded-2xl border-3 border-slate-900 bg-indigo-600 flex items-center justify-center text-white shadow-[3px_3px_0px_#0F172A]">
-                    <i data-lucide="play-circle" class="w-6 h-6"></i>
-                </div>
-                <div class="text-[10px] font-mono font-bold text-indigo-600 uppercase tracking-wider">Step 03</div>
-                <h3 class="font-black text-xl text-slate-950">Explore All dApps</h3>
-                <p class="text-sm text-slate-500 leading-relaxed">Navigate the full PulseGrid workstation — swap stablecoins, monitor the network, use the AI assistant, complete daily quests, and manage your portfolio in real-time.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- ════════════════════════ ROADMAP ════════════════════════ -->
-    <div id="roadmap" class="max-w-7xl mx-auto px-4 sm:px-6 mt-24 sm:mt-32">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-            <div>
-                <div class="section-badge">Protocol Roadmap</div>
-                <h2 class="text-3xl sm:text-5xl font-black text-slate-950 mt-3 leading-tight">Arc L1 Development Milestones</h2>
-                <div class="section-sep"></div>
-                <p class="text-slate-500 text-sm font-medium mt-4 leading-relaxed max-w-md">
-                    The Arc L1 testnet has been running since early 2025. Mainnet is scheduled for September 16, 2026, followed by DeFi primitive launches and cross-chain expansions.
-                </p>
-                <div class="mt-8 space-y-6">
-                    <div class="roadmap-step">
-                        <div>
-                            <div class="roadmap-dot done"><i data-lucide="check" class="w-3.5 h-3.5"></i></div>
-                        </div>
-                        <div class="pb-6 border-l-2 border-slate-100 pl-5 ml-[-33px]">
-                            <div class="text-[10px] font-mono font-bold text-emerald-600 uppercase tracking-wide mb-1">Completed — Q1 2025</div>
-                            <div class="font-bold text-sm text-slate-900">Testnet Genesis Block</div>
-                            <div class="text-xs text-slate-500 mt-1 leading-relaxed">Arc L1 testnet launched with 12 consortium validator nodes. Basic EVM compatibility verified. USDC gas model activated.</div>
-                        </div>
-                    </div>
-                    <div class="roadmap-step">
-                        <div>
-                            <div class="roadmap-dot done"><i data-lucide="check" class="w-3.5 h-3.5"></i></div>
-                        </div>
-                        <div class="pb-6 border-l-2 border-slate-100 pl-5 ml-[-33px]">
-                            <div class="text-[10px] font-mono font-bold text-emerald-600 uppercase tracking-wide mb-1">Completed — Q3 2025</div>
-                            <div class="font-bold text-sm text-slate-900">DEX Swap + Escrow Contracts</div>
-                            <div class="text-xs text-slate-500 mt-1 leading-relaxed">Spender Router deployed for USDC/EURC swaps. ERC-8183 escrow vaults launched with multi-sig conditional release.</div>
-                        </div>
-                    </div>
-                    <div class="roadmap-step">
-                        <div>
-                            <div class="roadmap-dot active">3</div>
-                        </div>
-                        <div class="pb-6 border-l-2 border-slate-100 pl-5 ml-[-33px]">
-                            <div class="text-[10px] font-mono font-bold text-violet-600 uppercase tracking-wide mb-1">In Progress — Q1–Q3 2026</div>
-                            <div class="font-bold text-sm text-slate-900">Testnet Public Phase + PulseGrid dApp Suite</div>
-                            <div class="text-xs text-slate-500 mt-1 leading-relaxed">Open testnet with public faucet, PulseGrid dApp workstation, CCTP bridge integration, AI assistant, daily quests, and NFT badge rewards.</div>
-                        </div>
-                    </div>
-                    <div class="roadmap-step">
-                        <div>
-                            <div class="roadmap-dot">4</div>
-                        </div>
-                        <div class="pb-6 pl-5 ml-[-33px]">
-                            <div class="text-[10px] font-mono font-bold text-amber-600 uppercase tracking-wide mb-1">Upcoming — September 16, 2026</div>
-                            <div class="font-bold text-sm text-slate-900">Mainnet Genesis — Official Launch</div>
-                            <div class="text-xs text-slate-500 mt-1 leading-relaxed">Arc L1 mainnet goes live with real USDC liquidity, institutional validator activation, and full DeFi primitive suite. Token generation event and staking program begins.</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right: Key Differentiators -->
-            <div class="space-y-4">
-                <h3 class="font-black text-xl text-slate-950 mb-6">Why Arc L1 Over Other Chains?</h3>
-                <div class="card p-5 flex gap-4">
-                    <div class="feat-icon bg-violet-50 text-violet-700 shrink-0"><i data-lucide="trending-up" class="w-5 h-5"></i></div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-8 border-t border-white/[0.08]">
                     <div>
-                        <div class="font-bold text-sm text-slate-900 mb-1">Stablecoin-Native Economics</div>
-                        <div class="text-xs text-slate-500 leading-relaxed">No volatile native token required. Gas fees paid in USDC provide CFOs and developers predictable transaction cost models — essential for enterprise adoption.</div>
+                        <div class="text-3xl sm:text-4xl font-extrabold text-white font-mono">$2.4T+</div>
+                        <div class="text-xs font-medium text-slate-400 mt-1 uppercase tracking-wider">Combined AUM Under Management</div>
                     </div>
-                </div>
-                <div class="card p-5 flex gap-4">
-                    <div class="feat-icon bg-teal-50 text-teal-700 shrink-0"><i data-lucide="building-2" class="w-5 h-5"></i></div>
                     <div>
-                        <div class="font-bold text-sm text-slate-900 mb-1">Institutional Validator Trust</div>
-                        <div class="text-xs text-slate-500 leading-relaxed">Unlike public PoS networks, Arc L1's validators are permissioned financial institutions operating under regulatory frameworks, providing compliance-ready infrastructure.</div>
+                        <div class="text-3xl sm:text-4xl font-extrabold text-blue-400 font-mono">175+</div>
+                        <div class="text-xs font-medium text-slate-400 mt-1 uppercase tracking-wider">Years Combined Financial Experience</div>
                     </div>
-                </div>
-                <div class="card p-5 flex gap-4">
-                    <div class="feat-icon bg-indigo-50 text-indigo-700 shrink-0"><i data-lucide="globe" class="w-5 h-5"></i></div>
                     <div>
-                        <div class="font-bold text-sm text-slate-900 mb-1">CCTP Cross-Chain Liquidity</div>
-                        <div class="text-xs text-slate-500 leading-relaxed">Native Circle CCTP support means USDC moves natively between Arc L1 and all major EVM chains without wrapped token risks or third-party bridge dependencies.</div>
-                    </div>
-                </div>
-                <div class="card p-5 flex gap-4">
-                    <div class="feat-icon bg-rose-50 text-rose-700 shrink-0"><i data-lucide="cpu" class="w-5 h-5"></i></div>
-                    <div>
-                        <div class="font-bold text-sm text-slate-900 mb-1">AI-Augmented On-Chain Operations</div>
-                        <div class="text-xs text-slate-500 leading-relaxed">PulseGrid embeds Gemini 2.0 AI directly in the dApp layer — chain data interpretation, smart contract debugging, and market analysis all happen in-context without leaving the interface.</div>
-                    </div>
-                </div>
-                <div class="card p-5 flex gap-4">
-                    <div class="feat-icon bg-amber-50 text-amber-700 shrink-0"><i data-lucide="lock" class="w-5 h-5"></i></div>
-                    <div>
-                        <div class="font-bold text-sm text-slate-900 mb-1">ERC-8183 Programmable Escrow</div>
-                        <div class="text-xs text-slate-500 leading-relaxed">Arc L1 introduces the ERC-8183 standard for conditional USDC release — enabling trustless escrow for trade settlement, payroll automation, and conditional payments.</div>
+                        <div class="text-3xl sm:text-4xl font-extrabold text-teal-400 font-mono">12</div>
+                        <div class="text-xs font-medium text-slate-400 mt-1 uppercase tracking-wider">Active Global Validator Nodes</div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- ════════════════════════ CONSORTIUM PARTNERS ════════════════════════ -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 mt-24 sm:mt-32">
-        <div class="card p-10 sm:p-14 bg-gradient-to-br from-slate-50 via-white to-violet-50">
-            <div class="text-center mb-10">
-                <div class="section-badge mx-auto">
-                    <i data-lucide="shield" class="w-3 h-3"></i>
-                    Institutional Validator Security
-                </div>
-                <h2 class="text-3xl sm:text-4xl font-black text-slate-950 mt-3">Backed by Global Financial Leaders</h2>
-                <div class="section-sep mx-auto"></div>
-                <p class="text-slate-500 text-sm font-medium mt-4 max-w-xl mx-auto leading-relaxed">
-                    Arc L1 testnet consortium nodes are operated by permissioned enterprise infrastructure from the world's most regulated and trusted financial institutions.
-                </p>
-            </div>
+    <!-- ════════════════════════ VETRA BOTTOM HERO CTA ════════════════════════ -->
+    <section class="py-20 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="relative rounded-3xl p-10 sm:p-16 text-center overflow-hidden border border-white/15 bg-gradient-to-b from-blue-950/60 via-[#0B0F19] to-[#030712] shadow-[0_0_80px_rgba(59,130,246,0.25)]">
+                
+                <!-- Ambient Glow in Box -->
+                <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-blue-600/30 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-teal-500/20 rounded-full blur-3xl pointer-events-none"></div>
 
-            <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
-                <a href="https://www.circle.com" target="_blank" rel="noopener" class="partner-badge">
-                    <span class="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0"></span>
-                    Circle Financial
-                    <i data-lucide="external-link" class="w-3 h-3 text-slate-400 ml-1"></i>
-                </a>
-                <a href="https://www.blackrock.com" target="_blank" rel="noopener" class="partner-badge">
-                    <span class="w-2.5 h-2.5 rounded-full bg-slate-900 shrink-0"></span>
-                    BlackRock
-                    <i data-lucide="external-link" class="w-3 h-3 text-slate-400 ml-1"></i>
-                </a>
-                <a href="https://www.visa.com" target="_blank" rel="noopener" class="partner-badge">
-                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-600 shrink-0"></span>
-                    Visa International
-                    <i data-lucide="external-link" class="w-3 h-3 text-slate-400 ml-1"></i>
-                </a>
-                <a href="https://www.dtcc.com" target="_blank" rel="noopener" class="partner-badge">
-                    <span class="w-2.5 h-2.5 rounded-full bg-teal-600 shrink-0"></span>
-                    DTCC Global
-                    <i data-lucide="external-link" class="w-3 h-3 text-slate-400 ml-1"></i>
-                </a>
-                <a href="https://www.bnymellon.com" target="_blank" rel="noopener" class="partner-badge">
-                    <span class="w-2.5 h-2.5 rounded-full bg-violet-600 shrink-0"></span>
-                    BNY Mellon
-                    <i data-lucide="external-link" class="w-3 h-3 text-slate-400 ml-1"></i>
-                </a>
-            </div>
-
-            <div class="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6 border-t border-slate-200 pt-10">
-                <div class="text-center">
-                    <div class="text-3xl font-black text-slate-950 font-mono">$2.4T+</div>
-                    <div class="text-xs font-semibold text-slate-500 mt-1 uppercase tracking-wide">Combined AUM Under Management</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-3xl font-black text-slate-950 font-mono">175+</div>
-                    <div class="text-xs font-semibold text-slate-500 mt-1 uppercase tracking-wide">Years Combined Financial Experience</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-3xl font-black text-slate-950 font-mono">12</div>
-                    <div class="text-xs font-semibold text-slate-500 mt-1 uppercase tracking-wide">Active Global Validator Nodes</div>
+                <div class="relative z-10 space-y-6 max-w-2xl mx-auto">
+                    <h2 class="text-3xl sm:text-5xl font-extrabold text-white leading-tight tracking-tight">
+                        Ready to explore <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-sky-300 to-teal-300">
+                            Arc L1 Web3 Ecosystem?
+                        </span>
+                    </h2>
+                    <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                        Enter the full PulseGrid dApp workstation — real on-chain interactions, live network telemetry, stablecoin swaps, and institutional-grade Web3 infrastructure.
+                    </p>
+                    <div class="flex flex-wrap justify-center gap-4 pt-4">
+                        <a href="archpulse.html" class="btn-vetra-primary text-base px-9 py-4 rounded-xl">
+                            <i data-lucide="compass" class="w-5 h-5"></i>
+                            <span>Enter dApp Suite</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </a>
+                        <a href="https://testnet.arcscan.app" target="_blank" rel="noopener" class="btn-vetra-secondary text-sm px-8 py-4 rounded-xl">
+                            <i data-lucide="external-link" class="w-4 h-4 text-teal-400"></i>
+                            <span>Arc Block Explorer</span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- ════════════════════════ FOOTER CTA ════════════════════════ -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 mt-20 sm:mt-28">
-        <div class="hero-banner p-10 sm:p-16 text-center relative overflow-hidden">
-            <div class="orb w-80 h-80 bg-violet-600/20 -top-24 -right-24"></div>
-            <div class="orb w-72 h-72 bg-teal-500/15 -bottom-20 -left-16"></div>
-            <div class="relative z-10 space-y-6">
-                <h2 class="text-3xl sm:text-5xl font-black text-white leading-tight">
-                    Ready to explore<br>Arc L1 Web3?
-                </h2>
-                <p class="text-slate-300 text-base sm:text-lg max-w-lg mx-auto leading-relaxed font-medium">
-                    Enter the full PulseGrid dApp workstation — real on-chain interactions, live network telemetry, stablecoin swaps, and institutional-grade Web3 infrastructure.
-                </p>
-                <div class="flex flex-wrap justify-center gap-4 pt-2">
-                    <a href="archpulse.html" class="btn-primary text-base px-10 py-4 rounded-2xl">
-                        <i data-lucide="compass" class="w-5 h-5"></i>
-                        Enter dApp Suite
-                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                    </a>
-                    <a href="https://testnet.arcscan.app" target="_blank" rel="noopener" class="btn-secondary text-sm px-8 py-4 rounded-2xl">
-                        <i data-lucide="external-link" class="w-4 h-4"></i>
-                        Arc Block Explorer
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ════════════════════════ FOOTER ════════════════════════ -->
-    <footer class="max-w-7xl mx-auto px-4 sm:px-6 py-10 mt-10 border-t border-slate-200">
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+    <!-- ════════════════════════ FOOTER (VETRA MINIMALIST) ════════════════════════ -->
+    <footer class="border-t border-white/[0.08] bg-[#030712] py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+            
             <div class="flex items-center gap-3">
-                <img src="logo.png" alt="PulseGrid" class="w-8 h-8 rounded-lg border border-slate-300 object-cover bg-white">
+                <img src="logo.png" alt="PulseGrid" class="w-8 h-8 rounded-lg border border-white/10 object-cover bg-slate-900">
                 <div>
-                    <div class="font-black text-sm text-slate-900">PulseGrid</div>
-                    <div class="text-[10px] text-slate-400 font-mono">Arc L1 Web3 Ecosystem v1.0</div>
+                    <div class="font-bold text-sm text-white">PulseGrid</div>
+                    <div class="text-[11px] text-slate-500 font-mono">Arc L1 Web3 Ecosystem &bull; Powered by Circle Arc Testnet</div>
                 </div>
             </div>
-            <div class="flex items-center gap-5 text-xs font-semibold text-slate-400">
-                <a href="https://testnet.arcscan.app" target="_blank" rel="noopener" class="hover:text-violet-700 transition-colors">Block Explorer</a>
-                <a href="archpulse.html" class="hover:text-violet-700 transition-colors">Launch dApp</a>
-                <span class="font-mono">Chain 5042002</span>
+
+            <div class="flex flex-wrap items-center gap-6 text-xs text-slate-400 font-medium">
+                <a href="#dapps" class="hover:text-white transition-colors">dApps</a>
+                <a href="#protocol" class="hover:text-white transition-colors">Protocol</a>
+                <a href="#specs" class="hover:text-white transition-colors">Specs</a>
+                <a href="https://testnet.arcscan.app" target="_blank" rel="noopener" class="hover:text-white transition-colors">Block Explorer</a>
+                <a href="archpulse.html" class="text-blue-400 hover:text-blue-300 font-bold transition-colors">Launch dApp</a>
+                <span class="font-mono text-slate-500">Chain ID: 5042002</span>
             </div>
         </div>
     </footer>
 
     <script>
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-
-        function toggleNav() {
-            const nav = document.getElementById('mobile-nav');
-            nav.classList.toggle('open');
+        // Initialize Lucide Icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
         }
 
-        // Smooth scroll
-        document.querySelectorAll('a[href^="#"]').forEach(a => {
-            a.addEventListener('click', e => {
-                const target = document.querySelector(a.getAttribute('href'));
-                if (target) {
-                    e.preventDefault();
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            });
-        });
+        // Mobile Nav Toggle
+        function toggleNav() {
+            const nav = document.getElementById('mobile-nav');
+            if (nav) {
+                nav.classList.toggle('hidden');
+                nav.classList.toggle('flex');
+            }
+        }
     </script>
 </body>
 </html>
-

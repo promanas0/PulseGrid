@@ -8042,7 +8042,7 @@ if (typeof window !== 'undefined') {
    Instant USDC Payment Links, Dynamic Invoicing & Sub-Second Settlement Engine
    ========================================================================= */
 
-const PULSEPAY_CONTRACT_ADDRESS = "0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947";
+const PULSEPAY_CONTRACT_ADDRESS = "0xfa666800e07445ca35103a01f113Eb3CEAe4dcea";
 const PULSEPAY_ABI = [
     "function payInvoice(bytes32 invoiceId, address payable recipient, string calldata memo) external payable",
     "function directPay(address payable recipient, string calldata memo) external payable",
@@ -8409,7 +8409,7 @@ function generatePulsePayLink() {
         return;
     }
 
-    const recipient = currentAccount || '0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947';
+    const recipient = currentAccount || '0xfa666800e07445ca35103a01f113Eb3CEAe4dcea';
 
     if (!currentAccount) {
         showToast('Tip: Connect Wallet', 'Generating link with default recipient. Connect wallet for direct payouts to your address!', 'info');
@@ -8557,7 +8557,7 @@ function openPulsePayReceiptModal(idOrRef) {
     safeSetText('receiptMethodText', 'PulsePay Instant Checkout');
     safeSetText('receiptMemoText', item.memo || 'Arc Ecosystem Services');
     safeSetText('receiptSenderText', item.sender || 'Payer');
-    safeSetText('receiptRecipientText', item.recipient || '0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947');
+    safeSetText('receiptRecipientText', item.recipient || '0xfa666800e07445ca35103a01f113Eb3CEAe4dcea');
     safeSetText('receiptTimeText', new Date(item.timestamp || Date.now()).toLocaleString());
 
     const explorerBtn = document.getElementById('receiptExplorerBtn');

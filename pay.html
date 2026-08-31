@@ -216,13 +216,13 @@
         const ARC_CHAIN_ID_HEX = "0x4CEF52";
         const ARC_CHAIN_ID_DEC = 5042002;
         const ARC_RPC_URL = "https://rpc.testnet.arc.network";
-        const PULSEPAY_CONTRACT_ADDRESS = "0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947";
+        const PULSEPAY_CONTRACT_ADDRESS = "0xfa666800e07445ca35103a01f113Eb3CEAe4dcea";
         const PULSEPAY_ABI = [
             "function payInvoice(bytes32 invoiceId, address payable recipient, string calldata memo) external payable",
             "function directPay(address payable recipient, string calldata memo) external payable"
         ];
 
-        let targetRecipient = "0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947";
+        let targetRecipient = "0xfa666800e07445ca35103a01f113Eb3CEAe4dcea";
         let targetAmount = 10.00;
         let targetToken = "USDC";
         let targetMemo = "Arc Ecosystem Payment";

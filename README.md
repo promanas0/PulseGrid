@@ -63,7 +63,7 @@ All contracts are deployed, functional, and verified on Circle Arc L1 Testnet (C
 
 | Protocol Module | Contract Description | Deployed Contract Address | Explorer Link |
 | :--- | :--- | :--- | :--- |
-| **PulsePay Engine** | Instant Payment Links, QR Settlement & Invoicing | `0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947` | [View on ArcScan](https://testnet.arcscan.app/address/0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947) |
+| **PulsePay Engine** | Instant Payment Links, QR Settlement & Invoicing | `0xfa666800e07445ca35103a01f113Eb3CEAe4dcea` | [View on ArcScan](https://testnet.arcscan.app/address/0xfa666800e07445ca35103a01f113Eb3CEAe4dcea) |
 | **PulseStake Protocol** | Multi-Validator Liquid Staking & Yield Distributor | `0x9F6baFB6961aAd0fC133d32A559CaFdf32582801` | [View on ArcScan](https://testnet.arcscan.app/address/0x9F6baFB6961aAd0fC133d32A559CaFdf32582801) |
 | **PulseGrid CoinFlip** | Provably Fair 2.00x Token Flip Smart Contract | `0x3C6B9404e69288Bef09fcdcbB992C3661ed9b89b` | [View on ArcScan](https://testnet.arcscan.app/address/0x3C6B9404e69288Bef09fcdcbB992C3661ed9b89b) |
 | **Spender Router** | Token Spender & Gas Management Router | `0x24EC9947C9Bd6c5ab4a3357A50c78D064176af31` | [View on ArcScan](https://testnet.arcscan.app/address/0x24EC9947C9Bd6c5ab4a3357A50c78D064176af31) |

@@ -562,6 +562,7 @@ function switchPage(pageId) {
             renderWalletView();
         } else if (pageId === 'validators') {
             if (typeof renderValidatorsTable === 'function') renderValidatorsTable();
+            if (typeof refreshStakingTelemetry === 'function') refreshStakingTelemetry();
         } else if (pageId === 'portfolio') {
             renderPortfolioView();
         } else if (pageId === 'token-creator') {
@@ -1121,6 +1122,9 @@ function onWalletConnected(account, providerName, isAutoReconnect = false) {
         }
         if (typeof updatePulsePayMerchantUI === 'function') {
             updatePulsePayMerchantUI();
+        }
+        if (typeof refreshStakingTelemetry === 'function') {
+            refreshStakingTelemetry();
         }
 
         if (!isAutoReconnect) {
@@ -8141,8 +8145,8 @@ function generatePulsePayLink() {
 
     // Auto copy to clipboard
     try {
-        navigator.clipboard.writeText(checkoutUrl).catch(() => {});
-    } catch (e) {}
+        navigator.clipboard.writeText(checkoutUrl).catch(() => { });
+    } catch (e) { }
 
     // Save to History
     savePulsePayRecord({
@@ -8306,7 +8310,7 @@ function copyGeneratedLinkFromHistory(refId, recipient, amount, token, encodedMe
     const origin = window.location.origin && window.location.origin !== 'null' ? window.location.origin : 'https://pulsegrid-hub.vercel.app';
     const memo = decodeURIComponent(encodedMemo || '');
     const link = `${origin}/pay.html?to=${encodeURIComponent(recipient)}&amt=${encodeURIComponent(amount)}&token=${encodeURIComponent(token)}&msg=${encodeURIComponent(memo)}&ref=${encodeURIComponent(refId)}`;
-    
+
     navigator.clipboard.writeText(link).then(() => {
         showToast('Link Copied! 📋', 'PulsePay checkout link copied to clipboard.', 'success');
     });
@@ -8336,6 +8340,727 @@ if (typeof document !== 'undefined') {
         setTimeout(checkPulsePayRedirect, 100);
     });
 }
+
+/* =========================================================================
+   ===================== PULSESTAKE PROTOCOL (ARC L1) =====================
+   Validator Liquid Staking, Real-Time Rewards Engine & On-Chain Leaderboard
+   Contract: 0x9F6baFB6961aAd0fC133d32A559CaFdf32582801
+   Token:    0x9EE52CC50435aa46b51092fCC964debDb21C6510 ($pUSDC)
+   ========================================================================= */
+
+const PULSESTAKE_CONTRACT_ADDRESS = "0x9F6baFB6961aAd0fC133d32A559CaFdf32582801";
+const PUSDC_TOKEN_ADDRESS = "0x9EE52CC50435aa46b51092fCC964debDb21C6510";
+
+const PULSESTAKE_ABI = [
+    "function stake(uint256 validatorId) external payable",
+    "function claimRewards(uint256 validatorId) external returns (uint256)",
+    "function unstake(uint256 validatorId, uint256 amount) external",
+    "function getPendingRewards(address user, uint256 validatorId) external view returns (uint256)",
+    "function getUserStakeInfo(address user, uint256 validatorId) external view returns (uint256 stakedAmount, uint256 pendingRewards, uint256 totalClaimed, uint256 apyBps, string memory validatorName)",
+    "function getProtocolStats() external view returns (uint256 totalStaked, uint256 totalRewardsPaid, uint256 totalStakers, uint256 totalValidatorsCount)",
+    "function validators(uint256) external view returns (uint256 id, string memory name, uint256 apyBps, uint256 totalStaked, uint256 stakersCount, bool isActive)",
+    "function totalProtocolStaked() external view returns (uint256)",
+    "function totalProtocolRewardsPaid() external view returns (uint256)",
+    "function userTotalStaked(address) external view returns (uint256)",
+    "function pUsdcToken() external view returns (address)",
+    "event Staked(address indexed user, uint256 indexed validatorId, string validatorName, uint256 amount, uint256 timestamp)",
+    "event Unstaked(address indexed user, uint256 indexed validatorId, uint256 amount, uint256 timestamp)",
+    "event RewardsClaimed(address indexed user, uint256 indexed validatorId, uint256 rewardAmount, uint256 timestamp)"
+];
+
+const PUSDC_ABI = [
+    "function name() view returns (string)",
+    "function symbol() view returns (string)",
+    "function decimals() view returns (uint8)",
+    "function totalSupply() view returns (uint256)",
+    "function balanceOf(address owner) view returns (uint256)",
+    "function transfer(address to, uint256 amount) returns (bool)"
+];
+
+const PULSESTAKE_VALIDATOR_NODES = [
+    { id: 1, name: "Circle Genesis Node", org: "Circle Institutional Corp", apy: 13.20, defaultStake: 45000 },
+    { id: 2, name: "Coinbase Cloud Arc", org: "Coinbase Institutional", apy: 12.50, defaultStake: 38200 },
+    { id: 3, name: "Jump Crypto Infrastructure", org: "Jump Crypto Infrastructure", apy: 14.00, defaultStake: 62000, boosted: true },
+    { id: 4, name: "Galaxy Digital Validator", org: "Galaxy Digital Asset Mgmt", apy: 11.80, defaultStake: 29500 },
+    { id: 5, name: "Figment Staking Node", org: "Figment Enterprise Staking", apy: 12.00, defaultStake: 31000 }
+];
+
+// In-Memory Staking State
+let pulseStakeUserState = {
+    myTotalStaked: 0,
+    myTotalClaimed: 0,
+    myBasePending: 0,
+    myBaseTimestamp: Date.now(),
+    perValidator: {
+        1: { staked: 0, pending: 0, apy: 13.20 },
+        2: { staked: 0, pending: 0, apy: 12.50 },
+        3: { staked: 0, pending: 0, apy: 14.00 },
+        4: { staked: 0, pending: 0, apy: 11.80 },
+        5: { staked: 0, pending: 0, apy: 12.00 }
+    }
+};
+
+let liveStakingTickerInterval = null;
+let currentModalValidatorId = 1;
+let currentModalValidatorName = "Circle Genesis Node";
+let currentModalValidatorApy = 13.20;
+
+// Top Stakers Leaderboard Seed Data
+let pulseStakeLeaderboardData = [
+    { rank: 1, address: "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7", name: "Arc Whale Alpha", staked: 84500.00, yield: 3420.50, badge: "💎 Diamond Whale" },
+    { rank: 2, address: "0x2e983A1Ba5e8b38AAAeC4B400ec8d45be3430660", name: "Galaxy Treasury", staked: 52000.00, yield: 2150.12, badge: "🥇 Gold Guardian" },
+    { rank: 3, address: "0x71C8fb4343f36750e32Dac01871df30D1283865b", name: "Jump Node Staker", staked: 38400.00, yield: 1890.40, badge: "🥇 Gold Guardian" },
+    { rank: 4, address: "0x345CA3e014Aaf5caA4519D8441A00d70BE345852", name: "Coinbase Staker Pool", staked: 24100.00, yield: 980.75, badge: "🥈 Silver Node" },
+    { rank: 5, address: "0x627306090abaB3A6e1400e9345bC60c78a8BEf57", name: "Figment Vault #1", staked: 15600.00, yield: 640.20, badge: "🥈 Silver Node" }
+];
+
+// Live On-Chain Activity Feed Seed Data
+let pulseStakeLiveFeed = [
+    { type: 'stake', user: '0x71C...865b', validator: 'Jump Crypto Node', amount: '250.00 USDC', time: '2 mins ago' },
+    { type: 'claim', user: '0x892...43e7', validator: 'Circle Genesis Node', amount: '18.42 pUSDC', time: '5 mins ago' },
+    { type: 'stake', user: '0x2e9...0660', validator: 'Coinbase Cloud Arc', amount: '500.00 USDC', time: '11 mins ago' },
+    { type: 'stake', user: '0x345...5852', validator: 'Jump Crypto Node', amount: '120.00 USDC', time: '18 mins ago' }
+];
+
+/**
+ * Start the Sub-Second Real-Time Ticking Rewards Engine
+ */
+function startLiveStakingTicker() {
+    if (liveStakingTickerInterval) clearInterval(liveStakingTickerInterval);
+
+    liveStakingTickerInterval = setInterval(() => {
+        try {
+            const rewardEl = document.getElementById('myLiveAccruingRewards');
+            if (!rewardEl) return;
+
+            if (pulseStakeUserState.myTotalStaked <= 0) {
+                rewardEl.innerHTML = `0.00000000 <span class="text-xl">pUSDC</span>`;
+                return;
+            }
+
+            // Calculate fractional yield earned since snapshot
+            const now = Date.now();
+            const elapsedSeconds = (now - pulseStakeUserState.myBaseTimestamp) / 1000;
+
+            let perSecondAccrual = 0;
+            for (let id = 1; id <= 5; id++) {
+                const node = pulseStakeUserState.perValidator[id];
+                if (node && node.staked > 0) {
+                    const annualYield = node.staked * (node.apy / 100);
+                    perSecondAccrual += annualYield / (365 * 86400);
+                }
+            }
+
+            const currentLivePending = pulseStakeUserState.myBasePending + (elapsedSeconds * perSecondAccrual);
+            rewardEl.innerHTML = `${currentLivePending.toFixed(8)} <span class="text-xl">pUSDC</span>`;
+        } catch (e) { }
+    }, 100);
+}
+
+/**
+ * Refresh All Staking Protocol Telemetry from Arc L1 Smart Contract
+ */
+async function refreshStakingTelemetry() {
+    try {
+        const refreshIcon = document.getElementById('stakingRefreshIcon');
+        if (refreshIcon) refreshIcon.classList.add('animate-spin');
+
+        // Update connected wallet display
+        const walletDisplay = document.getElementById('pulseStakeUserWalletDisplay');
+        if (walletDisplay) {
+            if (currentAccount) {
+                const shortAddr = `${currentAccount.substring(0, 6)}...${currentAccount.substring(currentAccount.length - 4)}`;
+                walletDisplay.innerHTML = `<span class="text-emerald-300 font-bold font-mono flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse"></span> ${shortAddr} (Active)</span>`;
+            } else {
+                walletDisplay.innerHTML = `<span class="text-amber-300 font-medium italic">No Wallet Connected</span>`;
+            }
+        }
+
+        // Initialize Web3 read provider
+        let provider = null;
+        if (activeWeb3Provider && typeof ethers !== 'undefined') {
+            provider = new ethers.providers.Web3Provider(activeWeb3Provider);
+        } else if (typeof ethers !== 'undefined') {
+            provider = new ethers.providers.JsonRpcProvider("https://rpc.testnet.arc.network");
+        }
+
+        let contract = null;
+        if (provider && typeof ethers !== 'undefined') {
+            contract = new ethers.Contract(PULSESTAKE_CONTRACT_ADDRESS, PULSESTAKE_ABI, provider);
+        }
+
+        let totalProtocolStakedUSDC = 205800.00;
+        let totalProtocolRewardsPaidUSDC = 8981.97;
+        let onChainStakersCount = 5;
+
+        // Query Protocol Level Stats
+        if (contract) {
+            try {
+                const stats = await contract.getProtocolStats().catch(() => null);
+                if (stats) {
+                    const onChainTotal = parseFloat(ethers.utils.formatEther(stats.totalStaked));
+                    const onChainPaid = parseFloat(ethers.utils.formatEther(stats.totalRewardsPaid));
+                    totalProtocolStakedUSDC = 205800.00 + onChainTotal;
+                    totalProtocolRewardsPaidUSDC = 8981.97 + onChainPaid;
+                    onChainStakersCount = Math.max(5, stats.totalStakers.toNumber());
+                }
+            } catch (e) {
+                console.warn("PulseStake getProtocolStats read notice:", e);
+            }
+        }
+
+        safeSetText('pulseStakeTotalStaked', `${totalProtocolStakedUSDC.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC`);
+        safeSetText('pulseStakeTotalRewardsPaid', `${totalProtocolRewardsPaidUSDC.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} pUSDC`);
+        safeSetText('pulseStakeActiveNodesCount', `5 / 5 Active Nodes`);
+
+        // Query Per-Validator Stats & User Stakes
+        let userTotalStakedSum = 0;
+        let userTotalPendingSum = 0;
+
+        for (let i = 0; i < PULSESTAKE_VALIDATOR_NODES.length; i++) {
+            const v = PULSESTAKE_VALIDATOR_NODES[i];
+            let poolStaked = v.defaultStake;
+            let userStaked = 0;
+            let userPending = 0;
+
+            if (contract) {
+                try {
+                    const nodeData = await contract.validators(v.id).catch(() => null);
+                    if (nodeData) {
+                        poolStaked += parseFloat(ethers.utils.formatEther(nodeData.totalStaked));
+                    }
+
+                    if (currentAccount) {
+                        const userStakeInfo = await contract.getUserStakeInfo(currentAccount, v.id).catch(() => null);
+                        if (userStakeInfo) {
+                            userStaked = parseFloat(ethers.utils.formatEther(userStakeInfo.stakedAmount));
+                            userPending = parseFloat(ethers.utils.formatEther(userStakeInfo.pendingRewards));
+                        }
+                    }
+                } catch (e) {
+                    console.warn(`Error reading validator ${v.id}:`, e);
+                }
+            }
+
+            // Update UI card numbers
+            safeSetText(`valPoolStake-${v.id}`, `${poolStaked.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC`);
+            safeSetText(`valUserStake-${v.id}`, `${userStaked.toFixed(2)} USDC`);
+            safeSetText(`valUserPending-${v.id}`, `${userPending.toFixed(4)} pUSDC`);
+
+            pulseStakeUserState.perValidator[v.id] = {
+                staked: userStaked,
+                pending: userPending,
+                apy: v.apy
+            };
+
+            userTotalStakedSum += userStaked;
+            userTotalPendingSum += userPending;
+        }
+
+        pulseStakeUserState.myTotalStaked = userTotalStakedSum;
+        pulseStakeUserState.myBasePending = userTotalPendingSum;
+        pulseStakeUserState.myBaseTimestamp = Date.now();
+
+        safeSetText('myTotalStakedAmount', `${userTotalStakedSum.toFixed(2)} USDC`);
+
+        // Start Live Ticker
+        startLiveStakingTicker();
+
+        // Render Leaderboard and Activity
+        renderStakingLeaderboard();
+        renderStakingActivity();
+
+        // Update Staking Tier Banner
+        updateUserStakingTierBanner(userTotalStakedSum);
+
+        if (refreshIcon) {
+            setTimeout(() => refreshIcon.classList.remove('animate-spin'), 400);
+        }
+    } catch (e) {
+        console.warn("refreshStakingTelemetry error:", e);
+        const refreshIcon = document.getElementById('stakingRefreshIcon');
+        if (refreshIcon) refreshIcon.classList.remove('animate-spin');
+    }
+}
+
+/**
+ * Update the Connected User's Staking Rank and Tier
+ */
+function updateUserStakingTierBanner(totalStaked) {
+    try {
+        const banner = document.getElementById('userStakingRankBanner');
+        const posEl = document.getElementById('userStakingRankPos');
+        const tierEl = document.getElementById('userStakingTierText');
+        const pointsEl = document.getElementById('userStakingPointsDisplay');
+
+        if (!banner || !tierEl) return;
+
+        if (totalStaked <= 0) {
+            if (posEl) posEl.textContent = '#--';
+            tierEl.textContent = 'Novice (0 Staked)';
+            tierEl.className = 'text-slate-500 font-bold';
+            if (pointsEl) pointsEl.textContent = '+0 XP';
+        } else if (totalStaked < 50) {
+            if (posEl) posEl.textContent = '#12';
+            tierEl.textContent = 'Active Staker 🥉';
+            tierEl.className = 'text-purple-700 font-bold';
+            if (pointsEl) pointsEl.textContent = '+250 XP';
+        } else if (totalStaked < 200) {
+            if (posEl) posEl.textContent = '#7';
+            tierEl.textContent = 'Silver Guardian 🥈';
+            tierEl.className = 'text-blue-700 font-bold';
+            if (pointsEl) pointsEl.textContent = '+600 XP';
+        } else if (totalStaked < 1000) {
+            if (posEl) posEl.textContent = '#4';
+            tierEl.textContent = 'Gold Validator 🥇';
+            tierEl.className = 'text-amber-700 font-bold';
+            if (pointsEl) pointsEl.textContent = '+1,500 XP';
+        } else {
+            if (posEl) posEl.textContent = '#1';
+            tierEl.textContent = 'Diamond Whale 💎';
+            tierEl.className = 'text-emerald-700 font-bold';
+            if (pointsEl) pointsEl.textContent = '+5,000 XP';
+        }
+    } catch (e) { }
+}
+
+/**
+ * Render the Top Stakers Leaderboard Table
+ */
+function renderStakingLeaderboard() {
+    try {
+        const tbody = document.getElementById('stakingLeaderboardBody');
+        if (!tbody) return;
+
+        // Clone list and inject connected user if they have active stakes
+        let list = [...pulseStakeLeaderboardData];
+
+        if (currentAccount && pulseStakeUserState.myTotalStaked > 0) {
+            const existingIdx = list.findIndex(item => item.address.toLowerCase() === currentAccount.toLowerCase());
+            const userEntry = {
+                rank: 0,
+                address: currentAccount,
+                name: "You (Connected)",
+                staked: pulseStakeUserState.myTotalStaked,
+                yield: pulseStakeUserState.myBasePending,
+                badge: pulseStakeUserState.myTotalStaked >= 1000 ? "💎 Diamond Whale" : (pulseStakeUserState.myTotalStaked >= 200 ? "🥇 Gold Validator" : "🥈 Silver Staker"),
+                isUser: true
+            };
+
+            if (existingIdx >= 0) {
+                list[existingIdx] = userEntry;
+            } else {
+                list.push(userEntry);
+            }
+        }
+
+        // Sort by staked desc
+        list.sort((a, b) => b.staked - a.staked);
+
+        // Assign ranks
+        list.forEach((item, idx) => item.rank = idx + 1);
+
+        const html = list.map(item => {
+            const shortAddr = `${item.address.substring(0, 6)}...${item.address.substring(item.address.length - 4)}`;
+            const isUserRow = item.isUser || (currentAccount && item.address.toLowerCase() === currentAccount.toLowerCase());
+
+            const rankBadge = item.rank === 1 ? '🥇 #1' : (item.rank === 2 ? '🥈 #2' : (item.rank === 3 ? '🥉 #3' : `#${item.rank}`));
+            const rowClass = isUserRow ? 'bg-purple-100/70 border-l-4 border-purple-700 font-bold' : 'hover:bg-slate-50 transition-colors';
+
+            return `
+                <tr class="${rowClass}">
+                    <td class="py-3 px-3 font-pixel text-xs text-slate-900">${rankBadge}</td>
+                    <td class="py-3 px-3">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-slate-900 font-mono font-bold">${item.name || shortAddr}</span>
+                            ${isUserRow ? '<span class="text-[9px] bg-purple-700 text-white font-mono px-1.5 py-0.2 rounded font-bold">YOU</span>' : ''}
+                        </div>
+                        <div class="text-[10px] text-slate-400 font-mono">${shortAddr}</div>
+                    </td>
+                    <td class="py-3 px-3 font-bold text-slate-900 font-mono">${item.staked.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC</td>
+                    <td class="py-3 px-3 font-bold text-emerald-600 font-mono">+${item.yield.toFixed(2)} pUSDC</td>
+                    <td class="py-3 px-3 text-right">
+                        <span class="text-[10px] font-bold font-mono px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">${item.badge}</span>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        tbody.innerHTML = html;
+    } catch (e) {
+        console.warn("renderStakingLeaderboard error:", e);
+    }
+}
+
+/**
+ * Render Live On-Chain Staking Activity Stream
+ */
+function renderStakingActivity() {
+    try {
+        const feed = document.getElementById('stakingActivityFeed');
+        if (!feed) return;
+
+        const html = pulseStakeLiveFeed.map(item => {
+            const isStake = item.type === 'stake';
+            const icon = isStake ? 'arrow-up-right' : 'sparkles';
+            const iconBg = isStake ? 'bg-purple-100 text-purple-700 border-purple-300' : 'bg-emerald-100 text-emerald-700 border-emerald-300';
+            const actionText = isStake ? 'Staked' : 'Claimed Yield';
+
+            return `
+                <div class="p-3 bg-slate-50 hover:bg-purple-50/50 rounded-xl border border-slate-200 transition-colors flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-7 h-7 rounded-lg ${iconBg} border flex items-center justify-center shrink-0">
+                            <i data-lucide="${icon}" class="w-3.5 h-3.5"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-slate-900 text-xs">
+                                <span>${item.user}</span> <span class="text-slate-500 font-normal">${actionText}</span> <strong class="text-purple-900">${item.amount}</strong>
+                            </div>
+                            <div class="text-[10px] text-slate-500 font-mono">${item.validator} &bull; ${item.time}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        feed.innerHTML = html;
+        safeInitIcons();
+    } catch (e) { }
+}
+
+/* =========================================================================
+   STAKING MODAL CONTROLS & WEB3 TRANSACTIONS
+   ========================================================================= */
+
+function openStakeModal(validatorId, validatorName, apy) {
+    try {
+        currentModalValidatorId = validatorId || 1;
+        currentModalValidatorName = validatorName || "Circle Genesis Node";
+        currentModalValidatorApy = apy || 13.20;
+
+        safeSetText('stakeModalValidatorSubtitle', `${currentModalValidatorName} (${currentModalValidatorApy.toFixed(2)}% APY)`);
+        safeSetText('stakeModalValidatorName', currentModalValidatorName);
+        safeSetText('stakeModalValidatorApy', `${currentModalValidatorApy.toFixed(2)}%`);
+
+        // Fetch User's native USDC balance
+        let balance = 0;
+        if (typeof realOnChainBalances !== 'undefined' && realOnChainBalances.USDC) {
+            balance = parseFloat(realOnChainBalances.USDC) || 0;
+        } else {
+            balance = 100.00; // default testnet demo balance
+        }
+
+        safeSetText('stakeModalAvailableBalance', balance.toFixed(2));
+
+        const amountInput = document.getElementById('stakeModalInputAmount');
+        if (amountInput) amountInput.value = "10.00";
+
+        calculateStakeYieldEstimate();
+
+        const modal = document.getElementById('pulseStakeModal');
+        if (modal) modal.classList.remove('hidden');
+        safeInitIcons();
+    } catch (e) {
+        console.warn("openStakeModal error:", e);
+    }
+}
+
+function closeStakeModal() {
+    const modal = document.getElementById('pulseStakeModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function setStakePercentage(pct) {
+    try {
+        let balance = 0;
+        if (typeof realOnChainBalances !== 'undefined' && realOnChainBalances.USDC) {
+            balance = parseFloat(realOnChainBalances.USDC) || 0;
+        } else {
+            balance = 100.00;
+        }
+
+        const amt = (balance * (pct / 100));
+        const finalAmt = Math.max(0.1, amt).toFixed(2);
+
+        const amountInput = document.getElementById('stakeModalInputAmount');
+        if (amountInput) {
+            amountInput.value = finalAmt;
+            calculateStakeYieldEstimate();
+        }
+    } catch (e) { }
+}
+
+function calculateStakeYieldEstimate() {
+    try {
+        const amountInput = document.getElementById('stakeModalInputAmount');
+        const amount = parseFloat(amountInput?.value || '0');
+        const apy = currentModalValidatorApy || 13.20;
+
+        if (isNaN(amount) || amount <= 0) {
+            safeSetText('estYieldDaily', '+0.000');
+            safeSetText('estYieldMonthly', '+0.000');
+            safeSetText('estYieldYearly', '+0.000');
+            return;
+        }
+
+        const annualYield = amount * (apy / 100);
+        const monthlyYield = annualYield / 12;
+        const dailyYield = annualYield / 365;
+
+        safeSetText('estYieldDaily', `+${dailyYield.toFixed(4)}`);
+        safeSetText('estYieldMonthly', `+${monthlyYield.toFixed(3)}`);
+        safeSetText('estYieldYearly', `+${annualYield.toFixed(3)}`);
+    } catch (e) { }
+}
+
+/**
+ * Execute Stake on Arc L1 via MetaMask / Connected Web3 Provider
+ */
+async function executeStakeFromModal() {
+    const btn = document.getElementById('btnExecuteStakeModal');
+    const btnText = document.getElementById('btnExecuteStakeText');
+    const amountInput = document.getElementById('stakeModalInputAmount');
+    const amount = parseFloat(amountInput?.value || '0');
+
+    if (isNaN(amount) || amount <= 0) {
+        showToast('Invalid Amount', 'Please enter an amount of USDC greater than 0.', 'warning');
+        return;
+    }
+
+    if (!currentAccount || !activeWeb3Provider) {
+        showToast('Connect Wallet', 'Please connect your Web3 wallet to stake on Arc L1.', 'warning');
+        openRainbowKitModal();
+        return;
+    }
+
+    try {
+        if (btn) btn.disabled = true;
+        if (btnText) btnText.innerHTML = `<span class="flex items-center gap-2"><i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Staking on Arc L1...</span>`;
+        safeInitIcons();
+
+        const provider = new ethers.providers.Web3Provider(activeWeb3Provider);
+        const network = await provider.getNetwork();
+
+        // Check if on Arc Testnet (5042002)
+        if (network.chainId !== 5042002) {
+            await manualSwitchToArcNetwork();
+        }
+
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(PULSESTAKE_CONTRACT_ADDRESS, PULSESTAKE_ABI, signer);
+
+        const valueWei = ethers.utils.parseEther(amount.toString());
+
+        showToast('Confirm in Wallet', `Please approve staking ${amount} USDC on MetaMask...`, 'info');
+
+        const tx = await contract.stake(currentModalValidatorId, {
+            value: valueWei
+        });
+
+        showToast('Transaction Submitted! ⏳', `Staking tx broadcasted: ${tx.hash.substring(0, 10)}...`, 'info');
+
+        const receipt = await tx.wait(1);
+
+        closeStakeModal();
+
+        showToast('Staking Successful! 🎉', `Staked ${amount} USDC to ${currentModalValidatorName}. You received ${amount} $pUSDC!`, 'success');
+
+        // Trigger Confetti
+        if (typeof confetti === 'function') {
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        }
+
+        // Add event to Live Activity
+        const shortUser = `${currentAccount.substring(0, 5)}...${currentAccount.substring(currentAccount.length - 4)}`;
+        pulseStakeLiveFeed.unshift({
+            type: 'stake',
+            user: shortUser,
+            validator: currentModalValidatorName,
+            amount: `${amount.toFixed(2)} USDC`,
+            time: 'Just now'
+        });
+
+        // Award Quest XP
+        if (typeof addXP === 'function') {
+            addXP(250, `Staked ${amount} USDC on Arc L1`);
+        }
+
+        // Refresh Balances & Staking Telemetry
+        fetchRealOnChainBalances(currentAccount);
+        refreshStakingTelemetry();
+
+    } catch (err) {
+        console.error("executeStake error:", err);
+        const reason = err?.data?.message || err?.message || 'Transaction rejected';
+        showToast('Staking Failed', reason.includes('rejected') ? 'User rejected transaction.' : reason, 'error');
+    } finally {
+        if (btn) btn.disabled = false;
+        if (btnText) btnText.innerHTML = `Confirm Stake on Arc L1`;
+        safeInitIcons();
+    }
+}
+
+/* =========================================================================
+   UNSTAKE & CLAIM CONTROLS
+   ========================================================================= */
+
+function openUnstakeModal(validatorId, validatorName) {
+    try {
+        currentModalValidatorId = validatorId || 1;
+        currentModalValidatorName = validatorName || (PULSESTAKE_VALIDATOR_NODES.find(n => n.id === validatorId)?.name || "Circle Genesis Node");
+
+        safeSetText('unstakeModalValidatorSubtitle', currentModalValidatorName);
+
+        const nodeState = pulseStakeUserState.perValidator[currentModalValidatorId] || { staked: 0, pending: 0 };
+        safeSetText('unstakeModalStakedBalance', `${nodeState.staked.toFixed(2)} USDC`);
+        safeSetText('unstakeModalPendingRewards', `${nodeState.pending.toFixed(4)} pUSDC`);
+
+        const amountInput = document.getElementById('unstakeModalInputAmount');
+        if (amountInput) amountInput.value = nodeState.staked > 0 ? nodeState.staked.toFixed(2) : "0.00";
+
+        const modal = document.getElementById('pulseUnstakeModal');
+        if (modal) modal.classList.remove('hidden');
+        safeInitIcons();
+    } catch (e) { }
+}
+
+function closeUnstakeModal() {
+    const modal = document.getElementById('pulseUnstakeModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function setUnstakeMax() {
+    const nodeState = pulseStakeUserState.perValidator[currentModalValidatorId] || { staked: 0 };
+    const amountInput = document.getElementById('unstakeModalInputAmount');
+    if (amountInput) amountInput.value = nodeState.staked.toFixed(2);
+}
+
+/**
+ * Execute Unstake on Arc L1
+ */
+async function executeUnstakeFromModal() {
+    const btn = document.getElementById('btnExecuteUnstakeModal');
+    const btnText = document.getElementById('btnExecuteUnstakeText');
+    const amountInput = document.getElementById('unstakeModalInputAmount');
+    const amount = parseFloat(amountInput?.value || '0');
+
+    if (isNaN(amount) || amount <= 0) {
+        showToast('Invalid Amount', 'Please enter an amount of USDC to unstake.', 'warning');
+        return;
+    }
+
+    if (!currentAccount || !activeWeb3Provider) {
+        showToast('Connect Wallet', 'Please connect your Web3 wallet.', 'warning');
+        return;
+    }
+
+    try {
+        if (btn) btn.disabled = true;
+        if (btnText) btnText.innerHTML = `<span class="flex items-center gap-2"><i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Unstaking...</span>`;
+        safeInitIcons();
+
+        const provider = new ethers.providers.Web3Provider(activeWeb3Provider);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(PULSESTAKE_CONTRACT_ADDRESS, PULSESTAKE_ABI, signer);
+
+        const amountWei = ethers.utils.parseEther(amount.toString());
+
+        showToast('Confirm in Wallet', `Please approve unstaking ${amount} USDC in MetaMask...`, 'info');
+
+        const tx = await contract.unstake(currentModalValidatorId, amountWei);
+        showToast('Unstake Broadcasted! ⏳', `Waiting for Arc L1 confirmation...`, 'info');
+
+        await tx.wait(1);
+
+        closeUnstakeModal();
+        showToast('Unstake Successful! ✅', `Returned ${amount} native USDC directly to your wallet!`, 'success');
+
+        fetchRealOnChainBalances(currentAccount);
+        refreshStakingTelemetry();
+    } catch (err) {
+        console.error("executeUnstake error:", err);
+        const reason = err?.data?.message || err?.message || 'Transaction rejected';
+        showToast('Unstake Failed', reason.includes('rejected') ? 'User rejected transaction.' : reason, 'error');
+    } finally {
+        if (btn) btn.disabled = false;
+        if (btnText) btnText.innerHTML = `Confirm Unstake &amp; Return USDC`;
+        safeInitIcons();
+    }
+}
+
+/**
+ * Claim All Accumulated $pUSDC Staking Rewards Across All Pools
+ */
+async function claimAllStakingRewards() {
+    if (!currentAccount || !activeWeb3Provider) {
+        showToast('Connect Wallet', 'Please connect your wallet to claim staking rewards.', 'warning');
+        openRainbowKitModal();
+        return;
+    }
+
+    const btn = document.getElementById('btnClaimAllRewards');
+
+    try {
+        if (btn) btn.disabled = true;
+        const originalHtml = btn ? btn.innerHTML : '';
+        if (btn) btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Claiming...`;
+        safeInitIcons();
+
+        const provider = new ethers.providers.Web3Provider(activeWeb3Provider);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(PULSESTAKE_CONTRACT_ADDRESS, PULSESTAKE_ABI, signer);
+
+        // Find validators where user has rewards or stakes
+        let claimedCount = 0;
+        for (let id = 1; id <= 5; id++) {
+            const node = pulseStakeUserState.perValidator[id];
+            if (node && (node.staked > 0 || node.pending > 0)) {
+                try {
+                    showToast('Claiming Yield', `Claiming $pUSDC rewards from Node #${id}...`, 'info');
+                    const tx = await contract.claimRewards(id);
+                    await tx.wait(1);
+                    claimedCount++;
+                } catch (subErr) {
+                    console.warn(`Claim node #${id} notice:`, subErr);
+                }
+            }
+        }
+
+        if (claimedCount > 0) {
+            showToast('Yield Claimed! 🎉', `Successfully minted $pUSDC rewards directly into your wallet!`, 'success');
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 80, spread: 60, origin: { y: 0.5 } });
+            }
+        } else {
+            showToast('No Rewards Due', 'No rewards are currently ready to claim.', 'info');
+        }
+
+        fetchRealOnChainBalances(currentAccount);
+        refreshStakingTelemetry();
+
+    } catch (err) {
+        console.error("claimAllStakingRewards error:", err);
+        showToast('Claim Notice', err?.message || 'Error executing claim', 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="sparkles" class="w-4 h-4 text-slate-950"></i><span>Claim All Rewards ($pUSDC)</span>`;
+            safeInitIcons();
+        }
+    }
+}
+
+// Auto-refresh Staking Telemetry on DOM Load
+if (typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            if (typeof refreshStakingTelemetry === 'function') {
+                refreshStakingTelemetry();
+            }
+        }, 1200);
+    });
+}
+
 
 
 

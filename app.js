@@ -8062,89 +8062,28 @@ let currentPulsePayFilter = 'all';
 let lastGeneratedPulsePayUrl = '';
 let lastGeneratedPulsePayQrUrl = '';
 
-// Default sample transactions showing clear Link vs QR vs Direct settlement channels
-const DEFAULT_PULSEPAY_STARTERS = [
-    {
-        id: "TX-1725102000001",
-        refId: "ARC-INV-9841",
-        type: "received",
-        amount: 25.00,
-        token: "USDC",
-        sender: "0x71C...8932",
-        recipient: "0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947",
-        memo: "Consortium RPC Node Setup",
-        channel: "qr",
-        channelLabel: "QR Code Scan",
-        status: "Settled",
-        finality: "~0.4s",
-        txHash: "0x89ab10f3c254e09887711200114f6b2199042bba401124d35e1975bb4a123f01",
-        timestamp: Date.now() - (1000 * 60 * 18) // 18 mins ago
-    },
-    {
-        id: "TX-1725102000002",
-        refId: "ARC-INV-7412",
-        type: "received",
-        amount: 50.00,
-        token: "USDC",
-        sender: "0x98E...410b",
-        recipient: "0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947",
-        memo: "Website UI Redesign Invoice #104",
-        channel: "link",
-        channelLabel: "Payment Link",
-        status: "Settled",
-        finality: "~0.4s",
-        txHash: "0x3f5c9e2b10a88701e91244fa7812903bbca0194721990142b78111246c1941ba",
-        timestamp: Date.now() - (1000 * 60 * 65) // 1 hour ago
-    },
-    {
-        id: "TX-1725102000003",
-        refId: "ARC-INV-5201",
-        type: "received",
-        amount: 10.00,
-        token: "USDC",
-        sender: "0x44B...1298",
-        recipient: "0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947",
-        memo: "Coffee Tip / Microtransaction",
-        channel: "qr",
-        channelLabel: "QR Code Scan",
-        status: "Settled",
-        finality: "~0.4s",
-        txHash: "0x7701fae299120bb3c591240188b20914cba89012351984210459817721ab4901",
-        timestamp: Date.now() - (1000 * 60 * 180) // 3 hours ago
-    },
-    {
-        id: "TX-1725102000004",
-        refId: "ARC-INV-3982",
-        type: "received",
-        amount: 15.00,
-        token: "USDC",
-        sender: "0x12A...9980",
-        recipient: "0x236c9EbdC863fAAA0d47D4FE2B7C18978dFa7947",
-        memo: "PulseGrid Ecosystem Grant",
-        channel: "link",
-        channelLabel: "Payment Link",
-        status: "Settled",
-        finality: "~0.4s",
-        txHash: "0x4419bb01e7a29901418cb2409817fae29013bba491200148719240bca19042b1",
-        timestamp: Date.now() - (1000 * 60 * 360) // 6 hours ago
-    }
-];
-
 function getPulsePayTransactions() {
     try {
         const raw = localStorage.getItem(PULSEPAY_STORAGE_KEY);
         if (raw) {
             const parsed = JSON.parse(raw);
-            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            if (Array.isArray(parsed)) {
+                // Filter out any previous fake/demo starter entries
+                const realOnly = parsed.filter(item => 
+                    item && 
+                    !item.id?.startsWith('TX-172510200000') && 
+                    item.refId !== 'ARC-INV-9841' && 
+                    item.refId !== 'ARC-INV-7412' &&
+                    item.refId !== 'ARC-INV-5201' &&
+                    item.refId !== 'ARC-INV-3982'
+                );
+                return realOnly;
+            }
         }
     } catch (e) {
         console.warn("Error reading PulsePay transactions:", e);
     }
-    // Initialize default starter records
-    try {
-        localStorage.setItem(PULSEPAY_STORAGE_KEY, JSON.stringify(DEFAULT_PULSEPAY_STARTERS));
-    } catch (e) { }
-    return DEFAULT_PULSEPAY_STARTERS;
+    return [];
 }
 
 function savePulsePayTransaction(tx) {
@@ -8265,10 +8204,14 @@ function renderPulsePayHistory(filter = 'all') {
 
     if (list.length === 0) {
         container.innerHTML = `
-            <div class="text-center py-12 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-300 text-slate-400 font-mono space-y-1">
-                <i data-lucide="receipt" class="w-8 h-8 mx-auto text-slate-300 mb-2"></i>
-                <div class="font-bold text-slate-600">No ${filter === 'all' ? '' : filter.toUpperCase()} transactions found</div>
-                <div class="text-xs">Generate a link or dynamic QR above to settle your first payment!</div>
+            <div class="text-center py-14 bg-slate-50/80 rounded-2xl border-2 border-dashed border-slate-300 text-slate-400 font-mono space-y-2">
+                <div class="w-12 h-12 rounded-2xl bg-purple-50 border-2 border-slate-300 text-purple-600 flex items-center justify-center mx-auto shadow-sm">
+                    <i data-lucide="receipt" class="w-6 h-6"></i>
+                </div>
+                <div class="font-bold text-slate-700 text-sm">No Real Payments Recorded Yet</div>
+                <p class="text-xs max-w-md mx-auto text-slate-500 font-sans leading-relaxed">
+                    When someone pays via your <strong>Payment Link</strong> or <strong>QR Code</strong> on Circle Arc L1, the real on-chain transaction will instantly appear here with the channel type!
+                </p>
             </div>
         `;
         safeInitIcons();

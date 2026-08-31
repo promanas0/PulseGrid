@@ -341,26 +341,32 @@
                 const params = new URLSearchParams(window.location.search);
                 const paymentChannel = (params.get('src') === 'qr' || params.get('channel') === 'qr') ? 'qr' : 'link';
 
-                // Save to local PulsePay transaction history
+                // Save to local PulsePay transaction & received payment history
                 try {
-                    const existingRaw = localStorage.getItem('pulsepay_transactions_v2');
-                    const txList = existingRaw ? JSON.parse(existingRaw) : [];
                     const newTx = {
                         id: `TX-${Date.now()}-${Math.floor(Math.random()*1000)}`,
                         refId: targetRef || 'ARC-PAY-INV',
-                        type: 'paid',
+                        type: 'received',
                         amount: targetAmount,
                         token: targetToken,
                         sender: currentAccount || 'Connected Wallet',
                         recipient: targetRecipient,
                         memo: targetMemo,
-                        channel: paymentChannel,
-                        channelLabel: paymentChannel === 'qr' ? 'QR Code Scan' : 'Payment Link',
                         status: 'Settled',
                         finality: '~0.4s',
                         txHash: txHash,
                         timestamp: Date.now()
                     };
+
+                    // Save to pulsepay_received_payments_v1
+                    const existingReceived = localStorage.getItem('pulsepay_received_payments_v1');
+                    const receivedList = existingReceived ? JSON.parse(existingReceived) : [];
+                    receivedList.unshift(newTx);
+                    localStorage.setItem('pulsepay_received_payments_v1', JSON.stringify(receivedList.slice(0, 100)));
+
+                    // Also save to pulsepay_transactions_v2
+                    const existingRaw = localStorage.getItem('pulsepay_transactions_v2');
+                    const txList = existingRaw ? JSON.parse(existingRaw) : [];
                     txList.unshift(newTx);
                     localStorage.setItem('pulsepay_transactions_v2', JSON.stringify(txList.slice(0, 100)));
                 } catch(storageErr) {

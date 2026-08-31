@@ -1839,209 +1839,122 @@
                 </div>
             </div>
 
-            <!-- Two-Column Generator & Instant Direct Pay Grid -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <!-- Column 1: Payment Link & Dynamic QR Generator (7 cols) -->
-                <div class="lg:col-span-7 pixel-card p-6 sm:p-8 space-y-6 bg-white">
-                    <div class="flex items-center justify-between pb-4 border-b-2 border-slate-950">
-                        <div class="flex items-center gap-3">
-                            <div class="w-11 h-11 rounded-2xl bg-purple-100 border-2 border-slate-950 flex items-center justify-center text-purple-700 shadow-[2px_2px_0px_#0F172A]">
-                                <i data-lucide="qr-code" class="w-6 h-6"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-pixel text-2xl font-bold text-slate-950">Generate Payment Link &amp; QR</h3>
-                                <p class="text-xs text-slate-500 font-mono">Create shareable link or dynamic QR for checkout</p>
-                            </div>
+            <!-- Single Focused Generator Card -->
+            <div class="max-w-2xl mx-auto pixel-card p-6 sm:p-8 space-y-6 bg-white">
+                <div class="flex items-center justify-between pb-4 border-b-2 border-slate-950">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-2xl bg-purple-100 border-2 border-slate-950 flex items-center justify-center text-purple-700 shadow-[2px_2px_0px_#0F172A]">
+                            <i data-lucide="zap" class="w-6 h-6"></i>
                         </div>
-                        <span class="text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full border border-emerald-300">0.4s Fast</span>
-                    </div>
-
-                    <!-- Receiver Wallet Status Indicator -->
-                    <div class="p-4 rounded-2xl bg-slate-50 border-2 border-slate-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 font-mono text-xs">
                         <div>
-                            <div class="text-[10px] uppercase font-bold text-slate-400">Receiving Wallet (Merchant):</div>
-                            <div id="pulsePayConnectedMerchantAddr" class="font-bold text-purple-700 text-sm mt-0.5">
-                                Connect Wallet to Receive
-                            </div>
+                            <h3 class="font-pixel text-2xl font-bold text-slate-950">Create Payment Link &amp; QR</h3>
+                            <p class="text-xs text-slate-500 font-mono">Generate an instant invoice link with custom amount &amp; note</p>
                         </div>
-                        <button id="pulsePayConnectWalletBtn" onclick="openWalletConnectModal()" class="btn-pixel-sm px-3.5 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs flex items-center gap-1.5 shrink-0">
-                            <i data-lucide="wallet" class="w-3.5 h-3.5"></i> Connect Wallet
-                        </button>
                     </div>
-
-                    <!-- Input Form -->
-                    <div class="space-y-4 font-mono text-xs">
-                        <!-- Token & Amount Row -->
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <div class="sm:col-span-2 space-y-1">
-                                <label class="text-[11px] font-bold text-slate-700 uppercase font-silkscreen">Amount to Request</label>
-                                <div class="flex items-center bg-slate-50 border-2 border-slate-950 rounded-xl px-4 py-3 focus-within:border-purple-700 transition-colors">
-                                    <input type="number" id="pulsePayInputAmount" step="0.01" min="0.01" placeholder="10.00" value="10.00" class="w-full bg-transparent text-2xl font-black font-mono text-slate-950 outline-none">
-                                    <span class="text-xs font-bold font-mono text-purple-700 bg-purple-100 px-2.5 py-1 rounded-lg border border-purple-300 shrink-0">USDC</span>
-                                </div>
-                            </div>
-                            <div class="sm:col-span-1 space-y-1">
-                                <label class="text-[11px] font-bold text-slate-700 uppercase font-silkscreen">Currency</label>
-                                <select id="pulsePayTokenSelect" class="w-full h-[52px] bg-slate-50 border-2 border-slate-950 rounded-xl px-3 font-bold text-xs text-slate-950 outline-none focus:border-purple-700">
-                                    <option value="USDC" selected>USDC (Native Gas)</option>
-                                    <option value="EURC">EURC (Euro)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Purpose / Message to Payer -->
-                        <div class="space-y-1">
-                            <label class="text-[11px] font-bold text-slate-700 uppercase font-silkscreen">Message / Note to Payer (Optional)</label>
-                            <input type="text" id="pulsePayMemoInput" placeholder="e.g. Thanks for the design work! / Coffee Tip / Invoice #102" value="Arc Ecosystem Services" class="w-full p-3.5 bg-slate-50 border-2 border-slate-950 rounded-xl font-mono text-xs outline-none focus:border-purple-700 font-bold">
-                            <p class="text-[10px] text-slate-500 font-sans">The payer will see this note on the payment screen and recorded on-chain.</p>
-                        </div>
-
-                        <!-- Generate Button -->
-                        <button onclick="generatePulsePayLink()" class="btn-pixel w-full py-4 rounded-2xl bg-gradient-to-r from-purple-700 via-indigo-600 to-teal-600 hover:from-purple-800 hover:to-teal-700 text-white font-pixel font-bold text-sm flex items-center justify-center gap-2 shadow-[4px_4px_0px_#0F172A] mt-2">
-                            <i data-lucide="qr-code" class="w-5 h-5"></i>
-                            <span>Generate Instant Payment Link &amp; QR</span>
-                        </button>
-                    </div>
+                    <span class="text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full border border-emerald-300">0.4s Fast</span>
                 </div>
 
-                <!-- Column 2: Instant Quick Pay / Direct Transfer (5 cols) -->
-                <div class="lg:col-span-5 pixel-card p-6 sm:p-8 space-y-6 bg-white flex flex-col justify-between">
+                <!-- Receiver Wallet Status Indicator -->
+                <div class="p-4 rounded-2xl bg-slate-50 border-2 border-slate-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 font-mono text-xs">
                     <div>
-                        <div class="flex items-center justify-between pb-4 border-b-2 border-slate-950">
-                            <div class="flex items-center gap-3">
-                                <div class="w-11 h-11 rounded-2xl bg-teal-100 border-2 border-slate-950 flex items-center justify-center text-teal-700 shadow-[2px_2px_0px_#0F172A]">
-                                    <i data-lucide="send" class="w-5 h-5"></i>
-                                </div>
-                                <div>
-                                    <h3 class="font-pixel text-xl font-bold text-slate-950">Direct 1-Click Pay</h3>
-                                    <p class="text-xs text-slate-500 font-mono">Send native USDC instantly to any address</p>
-                                </div>
-                            </div>
-                            <span class="text-[10px] font-mono font-bold bg-teal-50 text-teal-700 px-2.5 py-1 rounded-full border border-teal-300">Direct P2P</span>
+                        <div class="text-[10px] uppercase font-bold text-slate-400">Receiving Wallet (Merchant):</div>
+                        <div id="pulsePayConnectedMerchantAddr" class="font-bold text-purple-700 text-sm mt-0.5">
+                            Connect Wallet to Receive
                         </div>
+                    </div>
+                    <button id="pulsePayConnectWalletBtn" onclick="openWalletConnectModal()" class="btn-pixel-sm px-3.5 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs flex items-center gap-1.5 shrink-0">
+                        <i data-lucide="wallet" class="w-3.5 h-3.5"></i> Connect Wallet
+                    </button>
+                </div>
 
-                        <div class="space-y-3 font-mono text-xs mt-4">
-                            <div class="space-y-1">
-                                <label class="text-[11px] font-bold text-slate-700 uppercase font-silkscreen">Recipient Wallet Address</label>
-                                <input type="text" id="pulsePayDirectRecipient" placeholder="0x..." class="w-full p-3 bg-slate-50 border-2 border-slate-950 rounded-xl font-mono text-xs outline-none focus:border-purple-700 font-bold">
+                <!-- Input Form -->
+                <div class="space-y-4 font-mono text-xs">
+                    <!-- Token & Amount Row -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="sm:col-span-2 space-y-1">
+                            <label class="text-[11px] font-bold text-slate-700 uppercase font-silkscreen">Amount to Request</label>
+                            <div class="flex items-center bg-slate-50 border-2 border-slate-950 rounded-xl px-4 py-3 focus-within:border-purple-700 transition-colors">
+                                <input type="number" id="pulsePayInputAmount" step="0.01" min="0.01" placeholder="10.00" value="10.00" class="w-full bg-transparent text-2xl font-black font-mono text-slate-950 outline-none">
+                                <span class="text-xs font-bold font-mono text-purple-700 bg-purple-100 px-2.5 py-1 rounded-lg border border-purple-300 shrink-0">USDC</span>
                             </div>
-
-                            <div class="space-y-1">
-                                <label class="text-[11px] font-bold text-slate-700 uppercase font-silkscreen">Amount (USDC)</label>
-                                <div class="flex items-center bg-slate-50 border-2 border-slate-950 rounded-xl px-3 py-2.5 focus-within:border-purple-700">
-                                    <input type="number" id="pulsePayDirectAmount" step="0.01" min="0.01" placeholder="5.00" value="5.00" class="w-full bg-transparent font-bold font-mono text-lg text-slate-950 outline-none">
-                                    <span class="text-xs font-bold text-teal-700 bg-teal-100 px-2 py-0.5 rounded border border-teal-300">USDC</span>
-                                </div>
-                            </div>
-
-                            <div class="space-y-1">
-                                <label class="text-[11px] font-bold text-slate-700 uppercase font-silkscreen">Memo / Item Note</label>
-                                <input type="text" id="pulsePayDirectMemo" placeholder="e.g. Peer payment / Tip" value="PulseGrid Peer Payment" class="w-full p-3 bg-slate-50 border-2 border-slate-950 rounded-xl font-mono text-xs outline-none focus:border-purple-700 font-bold">
-                            </div>
+                        </div>
+                        <div class="sm:col-span-1 space-y-1">
+                            <label class="text-[11px] font-bold text-slate-700 uppercase font-silkscreen">Currency</label>
+                            <select id="pulsePayTokenSelect" class="w-full h-[52px] bg-slate-50 border-2 border-slate-950 rounded-xl px-3 font-bold text-xs text-slate-950 outline-none focus:border-purple-700">
+                                <option value="USDC" selected>USDC (Native Gas)</option>
+                                <option value="EURC">EURC (Euro)</option>
+                            </select>
                         </div>
                     </div>
 
-                    <button onclick="executePulsePayDirectSend()" id="pulsePayDirectSendBtn" class="btn-pixel w-full py-3.5 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-pixel font-bold text-xs flex items-center justify-center gap-2 shadow-[4px_4px_0px_#0F172A] mt-4">
-                        <i data-lucide="zap" class="w-4 h-4"></i>
-                        <span>Send Direct USDC Now</span>
+                    <!-- Purpose / Message to Payer -->
+                    <div class="space-y-1">
+                        <label class="text-[11px] font-bold text-slate-700 uppercase font-silkscreen">Message / Note to Payer (Optional)</label>
+                        <input type="text" id="pulsePayMemoInput" placeholder="e.g. Thanks for the design work! / Coffee Tip / Invoice #102" value="Arc Ecosystem Services" class="w-full p-3.5 bg-slate-50 border-2 border-slate-950 rounded-xl font-mono text-xs outline-none focus:border-purple-700 font-bold">
+                        <p class="text-[10px] text-slate-500 font-sans">The payer will see this note on the checkout page and recorded on-chain.</p>
+                    </div>
+
+                    <!-- Generate Button -->
+                    <button onclick="generatePulsePayLink()" class="btn-pixel w-full py-4.5 rounded-2xl bg-gradient-to-r from-purple-700 via-indigo-600 to-teal-600 hover:from-purple-800 hover:to-teal-700 text-white font-pixel font-bold text-sm flex items-center justify-center gap-2 shadow-[4px_4px_0px_#0F172A] mt-4">
+                        <i data-lucide="qr-code" class="w-5 h-5"></i>
+                        <span>Generate Instant Payment Link &amp; QR</span>
                     </button>
                 </div>
             </div>
 
-            <!-- PULSEPAY LIVE TRANSACTIONS & PAYMENTS LEDGER -->
-            <div class="pixel-card p-6 sm:p-8 space-y-6 bg-white">
-                <!-- Ledger Header & Live Status -->
-                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b-2 border-slate-950 pb-5">
-                    <div class="space-y-1">
-                        <div class="flex items-center gap-2.5">
-                            <div class="p-2 rounded-xl bg-purple-100 text-purple-700 border-2 border-slate-950">
-                                <i data-lucide="receipt-text" class="w-5 h-5"></i>
-                            </div>
-                            <h3 class="font-pixel text-2xl font-black text-slate-950">PulsePay Transactions &amp; Receipts Ledger</h3>
+            <!-- SECTION 1: MY CREATED PAYMENT LINKS (Baad me bhi kisi ko bhej sake) -->
+            <div class="pixel-card p-6 sm:p-8 space-y-4 bg-white">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-slate-950 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 rounded-xl bg-purple-100 text-purple-700 border-2 border-slate-950">
+                            <i data-lucide="link-2" class="w-5 h-5"></i>
                         </div>
-                        <p class="text-xs text-slate-500 font-mono">
-                            Live log tracking all payments settled via <strong class="text-purple-700">Payment Links (🔗 Link)</strong>, <strong class="text-emerald-700">Dynamic QR Scans (📱 QR)</strong>, and <strong class="text-teal-700">Direct P2P (⚡ Direct)</strong>.
-                        </p>
+                        <div>
+                            <h3 class="font-pixel text-xl sm:text-2xl font-black text-slate-950">My Created Payment Links</h3>
+                            <p class="text-xs text-slate-500 font-mono">Saved links and QR codes you can copy and share anytime.</p>
+                        </div>
                     </div>
+                    <span id="pulsePayCreatedLinksCount" class="text-xs font-mono font-bold text-purple-800 bg-purple-50 px-3 py-1.5 rounded-xl border-2 border-slate-950 self-start sm:self-auto">
+                        0 Links Created
+                    </span>
+                </div>
 
+                <div id="pulsePayCreatedLinksList" class="space-y-3 font-mono text-xs">
+                    <div class="text-center py-10 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-300 text-slate-400 font-mono space-y-1">
+                        <i data-lucide="link" class="w-6 h-6 mx-auto text-slate-300 mb-1"></i>
+                        <div class="font-bold text-slate-600">No payment links created yet</div>
+                        <div class="text-xs">Create your first link above to share and collect payments!</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: RECEIVED PAYMENTS HISTORY (Real on-chain received payouts) -->
+            <div class="pixel-card p-6 sm:p-8 space-y-4 bg-white">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-slate-950 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 rounded-xl bg-emerald-100 text-emerald-700 border-2 border-slate-950">
+                            <i data-lucide="badge-dollar-sign" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-pixel text-xl sm:text-2xl font-black text-slate-950">Received Payments History</h3>
+                            <p class="text-xs text-slate-500 font-mono">Real on-chain log of payments received through your links &amp; QR codes.</p>
+                        </div>
+                    </div>
                     <div class="flex items-center gap-2">
-                        <button onclick="refreshPulsePayHistory()" class="btn-pixel-sm px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-mono font-bold text-xs flex items-center gap-1.5 border-2 border-slate-950">
-                            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-                            <span>Sync Ledger</span>
+                        <button onclick="refreshPulsePayHistory()" class="btn-pixel-sm px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-mono font-bold text-xs flex items-center gap-1.5 border-2 border-slate-950">
+                            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Sync
                         </button>
-                        <span id="pulsePayHistoryCount" class="text-xs font-mono font-bold text-purple-800 bg-purple-100 px-3 py-2 rounded-xl border-2 border-slate-950">
-                            0 Records
+                        <span id="pulsePayReceivedCount" class="text-xs font-mono font-bold text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-xl border-2 border-slate-950">
+                            0 Received ($0.00)
                         </span>
                     </div>
                 </div>
 
-                <!-- Summary Analytics Mini-Cards -->
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono">
-                    <div class="p-3.5 rounded-2xl bg-purple-50 border-2 border-slate-950 space-y-1">
-                        <div class="text-[10px] text-purple-700 font-bold uppercase flex items-center gap-1">
-                            <i data-lucide="dollar-sign" class="w-3.5 h-3.5"></i> Total Received
-                        </div>
-                        <div id="statPulsePayTotalVol" class="font-pixel text-xl sm:text-2xl font-bold text-slate-950">$0.00</div>
-                        <div class="text-[10px] text-slate-500">Native USDC Volume</div>
-                    </div>
-
-                    <div class="p-3.5 rounded-2xl bg-indigo-50 border-2 border-slate-950 space-y-1">
-                        <div class="text-[10px] text-indigo-700 font-bold uppercase flex items-center gap-1">
-                            <i data-lucide="link-2" class="w-3.5 h-3.5"></i> Via Payment Link
-                        </div>
-                        <div id="statPulsePayLinkVol" class="font-pixel text-xl sm:text-2xl font-bold text-indigo-950">0 Tx ($0.00)</div>
-                        <div class="text-[10px] text-indigo-600 font-semibold">Web checkout links</div>
-                    </div>
-
-                    <div class="p-3.5 rounded-2xl bg-emerald-50 border-2 border-slate-950 space-y-1">
-                        <div class="text-[10px] text-emerald-700 font-bold uppercase flex items-center gap-1">
-                            <i data-lucide="qr-code" class="w-3.5 h-3.5"></i> Via QR Code Scan
-                        </div>
-                        <div id="statPulsePayQrVol" class="font-pixel text-xl sm:text-2xl font-bold text-emerald-950">0 Tx ($0.00)</div>
-                        <div class="text-[10px] text-emerald-600 font-semibold">In-person &amp; mobile scan</div>
-                    </div>
-
-                    <div class="p-3.5 rounded-2xl bg-teal-50 border-2 border-slate-950 space-y-1">
-                        <div class="text-[10px] text-teal-700 font-bold uppercase flex items-center gap-1">
-                            <i data-lucide="zap" class="w-3.5 h-3.5"></i> Direct Transfers
-                        </div>
-                        <div id="statPulsePayDirectVol" class="font-pixel text-xl sm:text-2xl font-bold text-teal-950">0 Tx ($0.00)</div>
-                        <div class="text-[10px] text-teal-600 font-semibold">1-Click P2P payments</div>
-                    </div>
-                </div>
-
-                <!-- Channel Filter Pills -->
-                <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
-                    <div class="inline-flex p-1 bg-slate-100 border-2 border-slate-950 rounded-2xl gap-1 text-xs font-mono font-bold">
-                        <button onclick="filterPulsePayChannel('all')" id="filterBtn-all" class="pulsepay-filter-btn active px-3 py-1.5 rounded-xl bg-purple-700 text-white shadow-sm transition-all flex items-center gap-1.5">
-                            <i data-lucide="layers" class="w-3.5 h-3.5"></i>
-                            <span>All Payments</span>
-                        </button>
-                        <button onclick="filterPulsePayChannel('link')" id="filterBtn-link" class="pulsepay-filter-btn px-3 py-1.5 rounded-xl text-slate-700 hover:bg-slate-200 transition-all flex items-center gap-1.5">
-                            <i data-lucide="link-2" class="w-3.5 h-3.5 text-indigo-600"></i>
-                            <span>🔗 Payment Links</span>
-                        </button>
-                        <button onclick="filterPulsePayChannel('qr')" id="filterBtn-qr" class="pulsepay-filter-btn px-3 py-1.5 rounded-xl text-slate-700 hover:bg-slate-200 transition-all flex items-center gap-1.5">
-                            <i data-lucide="qr-code" class="w-3.5 h-3.5 text-emerald-600"></i>
-                            <span>📱 QR Code Scans</span>
-                        </button>
-                        <button onclick="filterPulsePayChannel('direct')" id="filterBtn-direct" class="pulsepay-filter-btn px-3 py-1.5 rounded-xl text-slate-700 hover:bg-slate-200 transition-all flex items-center gap-1.5">
-                            <i data-lucide="zap" class="w-3.5 h-3.5 text-teal-600"></i>
-                            <span>⚡ Direct P2P</span>
-                        </button>
-                    </div>
-
-                    <div class="text-[11px] font-mono text-slate-500 flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span>Arc L1 Sub-Second Feed Active</span>
-                    </div>
-                </div>
-
-                <!-- Transaction List / Feed -->
-                <div id="pulsePayHistoryList" class="space-y-3 font-mono text-xs">
-                    <div class="text-center py-12 text-slate-400 font-mono space-y-2">
-                        <i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto text-purple-700"></i>
-                        <p>Loading PulsePay transactions...</p>
+                <div id="pulsePayReceivedPaymentsList" class="space-y-3 font-mono text-xs">
+                    <div class="text-center py-12 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-300 text-slate-400 font-mono space-y-1">
+                        <i data-lucide="receipt" class="w-6 h-6 mx-auto text-slate-300 mb-1"></i>
+                        <div class="font-bold text-slate-600">No received payments yet</div>
+                        <div class="text-xs">When someone pays via your link or QR on Arc L1, the real transaction will appear here!</div>
                     </div>
                 </div>
             </div>

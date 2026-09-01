@@ -66,11 +66,21 @@ function safeInitIcons() {
     }
 }
 
-let currentAccount = null;
+let currentAccount = (() => {
+    try {
+        if (typeof localStorage !== 'undefined') {
+            const saved = localStorage.getItem('pulsegrid_connected_wallet') || localStorage.getItem('archpulse_connected_wallet') || localStorage.getItem('pulsegrid_last_account');
+            if (saved && typeof saved === 'string' && saved.startsWith('0x') && saved.length === 42) {
+                return saved;
+            }
+        }
+    } catch (e) { }
+    return null;
+})();
 let activePage = 'landing';
 let activeWalletTab = 'tokens';
 let walletConnectProvider = null;
-let activeWeb3Provider = null;
+let activeWeb3Provider = (typeof window !== 'undefined' && window.ethereum) ? window.ethereum : null;
 let userPoints = 0;
 let tokenModalTarget = 'pay';
 
@@ -5750,42 +5760,100 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function autoReconnectWallet() {
     try {
-        const savedAccount = localStorage.getItem('pulsegrid_connected_wallet');
-        if (!savedAccount) return;
+        const savedAccount = localStorage.getItem('pulsegrid_connected_wallet') || 
+                             localStorage.getItem('archpulse_connected_wallet') || 
+                             localStorage.getItem('pulsegrid_last_account');
+        const savedProvider = localStorage.getItem('pulsegrid_last_wallet') || 
+                              localStorage.getItem('pulsegrid_provider_name') || 
+                              'MetaMask';
 
-        if (window.ethereum) {
-            // Silently check if user is already connected in MetaMask (No popup!)
-            const accounts = await window.ethereum.request({ method: 'eth_accounts' }).catch(() => null);
-            if (accounts && accounts.length > 0) {
-                const matched = accounts.find(a => a.toLowerCase() === savedAccount.toLowerCase()) || accounts[0];
-                currentAccount = matched;
-                activeWeb3Provider = window.ethereum;
-                onWalletConnected(currentAccount, 'MetaMask', true);
-                return;
+        if (!savedAccount || !savedAccount.startsWith('0x') || savedAccount.length !== 42) {
+            return;
+        }
+
+        // 1. Immediately restore state & UI from persistent storage
+        currentAccount = savedAccount;
+        
+        // Find matching provider if injected
+        let targetProvider = null;
+        if (savedProvider && typeof getInjectedProvider === 'function') {
+            targetProvider = getInjectedProvider(savedProvider);
+        }
+        if (!targetProvider && typeof window !== 'undefined' && window.ethereum) {
+            targetProvider = window.ethereum;
+        }
+
+        if (targetProvider) {
+            activeWeb3Provider = targetProvider;
+            
+            // Silently verify with eth_accounts without triggering popups
+            try {
+                if (typeof targetProvider.request === 'function') {
+                    const accounts = await targetProvider.request({ method: 'eth_accounts' });
+                    if (accounts && accounts.length > 0) {
+                        currentAccount = accounts[0];
+                        localStorage.setItem('pulsegrid_connected_wallet', currentAccount);
+                    }
+                }
+            } catch (authErr) {
+                console.warn("Silent eth_accounts check notice:", authErr);
             }
         }
 
-        // Restore saved session if user was connected previously
-        if (savedAccount && savedAccount.startsWith('0x')) {
-            currentAccount = savedAccount;
-            if (window.ethereum) activeWeb3Provider = window.ethereum;
-            onWalletConnected(currentAccount, 'Restored Session', true);
-        }
+        // 2. Trigger full UI synchronization
+        onWalletConnected(currentAccount, savedProvider || 'Injected Wallet', true);
+        if (typeof updateWalletUI === 'function') updateWalletUI();
+        if (typeof fetchRealOnChainBalances === 'function') fetchRealOnChainBalances(currentAccount);
+
     } catch (e) {
-        console.warn("Auto-reconnect notice:", e);
+        console.warn("Auto-reconnect warning:", e);
     }
 }
 
-// Global MetaMask Account Change & Disconnect Listener
-if (typeof window !== 'undefined' && window.ethereum && typeof window.ethereum.on === 'function') {
-    window.ethereum.on('accountsChanged', (accounts) => {
-        if (accounts && accounts.length > 0) {
-            currentAccount = accounts[0];
-            onWalletConnected(currentAccount, 'MetaMask', true);
-        } else {
-            disconnectWallet();
+// Global Wallet Account Change & Chain Listeners
+function attachWalletEventListeners(provider) {
+    if (!provider || typeof provider.on !== 'function') return;
+    try {
+        provider.on('accountsChanged', (accounts) => {
+            if (accounts && accounts.length > 0) {
+                currentAccount = accounts[0];
+                onWalletConnected(currentAccount, 'MetaMask', true);
+            } else {
+                disconnectWallet();
+            }
+        });
+
+        provider.on('chainChanged', (chainId) => {
+            console.log("Arc Network chainChanged:", chainId);
+            if (currentAccount) {
+                fetchRealOnChainBalances(currentAccount);
+            }
+        });
+    } catch (e) { }
+}
+
+if (typeof window !== 'undefined') {
+    // Attach immediately if ethereum is already injected
+    if (window.ethereum) {
+        attachWalletEventListeners(window.ethereum);
+    }
+
+    // Attach on delayed extension injection
+    window.addEventListener('ethereum#initialized', () => {
+        if (window.ethereum) {
+            attachWalletEventListeners(window.ethereum);
+            autoReconnectWallet();
         }
     });
+
+    window.addEventListener('eip6963:announceProvider', () => {
+        autoReconnectWallet();
+    });
+
+    // Run auto-reconnect at multiple timing checkpoints
+    setTimeout(autoReconnectWallet, 100);
+    setTimeout(autoReconnectWallet, 500);
+    setTimeout(autoReconnectWallet, 1200);
 }
 
 // =========================================================================

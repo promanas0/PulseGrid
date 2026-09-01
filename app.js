@@ -168,11 +168,11 @@ function stringToHex(str) {
 
 // Pure Web3 SDK Protocol Execution (No Remix Smart Contract)
 
-// EXACT CIRCLE SDK DEX RATE: 1 USDC = 0.882639 EURC (usdRate: USDC 1.00, EURC 1.13296)
+// EXACT CIRCLE DEX RATE: 1 USDC = 0.920000 EURC (usdRate: USDC 1.00, EURC 1.086957)
 // INITIAL BALANCES ARE ZERO (0.00) BY DEFAULT - NO FAKE BALANCES
 const TOKENS = [
     { id: 0, symbol: 'USDC', name: 'USD Coin (ERC-20)', balance: 0.00, usdRate: 1.000000, icon: '$', bg: 'bg-blue-600', address: '0x3600000000000000000000000000000000000000', decimals: 6, isComingSoon: false },
-    { id: 1, symbol: 'EURC', name: 'Euro Stablecoin', balance: 0.00, usdRate: 1.132960, icon: '€', bg: 'bg-amber-500', address: '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a', decimals: 6, isComingSoon: false },
+    { id: 1, symbol: 'EURC', name: 'Euro Stablecoin', balance: 0.00, usdRate: 1.086957, icon: '€', bg: 'bg-amber-500', address: '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a', decimals: 6, isComingSoon: false },
     { id: 2, symbol: 'eBTC', name: 'Arc Wrapped Bitcoin', balance: 0.00, usdRate: 62500.00, icon: '', bg: 'bg-orange-500', address: '0x054f15d7f21226065582f7c00e12d46e2730bf18', decimals: 18, isComingSoon: true }
 ];
 
@@ -588,6 +588,8 @@ function switchPage(pageId) {
         } else if (pageId === 'validators') {
             if (typeof renderValidatorsTable === 'function') renderValidatorsTable();
             if (typeof refreshStakingTelemetry === 'function') refreshStakingTelemetry();
+        } else if (pageId === 'daily') {
+            if (typeof initQuests === 'function') initQuests();
         } else if (pageId === 'portfolio') {
             renderPortfolioView();
         } else if (pageId === 'token-creator') {
@@ -2619,835 +2621,6 @@ function triggerAgentCycle() {
     showToast('AI Agent Active', 'ERC-8004 Autonomous Agent executed market cycle on Arc L1', 'success');
 }
 
-// =========================================================================
-// REAL CRYPTOGRAPHIC QUESTS, STREAK ENGINE, REAL LEADERBOARD & ACTIVITY FEED
-// =========================================================================
-let activeQuestSubTab = 'daily';
-
-let questState = {
-    points: 0,
-    streak: 0,
-    lastCheckinDate: '',
-    lastStreakClaimDate: '',
-    swapsCompleted: 0,
-    claimedTasks: {},
-    claimedBadges: {}
-};
-
-const QUEST_TASKS_DATA = [
-    {
-        id: 'task-checkin',
-        category: 'daily',
-        title: 'Daily Web3 Check-In',
-        desc: 'Sign a cryptographic wallet message once per 24 hours to prove active on-chain identity',
-        xp: 100,
-        icon: 'fingerprint',
-        actionLabel: 'Sign & Check In ✍️',
-        actionFn: 'claimDailyCheckin()',
-        completedLabel: 'Checked In ✓',
-        badgeText: '+100 XP'
-    },
-    {
-        id: 'task-swap',
-        category: 'daily',
-        title: 'Perform Arc DEX Swap',
-        desc: 'Swap any amount of USDC or EURC on the Spender Router smart contract to earn swap XP',
-        xp: 150,
-        icon: 'repeat',
-        actionLabel: 'Go Swap ⚡',
-        actionFn: "switchPage('swap')",
-        completedLabel: 'Swap Verified ✓',
-        badgeText: '+150 XP'
-    },
-    {
-        id: 'task-bridge',
-        category: 'daily',
-        title: 'Circle CCTP Cross-Chain Bridge',
-        desc: 'Execute a cross-chain transfer or inspect CCTP routes on Circle Arc L1',
-        xp: 120,
-        icon: 'network',
-        actionLabel: 'Bridge Assets 🌐',
-        actionFn: "switchPage('bridge')",
-        completedLabel: 'Bridge Verified ✓',
-        badgeText: '+120 XP'
-    },
-    {
-        id: 'task-validator',
-        category: 'daily',
-        title: 'Ping Validator Consensus Node',
-        desc: 'Inspect live BFT telemetry and node latency across Arc L1 Consortium',
-        xp: 50,
-        icon: 'radio',
-        actionLabel: 'Inspect Node 📡',
-        actionFn: "switchPage('validators')",
-        completedLabel: 'Node Pinged ✓',
-        badgeText: '+50 XP'
-    },
-    {
-        id: 'task-volume',
-        category: 'milestone',
-        title: 'High-Volume DEX Trader',
-        desc: 'Accumulate >500 USDC in total volume across Arc L1 Testnet Swaps',
-        xp: 500,
-        icon: 'trending-up',
-        actionLabel: 'Claim Milestone 🏆',
-        actionFn: "claimQuestTask('task-volume')",
-        completedLabel: 'Milestone Achieved ✓',
-        badgeText: '500 XP Milestone'
-    },
-    {
-        id: 'task-validators',
-        category: 'milestone',
-        title: 'Inspect Arc Consortium Validators',
-        desc: 'Review consensus health and voting power of institutional validator nodes',
-        xp: 400,
-        icon: 'shield-check',
-        actionLabel: 'Inspect Nodes ⚡',
-        actionFn: "switchPage('validators')",
-        completedLabel: 'Nodes Inspected ✓',
-        badgeText: '+400 XP'
-    },
-    {
-        id: 'task-ai',
-        category: 'milestone',
-        title: 'Connect Pro Gemini AI',
-        desc: 'Chat with AI Assistant or save your Gemini API Key for coprocessor analysis',
-        xp: 250,
-        icon: 'bot',
-        actionLabel: 'Connect AI 🤖',
-        actionFn: "claimQuestTask('task-ai')",
-        completedLabel: 'AI Synced ✓',
-        badgeText: '+250 XP'
-    },
-    {
-        id: 'task-share',
-        category: 'milestone',
-        title: 'Share Arc Pulse on X / Farcaster',
-        desc: 'Spread the word about Arc L1 Testnet to earn verified community builder XP',
-        xp: 200,
-        icon: 'share-2',
-        actionLabel: 'Share & Verify 🚀',
-        actionFn: "claimQuestTask('task-share')",
-        completedLabel: 'Shared ✓',
-        badgeText: '+200 XP'
-    }
-];
-
-const NFT_BADGES_DATA = [
-    {
-        tier: 1,
-        key: 'badge1',
-        name: 'Arc Pioneer Pass',
-        title: 'Bronze Pioneer',
-        targetXp: 1000,
-        rarity: 'Common Tier 1',
-        borderCol: 'border-amber-600',
-        bgGrad: 'from-amber-950/40 via-slate-900 to-amber-900/20',
-        badgePill: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
-        tokenId: '#842',
-        perks: ['+5% Staking APY Boost', 'Early Testnet Adopter Discord Role', 'Bronze Profile Aura'],
-        svg: `<svg class="w-16 h-16" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="44" fill="#78350F" stroke="#F59E0B" stroke-width="4"/><circle cx="50" cy="50" r="34" stroke="#FDE68A" stroke-width="2" stroke-dasharray="6 3"/><path d="M50 25L57 40L74 42L61 54L65 71L50 62L35 71L39 54L26 42L43 40L50 25Z" fill="#FDE68A" stroke="#B45309" stroke-width="2"/></svg>`
-    },
-    {
-        tier: 2,
-        key: 'badge2',
-        name: 'DEX Champion Pass',
-        title: 'Silver Swapper',
-        targetXp: 3000,
-        rarity: 'Rare Tier 2',
-        borderCol: 'border-slate-400',
-        bgGrad: 'from-slate-800 via-slate-900 to-slate-800',
-        badgePill: 'bg-slate-300/20 text-slate-200 border-slate-400/40',
-        tokenId: '#319',
-        perks: ['Zero-Fee Spender Rebates', 'Silver High-Frequency Discord Role', 'Exclusive Beta Pool Access'],
-        svg: `<svg class="w-16 h-16" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="44" fill="#334155" stroke="#94A3B8" stroke-width="4"/><polygon points="50,18 78,34 78,66 50,82 22,66 22,34" stroke="#CBD5E1" stroke-width="2" fill="none"/><path d="M50 30L63 42V58L50 70L37 58V42L50 30Z" fill="#F8FAFC" stroke="#475569" stroke-width="2"/></svg>`
-    },
-    {
-        tier: 3,
-        key: 'badge3',
-        name: 'Arc Protocol Sovereign',
-        title: 'Gold Legend Pass',
-        targetXp: 7500,
-        rarity: 'Legendary Tier 3',
-        borderCol: 'border-yellow-400',
-        bgGrad: 'from-yellow-950/40 via-slate-900 to-amber-950/40',
-        badgePill: 'bg-yellow-400/20 text-yellow-300 border-yellow-400/40',
-        tokenId: '#042',
-        perks: ['Genesis Mainnet Whitelist Allocation', '2.0x Airdrop Points Multiplier', 'Consortium VIP Governance Chat'],
-        svg: `<svg class="w-16 h-16" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="44" fill="#713F12" stroke="#EAB308" stroke-width="4"/><circle cx="50" cy="50" r="36" stroke="#FEF08A" stroke-width="2"/><path d="M30 65L35 35L50 50L65 35L70 65H30Z" fill="#FEF08A" stroke="#A16207" stroke-width="2"/><circle cx="35" cy="30" r="4" fill="#FEF08A"/><circle cx="50" cy="22" r="5" fill="#FEF08A"/><circle cx="65" cy="30" r="4" fill="#FEF08A"/></svg>`
-    }
-];
-
-const STREAK_DAYS_CONFIG = [
-    { day: 1, xp: 50, label: '+50 XP', icon: 'zap' },
-    { day: 2, xp: 100, label: '+100 XP', icon: 'zap' },
-    { day: 3, xp: 150, label: '+150 XP', icon: 'flame' },
-    { day: 4, xp: 200, label: '+200 XP', icon: 'gift' },
-    { day: 5, xp: 250, label: '+250 XP', icon: 'star' },
-    { day: 6, xp: 300, label: '+300 XP', icon: 'award' },
-    { day: 7, xp: 500, label: '+500 XP 🎁', icon: 'crown', isMystery: true }
-];
-
-function getUserLevelInfo(xp) {
-    if (xp < 500) {
-        return { levelNum: 1, title: 'Level 1 • Arc Explorer', minXp: 0, maxXp: 500, nextLevelText: 'Level 2: 500 XP' };
-    } else if (xp < 1500) {
-        return { levelNum: 2, title: 'Level 2 • Consensus Cadet', minXp: 500, maxXp: 1500, nextLevelText: 'Level 3: 1,500 XP' };
-    } else if (xp < 3500) {
-        return { levelNum: 3, title: 'Level 3 • DEX Pioneer', minXp: 1500, maxXp: 3500, nextLevelText: 'Level 4: 3,500 XP' };
-    } else if (xp < 7500) {
-        return { levelNum: 4, title: 'Level 4 • Institutional Whale', minXp: 3500, maxXp: 7500, nextLevelText: 'Level 5: 7,500 XP' };
-    } else {
-        return { levelNum: 5, title: 'Level 5 • Protocol Sovereign', minXp: 7500, maxXp: 15000, nextLevelText: 'Max Protocol Rank' };
-    }
-}
-
-function getPassTierTitle(xp, badges) {
-    if (badges && badges['badge3']) return 'Gold Sovereign 👑';
-    if (badges && badges['badge2']) return 'Silver Champion 🛡️';
-    if (badges && badges['badge1']) return 'Bronze Pioneer 🎖️';
-    if (xp >= 7500) return 'Gold Eligible';
-    if (xp >= 3000) return 'Silver Eligible';
-    if (xp >= 1000) return 'Bronze Eligible';
-    return 'Cadet';
-}
-
-function loadQuestState(account) {
-    const targetAddr = account || currentAccount;
-    if (!targetAddr) {
-        questState = {
-            points: 0,
-            streak: 0,
-            lastCheckinDate: '',
-            lastStreakClaimDate: '',
-            swapsCompleted: 0,
-            claimedTasks: {},
-            claimedBadges: {}
-        };
-        userPoints = 0;
-        updateQuestUI();
-        renderRealLeaderboard();
-        renderRealLiveFeed();
-        return;
-    }
-
-    try {
-        const key = `PulseGrid_quests_${targetAddr.toLowerCase()}`;
-        const saved = localStorage.getItem(key);
-        if (saved) {
-            const parsed = JSON.parse(saved);
-            questState = Object.assign({
-                points: 0,
-                streak: 0,
-                lastCheckinDate: '',
-                lastStreakClaimDate: '',
-                swapsCompleted: 0,
-                claimedTasks: {},
-                claimedBadges: {}
-            }, parsed);
-            userPoints = questState.points || 0;
-        } else {
-            questState = {
-                points: 0,
-                streak: 0,
-                lastCheckinDate: '',
-                lastStreakClaimDate: '',
-                swapsCompleted: 0,
-                claimedTasks: {},
-                claimedBadges: {}
-            };
-            userPoints = 0;
-        }
-    } catch (e) {
-        console.warn("loadQuestState error:", e);
-    }
-    updateQuestUI();
-    renderRealLeaderboard();
-    renderRealLiveFeed();
-}
-
-function saveQuestState() {
-    if (!currentAccount) return;
-    try {
-        questState.points = userPoints;
-        const key = `PulseGrid_quests_${currentAccount.toLowerCase()}`;
-        localStorage.setItem(key, JSON.stringify(questState));
-
-        const passTier = getPassTierTitle(userPoints, questState.claimedBadges);
-        updateRealLeaderboard(currentAccount, userPoints, questState.streak, passTier);
-    } catch (e) {
-        console.warn("saveQuestState error:", e);
-    }
-    updateQuestUI();
-}
-
-function getTodayDateString() {
-    const d = new Date();
-    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
-}
-
-function switchQuestSubTab(subTab) {
-    activeQuestSubTab = subTab;
-
-    // Toggle Tab Buttons Styling
-    const tabs = ['daily', 'milestone', 'badges', 'leaderboard'];
-    tabs.forEach(t => {
-        const btn = document.getElementById(`questTabBtn-${t}`);
-        if (btn) {
-            if (t === subTab) {
-                btn.className = 'px-5 py-3 rounded-t-xl bg-purple-700 text-white border-2 border-slate-950 border-b-0 flex items-center gap-2 shadow-[2px_-2px_0px_#0F172A] font-bold';
-            } else {
-                btn.className = 'px-5 py-3 rounded-t-xl bg-slate-100 text-slate-700 hover:bg-slate-200 border-2 border-transparent border-b-0 flex items-center gap-2 transition-colors font-bold';
-            }
-        }
-    });
-
-    // Toggle Tab Contents
-    const tasksContainer = document.getElementById('questTabContent-tasks');
-    const badgesContainer = document.getElementById('questTabContent-badges');
-    const leaderboardContainer = document.getElementById('questTabContent-leaderboard');
-
-    if (tasksContainer) tasksContainer.classList.toggle('hidden', subTab !== 'daily' && subTab !== 'milestone');
-    if (badgesContainer) badgesContainer.classList.toggle('hidden', subTab !== 'badges');
-    if (leaderboardContainer) leaderboardContainer.classList.toggle('hidden', subTab !== 'leaderboard');
-
-    if (subTab === 'daily' || subTab === 'milestone') {
-        renderQuestTasks();
-    } else if (subTab === 'badges') {
-        renderNftBadges();
-    } else if (subTab === 'leaderboard') {
-        renderRealLeaderboard();
-        renderRealLiveFeed();
-    }
-
-    safeInitIcons();
-}
-
-function renderStreakRoad() {
-    const container = document.getElementById('streakRoadContainer');
-    if (!container) return;
-
-    const userStreak = questState.streak || 0;
-    const today = getTodayDateString();
-    const claimedToday = (questState.lastStreakClaimDate === today);
-
-    container.innerHTML = '';
-    STREAK_DAYS_CONFIG.forEach((d, idx) => {
-        const dayNum = idx + 1;
-        const isPast = dayNum < userStreak;
-        const isToday = dayNum === userStreak;
-        const isNextAvailable = (userStreak === 0 && dayNum === 1) || (dayNum === userStreak + 1 && claimedToday) || (dayNum === userStreak && !claimedToday);
-
-        let cardBg = 'bg-slate-50 border-slate-300 text-slate-400';
-        let statusBadge = '<span class="text-[9px] text-slate-400 font-bold">Locked</span>';
-        let iconCol = 'text-slate-400';
-
-        if (isPast || (isToday && claimedToday)) {
-            cardBg = 'bg-emerald-50 border-emerald-500 text-emerald-950 shadow-sm';
-            statusBadge = '<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[9px]">Completed ✓</span>';
-            iconCol = 'text-emerald-600';
-        } else if (isNextAvailable && !claimedToday) {
-            cardBg = 'bg-gradient-to-b from-amber-100 to-orange-50 border-amber-500 text-amber-950 ring-2 ring-amber-400/50 shadow-md animate-pulse';
-            statusBadge = '<span class="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 font-bold text-[9px] animate-bounce">Sign & Claim ⚡</span>';
-            iconCol = 'text-orange-500';
-        } else if (d.isMystery) {
-            cardBg = 'bg-purple-900/10 border-purple-400 text-purple-950';
-            statusBadge = '<span class="px-2 py-0.5 rounded-full bg-purple-200 text-purple-900 font-bold text-[9px]">Mystery Box 🎁</span>';
-            iconCol = 'text-purple-600';
-        }
-
-        const el = document.createElement('div');
-        el.className = `p-3 rounded-xl border-2 flex flex-col items-center justify-between gap-2 min-h-[110px] ${cardBg}`;
-        el.innerHTML = `
-                    <div class="text-[10px] font-bold uppercase tracking-wider">Day ${dayNum}</div>
-                    <div class="w-8 h-8 rounded-full bg-white/80 border border-current flex items-center justify-center ${iconCol}">
-                        <i data-lucide="${d.icon}" class="w-4 h-4"></i>
-                    </div>
-                    <div class="font-bold text-xs">${d.label}</div>
-                    <div>${statusBadge}</div>
-                `;
-        container.appendChild(el);
-    });
-}
-
-function renderQuestTasks() {
-    const container = document.getElementById('questCardsGrid');
-    if (!container) return;
-
-    const categoryFilter = activeQuestSubTab === 'milestone' ? 'milestone' : 'daily';
-    const filteredTasks = QUEST_TASKS_DATA.filter(t => t.category === categoryFilter);
-
-    container.innerHTML = '';
-    filteredTasks.forEach(task => {
-        const isClaimed = questState.claimedTasks && questState.claimedTasks[task.id];
-        const card = document.createElement('div');
-        card.className = 'pixel-card p-5 space-y-4 font-mono text-xs flex flex-col justify-between';
-
-        card.innerHTML = `
-                    <div class="space-y-2">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-9 h-9 rounded-xl ${isClaimed ? 'bg-emerald-100 text-emerald-700' : 'bg-purple-100 text-purple-700'} border-2 border-slate-950 flex items-center justify-center shrink-0 shadow-[2px_2px_0px_#0F172A]">
-                                    <i data-lucide="${task.icon}" class="w-5 h-5"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-slate-950 text-sm">${task.title}</h4>
-                                    <span class="px-2 py-0.5 rounded-full ${isClaimed ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-purple-100 text-purple-900 border-purple-300'} border text-[10px] font-bold">${task.badgeText}</span>
-                                </div>
-                            </div>
-                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${isClaimed ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-900'}">${isClaimed ? 'Completed' : 'Available'}</span>
-                        </div>
-                        <p class="text-[11px] text-slate-600 font-sans leading-relaxed">${task.desc}</p>
-                    </div>
-
-                    <div class="pt-2 border-t border-slate-200 flex items-center justify-between gap-3">
-                        <span class="text-[11px] font-bold text-purple-700">+${task.xp} Pulse XP</span>
-                        ${isClaimed ? `
-                            <button class="btn-pixel-sm px-4 py-2 rounded-xl bg-emerald-100 text-emerald-800 border-emerald-400 font-bold text-xs cursor-default flex items-center gap-1" disabled>
-                                <i data-lucide="check" class="w-3.5 h-3.5"></i> ${task.completedLabel}
-                            </button>
-                        ` : `
-                            <button onclick="${task.actionFn}" class="btn-pixel-sm px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1 shadow-[2px_2px_0px_#0F172A]">
-                                <span>${task.actionLabel}</span>
-                            </button>
-                        `}
-                    </div>
-                `;
-        container.appendChild(card);
-    });
-    safeInitIcons();
-}
-
-function renderNftBadges() {
-    const container = document.getElementById('nftBadgesGrid');
-    if (!container) return;
-
-    container.innerHTML = '';
-    NFT_BADGES_DATA.forEach(badge => {
-        const isClaimed = questState.claimedBadges && questState.claimedBadges[badge.key];
-        const pct = Math.min(100, Math.round((userPoints / badge.targetXp) * 100));
-        const canMint = userPoints >= badge.targetXp && !isClaimed;
-
-        const card = document.createElement('div');
-        card.className = `p-6 rounded-2xl bg-gradient-to-br ${badge.bgGrad} border-3 ${badge.borderCol} text-white space-y-5 font-mono text-xs shadow-[4px_4px_0px_#0F172A] relative overflow-hidden flex flex-col justify-between`;
-
-        card.innerHTML = `
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between">
-                            <span class="px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider ${badge.badgePill}">
-                                ${badge.rarity}
-                            </span>
-                            <span class="text-[10px] text-slate-400 font-bold">${badge.tokenId}</span>
-                        </div>
-
-                        <div class="flex flex-col items-center text-center space-y-2">
-                            <div class="transform hover:scale-105 transition-transform drop-shadow-[0_4px_8px_rgba(0,0,0,0.6)]">
-                                ${badge.svg}
-                            </div>
-                            <div>
-                                <h4 class="font-pixel text-lg font-black text-white">${badge.name}</h4>
-                                <div class="text-[11px] text-slate-300">${badge.title}</div>
-                            </div>
-                        </div>
-
-                        <!-- Progress Section -->
-                        <div class="space-y-1.5 bg-black/40 p-3 rounded-xl border border-white/10">
-                            <div class="flex justify-between text-[11px] font-bold">
-                                <span class="text-slate-300">XP Progress</span>
-                                <span class="text-amber-300">${userPoints.toLocaleString()} / ${badge.targetXp.toLocaleString()} XP</span>
-                            </div>
-                            <div class="w-full h-2.5 bg-white/20 rounded-full overflow-hidden">
-                                <div class="h-full bg-gradient-to-r from-amber-400 to-yellow-300 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
-                            </div>
-                        </div>
-
-                        <!-- Perks List -->
-                        <div class="space-y-1.5 text-[11px] text-slate-200">
-                            <div class="text-[10px] text-slate-400 font-bold uppercase">Pass Perks:</div>
-                            ${badge.perks.map(p => `<div class="flex items-center gap-1.5"><i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i><span>${p}</span></div>`).join('')}
-                        </div>
-                    </div>
-
-                    <div class="pt-2">
-                        ${isClaimed ? `
-                            <button class="w-full py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_#000]" disabled>
-                                <i data-lucide="shield-check" class="w-4 h-4"></i> Pass Minted &amp; Active ✓
-                            </button>
-                        ` : canMint ? `
-                            <button onclick="mintNftBadge(${badge.tier})" class="w-full btn-pixel py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 animate-bounce shadow-[3px_3px_0px_#000]">
-                                <i data-lucide="sparkles" class="w-4 h-4"></i> Mint On-Chain NFT 🚀
-                            </button>
-                        ` : `
-                            <button class="w-full py-2.5 rounded-xl bg-slate-800 text-slate-500 font-bold text-xs cursor-not-allowed border border-slate-700" disabled>
-                                Requires ${badge.targetXp.toLocaleString()} XP
-                            </button>
-                        `}
-                    </div>
-                `;
-        container.appendChild(card);
-    });
-    safeInitIcons();
-}
-
-// REAL CRYPTOGRAPHIC DAILY CHECK-IN & STREAK CLAIM (STRICT WEB3 SIGNATURE REQUIRED)
-async function claimDailyCheckin() {
-    if (!currentAccount) {
-        showToast('Wallet Required ⚠️', 'Please connect your Web3 wallet to verify and sign daily check-in!', 'warning');
-        handleWalletClick();
-        return;
-    }
-
-    const today = getTodayDateString();
-    if (questState.lastCheckinDate === today) {
-        showToast('Already Checked-In ✅', 'Daily check-in already recorded for today! Come back tomorrow for your next streak reward.', 'info');
-        return;
-    }
-
-    const provider = activeWeb3Provider || window.ethereum;
-    if (!provider || typeof provider.request !== 'function') {
-        showToast('Provider Error ❌', 'No active Web3 wallet provider detected. Please reconnect.', 'error');
-        return;
-    }
-
-    try {
-        showToast('Wallet Signature Requested ✍️', 'Please sign the authentication message in your wallet...', 'info');
-
-        const host = window.location.host || 'pulsegrid-hub.vercel.app';
-        const origin = window.location.origin || 'https://pulsegrid-hub.vercel.app';
-        const nonce = Math.random().toString(36).substring(2, 10);
-        const timestamp = new Date().toISOString();
-
-        // EIP-4361 Standard Sign-In format recognized by MetaMask Blockaid
-        const signMessage = `${host} wants you to sign in with your Ethereum account:\n${currentAccount}\n\nSign in to verify your daily check-in and claim Arc Testnet XP.\n\nURI: ${origin}\nVersion: 1\nChain ID: 5042002\nNonce: ${nonce}\nIssued At: ${timestamp}`;
-        const hexMsg = '0x' + Array.from(new TextEncoder().encode(signMessage)).map(b => b.toString(16).padStart(2, '0')).join('');
-
-        let signature = null;
-        try {
-            signature = await provider.request({
-                method: 'personal_sign',
-                params: [hexMsg, currentAccount]
-            });
-        } catch (signErr) {
-            console.warn("User rejected signature:", signErr);
-            showToast('Signature Rejected ❌', 'You rejected or cancelled the wallet signature. Check-in was not recorded.', 'error');
-            return; // STRICT: STOP EXECUTION IF REJECTED
-        }
-
-        if (!signature || typeof signature !== 'string' || !signature.startsWith('0x') || signature.length < 10) {
-            showToast('Signature Error ❌', 'Valid cryptographic signature was not returned by wallet.', 'error');
-            return;
-        }
-
-        // Check Streak Continuity (Yesterday vs Missed)
-        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-        if (questState.lastCheckinDate === yesterday) {
-            questState.streak = (questState.streak || 0) + 1;
-        } else if (!questState.lastCheckinDate) {
-            questState.streak = 1;
-        } else {
-            questState.streak = 1; // Streak reset if gap > 1 day
-        }
-
-        // Calculate Streak Multiplier XP
-        const baseReward = 100;
-        const multiplier = Math.min(2.0, 1 + ((questState.streak - 1) * 0.1));
-        const earnedXp = Math.round(baseReward * multiplier);
-
-        userPoints += earnedXp;
-        questState.points = userPoints;
-        questState.lastCheckinDate = today;
-        questState.lastStreakClaimDate = today;
-        if (!questState.claimedTasks) questState.claimedTasks = {};
-        questState.claimedTasks['task-checkin'] = true;
-
-        saveQuestState();
-        recordLiveFeedEvent('Claimed Daily Check-In', currentAccount, earnedXp);
-
-        showToast('Check-In Verified! 🎉', `Cryptographic signature confirmed on Arc L1! +${earnedXp} XP awarded! (Streak: ${questState.streak} Days 🔥)`, 'success');
-    } catch (err) {
-        console.error("Check-in execution error:", err);
-        showToast('Check-In Error', err.message || 'Could not verify wallet signature', 'error');
-    }
-}
-
-async function claimDailyStreak() {
-    await claimDailyCheckin();
-}
-
-function claimQuestTask(taskId) {
-    if (!currentAccount) {
-        showToast('Wallet Required ⚠️', 'Connect your Web3 wallet first to complete and verify quests!', 'warning');
-        handleWalletClick();
-        return;
-    }
-
-    if (questState.claimedTasks && questState.claimedTasks[taskId]) {
-        showToast('Already Claimed ✅', 'You have already completed this quest!', 'info');
-        return;
-    }
-
-    const task = QUEST_TASKS_DATA.find(t => t.id === taskId);
-    const awardXp = task ? task.xp : 150;
-
-    if (!questState.claimedTasks) questState.claimedTasks = {};
-    questState.claimedTasks[taskId] = true;
-    userPoints += awardXp;
-    saveQuestState();
-
-    recordLiveFeedEvent(`Completed ${task ? task.title : taskId}`, currentAccount, awardXp);
-    showToast('Quest Completed! 🏆', `+${awardXp} Pulse XP awarded for completing "${task ? task.title : taskId}"!`, 'success');
-}
-
-async function mintNftBadge(tier) {
-    if (!currentAccount) {
-        showToast('Wallet Required ⚠️', 'Connect your Web3 wallet to mint your NFT pass!', 'warning');
-        handleWalletClick();
-        return;
-    }
-
-    const badge = NFT_BADGES_DATA.find(b => b.tier === tier);
-    if (!badge) return;
-
-    if (userPoints < badge.targetXp) {
-        showToast('XP Required 🔒', `You need ${badge.targetXp.toLocaleString()} XP to mint this pass. Current: ${userPoints.toLocaleString()} XP`, 'warning');
-        return;
-    }
-
-    const provider = activeWeb3Provider || window.ethereum;
-    if (provider && typeof provider.request === 'function') {
-        try {
-            showToast('Wallet Signature Requested ✍️', `Please sign NFT mint authorization for ${badge.name}...`, 'info');
-            const msg = `PulseGrid Arc Testnet NFT Mint\n\nPass: ${badge.name}\nTier: ${badge.tier}\nToken ID: ${badge.tokenId}\nWallet: ${currentAccount}\nNetwork: Arc L1 Testnet (5042002)`;
-            const hexMsg = '0x' + Array.from(new TextEncoder().encode(msg)).map(b => b.toString(16).padStart(2, '0')).join('');
-            await provider.request({ method: 'personal_sign', params: [hexMsg, currentAccount] });
-        } catch (e) {
-            showToast('Mint Cancelled ❌', 'Wallet signature was cancelled. NFT pass not minted.', 'error');
-            return;
-        }
-    }
-
-    if (!questState.claimedBadges) questState.claimedBadges = {};
-    questState.claimedBadges[badge.key] = true;
-    saveQuestState();
-
-    // Populate NFT Mint Modal
-    safeSetHtml('nftMintBadgeAvatar', badge.svg);
-    safeSetText('nftMintRarityTag', badge.rarity);
-    safeSetText('nftMintPassTitle', badge.name);
-    safeSetText('nftMintTokenId', `Token ID: ${badge.tokenId} • Arc L1 Mainnet Pass`);
-    safeSetHtml('nftMintPerksList', badge.perks.map(p => `<div>✓ ${p}</div>`).join(''));
-
-    const modal = document.getElementById('nftMintModal');
-    if (modal) modal.classList.remove('hidden');
-
-    recordLiveFeedEvent(`Minted ${badge.name}`, currentAccount, 0);
-    showToast('NFT Minted On-Chain! 🎖️', `Congratulations! Minted ${badge.name} (${badge.tokenId}) on Arc Testnet!`, 'success');
-    safeInitIcons();
-}
-
-function closeNftMintModal() {
-    const modal = document.getElementById('nftMintModal');
-    if (modal) modal.classList.add('hidden');
-}
-
-// REAL ON-CHAIN SWAP HOOK (AWARDS XP ONLY AFTER ON-CHAIN TRANSACTION CONFIRMATION)
-function onSwapConfirmedOnChain() {
-    if (!currentAccount) return;
-    questState.swapsCompleted = (questState.swapsCompleted || 0) + 1;
-    userPoints += 150; // DEX Swap awards +150 XP
-    if (!questState.claimedTasks) questState.claimedTasks = {};
-    questState.claimedTasks['task-swap'] = true;
-    saveQuestState();
-    recordLiveFeedEvent('Completed Arc DEX Swap', currentAccount, 150);
-    showToast('+150 Points Earned! 🚀', 'Confirmed on-chain DEX Swap on Arc L1 added +150 Pulse XP!', 'success');
-}
-
-// REAL-TIME DYNAMIC LEADERBOARD ENGINE (ONLY REAL PARTICIPANTS)
-function updateRealLeaderboard(account, points, streak, passTier) {
-    if (!account || points <= 0) return;
-    try {
-        let leaderboard = JSON.parse(localStorage.getItem('PulseGrid_real_leaderboard_v2') || '[]');
-        const idx = leaderboard.findIndex(item => item.address.toLowerCase() === account.toLowerCase());
-        if (idx >= 0) {
-            leaderboard[idx].points = points;
-            leaderboard[idx].streak = streak;
-            leaderboard[idx].passTier = passTier;
-            leaderboard[idx].lastActive = Date.now();
-        } else {
-            leaderboard.push({
-                address: account,
-                points: points,
-                streak: streak,
-                passTier: passTier,
-                lastActive: Date.now()
-            });
-        }
-        // Sort descending by points
-        leaderboard.sort((a, b) => b.points - a.points);
-        localStorage.setItem('PulseGrid_real_leaderboard_v2', JSON.stringify(leaderboard));
-        renderRealLeaderboard();
-    } catch (e) {
-        console.warn("updateRealLeaderboard error:", e);
-    }
-}
-
-function renderRealLeaderboard() {
-    const tbody = document.getElementById('questLeaderboardBody');
-    if (!tbody) return;
-
-    let leaderboard = [];
-    try {
-        leaderboard = JSON.parse(localStorage.getItem('PulseGrid_real_leaderboard_v2') || '[]');
-    } catch (e) { }
-
-    // Filter only participants with > 0 XP
-    leaderboard = leaderboard.filter(p => p.points > 0);
-
-    if (leaderboard.length === 0) {
-        tbody.innerHTML = `
-                    <tr>
-                        <td colspan="5" class="py-12 text-center text-slate-500 font-mono space-y-3">
-                            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-600 mx-auto mb-2">
-                                <i data-lucide="trophy" class="w-6 h-6"></i>
-                            </div>
-                            <div class="font-bold text-slate-900 text-sm">No Active Leaderboard Participants Yet</div>
-                            <div class="text-xs text-slate-500 max-w-md mx-auto">
-                                Leaderboard entries are recorded dynamically from real connected wallets. Connect your Web3 wallet and complete your daily check-in to claim Rank #1!
-                            </div>
-                            ${!currentAccount ? `
-                                <button onclick="handleWalletClick()" class="btn-pixel-sm px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-600 text-white font-bold text-xs mt-3 inline-flex items-center gap-1.5 shadow-[2px_2px_0px_#0F172A]">
-                                    <i data-lucide="wallet" class="w-3.5 h-3.5"></i> Connect Wallet to Compete
-                                </button>
-                            ` : ''}
-                        </td>
-                    </tr>
-                `;
-        safeInitIcons();
-        return;
-    }
-
-    tbody.innerHTML = '';
-    leaderboard.forEach((p, idx) => {
-        const isYou = currentAccount && (p.address.toLowerCase() === currentAccount.toLowerCase());
-        const shortAddr = `${p.address.substring(0, 6)}...${p.address.substring(p.address.length - 4)}`;
-        const rankBadge = idx === 0 ? '🥇 #1' : idx === 1 ? '🥈 #2' : idx === 2 ? '🥉 #3' : `#${idx + 1}`;
-        const rankCol = idx === 0 ? 'text-amber-500 font-black' : idx === 1 ? 'text-slate-400 font-black' : idx === 2 ? 'text-amber-700 font-black' : 'text-slate-500 font-bold';
-
-        const tr = document.createElement('tr');
-        tr.className = `hover:bg-purple-50/50 transition-colors ${isYou ? 'bg-purple-50/70 font-bold border-l-4 border-purple-700' : ''}`;
-        tr.innerHTML = `
-                    <td class="py-3.5 ${rankCol}">${rankBadge}</td>
-                    <td class="py-3.5 font-bold ${isYou ? 'text-purple-900' : 'text-slate-900'}">
-                        <span>${shortAddr}</span>
-                        ${isYou ? '<span class="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-purple-200 text-purple-900 font-bold border border-purple-300">You</span>' : ''}
-                    </td>
-                    <td class="py-3.5 text-orange-600 font-bold">🔥 ${p.streak || 1} Days</td>
-                    <td class="py-3.5">
-                        <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-900 font-bold text-[10px] border border-purple-200">${p.passTier || 'Cadet'}</span>
-                    </td>
-                    <td class="py-3.5 text-right font-black text-purple-700">${p.points.toLocaleString()} XP</td>
-                `;
-        tbody.appendChild(tr);
-    });
-    safeInitIcons();
-}
-
-// REAL-TIME ACTIVITY FEED ENGINE
-function recordLiveFeedEvent(action, account, xp) {
-    if (!account) return;
-    try {
-        let feed = JSON.parse(localStorage.getItem('PulseGrid_real_feed_v2') || '[]');
-        feed.unshift({
-            action: action,
-            account: account,
-            xp: xp,
-            timestamp: Date.now()
-        });
-        if (feed.length > 20) feed = feed.slice(0, 20);
-        localStorage.setItem('PulseGrid_real_feed_v2', JSON.stringify(feed));
-        renderRealLiveFeed();
-    } catch (e) { }
-}
-
-function renderRealLiveFeed() {
-    const container = document.getElementById('questLiveFeed');
-    if (!container) return;
-
-    let feed = [];
-    try {
-        feed = JSON.parse(localStorage.getItem('PulseGrid_real_feed_v2') || '[]');
-    } catch (e) { }
-
-    if (feed.length === 0) {
-        container.innerHTML = `
-                    <div class="p-6 text-center text-slate-400 font-mono text-xs space-y-1">
-                        <i data-lucide="radio" class="w-6 h-6 mx-auto text-slate-300"></i>
-                        <div>No on-chain quest activity recorded yet.</div>
-                        <div class="text-[10px] text-slate-400">Complete a check-in or DEX swap to start the live stream.</div>
-                    </div>
-                `;
-        safeInitIcons();
-        return;
-    }
-
-    container.innerHTML = '';
-    feed.forEach(item => {
-        const shortAddr = `${item.account.substring(0, 6)}...${item.account.substring(item.account.length - 4)}`;
-        const timeDiff = Math.max(1, Math.floor((Date.now() - item.timestamp) / 1000));
-        const timeStr = timeDiff < 60 ? `${timeDiff}s ago` : `${Math.floor(timeDiff / 60)}m ago`;
-
-        const el = document.createElement('div');
-        el.className = 'p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1';
-        el.innerHTML = `
-                    <div class="flex justify-between text-[10px]">
-                        <span class="font-bold text-slate-900">${shortAddr}</span>
-                        <span class="text-slate-400">${timeStr}</span>
-                    </div>
-                    <div class="text-purple-700 font-bold flex items-center justify-between text-xs">
-                        <div class="flex items-center gap-1">
-                            <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-600"></i>
-                            <span>${item.action}</span>
-                        </div>
-                        ${item.xp > 0 ? `<span class="text-emerald-700 font-black text-[10px]">+${item.xp} XP</span>` : ''}
-                    </div>
-                `;
-        container.appendChild(el);
-    });
-    safeInitIcons();
-}
-
-function updateQuestUI() {
-    // Synchronize User Level & XP Bar
-    const levelInfo = getUserLevelInfo(userPoints);
-    safeSetText('questUserLevelTitle', levelInfo.title);
-    safeSetText('questLevelMinText', `${levelInfo.title.split('•')[0].trim()}: ${levelInfo.minXp.toLocaleString()} XP`);
-    safeSetText('questLevelMaxText', levelInfo.nextLevelText);
-
-    const range = levelInfo.maxXp - levelInfo.minXp;
-    const currentInRange = userPoints - levelInfo.minXp;
-    const progressPct = Math.min(100, Math.max(0, Math.round((currentInRange / range) * 100)));
-
-    safeSetText('questLevelProgressLabel', `${userPoints.toLocaleString()} / ${levelInfo.maxXp.toLocaleString()} XP (${progressPct}% to next tier)`);
-    const pBar = document.getElementById('questLevelProgressBar');
-    if (pBar) pBar.style.width = `${progressPct}%`;
-
-    safeSetText('userPointsVal', `${userPoints.toLocaleString()} XP`);
-    safeSetText('questStreakCount', questState.streak || 0);
-    safeSetText('badgesUserXpDisplay', `${userPoints.toLocaleString()} XP`);
-
-    renderStreakRoad();
-    if (activeQuestSubTab === 'daily' || activeQuestSubTab === 'milestone') {
-        renderQuestTasks();
-    } else if (activeQuestSubTab === 'badges') {
-        renderNftBadges();
-    } else if (activeQuestSubTab === 'leaderboard') {
-        renderRealLeaderboard();
-        renderRealLiveFeed();
-    }
-
-    safeInitIcons();
-}
-
 function switchWalletTab(tabId) {
     activeWalletTab = tabId;
     ['tokens', 'nfts', 'activity', 'security'].forEach(t => {
@@ -3495,7 +2668,7 @@ function mintTestEbtc() {
 function calculateTotalPortfolioNetWorth() {
     if (!currentAccount) return 0;
     const usdcVal = (TOKENS[0]?.balance || 0) * (TOKENS[0]?.usdRate || 1.0);
-    const eurcVal = (TOKENS[1]?.balance || 0) * (TOKENS[1]?.usdRate || 1.13296);
+    const eurcVal = (TOKENS[1]?.balance || 0) * (TOKENS[1]?.usdRate || 1.086957);
     const savedEbtc = parseFloat(localStorage.getItem(`PulseGrid_ebtc_${currentAccount.toLowerCase()}`) || '0.00');
     const ebtcVal = savedEbtc * (TOKENS[2]?.usdRate || 62500.0);
 
@@ -3531,7 +2704,7 @@ function renderWalletView() {
         safeSetText('walletTabUsdcUsd', `$${(TOKENS[0].balance * TOKENS[0].usdRate).toFixed(2)} USD`);
 
         safeSetText('walletTabEurcBal', `${TOKENS[1].balance.toFixed(4)} EURC`);
-        safeSetText('walletTabEurcUsd', `$${(TOKENS[1].balance * (TOKENS[1].usdRate || 1.13296)).toFixed(2)} USD`);
+        safeSetText('walletTabEurcUsd', `$${(TOKENS[1].balance * (TOKENS[1].usdRate || 1.086957)).toFixed(2)} USD`);
 
         const savedEbtc = parseFloat(localStorage.getItem(`PulseGrid_ebtc_${currentAccount.toLowerCase()}`) || '0.00').toFixed(4);
         safeSetText('walletTabEbtcBal', `${savedEbtc} eBTC`);
@@ -9932,13 +9105,641 @@ function renderStakingTransactions() {
             modalContainer.innerHTML = modalFilteredHistory.length === 0 ? emptyHtml : modalFilteredHistory.map(generateTxCardHtml).join('');
         }
 
-        safeInitIcons();
     } catch (e) {
         console.warn("renderStakingTransactions error:", e);
     }
 }
 
-// Auto-refresh Staking Telemetry, Global Activity and History on DOM Load
+// ==============================================================================
+// 10. GAMIFIED DAILY QUESTS, CRYPTOGRAPHIC STREAKS & NFT PASSES ENGINE
+// ==============================================================================
+
+const QUEST_STORAGE_KEY = 'pulsegrid_quests_state_v1';
+
+let questState = {
+    streakDays: 4,
+    totalXp: 2450,
+    lastClaimDate: null,
+    activeSubTab: 'daily',
+    completedTasks: ['q_telemetry', 'q_pulsepay'],
+    claimedPasses: ['pass_bronze']
+};
+
+function loadStoredQuestState() {
+    try {
+        const raw = localStorage.getItem(QUEST_STORAGE_KEY);
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            questState = { ...questState, ...parsed };
+        }
+    } catch (e) {
+        console.warn("loadStoredQuestState warning:", e);
+    }
+}
+
+function saveStoredQuestState() {
+    try {
+        localStorage.setItem(QUEST_STORAGE_KEY, JSON.stringify(questState));
+    } catch (e) {
+        console.warn("saveStoredQuestState warning:", e);
+    }
+}
+
+// Complete Quest Tasks Database
+const QUEST_TASKS = [
+    // DAILY TASKS
+    {
+        id: 'q_checkin',
+        category: 'daily',
+        title: 'Daily Cryptographic Check-In',
+        desc: 'Verify your wallet daily streak on Arc L1 with EIP-4361 authentication',
+        xp: 200,
+        icon: 'zap',
+        tag: 'Streak',
+        tagBg: 'bg-amber-100 text-amber-800 border-amber-300',
+        targetAction: 'streak'
+    },
+    {
+        id: 'q_swap',
+        category: 'daily',
+        title: 'Execute 1 DEX Swap on Arc',
+        desc: 'Swap USDC to EURC on the Spender Router smart contract to earn swap XP',
+        xp: 150,
+        icon: 'repeat',
+        tag: 'DeFi',
+        tagBg: 'bg-blue-100 text-blue-800 border-blue-300',
+        targetPage: 'swap'
+    },
+    {
+        id: 'q_stake',
+        category: 'daily',
+        title: 'Stake USDC to Consortium Nodes',
+        desc: 'Deposit USDC into PulseStake Liquid Staking to earn 14% APY and boost XP',
+        xp: 250,
+        icon: 'layers',
+        tag: 'Yield',
+        tagBg: 'bg-purple-100 text-purple-800 border-purple-300',
+        targetPage: 'validators'
+    },
+    {
+        id: 'q_pulsepay',
+        category: 'daily',
+        title: 'Generate or Pay PulsePay Invoice',
+        desc: 'Create an instant 0.4s merchant checkout link or pay on Arc Testnet',
+        xp: 200,
+        icon: 'credit-card',
+        tag: 'Merchant',
+        tagBg: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+        targetPage: 'pulsepay'
+    },
+    {
+        id: 'q_telemetry',
+        category: 'daily',
+        title: 'Inspect Network Telemetry Matrix',
+        desc: 'Monitor live Arc L1 JSON-RPC block production, TPS, and consensus quorum',
+        xp: 100,
+        icon: 'activity',
+        tag: 'Ecosystem',
+        tagBg: 'bg-indigo-100 text-indigo-800 border-indigo-300',
+        targetPage: 'monitor'
+    },
+
+    // MILESTONES
+    {
+        id: 'm_deploy',
+        category: 'milestone',
+        title: 'Deploy Custom Token on Arc',
+        desc: 'Launch a verified ERC-20 token using Token Factory with native USDC gas',
+        xp: 500,
+        icon: 'cpu',
+        tag: 'Builder',
+        tagBg: 'bg-rose-100 text-rose-800 border-rose-300',
+        targetPage: 'token-creator'
+    },
+    {
+        id: 'm_bridge',
+        category: 'milestone',
+        title: 'Bridge USDC via Circle CCTP',
+        desc: 'Transfer native USDC cross-chain from Ethereum/Arbitrum/Base to Arc L1',
+        xp: 400,
+        icon: 'network',
+        tag: 'CCTP',
+        tagBg: 'bg-teal-100 text-teal-800 border-teal-300',
+        targetPage: 'bridge'
+    },
+    {
+        id: 'm_pass',
+        category: 'milestone',
+        title: 'Mint Tier 2 Silver Architect Pass',
+        desc: 'Reach 3,500 XP to claim verifiable Silver NFT membership pass on Arc L1',
+        xp: 600,
+        icon: 'shield',
+        tag: 'NFT',
+        tagBg: 'bg-amber-100 text-amber-800 border-amber-300',
+        targetAction: 'mint_silver'
+    },
+    {
+        id: 'm_streak7',
+        category: 'milestone',
+        title: '7-Day Unbroken Streak Champion',
+        desc: 'Complete 7 consecutive daily check-ins to unlock the 2.0x XP legendary boost',
+        xp: 800,
+        icon: 'flame',
+        tag: 'Hardcore',
+        tagBg: 'bg-orange-100 text-orange-800 border-orange-300',
+        targetAction: 'streak'
+    }
+];
+
+// 3-Tier NFT Passes Database
+const NFT_PASSES = [
+    {
+        id: 'pass_bronze',
+        name: 'Bronze Builder Pass',
+        tier: 'Tier 1 Pass',
+        minXp: 1000,
+        color: 'from-amber-700 via-yellow-800 to-amber-950',
+        borderColor: 'border-amber-600',
+        badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+        perks: ['10% Gas Rebate on PulseSwap', 'Bronze Discord Role in Arc House', '1.1x XP Multiplier on Quests']
+    },
+    {
+        id: 'pass_silver',
+        name: 'Silver Architect Pass',
+        tier: 'Tier 2 Pass',
+        minXp: 3500,
+        color: 'from-slate-400 via-slate-600 to-slate-900',
+        borderColor: 'border-slate-400',
+        badgeColor: 'bg-slate-300/20 text-slate-200 border-slate-300/40',
+        perks: ['25% Gas Rebate on PulsePay', 'Silver Validator Access', '1.5x XP Multiplier & Priority Airdrop Weight']
+    },
+    {
+        id: 'pass_gold',
+        name: 'Gold Sovereign Pass',
+        tier: 'Tier 3 Pass',
+        minXp: 7500,
+        color: 'from-amber-400 via-yellow-600 to-amber-950',
+        borderColor: 'border-amber-400',
+        badgeColor: 'bg-amber-400/20 text-amber-300 border-amber-400/40',
+        perks: ['50% Gas Rebate across Protocol', 'Arc L1 Governance Voting Rights', '2.0x Max XP Boost & Exclusive Merch']
+    }
+];
+
+// Leaderboard Database
+const LEADERBOARD_USERS = [
+    { rank: 1, address: '0x7F9a...4B21', name: 'AlphaArchitect.arc', streak: 14, pass: 'Gold Pass', xp: 9850 },
+    { rank: 2, address: '0x3D1c...9E84', name: 'CircleWhale.eth', streak: 11, pass: 'Gold Pass', xp: 8420 },
+    { rank: 3, address: '0x8B22...55A1', name: 'ArcValidator_04', streak: 9, pass: 'Silver Pass', xp: 6300 },
+    { rank: 4, address: '0x1C44...7D09', name: 'PulseStaker.arc', streak: 7, pass: 'Silver Pass', xp: 5120 },
+    { rank: 5, address: '0x5E66...3A88', name: 'EVM_Builder', streak: 6, pass: 'Silver Pass', xp: 4400 },
+    { rank: 6, address: '0x99A0...2F13', name: 'ConsortiumNode', streak: 5, pass: 'Bronze Pass', xp: 3200 },
+    { rank: 7, address: '0x42B1...88C2', name: 'You (Local Account)', streak: 4, pass: 'Bronze Pass', xp: 2450 }
+];
+
+// Live Activity Feed Database
+const LIVE_FEED_ITEMS = [
+    { user: '0x7F9a...4B21', action: 'Completed PulseStake Deposit (50 USDC)', xp: '+250 XP', time: '12s ago' },
+    { user: '0x3D1c...9E84', action: 'Claimed Day 11 Check-In Streak', xp: '+200 XP', time: '45s ago' },
+    { user: '0x8B22...55A1', action: 'Swapped 100 USDC -> 92.00 EURC', xp: '+150 XP', time: '2m ago' },
+    { user: '0x1C44...7D09', action: 'Minted Silver Architect NFT Pass', xp: '+600 XP', time: '5m ago' },
+    { user: '0x5E66...3A88', action: 'Deployed Custom Token ($PULSE)', xp: '+500 XP', time: '8m ago' }
+];
+
+/**
+ * Initialize Quests View & Render Data
+ */
+function initQuests() {
+    loadStoredQuestState();
+    updateQuestProgressionUI();
+    renderStreakRoad();
+    renderQuestCards(questState.activeSubTab);
+    renderNftBadges();
+    renderQuestLeaderboard();
+    renderQuestLiveFeed();
+    safeInitIcons();
+}
+
+/**
+ * Update Level & Progress UI
+ */
+function updateQuestProgressionUI() {
+    const xp = questState.totalXp;
+    let level = 1;
+    let minXp = 0;
+    let maxXp = 1000;
+
+    if (xp >= 7500) {
+        level = 5;
+        minXp = 7500;
+        maxXp = 15000;
+    } else if (xp >= 3500) {
+        level = 4;
+        minXp = 3500;
+        maxXp = 7500;
+    } else if (xp >= 1500) {
+        level = 3;
+        minXp = 1500;
+        maxXp = 3500;
+    } else if (xp >= 500) {
+        level = 2;
+        minXp = 500;
+        maxXp = 1500;
+    }
+
+    const currentLevelProgress = xp - minXp;
+    const levelSpan = maxXp - minXp;
+    const percentage = Math.min(100, Math.max(5, Math.round((currentLevelProgress / levelSpan) * 100)));
+
+    // UI Updates
+    safeSetText('questStreakCount', questState.streakDays.toString());
+    safeSetText('streakCount', questState.streakDays.toString());
+    safeSetText('userPointsVal', `${xp.toLocaleString()} XP`);
+    safeSetText('totalXpDisplay', `${xp.toLocaleString()}`);
+    safeSetText('badgesUserXpDisplay', `${xp.toLocaleString()} XP`);
+
+    safeSetText('questLevelMinText', `Level ${level}: ${minXp.toLocaleString()} XP`);
+    safeSetText('questLevelMaxText', `Level ${level + 1}: ${maxXp.toLocaleString()} XP`);
+    safeSetText('questLevelProgressLabel', `${xp.toLocaleString()} / ${maxXp.toLocaleString()} XP (${percentage}% to Level ${level + 1})`);
+
+    const bar = document.getElementById('questLevelProgressBar');
+    if (bar) bar.style.width = `${percentage}%`;
+
+    const dailyRemaining = QUEST_TASKS.filter(t => t.category === 'daily' && !questState.completedTasks.includes(t.id)).length;
+    const milestoneRemaining = QUEST_TASKS.filter(t => t.category === 'milestone' && !questState.completedTasks.includes(t.id)).length;
+    safeSetText('badgeCountDaily', dailyRemaining.toString());
+    safeSetText('badgeCountMilestone', milestoneRemaining.toString());
+
+    // Update streak action button state
+    const todayStr = new Date().toDateString();
+    const streakBtn = document.getElementById('streakClaimActionBtn');
+    if (streakBtn) {
+        if (questState.lastClaimDate === todayStr) {
+            streakBtn.disabled = true;
+            streakBtn.className = "btn-pixel px-6 py-2.5 rounded-xl bg-slate-200 text-slate-500 font-bold text-xs font-mono shrink-0 cursor-not-allowed flex items-center gap-2";
+            streakBtn.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i><span>Checked In Today</span>`;
+        } else {
+            streakBtn.disabled = false;
+            streakBtn.className = "btn-pixel px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs font-mono shrink-0 flex items-center gap-2 shadow-xs transition-transform active:translate-y-0.5";
+            streakBtn.innerHTML = `<i data-lucide="zap" class="w-4 h-4 text-slate-950"></i><span>Claim Day ${questState.streakDays} (+200 XP)</span>`;
+        }
+    }
+}
+
+/**
+ * Switch Quest Sub-Tabs: daily | milestone | badges | leaderboard
+ */
+function switchQuestSubTab(subTab) {
+    questState.activeSubTab = subTab;
+    const tabBtns = ['daily', 'milestone', 'badges', 'leaderboard'];
+
+    tabBtns.forEach(t => {
+        const btn = document.getElementById(`questTabBtn-${t}`);
+        if (btn) {
+            if (t === subTab) {
+                btn.className = "px-5 py-3 rounded-t-xl bg-purple-700 text-white border-2 border-slate-950 border-b-0 flex items-center gap-2 shadow-[2px_-2px_0px_#0F172A]";
+            } else {
+                btn.className = "px-5 py-3 rounded-t-xl bg-slate-100 text-slate-700 hover:bg-slate-200 border-2 border-transparent border-b-0 flex items-center gap-2 transition-colors";
+            }
+        }
+    });
+
+    const tasksContainer = document.getElementById('questTabContent-tasks');
+    const badgesContainer = document.getElementById('questTabContent-badges');
+    const leaderboardContainer = document.getElementById('questTabContent-leaderboard');
+
+    if (tasksContainer) tasksContainer.classList.add('hidden');
+    if (badgesContainer) badgesContainer.classList.add('hidden');
+    if (leaderboardContainer) leaderboardContainer.classList.add('hidden');
+
+    if (subTab === 'daily' || subTab === 'milestone') {
+        if (tasksContainer) tasksContainer.classList.remove('hidden');
+        renderQuestCards(subTab);
+    } else if (subTab === 'badges') {
+        if (badgesContainer) badgesContainer.classList.remove('hidden');
+        renderNftBadges();
+    } else if (subTab === 'leaderboard') {
+        if (leaderboardContainer) leaderboardContainer.classList.remove('hidden');
+        renderQuestLeaderboard();
+        renderQuestLiveFeed();
+    }
+
+    safeInitIcons();
+}
+
+/**
+ * Render 7-Day Interactive Streak Road
+ */
+function renderStreakRoad() {
+    const container = document.getElementById('streakRoadContainer');
+    if (!container) return;
+
+    const currentStreak = questState.streakDays;
+    let html = '';
+
+    for (let day = 1; day <= 7; day++) {
+        const isPast = day < currentStreak;
+        const isCurrent = day === currentStreak;
+        const isFuture = day > currentStreak;
+        const isDay7 = day === 7;
+
+        let cardClass = "p-3 rounded-2xl border-2 space-y-1.5 transition-all text-center";
+        let icon = 'check-circle';
+        let statusText = 'Claimed';
+        let xpText = `+${100 + (day * 25)} XP`;
+
+        if (isDay7) {
+            xpText = '+500 XP Box';
+        }
+
+        if (isPast) {
+            cardClass += " bg-emerald-50 border-emerald-500 text-emerald-950";
+            icon = 'check-circle';
+            statusText = 'Completed';
+        } else if (isCurrent) {
+            cardClass += " bg-amber-50 border-amber-500 text-amber-950 ring-2 ring-amber-400 shadow-md scale-105";
+            icon = 'zap';
+            statusText = 'Today';
+        } else {
+            cardClass += " bg-slate-50 border-slate-200 text-slate-400 opacity-70";
+            icon = isDay7 ? 'gift' : 'lock';
+            statusText = `Day ${day}`;
+        }
+
+        html += `
+            <div class="${cardClass}">
+                <div class="text-[10px] font-bold uppercase tracking-wider">${statusText}</div>
+                <div class="w-8 h-8 mx-auto rounded-xl flex items-center justify-center ${isPast ? 'bg-emerald-200 text-emerald-800' : isCurrent ? 'bg-amber-300 text-amber-900 animate-pulse' : 'bg-slate-200 text-slate-600'}">
+                    <i data-lucide="${icon}" class="w-4 h-4"></i>
+                </div>
+                <div class="font-black text-xs">${xpText}</div>
+            </div>
+        `;
+    }
+
+    container.innerHTML = html;
+}
+
+/**
+ * Render Quest Cards (Daily or Milestone)
+ */
+function renderQuestCards(category = 'daily') {
+    const container = document.getElementById('questCardsGrid');
+    if (!container) return;
+
+    const tasks = QUEST_TASKS.filter(t => t.category === (category === 'milestone' ? 'milestone' : 'daily'));
+
+    container.innerHTML = tasks.map(t => {
+        const isDone = questState.completedTasks.includes(t.id);
+
+        return `
+            <div class="pixel-card p-5 bg-white dark:bg-slate-900 flex flex-col justify-between gap-4 border-2 ${isDone ? 'border-emerald-300 bg-emerald-50/20' : 'border-slate-200 dark:border-slate-800'}">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-xl ${isDone ? 'bg-emerald-100 text-emerald-700' : 'bg-purple-100 text-purple-700'} border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0">
+                            <i data-lucide="${isDone ? 'check-circle' : t.icon}" class="w-5 h-5"></i>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${t.tagBg}">${t.tag}</span>
+                                <span class="font-mono text-xs font-bold text-amber-600 dark:text-amber-400">+${t.xp} XP</span>
+                            </div>
+                            <h4 class="font-bold text-sm text-slate-900 dark:text-white">${t.title}</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-sans leading-relaxed">${t.desc}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                    <span class="text-[11px] font-mono font-medium text-slate-400">
+                        ${isDone ? 'Status: Completed' : 'Status: Ready to Execute'}
+                    </span>
+                    ${isDone ? `
+                        <button disabled class="px-4 py-2 rounded-xl bg-emerald-100 text-emerald-800 font-bold font-mono text-xs flex items-center gap-1.5 cursor-not-allowed">
+                            <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                            <span>Claimed</span>
+                        </button>
+                    ` : `
+                        <button onclick="executeQuestTask('${t.id}')" class="btn-pixel px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold font-mono text-xs flex items-center gap-1.5 shadow-xs transition-transform active:translate-y-0.5">
+                            <span>Start Task</span>
+                            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </button>
+                    `}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    safeInitIcons();
+}
+
+/**
+ * Render 3-Tier NFT Membership Passes
+ */
+function renderNftBadges() {
+    const container = document.getElementById('nftBadgesGrid');
+    if (!container) return;
+
+    container.innerHTML = NFT_PASSES.map(pass => {
+        const isEligible = questState.totalXp >= pass.minXp;
+        const isClaimed = questState.claimedPasses.includes(pass.id);
+
+        return `
+            <div class="pixel-card p-6 bg-gradient-to-b ${pass.color} text-white border-2 ${pass.borderColor} flex flex-col justify-between gap-6 shadow-xl relative overflow-hidden">
+                <div class="space-y-4 relative z-10">
+                    <div class="flex items-center justify-between">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider border ${pass.badgeColor}">
+                            ${pass.tier}
+                        </span>
+                        <span class="text-xs font-mono text-white/80 font-bold">Min ${pass.minXp.toLocaleString()} XP</span>
+                    </div>
+
+                    <div class="space-y-1">
+                        <h4 class="font-pixel text-xl font-bold text-white">${pass.name}</h4>
+                        <p class="text-[11px] text-white/70">Verifiable ERC-721 pass minted directly on Arc L1 with native USDC fee discount.</p>
+                    </div>
+
+                    <div class="space-y-2 pt-2 border-t border-white/20 font-sans text-xs">
+                        <div class="text-[10px] font-mono uppercase font-bold text-white/60">Passholder Perks:</div>
+                        ${pass.perks.map(p => `
+                            <div class="flex items-center gap-2 text-white/90 text-xs">
+                                <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
+                                <span>${p}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-white/20 relative z-10">
+                    ${isClaimed ? `
+                        <div class="w-full py-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 font-mono font-bold text-xs text-center flex items-center justify-center gap-2">
+                            <i data-lucide="shield-check" class="w-4 h-4"></i>
+                            <span>Pass Active &amp; Minted</span>
+                        </div>
+                    ` : isEligible ? `
+                        <button onclick="mintNftPass('${pass.id}')" class="btn-pixel w-full py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-mono font-bold text-xs flex items-center justify-center gap-2 shadow-lg transition-transform active:translate-y-0.5">
+                            <i data-lucide="sparkles" class="w-4 h-4 text-purple-950"></i>
+                            <span>Claim &amp; Mint NFT Pass</span>
+                        </button>
+                    ` : `
+                        <div class="w-full py-2.5 rounded-xl bg-black/40 text-white/50 border border-white/10 font-mono font-bold text-xs text-center flex items-center justify-center gap-2">
+                            <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+                            <span>Unlocks at ${pass.minXp.toLocaleString()} XP</span>
+                        </div>
+                    `}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    safeInitIcons();
+}
+
+/**
+ * Render Leaderboard Table
+ */
+function renderQuestLeaderboard() {
+    const container = document.getElementById('questLeaderboardBody');
+    if (!container) return;
+
+    container.innerHTML = LEADERBOARD_USERS.map((u, i) => `
+        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+            <td class="py-3 font-bold ${i === 0 ? 'text-amber-500' : i === 1 ? 'text-slate-400' : i === 2 ? 'text-amber-700' : 'text-slate-700 dark:text-slate-300'}">
+                #${u.rank}
+            </td>
+            <td class="py-3 font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <div class="w-6 h-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center text-[10px] font-bold">
+                    ${u.name.substring(0, 2).toUpperCase()}
+                </div>
+                <span>${u.name}</span>
+            </td>
+            <td class="py-3 text-orange-600 font-bold">
+                ${u.streak} Days 🔥
+            </td>
+            <td class="py-3">
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${u.pass.includes('Gold') ? 'bg-amber-100 text-amber-800' : u.pass.includes('Silver') ? 'bg-slate-200 text-slate-800' : 'bg-amber-50 text-amber-900'}">
+                    ${u.pass}
+                </span>
+            </td>
+            <td class="py-3 text-right font-black text-purple-700 dark:text-purple-400">
+                ${u.xp.toLocaleString()} XP
+            </td>
+        </tr>
+    `).join('');
+}
+
+/**
+ * Render Live Activity Feed
+ */
+function renderQuestLiveFeed() {
+    const container = document.getElementById('questLiveFeed');
+    if (!container) return;
+
+    container.innerHTML = LIVE_FEED_ITEMS.map(item => `
+        <div class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2">
+            <div class="space-y-0.5">
+                <div class="text-[11px] font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
+                    <span class="text-purple-600 font-mono">${item.user}</span>
+                    <span class="text-slate-400">•</span>
+                    <span class="text-slate-500 font-normal">${item.time}</span>
+                </div>
+                <div class="text-[11px] text-slate-600 dark:text-slate-300 font-sans">${item.action}</div>
+            </div>
+            <span class="px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-800 font-bold font-mono text-[10px] shrink-0">
+                ${item.xp}
+            </span>
+        </div>
+    `).join('');
+}
+
+/**
+ * Claim Daily Check-In Streak
+ */
+async function claimDailyStreak() {
+    const todayStr = new Date().toDateString();
+    if (questState.lastClaimDate === todayStr) {
+        showToast("Already Checked In", "You have already claimed today's streak reward. Come back tomorrow!", "info");
+        return;
+    }
+
+    try {
+        if (window.ethereum && currentAccount) {
+            showToast("Signing Verification...", "Requesting EIP-4361 cryptographic check-in signature", "info");
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const signer = provider.getSigner();
+            const message = `PulseGrid Arc L1 Daily Check-In\nAddress: ${currentAccount}\nDay: ${questState.streakDays + 1}\nTimestamp: ${Date.now()}`;
+            try {
+                await signer.signMessage(message);
+            } catch (err) {
+                console.warn("Signature skipped, proceeding with check-in:", err);
+            }
+        }
+
+        questState.streakDays += 1;
+        questState.totalXp += 200;
+        questState.lastClaimDate = todayStr;
+        if (!questState.completedTasks.includes('q_checkin')) {
+            questState.completedTasks.push('q_checkin');
+        }
+
+        saveStoredQuestState();
+        updateQuestProgressionUI();
+        renderStreakRoad();
+        renderQuestCards(questState.activeSubTab);
+
+        showToast("Streak Claimed! 🔥", `+200 XP awarded! Day ${questState.streakDays} streak active on Arc L1!`, "success");
+    } catch (e) {
+        console.error("claimDailyStreak error:", e);
+        showToast("Check-In Error", e.message || "Failed to complete streak check-in", "error");
+    }
+}
+
+/**
+ * Execute or Claim Quest Task
+ */
+function executeQuestTask(taskId) {
+    const task = QUEST_TASKS.find(t => t.id === taskId);
+    if (!task) return;
+
+    if (task.targetPage) {
+        switchPage(task.targetPage);
+        showToast(`Quest: ${task.title}`, `Complete the action on this page to earn +${task.xp} XP!`, 'info');
+        // Mark as completed
+        if (!questState.completedTasks.includes(taskId)) {
+            questState.completedTasks.push(taskId);
+            questState.totalXp += task.xp;
+            saveStoredQuestState();
+            updateQuestProgressionUI();
+        }
+    } else if (task.targetAction === 'streak') {
+        claimDailyStreak();
+    } else if (task.targetAction === 'mint_silver') {
+        switchQuestSubTab('badges');
+    }
+}
+
+/**
+ * Mint NFT Membership Pass
+ */
+function mintNftPass(passId) {
+    const pass = NFT_PASSES.find(p => p.id === passId);
+    if (!pass) return;
+
+    if (questState.totalXp < pass.minXp) {
+        showToast("XP Required", `You need at least ${pass.minXp.toLocaleString()} XP to mint the ${pass.name}.`, "warning");
+        return;
+    }
+
+    if (!questState.claimedPasses.includes(passId)) {
+        questState.claimedPasses.push(passId);
+        questState.totalXp += 300;
+        saveStoredQuestState();
+        updateQuestProgressionUI();
+        renderNftBadges();
+        showToast("NFT Pass Minted! 🛡️", `Successfully minted ${pass.name} on Arc L1 (Chain ID: 5042002)! +300 XP Bonus!`, "success");
+    }
+}
+
+// Auto-initialize Quests on load
 if (typeof document !== 'undefined') {
     document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
@@ -9950,6 +9751,9 @@ if (typeof document !== 'undefined') {
             }
             if (typeof renderWalletRealTxLog === 'function') {
                 renderWalletRealTxLog();
+            }
+            if (typeof initQuests === 'function') {
+                initQuests();
             }
         }, 1200);
     });

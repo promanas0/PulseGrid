@@ -58,12 +58,16 @@
 
     <style>
         body {
-            background-color: #FFFFFF;
+            background-color: #F8FAFC;
             color: #0F172A;
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             overflow-x: hidden;
             top: 0px !important;
             position: static !important;
+            background-image: 
+                radial-gradient(at 15% 15%, rgba(124, 58, 237, 0.04) 0px, transparent 50%),
+                radial-gradient(at 85% 85%, rgba(13, 148, 136, 0.04) 0px, transparent 50%);
+            background-attachment: fixed;
         }
 
         /* Hide Google Translate Iframe & Top Overlay Banner */
@@ -82,124 +86,165 @@
         }
 
         .pixel-grid-bg {
-            background-color: #FFFFFF;
+            background-color: transparent;
         }
 
-        /* Pixel Cards */
-        .pixel-card {
+        /* Modern Glass & Clean Card System */
+        .pixel-card,
+        .card,
+        .modern-card {
             background-color: #FFFFFF;
-            border: 3px solid #0F172A;
-            border-radius: 16px;
-            box-shadow: 5px 5px 0px #0F172A;
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            border: 1px solid rgba(226, 232, 240, 0.9) !important;
+            border-radius: 20px !important;
+            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02) !important;
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .pixel-card:hover {
-            box-shadow: 7px 7px 0px #7B2CBF;
+        .pixel-card:hover,
+        .card:hover,
+        .modern-card:hover {
+            box-shadow: 0 12px 28px -4px rgba(124, 58, 237, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.03) !important;
+            border-color: rgba(192, 132, 252, 0.45) !important;
+            transform: translateY(-2px);
         }
 
         .pixel-card-purple {
-            background-color: #FFFFFF;
-            border: 3px solid #0F172A;
-            border-radius: 16px;
-            box-shadow: 6px 6px 0px #7B2CBF;
+            background: linear-gradient(180deg, #FFFFFF 0%, #FAF5FF 100%) !important;
+            border: 1px solid rgba(192, 132, 252, 0.4) !important;
+            border-radius: 20px !important;
+            box-shadow: 0 4px 20px -2px rgba(124, 58, 237, 0.06) !important;
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .pixel-card-purple:hover {
+            box-shadow: 0 12px 30px -4px rgba(124, 58, 237, 0.12) !important;
+            border-color: rgba(168, 85, 247, 0.6) !important;
+            transform: translateY(-2px);
         }
 
-        .pixel-card-teal {
-            background-color: #FFFFFF;
-            border: 3px solid #0F172A;
-            border-radius: 16px;
-            box-shadow: 6px 6px 0px #008080;
-        }
-
+        .pixel-card-teal,
         .pixel-card-emerald {
-            background-color: #FFFFFF;
-            border: 3px solid #0F172A;
-            border-radius: 16px;
-            box-shadow: 6px 6px 0px #007F73;
+            background: linear-gradient(180deg, #FFFFFF 0%, #F0FDF4 100%) !important;
+            border: 1px solid rgba(110, 231, 183, 0.4) !important;
+            border-radius: 20px !important;
+            box-shadow: 0 4px 20px -2px rgba(16, 185, 129, 0.06) !important;
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .pixel-card-teal:hover,
+        .pixel-card-emerald:hover {
+            box-shadow: 0 12px 30px -4px rgba(16, 185, 129, 0.12) !important;
+            border-color: rgba(52, 211, 153, 0.6) !important;
+            transform: translateY(-2px);
         }
 
-        /* Pixel Buttons */
-        .btn-pixel {
+        /* Modern Sleek Buttons */
+        .btn-pixel,
+        .btn-neo,
+        .btn-primary {
             font-family: 'Plus Jakarta Sans', sans-serif;
             font-weight: 700;
-            border: 2.5px solid #0F172A;
-            box-shadow: 4px 4px 0px #0F172A;
-            transition: all 0.1s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 14px !important;
+            box-shadow: 0 4px 14px 0 rgba(124, 58, 237, 0.22) !important;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             user-select: none;
+            cursor: pointer;
         }
 
-        .btn-pixel:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 6px 6px 0px #0F172A;
+        .btn-pixel:hover,
+        .btn-neo:hover,
+        .btn-primary:hover {
+            transform: translateY(-1.5px);
+            box-shadow: 0 8px 22px 0 rgba(124, 58, 237, 0.32) !important;
+            filter: brightness(1.05);
         }
 
-        .btn-pixel:active {
-            transform: translate(2px, 2px);
-            box-shadow: 1px 1px 0px #0F172A;
+        .btn-pixel:active,
+        .btn-neo:active,
+        .btn-primary:active {
+            transform: translateY(0px) scale(0.98);
+            box-shadow: 0 2px 8px 0 rgba(124, 58, 237, 0.2) !important;
         }
 
         .btn-pixel-sm {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            font-weight: 700;
-            border: 2px solid #0F172A;
-            box-shadow: 3px 3px 0px #0F172A;
-            transition: all 0.1s ease;
-        }
-        .btn-pixel-sm:hover {
-            transform: translate(-1px, -1px);
-            box-shadow: 4px 4px 0px #0F172A;
-        }
-        .btn-pixel-sm:active {
-            transform: translate(1px, 1px);
-            box-shadow: 1px 1px 0px #0F172A;
+            font-weight: 600;
+            border: 1px solid #E2E8F0 !important;
+            border-radius: 12px !important;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+            transition: all 0.15s ease;
+            background-color: #FFFFFF;
+            cursor: pointer;
         }
 
+        .btn-pixel-sm:hover {
+            background-color: #F8FAFC;
+            border-color: #CBD5E1 !important;
+            color: #7C3AED;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(15, 23, 42, 0.06) !important;
+        }
+
+        .btn-pixel-sm:active {
+            transform: translateY(0px);
+        }
+
+        /* Modern Hero Gradient Banner */
         .pixel-hero-gradient {
-            background: linear-gradient(135deg, #7B2CBF 0%, #3A506B 35%, #008080 70%, #007F73 100%);
-            border: 3.5px solid #0F172A;
-            box-shadow: 6px 6px 0px #0F172A;
-            border-radius: 20px;
+            background: linear-gradient(135deg, #4338CA 0%, #6D28D9 40%, #0D9488 100%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            box-shadow: 0 12px 36px -6px rgba(79, 70, 229, 0.25) !important;
+            border-radius: 24px !important;
+        }
+
+        /* Modern Sidebar */
+        #mainSidebar {
+            background-color: #FFFFFF;
+            border-right: 1px solid #E2E8F0 !important;
+            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.02) !important;
         }
 
         .sidebar-link {
             font-family: 'Plus Jakarta Sans', sans-serif;
             font-size: 13.5px;
-            font-weight: 700;
-            border: 2px solid transparent;
-            border-radius: 12px;
-            padding: 8px 12px;
+            font-weight: 600;
+            border: 1px solid transparent !important;
+            border-radius: 12px !important;
+            padding: 9px 12px;
             display: flex;
             align-items: center;
-            color: #0F172A;
-            transition: all 0.15s ease;
+            color: #475569;
+            transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
             cursor: pointer;
+            background: transparent;
+            box-shadow: none !important;
         }
 
         .sidebar-link i, .sidebar-link svg {
-            color: #0F172A !important;
-            stroke: #0F172A !important;
-            transition: all 0.15s ease;
+            color: #64748B !important;
+            stroke: #64748B !important;
+            transition: all 0.18s ease;
         }
 
         .sidebar-link:hover {
-            background-color: #F8FAFC;
-            border-color: #0F172A;
-            color: #7B2CBF;
-            box-shadow: 2.5px 2.5px 0px #0F172A;
-            transform: translate(-1px, -1px);
+            background-color: #F8FAFC !important;
+            color: #7C3AED !important;
+            border-color: #E2E8F0 !important;
+            box-shadow: none !important;
+            transform: translateX(2px);
         }
 
         .sidebar-link:hover i, .sidebar-link:hover svg {
-            color: #7B2CBF !important;
-            stroke: #7B2CBF !important;
+            color: #7C3AED !important;
+            stroke: #7C3AED !important;
         }
 
         .sidebar-link.active {
-            background: linear-gradient(135deg, #7B2CBF 0%, #008080 100%);
-            border-color: #0F172A;
+            background: linear-gradient(135deg, #7C3AED 0%, #6366F1 100%) !important;
             color: #FFFFFF !important;
-            box-shadow: 3px 3px 0px #0F172A;
+            font-weight: 700;
+            box-shadow: 0 4px 14px rgba(124, 58, 237, 0.28) !important;
+            border-color: transparent !important;
+            transform: none !important;
         }
 
         .sidebar-link.active i, .sidebar-link.active svg {
@@ -214,13 +259,13 @@
         }
 
         .page-view {
-            animation: fadeIn 0.25s ease-out forwards;
+            animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(8px);
+                transform: translateY(6px);
             }
             to {
                 opacity: 1;
@@ -228,39 +273,30 @@
             }
         }
 
+        /* Custom Modern Scrollbars */
         ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #F1F5F9;
+            background: transparent;
         }
         ::-webkit-scrollbar-thumb {
-            background: #94A3B8;
-            border-radius: 4px;
-            border: 1px solid #0F172A;
+            background: #CBD5E1;
+            border-radius: 9999px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #7B2CBF;
-        }
-
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #F1F5F9;
-        }
-        ::-webkit-scrollbar-thumb {
             background: #94A3B8;
-            border-radius: 4px;
-            border: 1px solid #0F172A;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #7B2CBF;
         }
 
         /* Mobile Bottom Nav Styles */
+        #mobileBottomNav {
+            background: rgba(255, 255, 255, 0.94) !important;
+            backdrop-filter: blur(16px) !important;
+            border-top: 1px solid #E2E8F0 !important;
+            box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.04) !important;
+        }
+
         .mobile-nav-btn {
             color: #64748B;
             transition: all 0.15s ease;
@@ -268,13 +304,13 @@
             user-select: none;
         }
         .mobile-nav-btn.active {
-            color: #7B2CBF;
+            color: #7C3AED;
             font-weight: 800;
         }
         .mobile-nav-btn.active .mobile-nav-icon-box {
-            background: linear-gradient(135deg, #7B2CBF 0%, #4F46E5 100%);
-            border: 2px solid #0F172A;
-            box-shadow: 2px 2px 0px #0F172A;
+            background: linear-gradient(135deg, #7C3AED 0%, #6366F1 100%);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
             color: #FFFFFF;
             transform: translateY(-2px);
         }
@@ -289,37 +325,61 @@
             }
             to {
                 transform: translateY(0);
-                opacity: 1;
             }
         }
         .animate-slide-up {
             animation: slideUpDrawer 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        /* ══════════════════ COMPREHENSIVE DARK MODE STYLES ══════════════════ */
-        html.dark body {
-            background-color: #0B0F19 !important;
-            color: #F8FAFC !important;
+        /* ══════════════════ GLOBAL CLEAN UI MODERNIZATION OVERRIDES ══════════════════ */
+        /* Eliminates harsh retro 2px/3px black outlines and hard offset pixel drop-shadows across all pages */
+        .border-2.border-slate-950,
+        .border-3.border-slate-950,
+        .border-2.border-slate-900,
+        .border-slate-950 {
+            border-color: #E2E8F0 !important;
+            border-width: 1px !important;
         }
 
-        html.dark .pixel-grid-bg {
-            background-color: #0B0F19 !important;
-            background-image: radial-gradient(circle, #1E293B 1px, transparent 1px);
+        [class*="shadow-["][class*="#0F172A"],
+        [class*="shadow-["][class*="#7B2CBF"],
+        [class*="shadow-["][class*="#3A506B"],
+        [class*="shadow-["][class*="#008080"],
+        [class*="shadow-["][class*="#007F73"] {
+            box-shadow: 0 4px 16px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -1px rgba(15, 23, 42, 0.03) !important;
+        }
+
+        /* ══════════════════ COMPREHENSIVE DARK MODE STYLES ══════════════════ */
+        html.dark body {
+            background-color: #0B0F17 !important;
+            color: #F8FAFC !important;
+            background-image: 
+                radial-gradient(at 15% 15%, rgba(124, 58, 237, 0.08) 0px, transparent 50%),
+                radial-gradient(at 85% 85%, rgba(13, 148, 136, 0.08) 0px, transparent 50%) !important;
+        }
+
+        html.dark #mainSidebar {
+            background-color: #0F172A !important;
+            border-color: #1E293B !important;
         }
 
         html.dark .pixel-card,
+        html.dark .card,
+        html.dark .modern-card,
         html.dark .pixel-card-purple,
         html.dark .pixel-card-teal,
         html.dark .pixel-card-emerald {
             background-color: #111827 !important;
-            border-color: #334155 !important;
-            box-shadow: 4px 4px 0px #1E293B !important;
+            border-color: #1E293B !important;
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.3) !important;
             color: #F8FAFC !important;
         }
 
-        html.dark .pixel-card:hover {
-            box-shadow: 6px 6px 0px #7B2CBF !important;
-            border-color: #7B2CBF !important;
+        html.dark .pixel-card:hover,
+        html.dark .card:hover,
+        html.dark .modern-card:hover {
+            box-shadow: 0 12px 30px -4px rgba(124, 58, 237, 0.18) !important;
+            border-color: rgba(168, 85, 247, 0.4) !important;
         }
 
         html.dark .bg-white {
@@ -332,7 +392,7 @@
         }
 
         html.dark .bg-purple-50 {
-            background-color: rgba(123, 44, 191, 0.15) !important;
+            background-color: rgba(124, 58, 237, 0.15) !important;
         }
 
         html.dark .bg-emerald-50 {
@@ -371,27 +431,27 @@
         html.dark .border-slate-900,
         html.dark .border-slate-300,
         html.dark .border-slate-200 {
-            border-color: #334155 !important;
+            border-color: #1E293B !important;
         }
 
         html.dark .border-slate-100 {
             border-color: #1E293B !important;
         }
 
-        html.dark .btn-pixel,
         html.dark .btn-pixel-sm {
+            background-color: #1E293B !important;
             border-color: #334155 !important;
-            box-shadow: 3px 3px 0px #334155 !important;
+            color: #F8FAFC !important;
         }
 
         html.dark .sidebar-link {
-            color: #E2E8F0 !important;
+            color: #94A3B8 !important;
         }
 
         html.dark .sidebar-link i,
         html.dark .sidebar-link svg {
-            color: #E2E8F0 !important;
-            stroke: #E2E8F0 !important;
+            color: #94A3B8 !important;
+            stroke: #94A3B8 !important;
         }
 
         html.dark .sidebar-link:hover {
@@ -407,8 +467,8 @@
         }
 
         html.dark .sidebar-link.active {
-            background: linear-gradient(135deg, #6D28D9 0%, #0D9488 100%) !important;
-            border-color: #4C1D95 !important;
+            background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%) !important;
+            border-color: transparent !important;
             color: #FFFFFF !important;
         }
 
@@ -420,49 +480,45 @@
             border-color: #334155 !important;
         }
 
-        html.dark header.sticky {
+        html.dark #mobileBottomNav,
+        html.dark #mobileTopHeader {
             background-color: rgba(15, 23, 42, 0.95) !important;
-            border-color: #334155 !important;
-        }
-
-        html.dark .mobile-nav-bottom {
-            background-color: rgba(15, 23, 42, 0.95) !important;
-            border-color: #334155 !important;
+            border-color: #1E293B !important;
         }
     </style>
 </head>
 <body class="min-h-screen bg-white text-slate-900 pixel-grid-bg flex flex-col lg:flex-row antialiased selection:bg-purple-600 selection:text-white">
 
     <!-- MOBILE TOP HEADER -->
-    <header class="lg:hidden sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b-2 border-slate-950 px-4 py-3 flex items-center justify-between shadow-sm">
+    <header class="lg:hidden sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 py-3 flex items-center justify-between shadow-xs">
         <a href="index.html" class="flex items-center gap-2.5 cursor-pointer">
-            <img src="logo.png" alt="PulseGrid Logo" class="w-9 h-9 rounded-xl border-2 border-slate-950 shadow-[2px_2px_0px_#0F172A] object-cover bg-white p-0.5">
+            <img src="logo.png" alt="PulseGrid Logo" class="w-9 h-9 rounded-xl border border-slate-200 shadow-xs object-cover bg-white p-0.5">
             <div>
                 <span class="font-pixel text-lg font-black tracking-wider text-slate-950">PulseGrid</span>
-                <span class="text-[9px] bg-purple-100 text-purple-900 border border-purple-400 font-mono px-1.5 py-0.2 rounded font-bold ml-1">5042002</span>
+                <span class="text-[9px] bg-purple-100 text-purple-900 border border-purple-200 font-mono px-1.5 py-0.2 rounded font-bold ml-1">5042002</span>
             </div>
         </a>
         <div class="flex items-center gap-2">
-            <button onclick="handleWalletClick()" class="btn-pixel-sm px-3 py-1.5 rounded-xl bg-purple-700 text-white text-xs font-bold flex items-center gap-1.5">
+            <button onclick="handleWalletClick()" class="btn-pixel-sm px-3.5 py-1.5 rounded-xl bg-purple-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs">
                 <i data-lucide="wallet" class="w-3.5 h-3.5"></i>
                 <span id="mobileHeaderWalletBtnText">Connect</span>
             </button>
-            <button onclick="toggleMobileMoreMenu()" class="btn-pixel-sm p-1.5 rounded-xl bg-slate-100 text-slate-900 border-2 border-slate-950" title="All Features & Tools">
+            <button onclick="toggleMobileMoreMenu()" class="btn-pixel-sm p-2 rounded-xl bg-slate-100 text-slate-800 border border-slate-200 hover:bg-purple-50 hover:text-purple-700 transition-colors" title="All Features & Tools">
                 <i data-lucide="grid" class="w-5 h-5"></i>
             </button>
         </div>
     </header>
 
     <!-- PERSISTENT LEFT SIDEBAR (DESKTOP ONLY) -->
-    <aside id="mainSidebar" class="hidden lg:flex fixed inset-y-0 left-0 z-40 w-64 bg-white border-r-2 border-slate-950 text-slate-900 flex-col justify-between p-3.5 shadow-md">
+    <aside id="mainSidebar" class="hidden lg:flex fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-slate-200/80 text-slate-900 flex-col justify-between p-3.5 shadow-xs">
         
         <!-- TOP SCROLLABLE NAVIGATION CONTENT -->
         <div class="flex-1 overflow-y-auto pr-1 space-y-4">
             
             <!-- Brand & Logo Header -->
-            <div class="pb-3 border-b-2 border-slate-950 flex items-center justify-between">
+            <div class="pb-3 border-b border-slate-100 flex items-center justify-between">
                 <div class="flex items-center gap-2.5 cursor-pointer group" onclick="switchPage('monitor')">
-                    <img src="logo.png" alt="PulseGrid Logo" class="w-9 h-9 rounded-xl border-2 border-slate-950 shadow-[2px_2px_0px_#0F172A] object-cover bg-white p-0.5 group-hover:scale-105 transition-transform">
+                    <img src="logo.png" alt="PulseGrid Logo" class="w-9 h-9 rounded-xl border border-slate-200 shadow-xs object-cover bg-white p-0.5 group-hover:scale-105 transition-transform">
                     <div>
                         <div class="font-pixel text-lg font-black tracking-wider text-slate-950 leading-tight">PulseGrid</div>
                         <div class="text-[9px] font-mono text-purple-700 font-bold">Arc L1 Testnet (5042002)</div>
@@ -583,7 +639,7 @@
         </div>
 
         <!-- BOTTOM PINNED SECTION: SETTINGS, ABOUT & WALLET -->
-        <div class="pt-3 border-t-2 border-slate-950 space-y-2 shrink-0 bg-white">
+        <div class="pt-3 border-t border-slate-100 space-y-2 shrink-0 bg-white">
             
             <!-- Settings & About Grid -->
             <div class="grid grid-cols-2 gap-1.5">
@@ -813,7 +869,7 @@
     <main class="flex-1 w-full min-w-0 lg:ml-64 p-4 sm:p-6 lg:p-10 space-y-8 pb-28 lg:pb-10">
 
         <!-- TOP PERSISTENT DESKTOP NAVBAR -->
-        <header class="hidden lg:flex items-center justify-between p-4 bg-white/95 backdrop-blur-md rounded-2xl border-2 border-slate-950 shadow-[4px_4px_0px_#0F172A]">
+        <header class="hidden lg:flex items-center justify-between px-6 py-3.5 bg-white/85 backdrop-blur-md rounded-2xl border border-slate-200/80 shadow-xs">
             <div class="flex items-center gap-3">
                 <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-purple-50 border border-purple-200 font-mono text-xs font-bold text-purple-900 shadow-xs">
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -831,7 +887,7 @@
                     <span class="text-slate-300">|</span>
                     <span id="desktopHeaderAddress" class="text-slate-700">0x0...0000</span>
                 </div>
-                <button id="desktopHeaderConnectBtn" onclick="handleWalletClick()" class="btn-pixel px-4 py-2 rounded-xl bg-gradient-to-r from-purple-700 via-indigo-600 to-teal-600 hover:opacity-95 text-white font-pixel font-bold text-xs flex items-center gap-2 shadow-[2px_2px_0px_#0F172A] transition-all">
+                <button id="desktopHeaderConnectBtn" onclick="handleWalletClick()" class="btn-pixel px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-700 via-indigo-600 to-teal-600 hover:opacity-95 text-white font-pixel font-bold text-xs flex items-center gap-2 shadow-sm hover:shadow-md transition-all">
                     <i data-lucide="wallet" class="w-4 h-4"></i>
                     <span id="desktopHeaderConnectText">Connect Wallet</span>
                 </button>
@@ -873,19 +929,19 @@
                     </div>
 
                     <div class="grid grid-cols-4 gap-3 sm:gap-4 shrink-0 font-mono text-center">
-                        <div class="bg-white border-2 border-slate-950 p-3 sm:p-4 rounded-xl min-w-[70px] sm:min-w-[85px] shadow-[3px_3px_0px_#7B2CBF]">
+                        <div class="bg-white/95 border border-purple-200/80 p-3 sm:p-4 rounded-2xl min-w-[70px] sm:min-w-[85px] shadow-xs hover:shadow-md transition-all">
                             <div id="cdDays" class="font-pixel text-2xl sm:text-4xl font-black text-purple-700">36</div>
                             <div class="font-silkscreen text-[10px] sm:text-xs font-bold text-slate-500 mt-1 uppercase">Days</div>
                         </div>
-                        <div class="bg-white border-2 border-slate-950 p-3 sm:p-4 rounded-xl min-w-[70px] sm:min-w-[85px] shadow-[3px_3px_0px_#3A506B]">
+                        <div class="bg-white/95 border border-indigo-200/80 p-3 sm:p-4 rounded-2xl min-w-[70px] sm:min-w-[85px] shadow-xs hover:shadow-md transition-all">
                             <div id="cdHours" class="font-pixel text-2xl sm:text-4xl font-black text-indigo-600">14</div>
                             <div class="font-silkscreen text-[10px] sm:text-xs font-bold text-slate-500 mt-1 uppercase">Hours</div>
                         </div>
-                        <div class="bg-white border-2 border-slate-950 p-3 sm:p-4 rounded-xl min-w-[70px] sm:min-w-[85px] shadow-[3px_3px_0px_#008080]">
+                        <div class="bg-white/95 border border-teal-200/80 p-3 sm:p-4 rounded-2xl min-w-[70px] sm:min-w-[85px] shadow-xs hover:shadow-md transition-all">
                             <div id="cdMinutes" class="font-pixel text-2xl sm:text-4xl font-black text-teal-600">14</div>
                             <div class="font-silkscreen text-[10px] sm:text-xs font-bold text-slate-500 mt-1 uppercase">Mins</div>
                         </div>
-                        <div class="bg-white border-2 border-slate-950 p-3 sm:p-4 rounded-xl min-w-[70px] sm:min-w-[85px] shadow-[3px_3px_0px_#007F73]">
+                        <div class="bg-white/95 border border-emerald-200/80 p-3 sm:p-4 rounded-2xl min-w-[70px] sm:min-w-[85px] shadow-xs hover:shadow-md transition-all">
                             <div id="cdSeconds" class="font-pixel text-2xl sm:text-4xl font-black text-emerald-600 animate-pulse">21</div>
                             <div class="font-silkscreen text-[10px] sm:text-xs font-bold text-slate-500 mt-1 uppercase">Secs</div>
                         </div>

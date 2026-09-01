@@ -325,6 +325,7 @@
             }
             to {
                 transform: translateY(0);
+                opacity: 1;
             }
         }
         .animate-slide-up {
@@ -516,12 +517,15 @@
         <div class="flex-1 overflow-y-auto pr-1 space-y-4">
             
             <!-- Brand & Logo Header -->
-            <div class="pb-3 border-b border-slate-100 flex items-center justify-between">
+            <div class="pb-3 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
                 <div class="flex items-center gap-2.5 cursor-pointer group" onclick="switchPage('monitor')">
-                    <img src="logo.png" alt="PulseGrid Logo" class="w-9 h-9 rounded-xl border border-slate-200 shadow-xs object-cover bg-white p-0.5 group-hover:scale-105 transition-transform">
+                    <img src="logo.png" alt="PulseGrid Logo" class="w-8 h-8 rounded-xl border border-slate-200/80 dark:border-slate-700 shadow-xs object-cover bg-white p-0.5 group-hover:scale-105 transition-transform">
                     <div>
-                        <div class="font-pixel text-lg font-black tracking-wider text-slate-950 leading-tight">PulseGrid</div>
-                        <div class="text-[9px] font-mono text-purple-700 font-bold">Arc L1 Testnet (5042002)</div>
+                        <div class="font-bold text-sm text-slate-900 dark:text-white leading-tight">PulseGrid</div>
+                        <div class="flex items-center gap-1.5 mt-0.5">
+                            <span class="text-[10px] text-slate-400 font-medium">Arc L1</span>
+                            <span class="inline-flex items-center rounded-full border border-purple-500/20 bg-purple-500/10 px-1.5 py-0.2 text-[8px] font-semibold uppercase tracking-wider text-purple-600 dark:text-purple-400">5042002</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -869,49 +873,52 @@
     <main class="flex-1 w-full min-w-0 lg:ml-64 p-4 sm:p-6 lg:p-10 space-y-8 pb-28 lg:pb-10">
 
         <!-- TOP PERSISTENT DESKTOP NAVBAR -->
-        <header class="hidden lg:flex items-center justify-between px-6 py-3.5 bg-white/85 backdrop-blur-md rounded-2xl border border-slate-200/80 shadow-xs">
-            <div class="flex items-center gap-3">
-                <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-purple-50 border border-purple-200 font-mono text-xs font-bold text-purple-900 shadow-xs">
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Arc Testnet L1 (Chain ID: 5042002)
-                </div>
-                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs text-slate-700">
-                    <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-500"></i>
-                    Sub-Second Finality
-                </div>
+        <header class="hidden lg:flex items-center justify-between px-6 h-14 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-xs">
+            <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 tracking-wide">PulseGrid</span>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400"></i>
+                <span id="topBarPageTitle" class="text-sm font-semibold text-slate-900 dark:text-white">Network Monitor</span>
+                <span class="inline-flex items-center gap-1.5 ml-3 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/50">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Testnet (5042002)
+                </span>
             </div>
             
             <div class="flex items-center gap-3">
-                <div id="desktopHeaderWalletPill" class="hidden items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-300 font-mono text-xs font-bold text-emerald-900">
-                    <span id="desktopHeaderUsdcBal">0.00 USDC</span>
-                    <span class="text-slate-300">|</span>
-                    <span id="desktopHeaderAddress" class="text-slate-700">0x0...0000</span>
+                <div id="desktopHeaderWalletPill" class="hidden items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-800 dark:text-slate-200 shadow-xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span id="desktopHeaderUsdcBal" class="font-semibold text-purple-700 dark:text-purple-400">0.00 USDC</span>
+                    <span class="text-slate-300 dark:text-slate-600">|</span>
+                    <span id="desktopHeaderAddress" class="font-mono text-slate-600 dark:text-slate-300">0x0...0000</span>
                 </div>
-                <button id="desktopHeaderConnectBtn" onclick="handleWalletClick()" class="btn-pixel px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-700 via-indigo-600 to-teal-600 hover:opacity-95 text-white font-pixel font-bold text-xs flex items-center gap-2 shadow-sm hover:shadow-md transition-all">
-                    <i data-lucide="wallet" class="w-4 h-4"></i>
+                <button id="desktopHeaderConnectBtn" onclick="handleWalletClick()" class="btn-pixel-sm px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-800 text-white text-xs font-semibold flex items-center gap-2 shadow-xs transition-all">
+                    <i data-lucide="wallet" class="w-3.5 h-3.5"></i>
                     <span id="desktopHeaderConnectText">Connect Wallet</span>
                 </button>
             </div>
         </header>
 
         <!-- PAGE 1: NETWORK MONITOR VIEW -->
-        <section id="view-monitor" class="page-view space-y-8">
-            <div class="pixel-hero-gradient p-6 sm:p-10 text-white relative overflow-hidden">
-                <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                    <div>
-                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 border border-white/40 font-silkscreen text-xs font-bold mb-3 shadow-sm">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-300 animate-pulse"></span>
+        <section id="view-monitor" class="page-view space-y-6">
+            <!-- Sleek Arctis-Style Clean Header -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800/80">
+                <div>
+                    <div class="flex items-center gap-2 mb-1.5">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 text-[11px] font-semibold tracking-wider uppercase border border-purple-200/60 dark:border-purple-800/40">
+                            <span class="w-1.5 h-1.5 rounded-full bg-purple-600 dark:bg-purple-400 animate-pulse"></span>
                             Live Real-Time Telemetry
-                        </div>
-                        <h1 class="font-pixel text-3xl sm:text-5xl font-black tracking-wide text-white drop-shadow-md">Arc Network Monitor</h1>
-                        <p class="text-white/90 text-sm mt-3 max-w-xl leading-relaxed font-medium">
-                            Real-time block telemetry, gas tracking, throughput statistics, and institutional consortium validator health on Circle Arc L1.
-                        </p>
+                        </span>
                     </div>
-                    
-                    <button onclick="refreshTelemetry()" class="btn-pixel px-5 py-3 rounded-xl bg-white text-slate-950 font-pixel font-bold text-xs flex items-center gap-2 shadow-md">
-                        <i data-lucide="refresh-cw" id="refreshIcon" class="w-4 h-4"></i>
-                        Refresh Telemetry
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Arc Network Monitor</h1>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-2xl font-normal">
+                        Real-time block telemetry, gas tracking, throughput statistics, and institutional consortium validator health on Circle Arc L1.
+                    </p>
+                </div>
+                
+                <div class="flex items-center gap-2 shrink-0">
+                    <button onclick="refreshTelemetry()" class="btn-pixel-sm px-4 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center gap-2 shadow-xs hover:bg-slate-50">
+                        <i data-lucide="refresh-cw" id="refreshIcon" class="w-3.5 h-3.5"></i>
+                        Refresh
                     </button>
                 </div>
             </div>
@@ -1075,46 +1082,48 @@
 
         <!-- PAGE: VALIDATOR STATUS & TELEMETRY MATRIX VIEW -->
         <!-- PULSESTAKE: 2-TAB LIQUID STAKING TERMINAL & ON-CHAIN YIELD HUB -->
-        <section id="view-validators" class="page-view hidden space-y-8">
+        <section id="view-validators" class="page-view hidden space-y-6">
             
-            <!-- Hero Banner with Deployed Contract Badges & 3-Dots Action Menu -->
-            <div class="pixel-hero-gradient p-6 sm:p-8 text-white relative overflow-hidden shadow-[6px_6px_0px_#0F172A]">
-                <div class="absolute -top-24 -right-24 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
-                <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-teal-500/20 rounded-full blur-3xl pointer-events-none"></div>
-
-                <div class="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-                    <div class="space-y-2 max-w-2xl">
-                        <div class="flex flex-wrap items-center gap-2">
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 font-silkscreen text-[11px] font-bold">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                                Circle Arc L1 Liquid Staking
-                            </span>
-                            <a href="https://testnet.arcscan.app/address/0x9F6baFB6961aAd0fC133d32A559CaFdf32582801" target="_blank" class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-400/40 text-purple-200 font-mono text-[11px] font-bold hover:bg-purple-500/30 transition-colors">
-                                <span>Contract: 0x9F6b...2801</span>
-                                <i data-lucide="external-link" class="w-3 h-3"></i>
-                            </a>
-                            <a href="https://testnet.arcscan.app/address/0x9EE52CC50435aa46b51092fCC964debDb21C6510" target="_blank" class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-teal-500/20 border border-teal-400/40 text-teal-200 font-mono text-[11px] font-bold hover:bg-teal-500/30 transition-colors">
-                                <span>$pUSDC: 0x9EE5...6510</span>
-                                <i data-lucide="external-link" class="w-3 h-3"></i>
-                            </a>
-                        </div>
-                        <h1 class="font-pixel text-3xl sm:text-5xl font-black tracking-wide text-white drop-shadow-md flex items-center gap-3">
-                            <i data-lucide="layers" class="w-9 h-9 text-purple-300"></i>
-                            PulseStake Terminal
-                        </h1>
-                        <p class="text-slate-200 text-xs sm:text-sm font-sans leading-relaxed">
-                            Stake native USDC to Circle Arc L1 institutional consortium nodes and earn continuous real-time yield (up to 14.0% APY) with instant finality.
-                        </p>
+            <!-- Sleek Clean Arctis-Style Header -->
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800/80">
+                <div>
+                    <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold tracking-wider uppercase border border-emerald-200/60 dark:border-emerald-800/40">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Liquid Staking Hub
+                        </span>
+                        <a href="https://testnet.arcscan.app/address/0x9F6baFB6961aAd0fC133d32A559CaFdf32582801" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-mono hover:text-purple-600 border border-slate-200 dark:border-slate-700">
+                            <span>Contract: 0x9F6b...2801</span>
+                            <i data-lucide="external-link" class="w-3 h-3"></i>
+                        </a>
+                        <a href="https://testnet.arcscan.app/address/0x9EE52CC50435aa46b51092fCC964debDb21C6510" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-mono hover:text-teal-600 border border-slate-200 dark:border-slate-700">
+                            <span>$pUSDC: 0x9EE5...6510</span>
+                            <i data-lucide="external-link" class="w-3 h-3"></i>
+                        </a>
                     </div>
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                        PulseStake Terminal
+                    </h1>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-2xl font-normal">
+                        Stake native USDC to Circle Arc L1 institutional consortium nodes and earn continuous real-time yield (up to 14.0% APY) with instant finality.
+                    </p>
+                </div>
 
-                    <!-- Right Action Tools with Quick Buttons & 3-Dots Menu -->
-                    <div class="flex items-center gap-2.5 relative shrink-0">
-                        
-                        <!-- Quick Staking Portfolio Button -->
-                        <button onclick="openStakingPortfolioModal()" class="px-3.5 py-3 rounded-xl bg-purple-500/30 hover:bg-purple-500/40 border-2 border-purple-400/50 text-purple-100 font-mono text-xs font-bold flex items-center gap-2 transition-colors shadow-sm">
-                            <i data-lucide="wallet" class="w-4 h-4 text-purple-300"></i>
-                            <span class="hidden sm:inline">My Portfolio</span>
-                        </button>
+                <!-- Right Action Tools with Quick Buttons & 3-Dots Menu -->
+                <div class="flex items-center gap-2 relative shrink-0">
+                    <button onclick="openStakingPortfolioModal()" class="btn-pixel-sm px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 shadow-xs hover:bg-slate-50">
+                        <i data-lucide="wallet" class="w-3.5 h-3.5 text-purple-600"></i>
+                        <span class="hidden sm:inline">My Portfolio</span>
+                    </button>
+                    <button onclick="openStakingLeaderboardModal()" class="btn-pixel-sm px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 shadow-xs hover:bg-slate-50">
+                        <i data-lucide="trophy" class="w-3.5 h-3.5 text-amber-500"></i>
+                        <span class="hidden sm:inline">Leaderboard</span>
+                    </button>
+                    <button onclick="toggleStakingDotsMenu(event)" id="stakingDotsBtn" class="btn-pixel-sm p-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shadow-xs hover:bg-slate-50">
+                        <i data-lucide="more-vertical" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
 
                         <!-- Quick Leaderboard Button -->
                         <button onclick="openStakingLeaderboardModal()" class="px-3.5 py-3 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 border-2 border-amber-400/50 text-amber-200 font-mono text-xs font-bold flex items-center gap-2 transition-colors shadow-sm">
@@ -1544,24 +1553,28 @@
         </section>
 
         <!-- PAGE 2: SWAP VIEW (EXACT TERMINAL CIRCLE SDK RATE: 1 USDC = 0.882639 EURC) -->
-        <section id="view-swap" class="page-view hidden space-y-8">
+        <section id="view-swap" class="page-view hidden space-y-6">
             <div class="max-w-2xl mx-auto space-y-6">
                 
-                <div class="pixel-card p-4 bg-gradient-to-r from-purple-50 via-indigo-50 to-teal-50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs font-mono">
-                    <div class="flex items-center gap-3">
-                        <i data-lucide="cpu" class="w-6 h-6 text-purple-700 shrink-0"></i>
-                        <div>
-                            <div class="font-bold text-slate-950 text-sm flex items-center gap-2">
-                                <span>PulseGrid Web3 Swap Engine</span>
-                                <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-800 border border-purple-400 text-[10px]">Circle SDK Sync</span>
-                            </div>
-                            <div class="text-[11px] text-slate-600 font-medium">Protocol: Circle App Kit & Arc Testnet DEX Pool</div>
+                <!-- Clean Page Header -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800/80">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1.5">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 text-[11px] font-semibold tracking-wider uppercase border border-blue-200/60 dark:border-blue-800/40">
+                                <span class="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
+                                DeFi OS
+                            </span>
+                            <span class="text-[11px] font-mono text-slate-400">Circle SDK Sync</span>
                         </div>
+                        <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Arc DEX Swap</h1>
+                        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Instant, gas-efficient token swaps powered by Circle Arc L1 AMM.</p>
                     </div>
-                    <button onclick="manualSwitchToArcNetwork()" class="px-3 py-1.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs border-2 border-slate-950 shadow-[2px_2px_0px_#0F172A] flex items-center gap-1.5 shrink-0 transition-transform active:translate-y-0.5">
-                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-purple-200"></i>
-                        <span>Switch Arc Network (5042002)</span>
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <button onclick="manualSwitchToArcNetwork()" class="btn-pixel-sm px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 shadow-xs hover:bg-slate-50">
+                            <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-purple-600"></i>
+                            <span>Switch Arc (5042002)</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="flex bg-slate-100 p-1.5 rounded-2xl border-2 border-slate-950">
@@ -1825,18 +1838,24 @@
         </section>
 
         <!-- PAGE: CROSS-CHAIN CCTP BRIDGE VIEW -->
-        <section id="view-bridge" class="page-view hidden space-y-8">
+        <section id="view-bridge" class="page-view hidden space-y-6">
             <div class="max-w-2xl mx-auto space-y-6">
                 
-                <!-- HERO PROTOCOL BANNER -->
-                <div class="pixel-card p-5 bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-950 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div class="space-y-1">
-                        <h2 class="font-pixel text-2xl font-black tracking-wide text-white">PulseBridge Portal</h2>
-                        <p class="text-xs text-slate-300 font-medium">1:1 Pegged Token Transfers between Arc L1 and connected EVM Testnets with sub-second finality.</p>
+                <!-- Clean Page Header -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800/80">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1.5">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 text-[11px] font-semibold tracking-wider uppercase border border-indigo-200/60 dark:border-indigo-800/40">
+                                <span class="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse"></span>
+                                Circle CCTP Protocol
+                            </span>
+                        </div>
+                        <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">PulseBridge Portal</h1>
+                        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">1:1 Native Token Transfers between Arc L1 and connected EVM Testnets with sub-second finality.</p>
                     </div>
-                    <div class="flex items-center gap-2 shrink-0">
-                        <button onclick="refreshBridgeState()" class="btn-pixel-sm px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 flex items-center gap-1.5">
-                            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Sync
+                    <div class="flex items-center gap-2">
+                        <button onclick="refreshBridgeState()" class="btn-pixel-sm px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 shadow-xs hover:bg-slate-50">
+                            <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-indigo-600"></i> Sync
                         </button>
                     </div>
                 </div>
@@ -2009,35 +2028,21 @@
         </section>
 
         <!-- PULSEPAY GLOBAL USDC MERCHANT & INVOICING ENGINE -->
-        <section id="view-pulsepay" class="page-view hidden space-y-8 animate-in fade-in duration-200">
-            <!-- Hero Banner -->
-            <div class="pixel-card-purple p-6 sm:p-10 relative overflow-hidden bg-gradient-to-br from-purple-950 via-slate-900 to-slate-950 text-white shadow-[6px_6px_0px_#0F172A]">
-                <div class="absolute -top-24 -right-24 w-80 h-80 bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
-                <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none"></div>
-
-                <div class="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-                    <div class="space-y-2 max-w-2xl">
-                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 font-silkscreen text-[11px] font-bold">
-                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                            Circle Arc L1 Instant Settlement Engine
-                        </div>
-                        <h2 class="font-pixel text-3xl sm:text-5xl font-black text-white tracking-wide">PulsePay Protocol</h2>
-                        <p class="text-slate-300 text-xs sm:text-sm font-sans leading-relaxed">
-                            Generate instant sharable USDC payment links and dynamic QR codes with attached messages. Payer gets an instant MetaMask payment popup with sub-second Arc L1 confirmation!
-                        </p>
+        <section id="view-pulsepay" class="page-view hidden space-y-6 animate-in fade-in duration-200">
+            <!-- Clean Header -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800/80">
+                <div>
+                    <div class="flex items-center gap-2 mb-1.5">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold tracking-wider uppercase border border-emerald-200/60 dark:border-emerald-800/40">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Instant Settlement Engine
+                        </span>
                     </div>
-
-                    <!-- Verified Metrics Strip -->
-                    <div class="grid grid-cols-2 gap-3 shrink-0 font-mono text-center w-full lg:w-auto">
-                        <div class="bg-white/10 backdrop-blur-md border border-white/20 p-3.5 rounded-2xl">
-                            <div class="text-[10px] text-slate-400 font-bold uppercase">Avg Finality</div>
-                            <div class="font-pixel text-xl sm:text-2xl font-bold text-emerald-400 mt-0.5">~0.4 Sec</div>
-                        </div>
-                        <div class="bg-white/10 backdrop-blur-md border border-white/20 p-3.5 rounded-2xl">
-                            <div class="text-[10px] text-slate-400 font-bold uppercase">Settlement Asset</div>
-                            <div class="font-pixel text-xl sm:text-2xl font-bold text-purple-300 mt-0.5">Native USDC</div>
-                        </div>
-                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">PulsePay Protocol</h1>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Generate instant sharable USDC payment links and dynamic QR codes with sub-second Arc L1 confirmation.</p>
+                </div>
+                <div class="flex items-center gap-2 font-mono text-xs">
+                    <span class="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">Finality: <b class="text-emerald-600 font-bold">~0.4s</b></span>
                 </div>
             </div>
 
@@ -2758,114 +2763,44 @@
         </section>
 
         <!-- PAGE 4: PORTFOLIO & ANALYTICS VIEW -->
-        <section id="view-portfolio" class="page-view hidden space-y-8">
-            <div class="pixel-hero-gradient p-6 sm:p-10 text-white">
-                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <section id="view-portfolio" class="page-view hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800/80">
+                <div>
+                    <div class="flex items-center gap-2 mb-1.5">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 text-[11px] font-semibold tracking-wider uppercase border border-purple-200/60 dark:border-purple-800/40">
+                            <span class="w-1.5 h-1.5 rounded-full bg-purple-600 animate-pulse"></span>
+                            On-Chain Analytics
+                        </span>
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Portfolio & Contract Analytics</h1>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Track wallet net worth, deployed smart contracts, and interaction stats on Arc Testnet.</p>
+                </div>
+
+                <div class="flex items-center gap-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3.5 rounded-2xl shadow-xs font-mono shrink-0">
                     <div>
-                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 border border-white/40 font-silkscreen text-xs font-bold mb-3 shadow-sm">
-                            <i data-lucide="pie-chart" class="w-4 h-4"></i>
-                            Arc On-Chain Portfolio & Deployed Contracts Analytics
-                        </div>
-                        <h1 class="font-pixel text-3xl sm:text-4xl font-black text-white">Portfolio & Contract Analytics</h1>
-                        <p class="text-white/90 text-sm mt-2 max-w-xl leading-relaxed font-medium">
-                            Track total wallet net worth, deployed smart contracts, AI agent credentials, and on-chain interaction stats on Arc Testnet.
-                        </p>
-                    </div>
-
-                    <div class="flex items-center gap-3 bg-white border-3 border-slate-950 p-4 rounded-xl shadow-md text-slate-950 font-mono shrink-0">
-                        <div>
-                            <div class="text-[10px] font-silkscreen text-slate-500 uppercase">Est. Portfolio Value</div>
-                            <div id="portfolioNetWorth" class="font-pixel text-2xl font-black text-purple-700">$0.00 USD</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- PAGE 5: NFT & TOKEN MARKET VIEW -->
-        <section id="view-market" class="page-view hidden space-y-8">
-            <div class="pixel-hero-gradient p-8 sm:p-10 text-white relative overflow-hidden">
-                <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                    <div>
-                        <h1 class="font-pixel text-3xl sm:text-5xl font-black text-white drop-shadow-md">NFT & Token Market</h1>
-                        <p class="text-white/90 text-sm mt-3 max-w-xl leading-relaxed font-medium">
-                            Decentralized marketplace on Circle Arc L1 for trading Genesis Builder NFTs, AI Agent Keys, and Yield Tokens.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        </section>
-
-        <!-- PAGE 7: AI AGENT HUB VIEW -->
-        <section id="view-agent" class="page-view hidden space-y-8">
-            <div class="pixel-card-purple p-6 sm:p-8 space-y-6">
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b-2 border-slate-950">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-2xl bg-purple-700 text-white border-2 border-slate-950 flex items-center justify-center font-bold shadow-[3px_3px_0px_#0F172A]">
-                            <i data-lucide="bot" class="w-6 h-6"></i>
-                        </div>
-                        <div>
-                            <h2 class="font-pixel text-2xl font-black text-slate-950">AI Agent Hub</h2>
-                            <p class="text-xs text-slate-600 font-medium">Autonomous On-Chain Agent Execution & Strategy Engine</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 font-mono text-xs">
-                    <div class="p-6 rounded-xl bg-slate-50 border-2 border-slate-950 space-y-4">
-                        <div class="font-bold text-slate-950 text-sm">Agent Configuration</div>
-                        <div class="flex justify-between p-3 rounded-lg bg-white border border-slate-300">
-                            <span>Status:</span>
-                            <span class="text-emerald-600 font-bold">ONLINE & LISTENING</span>
-                        </div>
-                        <div class="flex justify-between p-3 rounded-lg bg-white border border-slate-300">
-                            <span>Gas Pool:</span>
-                            <span class="text-purple-700 font-bold">25.00 USDC</span>
-                        </div>
-                        <button onclick="triggerAgentCycle()" class="btn-pixel w-full py-3 rounded-xl bg-purple-700 text-white font-bold">
-                            Trigger AI Agent Execution Cycle
-                        </button>
-                    </div>
-
-                    <div class="p-6 rounded-xl bg-slate-50 border-2 border-slate-950 space-y-3">
-                        <div class="font-bold text-slate-950 text-sm">Recent Agent Execution Logs</div>
-                        <div class="p-3 rounded-lg bg-slate-900 text-emerald-400 font-mono text-[11px] space-y-1 h-36 overflow-y-auto">
-                            <div>[INFO] AI Agent #8004 initialized.</div>
-                            <div>[INFO] Connected to Arc L1 RPC (Chain 5042002).</div>
-                            <div>[SUCCESS] Monitored DEX arbitrage spread: 0.8826 EURC/USDC.</div>
-                            <div>[WAITING] Awaiting user trigger cycle...</div>
-                        </div>
+                        <div class="text-[10px] font-semibold text-slate-500 uppercase">Est. Portfolio Value</div>
+                        <div id="portfolioNetWorth" class="text-xl font-bold text-purple-700 dark:text-purple-400">$0.00 USD</div>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- PAGE: 1-CLICK ERC-20 TOKEN CREATOR VIEW -->
-        <section id="view-token-creator" class="page-view hidden space-y-8 max-w-6xl mx-auto">
+        <section id="view-token-creator" class="page-view hidden space-y-6 max-w-6xl mx-auto">
             <!-- Hero Header -->
-            <div class="pixel-card-purple p-6 sm:p-8 space-y-4">
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b-2 border-slate-950">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-2xl bg-purple-700 text-white border-2 border-slate-950 flex items-center justify-center font-bold shadow-[3px_3px_0px_#0F172A]">
-                            <i data-lucide="coins" class="w-6 h-6"></i>
-                        </div>
-                        <div>
-                            <h1 class="font-pixel text-2xl sm:text-3xl font-black text-slate-950">1-Click ERC-20 Token Factory</h1>
-                            <p class="text-xs text-slate-600 font-medium font-sans">Mint &amp; deploy your own custom cryptocurrency token on Arc Testnet with sub-second finality.</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-500 text-xs font-silkscreen font-bold flex items-center gap-1.5 shadow-sm">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            ARC L1 NATIVE
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800/80">
+                <div>
+                    <div class="flex items-center gap-2 mb-1.5">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 text-[11px] font-semibold tracking-wider uppercase border border-purple-200/60 dark:border-purple-800/40">
+                            <span class="w-1.5 h-1.5 rounded-full bg-purple-600 animate-pulse"></span>
+                            Token Factory
                         </span>
-                        <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-900 border border-purple-400 text-xs font-silkscreen font-bold">
-                            ERC-20 STANDARD
-                        </span>
+                        <span class="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-[10px] font-mono font-medium border border-emerald-200/50">ERC-20 Standard</span>
                     </div>
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">1-Click ERC-20 Token Factory</h1>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Mint & deploy your own custom cryptocurrency token on Arc Testnet with sub-second finality.</p>
                 </div>
+            </div>
 
                 <div class="flex flex-wrap items-center justify-between gap-2 pt-2 text-xs font-mono">
                     <div class="flex items-center gap-2">
@@ -3071,7 +3006,7 @@
                             </div>
                             <div class="flex justify-between items-center">
                                 <span class="text-slate-500 font-bold">Transaction Finality:</span>
-                                <span class="font-bold text-teal-600">&lt;450ms on Arc L1</span>
+                                <span class="font-bold text-teal-600">Sub-Second on Arc L1</span>
                             </div>
                         </div>
 
@@ -3143,6 +3078,101 @@
                                 <i data-lucide="send" class="w-4 h-4"></i>
                                 <span>Transfer via MetaMask</span>
                             </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 5: NFT & TOKEN MARKET VIEW -->
+        <section id="view-market" class="page-view hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800/80">
+                <div>
+                    <div class="flex items-center gap-2 mb-1.5">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 text-[11px] font-semibold tracking-wider uppercase border border-purple-200/60 dark:border-purple-800/40">
+                            <span class="w-1.5 h-1.5 rounded-full bg-purple-600 animate-pulse"></span>
+                            Marketplace
+                        </span>
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">NFT & Token Market</h1>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Decentralized marketplace on Circle Arc L1 for trading Genesis Builder NFTs, AI Agent Keys, and Yield Tokens.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 7: AI AGENT HUB VIEW -->
+        <section id="view-agent" class="page-view hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800/80">
+                <div>
+                    <div class="flex items-center gap-2 mb-1.5">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 text-[11px] font-semibold tracking-wider uppercase border border-blue-200/60 dark:border-blue-800/40">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
+                            Economic Agents
+                        </span>
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">AI Agent Hub</h1>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Autonomous On-Chain Agent Execution & Strategy Engine on Arc L1.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE 8: GAMIFIED DAILY QUESTS & TESTNET REWARDS HUB -->
+        <section id="view-daily" class="page-view hidden space-y-6 max-w-6xl mx-auto">
+            <!-- Clean Header -->
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800/80">
+                <div>
+                    <div class="flex items-center gap-2 mb-1.5">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 text-[11px] font-semibold tracking-wider uppercase border border-amber-200/60 dark:border-amber-800/40">
+                            <i data-lucide="trophy" class="w-3 h-3 text-amber-600"></i>
+                            Rewards & Quests
+                        </span>
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Daily Quests & NFT Rewards</h1>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-xl">Complete daily on-chain tasks, maintain check-in streaks, earn Pulse XP, and mint verifiable Tier NFT Membership Passes on Arc L1.</p>
+                </div>
+
+                <!-- Metric Badges -->
+                <div class="flex items-center gap-3 shrink-0 font-mono">
+                    <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 rounded-2xl shadow-xs flex items-center gap-3">
+                        <i data-lucide="flame" class="w-5 h-5 text-orange-500 animate-bounce"></i>
+                        <div>
+                            <div class="text-[9px] text-slate-400 uppercase font-semibold">Streak</div>
+                            <div class="text-sm font-bold text-slate-900 dark:text-white"><span id="streakCount">1</span> Days</div>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 rounded-2xl shadow-xs flex items-center gap-3">
+                        <i data-lucide="sparkles" class="w-5 h-5 text-purple-600"></i>
+                        <div>
+                            <div class="text-[9px] text-slate-400 uppercase font-semibold">Total XP</div>
+                            <div class="text-sm font-bold text-purple-700 dark:text-purple-400"><span id="totalXpDisplay">120</span> XP</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 font-mono text-xs">
+                    <div class="p-6 rounded-xl bg-slate-50 border-2 border-slate-950 space-y-4">
+                        <div class="font-bold text-slate-950 text-sm">Agent Configuration</div>
+                        <div class="flex justify-between p-3 rounded-lg bg-white border border-slate-300">
+                            <span>Status:</span>
+                            <span class="text-emerald-600 font-bold">ONLINE & LISTENING</span>
+                        </div>
+                        <div class="flex justify-between p-3 rounded-lg bg-white border border-slate-300">
+                            <span>Gas Pool:</span>
+                            <span class="text-purple-700 font-bold">25.00 USDC</span>
+                        </div>
+                        <button onclick="triggerAgentCycle()" class="btn-pixel w-full py-3 rounded-xl bg-purple-700 text-white font-bold">
+                            Trigger AI Agent Execution Cycle
+                        </button>
+                    </div>
+
+                    <div class="p-6 rounded-xl bg-slate-50 border-2 border-slate-950 space-y-3">
+                        <div class="font-bold text-slate-950 text-sm">Recent Agent Execution Logs</div>
+                        <div class="p-3 rounded-lg bg-slate-900 text-emerald-400 font-mono text-[11px] space-y-1 h-36 overflow-y-auto">
+                            <div>[INFO] AI Agent #8004 initialized.</div>
+                            <div>[INFO] Connected to Arc L1 RPC (Chain 5042002).</div>
+                            <div>[SUCCESS] Monitored DEX arbitrage spread: 0.8826 EURC/USDC.</div>
+                            <div>[WAITING] Awaiting user trigger cycle...</div>
                         </div>
                     </div>
                 </div>
@@ -3346,15 +3376,21 @@
         </section>
 
         <!-- PAGE 9: ABOUT ARC L1 VIEW -->
-        <section id="view-about" class="page-view hidden space-y-8">
-            <div class="pixel-card p-6 sm:p-8 space-y-6">
-                <div class="flex items-center gap-3 pb-6 border-b-2 border-slate-950">
-                    <i data-lucide="info" class="w-8 h-8 text-purple-700"></i>
-                    <div>
-                        <h2 class="font-pixel text-2xl font-black text-slate-950">About Circle Arc L1 Network</h2>
-                        <p class="text-xs text-slate-600 font-medium">Enterprise stablecoin-first Layer-1 blockchain built on Avalanche Subnet EVM</p>
+        <section id="view-about" class="page-view hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800/80">
+                <div>
+                    <div class="flex items-center gap-2 mb-1.5">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-semibold tracking-wider uppercase border border-slate-200 dark:border-slate-700">
+                            <i data-lucide="info" class="w-3 h-3 text-purple-600"></i>
+                            Overview
+                        </span>
                     </div>
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">About Circle Arc L1 Network</h1>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Enterprise stablecoin-first Layer-1 blockchain built on Avalanche Subnet EVM.</p>
                 </div>
+            </div>
+
+            <div class="pixel-card p-6 sm:p-8 space-y-6">
 
                 <div class="space-y-4 text-xs font-sans leading-relaxed text-slate-700 font-medium">
                     <p>
@@ -3373,20 +3409,25 @@
 
 
         <!-- PAGE VIEW: WEB3 TOOLS HUB -->
-        <section id="view-tools" class="page-view hidden space-y-8">
+        <section id="view-tools" class="page-view hidden space-y-6">
             <!-- Header Banner -->
-            <div class="pixel-card p-6 bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-[4px_4px_0px_#0F172A]">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800/80">
                 <div>
-                    <h1 class="font-pixel text-2xl md:text-3xl font-black text-white flex items-center gap-2.5">
-                        <i data-lucide="wrench" class="w-7 h-7 text-purple-400"></i>
-                        <span>Web3 Tools Hub</span>
-                    </h1>
-                    <p class="text-xs text-slate-300 mt-1 max-w-xl">All-in-one suite for wallet address analysis, contract inspection, network telemetry & security utilities.</p>
+                    <div class="flex items-center gap-2 mb-1.5">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 text-[11px] font-semibold tracking-wider uppercase border border-purple-200/60 dark:border-purple-800/40">
+                            <i data-lucide="wrench" class="w-3 h-3 text-purple-600"></i>
+                            Web3 Utilities
+                        </span>
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Web3 Tools Hub</h1>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-xl">All-in-one suite for wallet address analysis, contract inspection, network telemetry & security utilities.</p>
                 </div>
-                <button onclick="manualSwitchToArcNetwork()" class="btn-pixel py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-2 border-2 border-white/20">
-                    <i data-lucide="globe" class="w-4 h-4"></i>
-                    <span>Network: Arc 5042002</span>
-                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="manualSwitchToArcNetwork()" class="btn-pixel-sm px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 shadow-xs hover:bg-slate-50">
+                        <i data-lucide="globe" class="w-3.5 h-3.5 text-purple-600"></i>
+                        <span>Arc (5042002)</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Category Tabs Navigation -->
@@ -3581,24 +3622,25 @@
     
         <!-- PRO AI SECTION -->
         <section id="view-assistant" class="page-view hidden space-y-6 max-w-6xl mx-auto">
-            <div class="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 border border-slate-800 shadow-xl text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <div class="p-3 rounded-xl bg-purple-600/30 border border-purple-500/50">
-                        <i data-lucide="sparkles" class="w-6 h-6 text-purple-300"></i>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800/80">
+                <div>
+                    <div class="flex items-center gap-2 mb-1.5">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 text-[11px] font-semibold tracking-wider uppercase border border-purple-200/60 dark:border-purple-800/40">
+                            <i data-lucide="sparkles" class="w-3 h-3 text-purple-600"></i>
+                            AI OS Co-Pilot
+                        </span>
                     </div>
-                    <div>
-                        <h2 class="text-2xl font-bold tracking-tight">Pro AI Assistant</h2>
-                        <p class="text-xs text-slate-300">Your versatile intelligent co-pilot for Web3, crypto markets, coding, and general knowledge.</p>
-                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Pro AI Assistant</h1>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Your versatile intelligent co-pilot for Web3, crypto markets, coding, and ecosystem intelligence.</p>
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <button onclick="startNewProAiChat()" class="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md">
-                        <i data-lucide="plus" class="w-4 h-4"></i>
+                    <button onclick="startNewProAiChat()" class="btn-pixel-sm px-3.5 py-2 rounded-xl text-xs font-semibold text-white bg-purple-700 hover:bg-purple-800 flex items-center gap-1.5 shadow-xs">
+                        <i data-lucide="plus" class="w-3.5 h-3.5"></i>
                         <span>New Chat</span>
                     </button>
-                    <button onclick="toggleAiHistoryDrawer()" id="aiHistoryMenuBtn" title="Chat History" class="p-2.5 bg-slate-800 hover:bg-purple-900/50 text-slate-300 hover:text-white border border-slate-700 rounded-xl text-xs font-bold transition-all flex items-center justify-center shadow-md">
-                        <i data-lucide="more-vertical" class="w-4 h-4"></i>
+                    <button onclick="toggleAiHistoryDrawer()" id="aiHistoryMenuBtn" title="Chat History" class="btn-pixel-sm p-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center shadow-xs hover:bg-slate-50">
+                        <i data-lucide="history" class="w-4 h-4"></i>
                     </button>
                 </div>
             </div>
@@ -3690,30 +3732,29 @@
         
         <!-- PRICE PREDICTIONS & PREDICTION MARKETS SECTION -->
         <section id="view-prediction" class="page-view hidden space-y-6 max-w-7xl mx-auto">
-            <!-- Hero Banner -->
-            <div class="pixel-hero-gradient p-6 sm:p-8 text-white relative overflow-hidden">
-                <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
-                    <div class="space-y-2">
-                        <h1 class="font-pixel text-2xl sm:text-4xl font-black tracking-wide text-white drop-shadow-md flex items-center gap-3">
-                            <i data-lucide="trending-up" class="w-8 h-8 text-purple-300"></i>
-                            Prediction Markets & Technical AI
-                        </h1>
-                        <p class="text-white/90 text-xs sm:text-sm max-w-2xl leading-relaxed font-medium">
-                            Multi-timeframe dynamic technical charts, on-chain binary prediction pools with USDC shares, and institutional forecast models.
-                        </p>
+            <!-- Header Banner -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800/80">
+                <div>
+                    <div class="flex items-center gap-2 mb-1.5">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 text-[11px] font-semibold tracking-wider uppercase border border-purple-200/60 dark:border-purple-800/40">
+                            <i data-lucide="trending-up" class="w-3 h-3 text-purple-600"></i>
+                            Technical AI & Markets
+                        </span>
                     </div>
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Price Predictions & Markets</h1>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">Multi-timeframe dynamic technical charts, on-chain binary prediction pools with USDC shares, and institutional forecast models.</p>
+                </div>
 
-                    <!-- View Switcher Tabs -->
-                    <div class="flex items-center bg-black/40 p-1.5 rounded-2xl border-2 border-white/20 font-mono text-xs font-bold shrink-0">
-                        <button onclick="switchPredictionSubTab('forecasts')" id="predTabBtn-forecasts" class="px-4 py-2 rounded-xl bg-purple-600 text-white shadow-md transition-all flex items-center gap-2">
-                            <i data-lucide="line-chart" class="w-4 h-4"></i>
-                            <span>AI Price Forecasts</span>
-                        </button>
-                        <button onclick="switchPredictionSubTab('markets')" id="predTabBtn-markets" class="px-4 py-2 rounded-xl text-slate-300 hover:text-white transition-all flex items-center gap-2">
-                            <i data-lucide="flame" class="w-4 h-4 text-amber-400"></i>
-                            <span>Binary Markets (YES/NO)</span>
-                        </button>
-                    </div>
+                <!-- View Switcher Tabs -->
+                <div class="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs font-semibold shrink-0">
+                    <button onclick="switchPredictionSubTab('forecasts')" id="predTabBtn-forecasts" class="px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 shadow-xs transition-all flex items-center gap-1.5">
+                        <i data-lucide="line-chart" class="w-3.5 h-3.5"></i>
+                        <span>AI Forecasts</span>
+                    </button>
+                    <button onclick="switchPredictionSubTab('markets')" id="predTabBtn-markets" class="px-3.5 py-1.5 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all flex items-center gap-1.5">
+                        <i data-lucide="flame" class="w-3.5 h-3.5 text-amber-500"></i>
+                        <span>Binary Markets</span>
+                    </button>
                 </div>
             </div>
 
@@ -3976,9 +4017,17 @@
 
         <!-- CLEAN SETTINGS SECTION (Zero Emojis / Badges) -->
         <section id="view-settings" class="page-view hidden space-y-6 max-w-4xl mx-auto">
-            <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 text-white shadow-xl">
-                <h2 class="text-2xl font-bold tracking-tight" data-i18n="settings_title">Application Settings</h2>
-                <p class="text-xs text-slate-400 mt-1" data-i18n="settings_subtitle">Configure user profile, connected wallets, display preferences, and regional localization.</p>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800/80">
+                <div>
+                    <div class="flex items-center gap-2 mb-1.5">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-semibold tracking-wider uppercase border border-slate-200 dark:border-slate-700">
+                            <i data-lucide="settings" class="w-3 h-3 text-slate-500"></i>
+                            System
+                        </span>
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white" data-i18n="settings_title">Application Settings</h1>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1" data-i18n="settings_subtitle">Configure user profile, connected wallets, display preferences, and regional localization.</p>
+                </div>
             </div>
 
             <div class="space-y-6">
@@ -4060,12 +4109,18 @@
     
         <!-- WEB3 GAMES ARCADE SECTION (COMING SOON) -->
         <section id="view-games" class="page-view hidden space-y-6 max-w-6xl mx-auto">
-            <div class="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 border border-slate-800 text-white flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800/80">
                 <div>
-                    <h2 class="text-2xl font-bold tracking-tight">Web3 Gaming Arcade</h2>
-                    <p class="text-xs text-slate-300">Play-to-Earn games, provably fair mini-games, and decentralized gaming tournaments on Arc L1.</p>
+                    <div class="flex items-center gap-2 mb-1.5">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 text-[11px] font-semibold tracking-wider uppercase border border-purple-200/60 dark:border-purple-800/40">
+                            <i data-lucide="gamepad-2" class="w-3 h-3 text-purple-600"></i>
+                            Entertainment
+                        </span>
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Arc Gaming Arcade</h1>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Play on-chain mini-games, earn achievement badges, and compete on the global Arc leaderboard.</p>
                 </div>
-                <span class="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold">
+                <span class="px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-xs font-semibold shrink-0">
                     Ecosystem Launch Preview
                 </span>
             </div>

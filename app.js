@@ -536,6 +536,31 @@ function switchPage(pageId) {
         const activeBtn = document.getElementById(`nav-btn-${pageId}`);
         if (activeBtn) activeBtn.classList.add('active');
 
+        // Update Top Navbar Breadcrumb Title
+        const PAGE_TITLES = {
+            'monitor': 'Network Monitor',
+            'validators': 'PulseStake Terminal',
+            'swap': 'DEX Swap',
+            'bridge': 'Cross-Chain Bridge',
+            'pulsepay': 'PulsePay Engine',
+            'wallet': 'Wallet Dashboard',
+            'portfolio': 'Portfolio Analytics',
+            'token-creator': 'Token Factory',
+            'market': 'NFT & Token Market',
+            'agent': 'AI Agent Hub',
+            'daily': 'Quests & Rewards',
+            'tools': 'Web3 Tools Hub',
+            'assistant': 'Pro AI Assistant',
+            'prediction': 'Price Predictions',
+            'games': 'Arc Arcade',
+            'settings': 'Settings',
+            'about': 'About PulseGrid'
+        };
+        const topBarTitle = document.getElementById('topBarPageTitle');
+        if (topBarTitle && PAGE_TITLES[pageId]) {
+            topBarTitle.textContent = PAGE_TITLES[pageId];
+        }
+
         // Update Mobile bottom nav button if present
         const activeMobileBtn = document.getElementById(`mobile-nav-btn-${pageId}`);
         if (activeMobileBtn) {

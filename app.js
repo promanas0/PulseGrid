@@ -4272,7 +4272,7 @@ function generateSmartAiResponse(userMsg) {
     return `### Pro AI Answer: "${userMsg}"\n\nAapke question **"${userMsg}"** ka analysis:\n\n1. **Query Topic**: General Web3 / Protocol Telemetry Query\n2. **Network Sync**: Connected to Arc L1 Testnet (Chain ID 5042002)\n3. **Information**: Ritual AI Protocol and Arc Testnet Mainnet deployments are scheduled for **Q3/Q4 2026** (Arc L1 Target: Sept 16, 2026).\n\n*Pro Tip*: Direct Google Gemini 2.0 AI answers activate karne ke liye apni free Google API key enter karke Save button dabayein!`;
 }
 
-function setTheme(mode) {
+function setTheme(mode, showNotification = true) {
     const isDark = mode === 'dark';
     try {
         localStorage.setItem('arcpulse_theme', mode);
@@ -4280,12 +4280,10 @@ function setTheme(mode) {
 
     if (isDark) {
         document.documentElement.classList.add('dark');
-        document.body.style.backgroundColor = '#0F172A';
-        document.body.style.color = '#F8FAFC';
+        document.body.removeAttribute('style');
     } else {
         document.documentElement.classList.remove('dark');
-        document.body.style.backgroundColor = '#F8FAFC';
-        document.body.style.color = '#0F172A';
+        document.body.removeAttribute('style');
     }
 
     const darkBtn = document.getElementById('themeDarkBtn');
@@ -4301,7 +4299,28 @@ function setTheme(mode) {
         }
     }
 
-    showToast('Theme Updated 🎨', `Switched to ${isDark ? 'Dark Obsidian' : 'Clean Light'} Mode!`, 'info');
+    if (showNotification) {
+        showToast('Theme Updated 🎨', `Switched to ${isDark ? 'Dark Obsidian' : 'Clean Light'} Mode!`, 'info');
+    }
+}
+
+function initAppTheme() {
+    try {
+        const savedTheme = localStorage.getItem('arcpulse_theme');
+        if (savedTheme === 'dark') {
+            setTheme('dark', false);
+        } else if (savedTheme === 'light') {
+            setTheme('light', false);
+        }
+    } catch (e) { }
+}
+
+if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAppTheme);
+    } else {
+        initAppTheme();
+    }
 }
 
 function sendQuickPrompt(promptText) {

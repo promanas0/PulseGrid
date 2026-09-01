@@ -295,6 +295,140 @@
         .animate-slide-up {
             animation: slideUpDrawer 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
+
+        /* ══════════════════ COMPREHENSIVE DARK MODE STYLES ══════════════════ */
+        html.dark body {
+            background-color: #0B0F19 !important;
+            color: #F8FAFC !important;
+        }
+
+        html.dark .pixel-grid-bg {
+            background-color: #0B0F19 !important;
+            background-image: radial-gradient(circle, #1E293B 1px, transparent 1px);
+        }
+
+        html.dark .pixel-card,
+        html.dark .pixel-card-purple,
+        html.dark .pixel-card-teal,
+        html.dark .pixel-card-emerald {
+            background-color: #111827 !important;
+            border-color: #334155 !important;
+            box-shadow: 4px 4px 0px #1E293B !important;
+            color: #F8FAFC !important;
+        }
+
+        html.dark .pixel-card:hover {
+            box-shadow: 6px 6px 0px #7B2CBF !important;
+            border-color: #7B2CBF !important;
+        }
+
+        html.dark .bg-white {
+            background-color: #111827 !important;
+        }
+
+        html.dark .bg-slate-50,
+        html.dark .bg-slate-100 {
+            background-color: #1E293B !important;
+        }
+
+        html.dark .bg-purple-50 {
+            background-color: rgba(123, 44, 191, 0.15) !important;
+        }
+
+        html.dark .bg-emerald-50 {
+            background-color: rgba(16, 185, 129, 0.12) !important;
+        }
+
+        html.dark .bg-teal-50 {
+            background-color: rgba(13, 148, 136, 0.12) !important;
+        }
+
+        html.dark .bg-indigo-50 {
+            background-color: rgba(79, 70, 229, 0.12) !important;
+        }
+
+        html.dark .bg-rose-50 {
+            background-color: rgba(225, 29, 72, 0.12) !important;
+        }
+
+        html.dark .bg-amber-50 {
+            background-color: rgba(217, 119, 6, 0.12) !important;
+        }
+
+        html.dark .text-slate-900,
+        html.dark .text-slate-950,
+        html.dark .text-slate-800 {
+            color: #F8FAFC !important;
+        }
+
+        html.dark .text-slate-700,
+        html.dark .text-slate-600,
+        html.dark .text-slate-500 {
+            color: #94A3B8 !important;
+        }
+
+        html.dark .border-slate-950,
+        html.dark .border-slate-900,
+        html.dark .border-slate-300,
+        html.dark .border-slate-200 {
+            border-color: #334155 !important;
+        }
+
+        html.dark .border-slate-100 {
+            border-color: #1E293B !important;
+        }
+
+        html.dark .btn-pixel,
+        html.dark .btn-pixel-sm {
+            border-color: #334155 !important;
+            box-shadow: 3px 3px 0px #334155 !important;
+        }
+
+        html.dark .sidebar-link {
+            color: #E2E8F0 !important;
+        }
+
+        html.dark .sidebar-link i,
+        html.dark .sidebar-link svg {
+            color: #E2E8F0 !important;
+            stroke: #E2E8F0 !important;
+        }
+
+        html.dark .sidebar-link:hover {
+            background-color: #1E293B !important;
+            border-color: #334155 !important;
+            color: #C4B5FD !important;
+        }
+
+        html.dark .sidebar-link:hover i,
+        html.dark .sidebar-link:hover svg {
+            color: #C4B5FD !important;
+            stroke: #C4B5FD !important;
+        }
+
+        html.dark .sidebar-link.active {
+            background: linear-gradient(135deg, #6D28D9 0%, #0D9488 100%) !important;
+            border-color: #4C1D95 !important;
+            color: #FFFFFF !important;
+        }
+
+        html.dark input,
+        html.dark select,
+        html.dark textarea {
+            background-color: #0F172A !important;
+            color: #F8FAFC !important;
+            border-color: #334155 !important;
+        }
+
+        html.dark header.sticky {
+            background-color: rgba(15, 23, 42, 0.95) !important;
+            border-color: #334155 !important;
+        }
+
+        html.dark .mobile-nav-bottom {
+            background-color: rgba(15, 23, 42, 0.95) !important;
+            border-color: #334155 !important;
+        }
     </style>
 </head>
 <body class="min-h-screen bg-white text-slate-900 pixel-grid-bg flex flex-col lg:flex-row antialiased selection:bg-purple-600 selection:text-white">

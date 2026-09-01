@@ -398,6 +398,27 @@
                     const txList = existingRaw ? JSON.parse(existingRaw) : [];
                     txList.unshift(newTx);
                     localStorage.setItem('pulsepay_transactions_v2', JSON.stringify(txList.slice(0, 100)));
+
+                    // Also save to Universal Global DApp Transactions Store for connected wallet
+                    if (currentAccount) {
+                        const globalKey = `PulseGrid_global_txs_${currentAccount.toLowerCase()}`;
+                        const existingGlobal = localStorage.getItem(globalKey);
+                        const globalList = existingGlobal ? JSON.parse(existingGlobal) : [];
+                        globalList.unshift({
+                            id: `tx_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+                            txHash: txHash,
+                            type: 'PulsePay Checkout',
+                            category: 'pulsepay',
+                            details: `Paid ${targetAmount.toFixed(2)} ${targetToken} (${targetMemo || targetRefId})`,
+                            amount: `${targetAmount.toFixed(2)} ${targetToken}`,
+                            token: targetToken,
+                            status: 'Finalized ⚡',
+                            timestamp: Date.now(),
+                            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                            explorer: `https://testnet.arcscan.app/tx/${txHash}`
+                        });
+                        localStorage.setItem(globalKey, JSON.stringify(globalList.slice(0, 100)));
+                    }
                 } catch (storageErr) {
                     console.warn("Could not save PulsePay transaction locally:", storageErr);
                 }

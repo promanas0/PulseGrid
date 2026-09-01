@@ -2635,16 +2635,16 @@ const QUEST_TASKS_DATA = [
         badgeText: '+150 XP'
     },
     {
-        id: 'task-faucet',
+        id: 'task-bridge',
         category: 'daily',
-        title: 'Claim Testnet Gas Faucet',
-        desc: 'Refill your wallet with testnet tokens from the Circle Arc Faucet',
-        xp: 75,
-        icon: 'droplet',
-        actionLabel: 'Claim Faucet 💧',
-        actionFn: 'openFaucetModal()',
-        completedLabel: 'Faucet Claimed ✓',
-        badgeText: '+75 XP'
+        title: 'Circle CCTP Cross-Chain Bridge',
+        desc: 'Execute a cross-chain transfer or inspect CCTP routes on Circle Arc L1',
+        xp: 120,
+        icon: 'network',
+        actionLabel: 'Bridge Assets 🌐',
+        actionFn: "switchPage('bridge')",
+        completedLabel: 'Bridge Verified ✓',
+        badgeText: '+120 XP'
     },
     {
         id: 'task-validator',
@@ -6508,10 +6508,6 @@ document.addEventListener('DOMContentLoaded', () => {
             switchPage('monitor');
         }
 
-        if (requestedAction === 'faucet') {
-            setTimeout(() => { openFaucetModal(); }, 400);
-        }
-
         if (typeof renderPredictionCoins === 'function' && typeof PREDICTION_COINS !== 'undefined') {
             renderPredictionCoins(PREDICTION_COINS);
         }
@@ -9717,11 +9713,7 @@ function renderTxHistoryModal() {
 }
 
 function openFaucetModal() {
-    const modal = document.getElementById('faucetModal');
-    if (modal) {
-        safeSetText('faucetTargetAddrText', currentAccount || '0x... (Connect Wallet)');
-        modal.classList.remove('hidden');
-    }
+    window.open('https://faucet.circle.com/', '_blank');
 }
 
 function closeFaucetModal() {
@@ -9729,37 +9721,8 @@ function closeFaucetModal() {
     if (modal) modal.classList.add('hidden');
 }
 
-async function claimInAppFaucet() {
-    if (!currentAccount) {
-        showToast('Connect Wallet', 'Please connect your Web3 wallet first to receive faucet tokens.', 'warning');
-        if (typeof openRainbowKitModal === 'function') openRainbowKitModal();
-        return;
-    }
-
-    try {
-        showToast('Requesting Faucet 💧', 'Minting +100 USDC on Arc Testnet...', 'info');
-        const fakeTxHash = '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
-        
-        recordDappTransaction({
-            type: 'Testnet Gas Faucet',
-            category: 'transfer',
-            details: 'Claimed +100 USDC Testnet Tokens',
-            amount: '+100.00 USDC',
-            txHash: fakeTxHash,
-            timestamp: Date.now()
-        });
-
-        if (typeof realOnChainBalances !== 'undefined') {
-            realOnChainBalances.USDC = (parseFloat(realOnChainBalances.USDC || '0') + 100).toFixed(2);
-        }
-
-        showToast('Faucet Claimed! 🎉', '+100 USDC successfully credited to your Arc L1 wallet!', 'success');
-        closeFaucetModal();
-        if (typeof updateBalances === 'function') updateBalances();
-        if (typeof updateTokenBalancesUI === 'function') updateTokenBalancesUI();
-    } catch (e) {
-        showToast('Faucet Error', 'Could not process faucet request.', 'error');
-    }
+function claimInAppFaucet() {
+    window.open('https://faucet.circle.com/', '_blank');
 }
 
 /* =========================================================================

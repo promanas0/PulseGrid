@@ -569,11 +569,6 @@
                     <span>Dev Tools</span>
                 </button>
 
-                <button onclick="openFaucetModal()" class="sidebar-link w-full">
-                    <i data-lucide="droplet" class="w-4 h-4 shrink-0"></i>
-                    <span>Gas Faucet</span>
-                </button>
-
                 <button onclick="openTxHistoryModal()" class="sidebar-link w-full">
                     <i data-lucide="history" class="w-4 h-4 shrink-0"></i>
                     <span>Tx History</span>
@@ -772,9 +767,9 @@
                             <i data-lucide="wrench" class="w-4 h-4 text-purple-700 shrink-0"></i>
                             <span>Dev Tools</span>
                         </button>
-                        <button onclick="openFaucetModal(); toggleMobileMoreMenu();" class="p-3 rounded-xl bg-slate-50 hover:bg-purple-50 border-2 border-slate-950 flex items-center gap-2 font-bold text-slate-800 text-left transition-colors">
-                            <i data-lucide="droplet" class="w-4 h-4 text-emerald-700 shrink-0"></i>
-                            <span>Gas Faucet</span>
+                        <button onclick="openTxHistoryModal(); toggleMobileMoreMenu();" class="p-3 rounded-xl bg-slate-50 hover:bg-purple-50 border-2 border-slate-950 flex items-center gap-2 font-bold text-slate-800 text-left transition-colors">
+                            <i data-lucide="history" class="w-4 h-4 text-purple-700 shrink-0"></i>
+                            <span>Tx History</span>
                         </button>
                         <button onclick="switchPageAndCloseDrawer('settings')" id="mobile-more-btn-settings" class="p-3 rounded-xl bg-slate-50 hover:bg-purple-50 border-2 border-slate-950 flex items-center gap-2 font-bold text-slate-800 text-left transition-colors">
                             <i data-lucide="settings" class="w-4 h-4 text-slate-600 shrink-0"></i>
@@ -2353,9 +2348,9 @@
                             <i data-lucide="repeat" class="w-4 h-4"></i>
                             <span>Swap</span>
                         </button>
-                        <button onclick="openFaucetModal()" class="btn-pixel py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-pixel font-bold text-xs flex items-center justify-center gap-2 shadow-[3px_3px_0px_#0F172A] hover:-translate-y-0.5 transition-all">
-                            <i data-lucide="droplet" class="w-4 h-4"></i>
-                            <span>Get Testnet USDC</span>
+                        <button onclick="switchPage('bridge')" class="btn-pixel py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-pixel font-bold text-xs flex items-center justify-center gap-2 shadow-[3px_3px_0px_#0F172A] hover:-translate-y-0.5 transition-all">
+                            <i data-lucide="network" class="w-4 h-4"></i>
+                            <span>Bridge</span>
                         </button>
                     </div>
                 </div>
@@ -2500,11 +2495,11 @@
                         </div>
                     </div>
 
-                    <!-- SECTION 2: TESTNET SIMULATION & GOVERNANCE FAUCETS -->
+                    <!-- SECTION 2: TESTNET & SECONDARY ASSETS -->
                     <div class="flex items-center justify-between pt-3 pb-1 border-t border-slate-200">
                         <span class="text-[11px] font-silkscreen font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
                             <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-                            Testnet Simulation &amp; Faucet Assets
+                            Testnet &amp; Secondary Assets
                         </span>
                         <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300 font-bold">Testnet Demo</span>
                     </div>
@@ -2520,7 +2515,7 @@
                                     <span class="font-bold text-slate-950 text-base">eBTC</span>
                                     <span class="px-2 py-0.5 rounded-full bg-orange-100 text-orange-900 border border-orange-300 text-[10px] font-bold">Testnet Wrapped BTC</span>
                                 </div>
-                                <div class="text-xs text-slate-500 font-medium">Arc L1 Bridged Bitcoin Asset (Faucet Demo)</div>
+                                <div class="text-xs text-slate-500 font-medium">Arc L1 Bridged Bitcoin Asset (Demo)</div>
                             </div>
                         </div>
 
@@ -4428,28 +4423,7 @@
         </div>
     </div>
 
-    <!-- FAUCET MODAL -->
-    <div id="faucetModal" class="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="pixel-card-emerald w-full max-w-md p-6 space-y-4 font-mono text-xs">
-            <div class="flex items-center justify-between pb-2 border-b-2 border-slate-950">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="droplet" class="w-5 h-5 text-emerald-600"></i>
-                    <h3 class="font-pixel font-bold text-slate-950 text-base">Arc Testnet Faucet</h3>
-                </div>
-                <button onclick="closeFaucetModal()" class="text-slate-500 hover:text-slate-950">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            <p class="text-slate-600 text-xs font-sans">Claim free testnet USDC & EURC to pay native gas fees and test swaps on Arc Testnet.</p>
-            <div class="p-3 bg-slate-50 rounded-xl border border-slate-300">
-                <div class="text-[10px] text-slate-400">Target Address:</div>
-                <div id="faucetTargetAddrText" class="font-bold text-slate-950 truncate">0x...</div>
-            </div>
-            <button onclick="claimInAppFaucet()" class="btn-pixel w-full py-3 rounded-xl bg-emerald-600 text-white font-bold text-xs">
-                Claim +100 USDC Faucet Tokens
-            </button>
-        </div>
-    </div>
+
 
     <!-- STAKING ACTIVITY LEDGER MODAL -->
     <div id="pulseStakeActivityModal" class="hidden fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-150">

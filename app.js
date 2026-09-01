@@ -588,8 +588,6 @@ function switchPage(pageId) {
         } else if (pageId === 'validators') {
             if (typeof renderValidatorsTable === 'function') renderValidatorsTable();
             if (typeof refreshStakingTelemetry === 'function') refreshStakingTelemetry();
-        } else if (pageId === 'daily') {
-            if (typeof initQuests === 'function') initQuests();
         } else if (pageId === 'portfolio') {
             renderPortfolioView();
         } else if (pageId === 'token-creator') {

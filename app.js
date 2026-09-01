@@ -9042,25 +9042,22 @@ function stakeDirectlyWithNode(nodeId, nodeName, apy) {
     }
 }
 
-/**
- * Select a validator node on the Terminal Stake Tab
- */
 function selectTerminalStakeNode(nodeId, nodeName, apy) {
     currentModalValidatorId = nodeId || 1;
     currentModalValidatorName = nodeName || "Circle Genesis Node";
     currentModalValidatorApy = apy || 13.20;
 
     // Update selection label
-    safeSetText('selectedNodeLabelDisplay', `Selected: ${currentModalValidatorName} (${currentModalValidatorApy.toFixed(2)}% APY)`);
+    safeSetText('selectedNodeLabelDisplay', `${currentModalValidatorName} (${currentModalValidatorApy.toFixed(2)}% APY)`);
 
-    // Update visual highlight on cards
-    for (let id = 1; id <= 5; id++) {
+    // Update visual highlight on cards (all 6 nodes)
+    for (let id = 1; id <= 6; id++) {
         const card = document.getElementById(`nodeSelectorCard-${id}`);
         if (card) {
             if (id === nodeId) {
-                card.className = "node-select-card p-4 rounded-2xl border-2 border-purple-700 bg-purple-50/70 shadow-[3px_3px_0px_#0F172A] cursor-pointer transition-all space-y-2";
+                card.className = "node-select-card p-3.5 rounded-2xl border-2 border-purple-600 bg-purple-50/80 dark:bg-purple-950/50 dark:border-purple-500 shadow-xs cursor-pointer transition-all space-y-2 ring-1 ring-purple-600/30";
             } else {
-                card.className = "node-select-card p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-purple-400 cursor-pointer transition-all space-y-2";
+                card.className = "node-select-card p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 hover:border-purple-300 dark:hover:border-purple-700 cursor-pointer transition-all space-y-2";
             }
         }
     }

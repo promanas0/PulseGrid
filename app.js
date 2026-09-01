@@ -8981,39 +8981,65 @@ function renderStakingLeaderboard() {
 }
 
 /* =========================================================================
-   PULSESTAKE 2-TAB TERMINAL: TAB SWITCHER & NODE SELECTOR
+   PULSESTAKE 3-TAB TERMINAL: TAB SWITCHER, NODE SELECTOR & DIRECT STAKE
    ========================================================================= */
 
 function switchPulseStakeTab(tabName) {
     const tabStake = document.getElementById('tabContentStake');
     const tabUnstake = document.getElementById('tabContentUnstake');
+    const tabHistory = document.getElementById('tabContentHistory');
     const btnStake = document.getElementById('tabBtnStake');
     const btnUnstake = document.getElementById('tabBtnUnstake');
+    const btnHistory = document.getElementById('tabBtnHistory');
+
+    const inactiveBtnClass = "flex-1 sm:flex-initial px-4 py-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all flex items-center justify-center gap-1.5 font-medium";
 
     if (tabName === 'stake') {
         if (tabStake) tabStake.classList.remove('hidden');
         if (tabUnstake) tabUnstake.classList.add('hidden');
+        if (tabHistory) tabHistory.classList.add('hidden');
 
-        if (btnStake) {
-            btnStake.className = "flex-1 sm:flex-initial px-5 py-2.5 rounded-xl bg-purple-700 text-white font-bold shadow-[2px_2px_0px_#0F172A] transition-all flex items-center justify-center gap-2";
-        }
-        if (btnUnstake) {
-            btnUnstake.className = "flex-1 sm:flex-initial px-5 py-2.5 rounded-xl text-slate-700 hover:text-slate-950 font-bold transition-all flex items-center justify-center gap-2";
-        }
-    } else {
+        if (btnStake) btnStake.className = "flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-purple-700 text-white shadow-xs transition-all flex items-center justify-center gap-1.5 font-semibold";
+        if (btnUnstake) btnUnstake.className = inactiveBtnClass;
+        if (btnHistory) btnHistory.className = inactiveBtnClass;
+    } else if (tabName === 'unstake') {
         if (tabStake) tabStake.classList.add('hidden');
         if (tabUnstake) tabUnstake.classList.remove('hidden');
+        if (tabHistory) tabHistory.classList.add('hidden');
 
-        if (btnUnstake) {
-            btnUnstake.className = "flex-1 sm:flex-initial px-5 py-2.5 rounded-xl bg-rose-600 text-white font-bold shadow-[2px_2px_0px_#0F172A] transition-all flex items-center justify-center gap-2";
-        }
-        if (btnStake) {
-            btnStake.className = "flex-1 sm:flex-initial px-5 py-2.5 rounded-xl text-slate-700 hover:text-slate-950 font-bold transition-all flex items-center justify-center gap-2";
-        }
+        if (btnUnstake) btnUnstake.className = "flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-rose-600 text-white shadow-xs transition-all flex items-center justify-center gap-1.5 font-semibold";
+        if (btnStake) btnStake.className = inactiveBtnClass;
+        if (btnHistory) btnHistory.className = inactiveBtnClass;
 
         populateTerminalUnstakePools();
+    } else if (tabName === 'history') {
+        if (tabStake) tabStake.classList.add('hidden');
+        if (tabUnstake) tabUnstake.classList.add('hidden');
+        if (tabHistory) tabHistory.classList.remove('hidden');
+
+        if (btnHistory) btnHistory.className = "flex-1 sm:flex-initial px-4 py-2 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs transition-all flex items-center justify-center gap-1.5 font-semibold";
+        if (btnStake) btnStake.className = inactiveBtnClass;
+        if (btnUnstake) btnUnstake.className = inactiveBtnClass;
+
+        renderStakingTransactions();
     }
     safeInitIcons();
+}
+
+/**
+ * 1-Click Stake directly from Top Consortium Nodes Section
+ */
+function stakeDirectlyWithNode(nodeId, nodeName, apy) {
+    switchPulseStakeTab('stake');
+    selectTerminalStakeNode(nodeId, nodeName, apy);
+    const terminal = document.getElementById('pulseStakeTerminalContainer');
+    if (terminal) {
+        terminal.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    const input = document.getElementById('terminalStakeAmountInput');
+    if (input) {
+        setTimeout(() => input.focus(), 300);
+    }
 }
 
 /**
@@ -9826,6 +9852,7 @@ function clearStakingHistory() {
 function renderStakingTransactions() {
     try {
         const inlineContainer = document.getElementById('stakingTransactionsList');
+        const terminalHistoryContainer = document.getElementById('terminalStakingHistoryList');
         const modalContainer = document.getElementById('stakingModalTransactionsList');
 
         const allHistory = JSON.parse(localStorage.getItem('pulsestake_tx_history_v1') || '[]');
@@ -9838,29 +9865,29 @@ function renderStakingTransactions() {
         const generateTxCardHtml = (tx) => {
             const timeAgo = formatTimeAgo(tx.timestamp);
             let typeBadge = '';
-            let amountColor = 'text-slate-950';
+            let amountColor = 'text-slate-900 dark:text-white';
 
             if (tx.type === 'STAKE') {
-                typeBadge = `<span class="px-2.5 py-1 rounded-lg bg-purple-100 text-purple-900 border border-purple-300 font-bold text-[10px] font-mono flex items-center gap-1"><i data-lucide="plus-circle" class="w-3 h-3 text-purple-700"></i> STAKE</span>`;
-                amountColor = 'text-purple-700';
+                typeBadge = `<span class="px-2.5 py-1 rounded-lg bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border border-purple-200 dark:border-purple-800 font-bold text-[10px] font-mono flex items-center gap-1"><i data-lucide="plus-circle" class="w-3 h-3 text-purple-600"></i> STAKE</span>`;
+                amountColor = 'text-purple-700 dark:text-purple-400';
             } else if (tx.type === 'UNSTAKE') {
-                typeBadge = `<span class="px-2.5 py-1 rounded-lg bg-rose-100 text-rose-900 border border-rose-300 font-bold text-[10px] font-mono flex items-center gap-1"><i data-lucide="minus-circle" class="w-3 h-3 text-rose-700"></i> UNSTAKE</span>`;
-                amountColor = 'text-rose-700';
+                typeBadge = `<span class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200 dark:border-rose-800 font-bold text-[10px] font-mono flex items-center gap-1"><i data-lucide="minus-circle" class="w-3 h-3 text-rose-600"></i> UNSTAKE</span>`;
+                amountColor = 'text-rose-700 dark:text-rose-400';
             } else {
-                typeBadge = `<span class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-900 border border-emerald-300 font-bold text-[10px] font-mono flex items-center gap-1"><i data-lucide="sparkles" class="w-3 h-3 text-emerald-700"></i> CLAIM</span>`;
-                amountColor = 'text-emerald-700';
+                typeBadge = `<span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-bold text-[10px] font-mono flex items-center gap-1"><i data-lucide="sparkles" class="w-3 h-3 text-emerald-600"></i> CLAIM</span>`;
+                amountColor = 'text-emerald-700 dark:text-emerald-400';
             }
 
             const arcscanUrl = tx.txHash ? `https://testnet.arcscan.app/tx/${tx.txHash}` : `https://testnet.arcscan.app/address/${PULSESTAKE_CONTRACT_ADDRESS}`;
 
             return `
-                <div class="p-3.5 sm:p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:border-purple-700 transition-colors">
+                <div class="p-3.5 sm:p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:border-purple-300 dark:hover:border-purple-700 transition-colors">
                     <div class="flex items-center gap-3">
                         <div class="shrink-0">${typeBadge}</div>
                         <div>
-                            <div class="font-bold text-slate-950 text-xs sm:text-sm font-sans flex items-center gap-2">
+                            <div class="font-bold text-slate-900 dark:text-white text-xs sm:text-sm font-sans flex items-center gap-2">
                                 <span>${tx.validatorName}</span>
-                                <span class="text-[10px] font-mono text-emerald-600 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded font-bold">✓ Finalized</span>
+                                <span class="text-[10px] font-mono text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-1.5 py-0.2 rounded font-bold">✓ Finalized</span>
                             </div>
                             <div class="text-[11px] text-slate-500 font-mono mt-0.5 flex items-center gap-2">
                                 <span>${timeAgo}</span>
@@ -9870,12 +9897,12 @@ function renderStakingTransactions() {
                         </div>
                     </div>
 
-                    <div class="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-200">
+                    <div class="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-200 dark:border-slate-800">
                         <div class="text-left sm:text-right font-mono">
                             <div class="text-sm sm:text-base font-black ${amountColor}">${tx.amount}</div>
                             <div class="text-[10px] text-slate-400 font-bold">0.001 USDC Fee</div>
                         </div>
-                        <a href="${arcscanUrl}" target="_blank" class="px-3 py-1.5 rounded-lg bg-white hover:bg-purple-50 text-purple-700 hover:text-purple-900 border-2 border-slate-950 font-mono text-xs font-bold flex items-center gap-1 shadow-[2px_2px_0px_#0F172A] transition-transform active:translate-y-0.5 shrink-0" title="Inspect On ArcScan Explorer">
+                        <a href="${arcscanUrl}" target="_blank" class="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-purple-50 text-purple-700 hover:text-purple-900 dark:text-purple-300 border border-slate-200 dark:border-slate-700 font-mono text-xs font-bold flex items-center gap-1 shadow-xs transition-transform active:translate-y-0.5 shrink-0" title="Inspect On ArcScan Explorer">
                             <span>ArcScan</span>
                             <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
                         </a>
@@ -9885,12 +9912,12 @@ function renderStakingTransactions() {
         };
 
         const emptyHtml = `
-            <div class="p-8 text-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl space-y-2">
-                <div class="w-12 h-12 mx-auto rounded-full bg-purple-100 border border-purple-300 flex items-center justify-center text-purple-700">
+            <div class="p-8 text-center bg-slate-50 dark:bg-slate-900/40 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl space-y-2">
+                <div class="w-12 h-12 mx-auto rounded-full bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 flex items-center justify-center text-purple-600">
                     <i data-lucide="activity" class="w-6 h-6"></i>
                 </div>
-                <div class="font-pixel text-sm font-bold text-slate-800">No Staking Activity Recorded</div>
-                <p class="text-xs text-slate-500 font-mono max-w-sm mx-auto">
+                <div class="text-sm font-bold text-slate-800 dark:text-white">No Staking Activity Recorded</div>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-mono max-w-sm mx-auto">
                     Your stakes, unstakes, and yield claims on Circle Arc L1 will be displayed here with direct ArcScan explorer links.
                 </p>
             </div>
@@ -9898,6 +9925,10 @@ function renderStakingTransactions() {
 
         if (inlineContainer) {
             inlineContainer.innerHTML = allHistory.length === 0 ? emptyHtml : allHistory.map(generateTxCardHtml).join('');
+        }
+
+        if (terminalHistoryContainer) {
+            terminalHistoryContainer.innerHTML = allHistory.length === 0 ? emptyHtml : allHistory.map(generateTxCardHtml).join('');
         }
 
         if (modalContainer) {

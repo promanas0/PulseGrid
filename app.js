@@ -9209,7 +9209,9 @@ async function executeStakeFromTerminal() {
 
         await tx.wait(1);
 
-        showToast('Staking Successful! 🎉', `Staked ${amount} USDC to ${currentModalValidatorName}. You received ${amount} $pUSDC!`, 'success');
+        showToast('Staking Successful! 🎉', `Staked ${amount} USDC to ${currentModalValidatorName} on Arc L1!`, 'success');
+
+        saveStakingTransaction('STAKE', currentModalValidatorName, `${amount} USDC`, tx.hash);
 
         if (typeof confetti === 'function') {
             confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
@@ -9356,6 +9358,8 @@ async function executeUnstakeFromTerminal() {
 
         showToast('Unstake Successful! ✅', `Returned ${amount} native USDC directly to your wallet!`, 'success');
 
+        saveStakingTransaction('UNSTAKE', currentUnstakeValidatorName, `${amount} USDC`, tx.hash);
+
         fetchRealOnChainBalances(currentAccount);
         refreshStakingTelemetry();
     } catch (err) {
@@ -9395,10 +9399,11 @@ async function claimAllStakingRewards() {
             const node = pulseStakeUserState.perValidator[id];
             if (node && (node.staked > 0 || node.pending > 0)) {
                 try {
-                    showToast('Claiming Yield', `Claiming $pUSDC rewards from Node #${id}...`, 'info');
+                    showToast('Claiming Yield', `Claiming rewards from Node #${id}...`, 'info');
                     const tx = await contract.claimRewards(id);
                     await tx.wait(1);
                     claimedCount++;
+                    saveStakingTransaction('CLAIM', `Node #${id}`, `Claimed Yield Rewards`, tx.hash);
                 } catch (subErr) {
                     console.warn(`Claim node #${id} notice:`, subErr);
                 }
@@ -9406,7 +9411,7 @@ async function claimAllStakingRewards() {
         }
 
         if (claimedCount > 0) {
-            showToast('Yield Claimed! 🎉', `Successfully minted $pUSDC rewards directly into your wallet!`, 'success');
+            showToast('Yield Claimed! 🎉', `Successfully collected staking rewards directly into your wallet!`, 'success');
             if (typeof confetti === 'function') {
                 confetti({ particleCount: 80, spread: 60, origin: { y: 0.5 } });
             }
@@ -9429,12 +9434,141 @@ async function claimAllStakingRewards() {
     }
 }
 
-// Auto-refresh Staking Telemetry on DOM Load
+/* =========================================================================
+   PULSESTAKE TRANSACTION HISTORY & ARCSCAN LEDGER
+   ========================================================================= */
+
+function formatTimeAgo(timestamp) {
+    if (!timestamp) return 'Just now';
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    if (seconds < 30) return 'Just now';
+    if (seconds < 60) return `${seconds}s ago`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+}
+
+function saveStakingTransaction(type, validatorName, amount, txHash) {
+    try {
+        const history = JSON.parse(localStorage.getItem('pulsestake_tx_history_v1') || '[]');
+        const newTx = {
+            id: 'pstk_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+            type: type || 'STAKE',
+            validatorName: validatorName || 'Validator Node',
+            amount: amount || '0.00 USDC',
+            txHash: txHash || '',
+            timestamp: Date.now(),
+            account: currentAccount || ''
+        };
+        history.unshift(newTx);
+        if (history.length > 30) history.pop();
+        localStorage.setItem('pulsestake_tx_history_v1', JSON.stringify(history));
+        renderStakingTransactions();
+    } catch (e) {
+        console.warn("saveStakingTransaction error:", e);
+    }
+}
+
+function clearStakingHistory() {
+    try {
+        localStorage.removeItem('pulsestake_tx_history_v1');
+        renderStakingTransactions();
+        showToast('Ledger Cleared', 'Local staking transaction history has been cleared.', 'info');
+    } catch (e) { }
+}
+
+function renderStakingTransactions() {
+    try {
+        const container = document.getElementById('stakingTransactionsList');
+        if (!container) return;
+
+        const history = JSON.parse(localStorage.getItem('pulsestake_tx_history_v1') || '[]');
+
+        if (!history || history.length === 0) {
+            container.innerHTML = `
+                <div class="p-8 text-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl space-y-2">
+                    <div class="w-12 h-12 mx-auto rounded-full bg-purple-100 border border-purple-300 flex items-center justify-center text-purple-700">
+                        <i data-lucide="activity" class="w-6 h-6"></i>
+                    </div>
+                    <div class="font-pixel text-sm font-bold text-slate-800">No Staking Activity Recorded</div>
+                    <p class="text-xs text-slate-500 font-mono max-w-sm mx-auto">
+                        Your stakes, unstakes, and yield claims on Circle Arc L1 will be displayed here with direct ArcScan explorer links.
+                    </p>
+                </div>
+            `;
+            safeInitIcons();
+            return;
+        }
+
+        let html = '';
+        history.forEach(tx => {
+            const timeAgo = formatTimeAgo(tx.timestamp);
+            let typeBadge = '';
+            let amountColor = 'text-slate-950';
+
+            if (tx.type === 'STAKE') {
+                typeBadge = `<span class="px-2.5 py-1 rounded-lg bg-purple-100 text-purple-900 border border-purple-300 font-bold text-[10px] font-mono flex items-center gap-1"><i data-lucide="plus-circle" class="w-3 h-3 text-purple-700"></i> STAKE</span>`;
+                amountColor = 'text-purple-700';
+            } else if (tx.type === 'UNSTAKE') {
+                typeBadge = `<span class="px-2.5 py-1 rounded-lg bg-rose-100 text-rose-900 border border-rose-300 font-bold text-[10px] font-mono flex items-center gap-1"><i data-lucide="minus-circle" class="w-3 h-3 text-rose-700"></i> UNSTAKE</span>`;
+                amountColor = 'text-rose-700';
+            } else {
+                typeBadge = `<span class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-900 border border-emerald-300 font-bold text-[10px] font-mono flex items-center gap-1"><i data-lucide="sparkles" class="w-3 h-3 text-emerald-700"></i> CLAIM</span>`;
+                amountColor = 'text-emerald-700';
+            }
+
+            const arcscanUrl = tx.txHash ? `https://testnet.arcscan.app/tx/${tx.txHash}` : `https://testnet.arcscan.app/address/${PULSESTAKE_CONTRACT_ADDRESS}`;
+
+            html += `
+                <div class="p-3.5 sm:p-4 rounded-xl bg-slate-50 border-2 border-slate-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:border-purple-700 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <div class="shrink-0">${typeBadge}</div>
+                        <div>
+                            <div class="font-bold text-slate-950 text-xs sm:text-sm font-sans flex items-center gap-2">
+                                <span>${tx.validatorName}</span>
+                                <span class="text-[10px] font-mono text-emerald-600 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded font-bold">✓ Finalized</span>
+                            </div>
+                            <div class="text-[11px] text-slate-500 font-mono mt-0.5 flex items-center gap-2">
+                                <span>${timeAgo}</span>
+                                <span>•</span>
+                                <span>Arc L1 (5042002)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-200">
+                        <div class="text-left sm:text-right font-mono">
+                            <div class="text-sm sm:text-base font-black ${amountColor}">${tx.amount}</div>
+                            <div class="text-[10px] text-slate-400 font-bold">0.001 USDC Fee</div>
+                        </div>
+                        <a href="${arcscanUrl}" target="_blank" class="px-3 py-1.5 rounded-lg bg-white hover:bg-purple-50 text-purple-700 hover:text-purple-900 border-2 border-slate-950 font-mono text-xs font-bold flex items-center gap-1 shadow-[2px_2px_0px_#0F172A] transition-transform active:translate-y-0.5 shrink-0" title="Inspect On ArcScan Explorer">
+                            <span>ArcScan</span>
+                            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                        </a>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+        safeInitIcons();
+    } catch (e) {
+        console.warn("renderStakingTransactions error:", e);
+    }
+}
+
+// Auto-refresh Staking Telemetry and History on DOM Load
 if (typeof document !== 'undefined') {
     document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             if (typeof refreshStakingTelemetry === 'function') {
                 refreshStakingTelemetry();
+            }
+            if (typeof renderStakingTransactions === 'function') {
+                renderStakingTransactions();
             }
         }, 1200);
     });

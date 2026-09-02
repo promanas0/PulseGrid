@@ -1,6 +1,10 @@
 import { createServer } from 'node:http';
 import { readFileSync, existsSync, statSync } from 'node:fs';
 import { join, extname } from 'node:path';
+import dotenv from 'dotenv';
+import { ethers } from 'ethers';
+
+dotenv.config();
 
 const mimeTypes = {
   '.html': 'text/html',
@@ -14,8 +18,142 @@ const mimeTypes = {
   '.ico': 'image/x-icon'
 };
 
-const server = createServer((req, res) => {
+const RPC_URL = process.env.ARC_RPC_URL || 'https://rpc.testnet.arc.network';
+const PULSE_AI_AGENT_ADDRESS = '0x7d3AEe80599F7fB8a292958A34732ccb5A067d5E';
+const ERC20_USDC_ADDRESS = '0x3600000000000000000000000000000000000000';
+const ERC20_EURC_ADDRESS = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a';
+
+const PULSE_AI_AGENT_ABI = [
+  "function executeSwapByAgent(address user, address tokenIn, address tokenOut, uint256 amountIn, uint256 minAmountOut) external",
+  "function executeTransferByAgent(address user, address payable recipient, uint256 amount, string calldata memo) external",
+  "function executeBatchTransferByAgent(address user, address payable recipient, uint256 count, uint256 amountPerTx, string calldata memo) external",
+  "function executeStakeByAgent(address user, uint8 validatorId, uint256 amount) external",
+  "function getUserVaultBalance(address user) external view returns (uint256)",
+  "function authorizedAgents(address agent) external view returns (bool)"
+];
+
+let provider = null;
+let relayerWallet = null;
+let agentContract = null;
+
+if (process.env.PRIVATE_KEY) {
+  try {
+    provider = new ethers.JsonRpcProvider(RPC_URL);
+    relayerWallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+    agentContract = new ethers.Contract(PULSE_AI_AGENT_ADDRESS, PULSE_AI_AGENT_ABI, relayerWallet);
+    console.log(`🤖 AI Agent Relayer initialized: ${relayerWallet.address}`);
+  } catch (e) {
+    console.warn('⚠️ Could not initialize AI Agent Relayer:', e.message);
+  }
+}
+
+const server = createServer(async (req, res) => {
+  // CORS Headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+
   const urlPath = req.url.split('?')[0];
+
+  // =========================================================================
+  // API ROUTE: /api/agent-relayer (100% ZERO-POPUP ON-CHAIN AUTONOMOUS EXECUTION)
+  // =========================================================================
+  if (urlPath === '/api/agent-relayer' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', async () => {
+      try {
+        const payload = JSON.parse(body || '{}');
+        const { action, user, amount, tokenIn, tokenOut, recipient, count, amountPerTx, validatorId } = payload;
+
+        if (!user || !ethers.isAddress(user)) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Valid user address is required' }));
+          return;
+        }
+
+        if (!agentContract || !relayerWallet) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'AI Agent Relayer not configured with PRIVATE_KEY on server' }));
+          return;
+        }
+
+        console.log(`🚀 Executing Autonomous Auto-Pay for ${user}: Action = ${action}, Amount = ${amount}`);
+
+        let tx;
+        if (action === 'SWAP') {
+          const amountWei = ethers.parseEther(amount.toString());
+          const tokenInAddr = tokenIn === 'EURC' ? ERC20_EURC_ADDRESS : ERC20_USDC_ADDRESS;
+          const tokenOutAddr = tokenOut === 'EURC' ? ERC20_EURC_ADDRESS : ERC20_USDC_ADDRESS;
+
+          tx = await agentContract.executeSwapByAgent(
+            user,
+            tokenInAddr,
+            tokenOutAddr,
+            amountWei,
+            0
+          );
+        } else if (action === 'SEND') {
+          const amountWei = ethers.parseEther(amount.toString());
+          tx = await agentContract.executeTransferByAgent(
+            user,
+            recipient,
+            amountWei,
+            "AI Copilot Autonomous Transfer"
+          );
+        } else if (action === 'BATCH') {
+          const amountPerTxWei = ethers.parseEther(amountPerTx.toString());
+          tx = await agentContract.executeBatchTransferByAgent(
+            user,
+            recipient,
+            count || 10,
+            amountPerTxWei,
+            "AI Copilot Autonomous Batch Execution"
+          );
+        } else if (action === 'STAKE') {
+          const amountWei = ethers.parseEther(amount.toString());
+          tx = await agentContract.executeStakeByAgent(
+            user,
+            validatorId || 1,
+            amountWei
+          );
+        } else {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: `Unknown action: ${action}` }));
+          return;
+        }
+
+        console.log(`📡 Broadcasted on Arc L1! Hash: ${tx.hash}`);
+        const receipt = await tx.wait(1);
+        console.log(`✅ Confirmed on Block #${receipt.blockNumber}!`);
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: true,
+          txHash: receipt.hash || tx.hash,
+          blockNumber: receipt.blockNumber,
+          relayer: relayerWallet.address
+        }));
+      } catch (err) {
+        console.error('❌ Relayer Execution Error:', err);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          error: err.reason || err.shortMessage || err.message || 'On-chain execution failed'
+        }));
+      }
+    });
+    return;
+  }
+
+  // =========================================================================
+  // STATIC ASSET SERVING
+  // =========================================================================
   let filePath = join(process.cwd(), urlPath === '/' ? 'index.html' : urlPath);
   
   if (!existsSync(filePath) || statSync(filePath).isDirectory()) {
@@ -35,7 +173,7 @@ const server = createServer((req, res) => {
   }
 });
 
-server.listen(3000, '127.0.0.1', () => {
-  console.log('ArchPulse DApp running on http://127.0.0.1:3000');
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`ArchPulse DApp & AI Agent Relayer running on port ${PORT}`);
 });
-

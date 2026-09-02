@@ -4112,6 +4112,43 @@ function parseNaturalIntent(text) {
     }
 
     // -------------------------------------------------------------
+    // INTENT 0E: TOKEN FACTORY / ERC-20 DEPLOYMENT
+    // -------------------------------------------------------------
+    if (/(token.*factory|create.*token|deploy.*token|launch.*token|make.*token|generate.*token)/i.test(clean)) {
+        // Try extracting Token Name, Symbol, Supply
+        const words = raw.trim().split(/\s+/);
+        let name = "Pulse Community Token";
+        let symbol = "PULSE";
+        let supply = 1000000;
+
+        const supplyMatch = clean.match(/([0-9]+(?:,[0-9]+)*(?:\.[0-9]+)?)\s*(?:supply|tokens|coins)?/i);
+        if (supplyMatch) {
+            const parsedSupply = parseFloat(supplyMatch[1].replace(/,/g, ''));
+            if (!isNaN(parsedSupply) && parsedSupply > 0) supply = parsedSupply;
+        }
+
+        // Check if user provided custom name or symbol
+        const nameMatch = raw.match(/(?:token|name|named|called)\s+([A-Za-z0-9_]+)/i);
+        if (nameMatch && nameMatch[1] && !['factory', 'erc20', 'erc', 'the', 'a', 'on', 'arc'].includes(nameMatch[1].toLowerCase())) {
+            name = nameMatch[1];
+            symbol = name.substring(0, 5).toUpperCase();
+        }
+
+        const symbolMatch = raw.match(/\b([A-Z]{2,6})\b/);
+        if (symbolMatch && symbolMatch[1]) {
+            symbol = symbolMatch[1];
+        }
+
+        return {
+            type: 'TOKEN_FACTORY',
+            name: name,
+            symbol: symbol,
+            supply: supply,
+            decimals: 18
+        };
+    }
+
+    // -------------------------------------------------------------
     // INTENT A: BATCH TRANSFERS (1 TO 100 TRANSACTIONS)
     // -------------------------------------------------------------
     if (recipient && /(batch|bar|baar|times|multiple|lagatar|karke|txs|transactions|payments|transfers|micro)/i.test(clean)) {
@@ -4361,6 +4398,46 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                         <i data-lucide="external-link" class="w-4 h-4"></i>
                         <span>Open 1-Click Web Checkout Page</span>
                     </a>
+                </div>
+            </div>
+        `;
+        chatBox.appendChild(cardBubble);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        if (window.lucide) window.lucide.createIcons();
+        return true;
+    }
+
+    // -----------------------------------------------------------------
+    // SPECIAL INTENT 00B: TOKEN FACTORY ERC-20 DEPLOYMENT PREP
+    // -----------------------------------------------------------------
+    if (intent.type === 'TOKEN_FACTORY') {
+        const { name, symbol, supply, decimals } = intent;
+        const cardBubble = document.createElement('div');
+        cardBubble.className = 'flex gap-3';
+        cardBubble.innerHTML = `
+            <div class="w-8 h-8 rounded-full bg-amber-600/30 border border-amber-500 flex items-center justify-center shrink-0">
+                <i data-lucide="coins" class="w-4 h-4 text-amber-300"></i>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-950 border-2 border-amber-500/80 text-white font-mono text-xs space-y-3 shadow-xl max-w-[85%]">
+                <div class="flex items-center justify-between pb-2 border-b border-amber-500/30">
+                    <span class="flex items-center gap-1.5 text-amber-300 font-bold">
+                        <i data-lucide="rocket" class="w-4 h-4 text-amber-400"></i>
+                        <span>TOKEN FACTORY - READY TO DEPLOY</span>
+                    </span>
+                    <span class="px-2 py-0.5 rounded-full bg-amber-900/60 text-amber-300 border border-amber-500/40 text-[10px]">${symbol}</span>
+                </div>
+                <div class="space-y-1 text-slate-300">
+                    <div>🪙 <strong>Token Name:</strong> ${name}</div>
+                    <div>🏷️ <strong>Symbol / Ticker:</strong> ${symbol}</div>
+                    <div>📊 <strong>Initial Supply:</strong> ${supply.toLocaleString()} ${symbol}</div>
+                    <div>🔢 <strong>Decimals:</strong> ${decimals}</div>
+                    <div>🏛️ <strong>Factory Contract:</strong> 0x91F5...f04D (Arc L1)</div>
+                </div>
+                <div class="pt-2 flex flex-col gap-2">
+                    <button onclick="switchPage('tokens'); document.getElementById('tokenNameInput') && (document.getElementById('tokenNameInput').value='${name}'); document.getElementById('tokenSymbolInput') && (document.getElementById('tokenSymbolInput').value='${symbol}'); document.getElementById('tokenSupplyInput') && (document.getElementById('tokenSupplyInput').value='${supply}');" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition-all">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i>
+                        <span>Open 1-Click Token Factory Studio</span>
+                    </button>
                 </div>
             </div>
         `;

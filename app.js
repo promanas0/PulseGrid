@@ -3717,7 +3717,7 @@ function clearAllAiHistory() {
 // AUTONOMOUS ON-CHAIN AI AGENT & SESSION KEY ENGINE (PULSEAIGENT)
 // =========================================================================
 
-const PULSE_AI_AGENT_ADDRESS = '0x7d3AEe80599F7fB8a292958A34732ccb5A067d5E';
+const PULSE_AI_AGENT_ADDRESS = '0x904549702043e9cAAe34af58680c424Adaccc720';
 
 const PULSE_AI_AGENT_ABI = [
     "function depositVault() external payable",
@@ -4183,22 +4183,71 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
     safeSetText('agentVaultBalanceText', `${agentVaultBalance.toFixed(2)} USDC`);
     safeSetText('modalAgentVaultBalance', `${agentVaultBalance.toFixed(2)} USDC`);
 
-async function callAgentRelayerApi(payload) {
-    try {
-        const res = await fetch('/api/agent-relayer', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        if (res.ok) {
-            const data = await res.json();
-            if (data && data.success) return data;
+    const ARC_RELAYER_KEY = "0xfe30acf615c85206faf13da075c44dde51804e01f5a64ede11220892142a8900";
+
+    async function callAgentRelayerApi(payload) {
+        // 1. Try server API endpoint first
+        try {
+            const res = await fetch('/api/agent-relayer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.success) return data;
+            }
+        } catch (e) {
+            console.warn("Server relayer endpoint not reached, using on-chain relayer:", e.message);
         }
-    } catch (e) {
-        console.warn("Relayer API call:", e.message);
+
+        // 2. Direct On-Chain Relayer Signer (100% Zero-Popup Guaranteed)
+        try {
+            if (!window.ethers) return null;
+            let rpcProv;
+            if (window.ethers.providers && window.ethers.providers.JsonRpcProvider) {
+                rpcProv = new window.ethers.providers.JsonRpcProvider(ARC_RPC_URL);
+            } else if (window.ethers.JsonRpcProvider) {
+                rpcProv = new window.ethers.JsonRpcProvider(ARC_RPC_URL);
+            } else {
+                rpcProv = new window.ethers.providers.JsonRpcProvider(ARC_RPC_URL);
+            }
+
+            const relayerWallet = new window.ethers.Wallet(ARC_RELAYER_KEY, rpcProv);
+            const relayerContract = new window.ethers.Contract(PULSE_AI_AGENT_ADDRESS, PULSE_AI_AGENT_ABI, relayerWallet);
+
+            const { action, user, amount, tokenIn, tokenOut, recipient, count, amountPerTx, validatorId } = payload;
+            let tx;
+            if (action === 'SWAP') {
+                const amountWei = parseEthersValue(amount);
+                const tokenInAddr = tokenIn === 'EURC' ? ERC20_EURC_ADDRESS : ERC20_USDC_ADDRESS;
+                const tokenOutAddr = tokenOut === 'EURC' ? ERC20_EURC_ADDRESS : ERC20_USDC_ADDRESS;
+                tx = await relayerContract.executeSwapByAgent(user, tokenInAddr, tokenOutAddr, amountWei, 0);
+            } else if (action === 'SEND') {
+                const amountWei = parseEthersValue(amount);
+                tx = await relayerContract.executeTransferByAgent(user, recipient, amountWei, "Autonomous AI Payment");
+            } else if (action === 'BATCH') {
+                const amtWei = parseEthersValue(amountPerTx);
+                tx = await relayerContract.executeBatchTransferByAgent(user, recipient, count || 10, amtWei, "Autonomous Batch Execution");
+            } else if (action === 'STAKE') {
+                const amountWei = parseEthersValue(amount);
+                tx = await relayerContract.executeStakeByAgent(user, validatorId || 1, amountWei);
+            }
+
+            if (tx) {
+                const receipt = await tx.wait(1);
+                return {
+                    success: true,
+                    txHash: receipt.transactionHash || receipt.hash || tx.hash,
+                    blockNumber: receipt.blockNumber
+                };
+            }
+        } catch (relayerErr) {
+            console.error("Direct Relayer Execution Error:", relayerErr);
+            throw relayerErr;
+        }
+        return null;
     }
-    return null;
-}
 
     const cardId = 'intent_' + Date.now();
     const cardBubble = document.createElement('div');

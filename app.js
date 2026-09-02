@@ -4014,7 +4014,7 @@ function parseNaturalIntent(text) {
     // -------------------------------------------------------------
     // INTENT A: BATCH TRANSFERS
     // -------------------------------------------------------------
-    if (recipient && /(batch|bar|baar|times|multiple|lagatar|karke)/i.test(clean)) {
+    if (recipient && /(batch|bar|baar|times|multiple|lagatar|karke|txs|transactions|payments|transfers)/i.test(clean)) {
         let count = 5;
         const countMatch = clean.match(/([0-9]+)\s*(?:transactions|txs|transfers|payments|bar|baar|times|baari)/i) || 
                            clean.match(/(?:batch|execute|send|bhej|kar)\s*([0-9]+)/i);

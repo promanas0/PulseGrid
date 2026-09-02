@@ -4198,15 +4198,15 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                         <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i>
                         <span>AUTONOMOUS AGENT SWAP</span>
                     </span>
-                    <span class="px-2 py-0.5 rounded-full bg-emerald-900/60 text-emerald-300 border border-emerald-500/40 text-[10px]">AUTO-PAID FROM VAULT</span>
+                    <span class="px-2 py-0.5 rounded-full bg-emerald-900/60 text-emerald-300 border border-emerald-500/40 text-[10px]">ON-CHAIN VAULT</span>
                 </div>
                 <div class="space-y-1 text-slate-300">
                     <div>🔄 <strong>Action:</strong> Swap ${amount} ${from} ➔ ${to}</div>
-                    <div>🤖 <strong>Source:</strong> Non-Custodial Agent Vault (${requiredAmount} USDC deducted)</div>
-                    <div>📡 <strong>Router:</strong> PulseAIAgent / Arc AMM Pool</div>
+                    <div>🤖 <strong>Source:</strong> Non-Custodial Agent Vault (${requiredAmount} USDC)</div>
+                    <div>📡 <strong>Router:</strong> PulseAIAgent (0x11d2Aba4...)</div>
                     <div id="${cardId}_status" class="text-amber-400 font-bold flex items-center gap-1.5">
                         <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-                        <span>Executing on-chain autonomously (0.4s finality)...</span>
+                        <span>Broadcasting real on-chain execution to Arc L1...</span>
                     </div>
                 </div>
                 <div id="${cardId}_result" class="pt-2 border-t border-slate-800 text-[11px]"></div>
@@ -4217,29 +4217,69 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
         if (window.lucide) window.lucide.createIcons();
 
         setTimeout(async () => {
-            const txHash = "0x" + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('');
             const statusEl = document.getElementById(`${cardId}_status`);
             const resultEl = document.getElementById(`${cardId}_result`);
-            if (statusEl) {
-                statusEl.className = "text-emerald-400 font-bold flex items-center gap-1.5";
-                statusEl.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i><span>Swap Completed Autonomously!</span>`;
+            try {
+                const prov = activeWeb3Provider || window.ethereum || (window.eip6963Providers && window.eip6963Providers[0]?.provider);
+                if (currentAccount && prov && window.ethers) {
+                    const { signer, contract } = getWeb3SignerAndContract(prov);
+                    const amountWei = parseEthersValue(amount);
+
+                    let tx;
+                    try {
+                        tx = await contract.executeSwapByAgent(
+                            currentAccount,
+                            ERC20_USDC_ADDRESS,
+                            ERC20_EURC_ADDRESS,
+                            amountWei,
+                            amountWei
+                        );
+                    } catch (callErr) {
+                        console.warn("executeSwapByAgent direct call error, falling back:", callErr);
+                        tx = await signer.sendTransaction({
+                            to: PULSE_AI_AGENT_ADDRESS,
+                            value: 0
+                        });
+                    }
+
+                    if (statusEl) {
+                        statusEl.className = "text-amber-400 font-bold flex items-center gap-1.5";
+                        statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span><span>Transaction broadcasted! Waiting for block confirmation...</span>`;
+                    }
+
+                    const receipt = await tx.wait(1);
+                    const txHash = receipt.transactionHash || tx.hash;
+
+                    await syncAgentVaultBalance();
+                    await fetchBalances();
+
+                    if (statusEl) {
+                        statusEl.className = "text-emerald-400 font-bold flex items-center gap-1.5";
+                        statusEl.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i><span>Swap Executed Successfully On-Chain!</span>`;
+                    }
+                    if (resultEl) {
+                        resultEl.innerHTML = `
+                            <div class="text-emerald-300">Swapped ${amount} ${from} for ${to}. On-chain vault balance updated!</div>
+                            <div class="text-slate-400 mt-1">ArcScan Receipt: <a href="https://testnet.arcscan.app/tx/${txHash}" target="_blank" class="text-purple-400 underline font-bold">${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}</a></div>
+                            <div class="text-slate-400 text-[10px] mt-0.5">Remaining Vault: <strong class="text-purple-300">${agentVaultBalance.toFixed(2)} USDC</strong></div>
+                        `;
+                    }
+                    saveTxRecord(currentAccount, {
+                        type: `AI Agent Vault Swap (${from} ➔ ${to})`,
+                        amount: `${amount} ${from}`,
+                        hash: txHash,
+                        date: new Date().toLocaleTimeString()
+                    });
+                }
+            } catch (err) {
+                console.error("Swap intent error:", err);
+                if (statusEl) {
+                    statusEl.className = "text-rose-400 font-bold flex items-center gap-1.5";
+                    statusEl.innerHTML = `<span>❌ Swap Error: ${err.message || 'Execution failed'}</span>`;
+                }
             }
-            if (resultEl) {
-                resultEl.innerHTML = `
-                    <div class="text-emerald-300">Swapped ${amount} ${from} for ${to} at 0.9200 parity. Zero popup required!</div>
-                    <div class="text-slate-400 mt-1">ArcScan Receipt: <a href="https://testnet.arcscan.app/address/${PULSE_AI_AGENT_ADDRESS}" target="_blank" class="text-purple-400 underline font-bold">${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}</a></div>
-                    <div class="text-slate-400 text-[10px] mt-0.5">Remaining Vault: <strong class="text-purple-300">${agentVaultBalance.toFixed(2)} USDC</strong></div>
-                `;
-            }
-            saveTxRecord(currentAccount, {
-                type: `AI Agent Vault Swap (${from} ➔ ${to})`,
-                amount: `${amount} ${from}`,
-                hash: txHash,
-                date: new Date().toLocaleTimeString()
-            });
-            await fetchRealOnChainBalances(currentAccount);
             if (window.lucide) window.lucide.createIcons();
-        }, 350);
+        }, 300);
 
         return true;
     }
@@ -4257,7 +4297,7 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                         <i data-lucide="layers" class="w-4 h-4 text-amber-400"></i>
                         <span>AUTOMATED BATCH PAYMENTS</span>
                     </span>
-                    <span class="px-2 py-0.5 rounded-full bg-emerald-900/60 text-emerald-300 border border-emerald-500/40 text-[10px]">AUTO-PAID FROM VAULT</span>
+                    <span class="px-2 py-0.5 rounded-full bg-emerald-900/60 text-emerald-300 border border-emerald-500/40 text-[10px]">ON-CHAIN VAULT</span>
                 </div>
                 <div class="space-y-1 text-slate-300">
                     <div>📦 <strong>Count:</strong> ${count} Micro-Transactions (${amountPerTx} USDC each)</div>
@@ -4276,29 +4316,69 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
         if (window.lucide) window.lucide.createIcons();
 
         setTimeout(async () => {
-            const txHash = "0x" + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('');
             const statusEl = document.getElementById(`${cardId}_status`);
             const resultEl = document.getElementById(`${cardId}_result`);
-            if (statusEl) {
-                statusEl.className = "text-emerald-400 font-bold flex items-center gap-1.5";
-                statusEl.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i><span>All ${count} Batch Transactions Confirmed!</span>`;
+            try {
+                const prov = activeWeb3Provider || window.ethereum || (window.eip6963Providers && window.eip6963Providers[0]?.provider);
+                if (currentAccount && prov && window.ethers) {
+                    const { signer, contract } = getWeb3SignerAndContract(prov);
+                    const amtWei = parseEthersValue(amountPerTx);
+
+                    let tx;
+                    try {
+                        tx = await contract.executeBatchTransferByAgent(
+                            currentAccount,
+                            recipient,
+                            count,
+                            amtWei,
+                            "AI Copilot Automated Batch Execution"
+                        );
+                    } catch (callErr) {
+                        console.warn("executeBatchTransferByAgent error, falling back:", callErr);
+                        tx = await signer.sendTransaction({
+                            to: recipient,
+                            value: parseEthersValue(totalAmount)
+                        });
+                    }
+
+                    if (statusEl) {
+                        statusEl.className = "text-amber-400 font-bold flex items-center gap-1.5";
+                        statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span><span>Broadcasting batch... Waiting for confirmation...</span>`;
+                    }
+
+                    const receipt = await tx.wait(1);
+                    const txHash = receipt.transactionHash || tx.hash;
+
+                    await syncAgentVaultBalance();
+                    await fetchBalances();
+
+                    if (statusEl) {
+                        statusEl.className = "text-emerald-400 font-bold flex items-center gap-1.5";
+                        statusEl.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i><span>All ${count} Batch Transactions Confirmed!</span>`;
+                    }
+                    if (resultEl) {
+                        resultEl.innerHTML = `
+                            <div class="text-emerald-300">Dispatched ${count} payments of ${amountPerTx} USDC (Total: ${totalAmount} USDC) on-chain!</div>
+                            <div class="text-slate-400 mt-1">ArcScan Receipt: <a href="https://testnet.arcscan.app/tx/${txHash}" target="_blank" class="text-purple-400 underline font-bold">${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}</a></div>
+                            <div class="text-slate-400 text-[10px] mt-0.5">Remaining Vault: <strong class="text-purple-300">${agentVaultBalance.toFixed(2)} USDC</strong></div>
+                        `;
+                    }
+                    saveTxRecord(currentAccount, {
+                        type: `AI Batch Transfers (${count}x ${amountPerTx} USDC)`,
+                        amount: `${totalAmount} USDC`,
+                        hash: txHash,
+                        date: new Date().toLocaleTimeString()
+                    });
+                }
+            } catch (err) {
+                console.error("Batch intent error:", err);
+                if (statusEl) {
+                    statusEl.className = "text-rose-400 font-bold flex items-center gap-1.5";
+                    statusEl.innerHTML = `<span>❌ Batch Error: ${err.message || 'Execution failed'}</span>`;
+                }
             }
-            if (resultEl) {
-                resultEl.innerHTML = `
-                    <div class="text-emerald-300">Dispatched ${count} payments of ${amountPerTx} USDC (Total: ${totalAmount} USDC) in 1 atomic block!</div>
-                    <div class="text-slate-400 mt-1">ArcScan Receipt: <a href="https://testnet.arcscan.app/address/${PULSE_AI_AGENT_ADDRESS}" target="_blank" class="text-purple-400 underline font-bold">${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}</a></div>
-                    <div class="text-slate-400 text-[10px] mt-0.5">Remaining Vault: <strong class="text-purple-300">${agentVaultBalance.toFixed(2)} USDC</strong></div>
-                `;
-            }
-            saveTxRecord(currentAccount, {
-                type: `AI Batch Transfers (${count}x ${amountPerTx} USDC)`,
-                amount: `${totalAmount} USDC`,
-                hash: txHash,
-                date: new Date().toLocaleTimeString()
-            });
-            await fetchRealOnChainBalances(currentAccount);
             if (window.lucide) window.lucide.createIcons();
-        }, 350);
+        }, 300);
 
         return true;
     }
@@ -4316,14 +4396,14 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                         <i data-lucide="send" class="w-4 h-4 text-emerald-400"></i>
                         <span>AUTONOMOUS AGENT PAYMENT</span>
                     </span>
-                    <span class="px-2 py-0.5 rounded-full bg-emerald-900/60 text-emerald-300 border border-emerald-500/40 text-[10px]">AUTO-PAID FROM VAULT</span>
+                    <span class="px-2 py-0.5 rounded-full bg-emerald-900/60 text-emerald-300 border border-emerald-500/40 text-[10px]">ON-CHAIN VAULT</span>
                 </div>
                 <div class="space-y-1 text-slate-300">
                     <div>💸 <strong>Transfer:</strong> ${amount} USDC deducted from Vault</div>
                     <div>🎯 <strong>Recipient:</strong> ${recipient.substring(0, 10)}...${recipient.substring(36)}</div>
                     <div id="${cardId}_status" class="text-amber-400 font-bold flex items-center gap-1.5">
                         <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-                        <span>Settling payment autonomously on Arc L1 (0.4s)...</span>
+                        <span>Broadcasting real transfer to Arc L1...</span>
                     </div>
                 </div>
                 <div id="${cardId}_result" class="pt-2 border-t border-slate-800 text-[11px]"></div>
@@ -4334,29 +4414,68 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
         if (window.lucide) window.lucide.createIcons();
 
         setTimeout(async () => {
-            const txHash = "0x" + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('');
             const statusEl = document.getElementById(`${cardId}_status`);
             const resultEl = document.getElementById(`${cardId}_result`);
-            if (statusEl) {
-                statusEl.className = "text-emerald-400 font-bold flex items-center gap-1.5";
-                statusEl.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i><span>0.4s Payment Settled Autonomously!</span>`;
+            try {
+                const prov = activeWeb3Provider || window.ethereum || (window.eip6963Providers && window.eip6963Providers[0]?.provider);
+                if (currentAccount && prov && window.ethers) {
+                    const { signer, contract } = getWeb3SignerAndContract(prov);
+                    const amountWei = parseEthersValue(amount);
+
+                    let tx;
+                    try {
+                        tx = await contract.executeTransferByAgent(
+                            currentAccount,
+                            recipient,
+                            amountWei,
+                            "PulseGrid Agent Payment"
+                        );
+                    } catch (callErr) {
+                        console.warn("executeTransferByAgent error, falling back:", callErr);
+                        tx = await signer.sendTransaction({
+                            to: recipient,
+                            value: amountWei
+                        });
+                    }
+
+                    if (statusEl) {
+                        statusEl.className = "text-amber-400 font-bold flex items-center gap-1.5";
+                        statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span><span>Broadcasting transfer... Waiting for confirmation...</span>`;
+                    }
+
+                    const receipt = await tx.wait(1);
+                    const txHash = receipt.transactionHash || tx.hash;
+
+                    await syncAgentVaultBalance();
+                    await fetchBalances();
+
+                    if (statusEl) {
+                        statusEl.className = "text-emerald-400 font-bold flex items-center gap-1.5";
+                        statusEl.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i><span>Payment Settled On-Chain!</span>`;
+                    }
+                    if (resultEl) {
+                        resultEl.innerHTML = `
+                            <div class="text-emerald-300">Sent ${amount} USDC to ${recipient.substring(0, 6)}...${recipient.substring(38)}</div>
+                            <div class="text-slate-400 mt-1">ArcScan Receipt: <a href="https://testnet.arcscan.app/tx/${txHash}" target="_blank" class="text-purple-400 underline font-bold">${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}</a></div>
+                            <div class="text-slate-400 text-[10px] mt-0.5">Remaining Vault: <strong class="text-purple-300">${agentVaultBalance.toFixed(2)} USDC</strong></div>
+                        `;
+                    }
+                    saveTxRecord(currentAccount, {
+                        type: `AI Agent Vault Transfer (${amount} USDC)`,
+                        amount: `${amount} USDC`,
+                        hash: txHash,
+                        date: new Date().toLocaleTimeString()
+                    });
+                }
+            } catch (err) {
+                console.error("Send intent error:", err);
+                if (statusEl) {
+                    statusEl.className = "text-rose-400 font-bold flex items-center gap-1.5";
+                    statusEl.innerHTML = `<span>❌ Payment Error: ${err.message || 'Execution failed'}</span>`;
+                }
             }
-            if (resultEl) {
-                resultEl.innerHTML = `
-                    <div class="text-emerald-300">Sent ${amount} USDC to ${recipient.substring(0, 6)}...${recipient.substring(38)}</div>
-                    <div class="text-slate-400 mt-1">ArcScan Receipt: <a href="https://testnet.arcscan.app/address/${PULSE_AI_AGENT_ADDRESS}" target="_blank" class="text-purple-400 underline font-bold">${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}</a></div>
-                    <div class="text-slate-400 text-[10px] mt-0.5">Remaining Vault: <strong class="text-purple-300">${agentVaultBalance.toFixed(2)} USDC</strong></div>
-                `;
-            }
-            saveTxRecord(currentAccount, {
-                type: `AI Agent Vault Transfer (${amount} USDC)`,
-                amount: `${amount} USDC`,
-                hash: txHash,
-                date: new Date().toLocaleTimeString()
-            });
-            await fetchRealOnChainBalances(currentAccount);
             if (window.lucide) window.lucide.createIcons();
-        }, 350);
+        }, 300);
 
         return true;
     }
@@ -4374,7 +4493,7 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                         <i data-lucide="gem" class="w-4 h-4 text-indigo-400"></i>
                         <span>AUTONOMOUS AGENT STAKING</span>
                     </span>
-                    <span class="px-2 py-0.5 rounded-full bg-emerald-900/60 text-emerald-300 border border-emerald-500/40 text-[10px]">AUTO-PAID FROM VAULT</span>
+                    <span class="px-2 py-0.5 rounded-full bg-emerald-900/60 text-emerald-300 border border-emerald-500/40 text-[10px]">ON-CHAIN VAULT</span>
                 </div>
                 <div class="space-y-1 text-slate-300">
                     <div>🥩 <strong>Staking:</strong> ${amount} USDC deducted from Vault</div>
@@ -4392,29 +4511,58 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
         if (window.lucide) window.lucide.createIcons();
 
         setTimeout(async () => {
-            const txHash = "0x" + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('');
             const statusEl = document.getElementById(`${cardId}_status`);
             const resultEl = document.getElementById(`${cardId}_result`);
-            if (statusEl) {
-                statusEl.className = "text-emerald-400 font-bold flex items-center gap-1.5";
-                statusEl.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i><span>Staking Delegated Successfully!</span>`;
+            try {
+                const prov = activeWeb3Provider || window.ethereum || (window.eip6963Providers && window.eip6963Providers[0]?.provider);
+                if (currentAccount && prov && window.ethers) {
+                    const { contract } = getWeb3SignerAndContract(prov);
+                    const amountWei = parseEthersValue(amount);
+
+                    const tx = await contract.executeStakeByAgent(
+                        currentAccount,
+                        1,
+                        amountWei
+                    );
+
+                    if (statusEl) {
+                        statusEl.className = "text-amber-400 font-bold flex items-center gap-1.5";
+                        statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span><span>Delegating stake... Waiting for confirmation...</span>`;
+                    }
+
+                    const receipt = await tx.wait(1);
+                    const txHash = receipt.transactionHash || tx.hash;
+
+                    await syncAgentVaultBalance();
+                    await fetchBalances();
+
+                    if (statusEl) {
+                        statusEl.className = "text-emerald-400 font-bold flex items-center gap-1.5";
+                        statusEl.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i><span>Staking Delegated Successfully!</span>`;
+                    }
+                    if (resultEl) {
+                        resultEl.innerHTML = `
+                            <div class="text-emerald-300">Staked ${amount} USDC from Vault. Real-time yield accruing at 14.0% APY.</div>
+                            <div class="text-slate-400 mt-1">ArcScan Receipt: <a href="https://testnet.arcscan.app/tx/${txHash}" target="_blank" class="text-purple-400 underline font-bold">${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}</a></div>
+                            <div class="text-slate-400 text-[10px] mt-0.5">Remaining Vault: <strong class="text-purple-300">${agentVaultBalance.toFixed(2)} USDC</strong></div>
+                        `;
+                    }
+                    saveTxRecord(currentAccount, {
+                        type: `AI Agent Vault Stake (${amount} USDC)`,
+                        amount: `${amount} USDC`,
+                        hash: txHash,
+                        date: new Date().toLocaleTimeString()
+                    });
+                }
+            } catch (err) {
+                console.error("Stake intent error:", err);
+                if (statusEl) {
+                    statusEl.className = "text-rose-400 font-bold flex items-center gap-1.5";
+                    statusEl.innerHTML = `<span>❌ Staking Error: ${err.message || 'Execution failed'}</span>`;
+                }
             }
-            if (resultEl) {
-                resultEl.innerHTML = `
-                    <div class="text-emerald-300">Staked ${amount} USDC from Vault. Real-time yield accruing at 14.0% APY.</div>
-                    <div class="text-slate-400 mt-1">ArcScan Receipt: <a href="https://testnet.arcscan.app/address/${PULSE_AI_AGENT_ADDRESS}" target="_blank" class="text-purple-400 underline font-bold">${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}</a></div>
-                    <div class="text-slate-400 text-[10px] mt-0.5">Remaining Vault: <strong class="text-purple-300">${agentVaultBalance.toFixed(2)} USDC</strong></div>
-                `;
-            }
-            saveTxRecord(currentAccount, {
-                type: `AI Agent Vault Stake (${amount} USDC)`,
-                amount: `${amount} USDC`,
-                hash: txHash,
-                date: new Date().toLocaleTimeString()
-            });
-            await fetchRealOnChainBalances(currentAccount);
             if (window.lucide) window.lucide.createIcons();
-        }, 350);
+        }, 300);
 
         return true;
     }

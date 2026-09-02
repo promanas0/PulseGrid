@@ -3980,59 +3980,145 @@ async function executeRevokeSession() {
 // (ZERO-POPUP AUTONOMOUS VAULT SETTLEMENT & UNIVERSAL LANGUAGE SUPPORT)
 // =========================================================================
 
+// =========================================================================
+// NATURAL LANGUAGE ON-CHAIN INTENT PARSER & EXECUTION PIPELINE
+// (ZERO-POPUP AUTONOMOUS VAULT SETTLEMENT & DYNAMIC ARBITRARY PARSING)
+// =========================================================================
+
 function parseNaturalIntent(text) {
-    if (!text) return null;
+    if (!text || typeof text !== 'string') return null;
+
     let raw = text.trim();
     
-    // 1. Check if prompt contains an EVM address FIRST
+    // 1. Extract any 0x EVM address (40 hex chars after 0x)
     const addrMatch = raw.match(/(0x[a-fA-F0-9]{40})/i);
     const recipient = addrMatch ? addrMatch[1] : null;
 
+    // 2. Normalize text: remove address, unify slang, standardize tokens
     let clean = raw.toLowerCase();
-    clean = clean.replace(/->|=>|-->/g, ' to ');
-    clean = clean.replace(/\beura\b/g, 'eurc').replace(/\beuro\b/g, 'eurc');
-
-    // If an address is present, it's either BATCH or SEND
     if (recipient) {
-        const cleanWithoutAddr = clean.replace(recipient.toLowerCase(), '');
-        if (/(batch|bar|baar|times|multiple|lagatar)/i.test(cleanWithoutAddr)) {
-            const countMatch = cleanWithoutAddr.match(/([0-9]+)\s*(?:transactions|txs|transfers|payments|bar|baar|times)/i) || cleanWithoutAddr.match(/(?:batch|send|bhej|kar)\s*([0-9]+)/i);
-            const count = countMatch ? parseInt(countMatch[1]) : 5;
-            const strWithoutCount = cleanWithoutAddr.replace(countMatch ? countMatch[0] : '', '');
-            const amtMatch = strWithoutCount.match(/([0-9.]+)\s*(?:usdc)?/i);
-            const amt = amtMatch ? parseFloat(amtMatch[1]) : 0.05;
-            return { type: 'BATCH', count, amountPerTx: amt, recipient };
-        } else {
-            const amtMatch = cleanWithoutAddr.match(/([0-9.]+)\s*(?:usdc)?/i);
-            const amt = amtMatch ? parseFloat(amtMatch[1]) : 0.1;
-            return { type: 'SEND', amount: amt, recipient };
-        }
+        clean = clean.replace(recipient.toLowerCase(), ' RECIPIENT_ADDR ');
     }
 
-    // Safely split attached units like '1usdc' -> '1 usdc'
-    clean = clean.replace(/([0-9.]+)([a-z]+)/g, '$1 $2');
+    // Replace arrow notations with 'to'
+    clean = clean.replace(/->|=>|-->|—>|➔/g, ' to ');
 
-    // If stake is mentioned
-    if (/(stake|delegate|staking)/i.test(clean)) {
-        const amtMatch = clean.match(/([0-9.]+)\s*(?:usdc)?/i);
-        const amt = amtMatch ? parseFloat(amtMatch[1]) : 1.0;
-        return { type: 'STAKE', amount: amt };
+    // Normalize currency typos: eura, euro, euros -> eurc
+    clean = clean.replace(/\b(eura|euro|euros|eur)\b/g, 'eurc');
+    clean = clean.replace(/\b(usdt|usd|dollar|dollars)\b/g, 'usdc');
+
+    // Separate attached numbers and words: e.g. "10usdc" -> "10 usdc", "0.5eurc" -> "0.5 eurc"
+    clean = clean.replace(/([0-9.]+)\s*([a-z]+)/g, '$1 $2');
+    clean = clean.replace(/\s+/g, ' ').trim();
+
+    // -------------------------------------------------------------
+    // INTENT A: BATCH TRANSFERS
+    // -------------------------------------------------------------
+    if (recipient && /(batch|bar|baar|times|multiple|lagatar|karke)/i.test(clean)) {
+        let count = 5;
+        const countMatch = clean.match(/([0-9]+)\s*(?:transactions|txs|transfers|payments|bar|baar|times|baari)/i) || 
+                           clean.match(/(?:batch|execute|send|bhej|kar)\s*([0-9]+)/i);
+        if (countMatch) {
+            count = parseInt(countMatch[1]);
+        }
+
+        let amountPerTx = 0.05;
+        const allNumbers = clean.match(/([0-9]+(?:\.[0-9]+)?)/g);
+        if (allNumbers && allNumbers.length >= 2) {
+            const nums = allNumbers.map(n => parseFloat(n));
+            const candidate = nums.find(n => n !== count);
+            if (candidate !== undefined) amountPerTx = candidate;
+        } else if (allNumbers && allNumbers.length === 1) {
+            const single = parseFloat(allNumbers[0]);
+            if (single !== count) amountPerTx = single;
+        }
+
+        return {
+            type: 'BATCH',
+            count: Math.min(Math.max(1, count), 100),
+            amountPerTx: parseFloat(amountPerTx.toFixed(4)),
+            totalAmount: parseFloat((count * amountPerTx).toFixed(4)),
+            recipient
+        };
     }
 
-    // SWAP: match any variation of "1 usdc se eurc kardo", "1usdc to eura", "swap 1 usdc to eurc", "1 usdc ko eurc me badal do", "1 usdc to eth"
-    const swapMatch = clean.match(/([0-9.]+)\s*([a-z0-9]+)?\s*(?:se|ko|to|for|into|me|mai|mein|in)\s*([a-z0-9]+)/i) || 
-                      clean.match(/(?:swap|convert|exchange|badal|change)\s+([0-9.]+)\s*([a-z0-9]+)?(?:\s*(?:to|for|se|into)\s*([a-z0-9]+))?/i);
-    if (swapMatch) {
-        const amt = parseFloat(swapMatch[1]);
-        let token1 = (swapMatch[2] || 'USDC').toUpperCase();
-        let token2 = (swapMatch[3] || 'EURC').toUpperCase();
-        const validTokens = ['USDC', 'EURC', 'ETH', 'PUSDC', 'ARC', 'BTC', 'SOL', 'USDT', 'DAI'];
-        if (validTokens.includes(token2) || validTokens.includes(token1)) {
-            if (!validTokens.includes(token1)) token1 = 'USDC';
-            if (!validTokens.includes(token2)) token2 = 'EURC';
-            if (token1 === token2) token1 = token2 === 'USDC' ? 'EURC' : 'USDC';
-            return { type: 'SWAP', amount: amt, from: token1, to: token2 };
+    // -------------------------------------------------------------
+    // INTENT B: SINGLE TRANSFER / SEND
+    // -------------------------------------------------------------
+    if (recipient) {
+        const amtMatch = clean.match(/([0-9]+(?:\.[0-9]+)?)/);
+        const amount = amtMatch ? parseFloat(amtMatch[1]) : 1.0;
+        return {
+            type: 'SEND',
+            amount: parseFloat(amount.toFixed(4)),
+            recipient
+        };
+    }
+
+    // -------------------------------------------------------------
+    // INTENT C: STAKE
+    // -------------------------------------------------------------
+    if (/(stake|staking|delegate|deposit.*stake)/i.test(clean)) {
+        const amtMatch = clean.match(/([0-9]+(?:\.[0-9]+)?)/);
+        const amount = amtMatch ? parseFloat(amtMatch[1]) : 1.0;
+        return {
+            type: 'STAKE',
+            amount: parseFloat(amount.toFixed(4))
+        };
+    }
+
+    // -------------------------------------------------------------
+    // INTENT D: SWAP (ANY ARBITRARY AMOUNT & TOKEN PAIR)
+    // -------------------------------------------------------------
+    const validTokens = ['USDC', 'EURC', 'ETH', 'PUSDC', 'ARC', 'BTC', 'SOL', 'USDT', 'DAI'];
+    const numMatch = clean.match(/([0-9]+(?:\.[0-9]+)?)/);
+    const amount = numMatch ? parseFloat(numMatch[1]) : 1.0;
+    const hasSwapKeywords = /(swap|convert|exchange|badal|bana|change|to|se|ko|into|for|->)/i.test(clean);
+
+    const tokensFound = [];
+    validTokens.forEach(tok => {
+        const regex = new RegExp(`\\b${tok.toLowerCase()}\\b`, 'g');
+        let m;
+        while ((m = regex.exec(clean)) !== null) {
+            tokensFound.push({ token: tok, index: m.index });
         }
+    });
+
+    tokensFound.sort((a, b) => a.index - b.index);
+
+    if (tokensFound.length >= 2) {
+        let from = tokensFound[0].token;
+        let to = tokensFound[1].token;
+
+        if (clean.includes('into ' + from.toLowerCase()) || clean.includes('me ' + from.toLowerCase()) || clean.includes('mai ' + from.toLowerCase())) {
+            const temp = from;
+            from = to;
+            to = temp;
+        }
+
+        return {
+            type: 'SWAP',
+            amount: parseFloat(amount.toFixed(4)),
+            from,
+            to
+        };
+    } else if (tokensFound.length === 1 && hasSwapKeywords) {
+        const tok = tokensFound[0].token;
+        const from = tok;
+        const to = tok === 'USDC' ? 'EURC' : 'USDC';
+        return {
+            type: 'SWAP',
+            amount: parseFloat(amount.toFixed(4)),
+            from,
+            to
+        };
+    } else if (hasSwapKeywords && numMatch) {
+        return {
+            type: 'SWAP',
+            amount: parseFloat(amount.toFixed(4)),
+            from: 'USDC',
+            to: 'EURC'
+        };
     }
 
     return null;
@@ -4053,7 +4139,7 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
     let requiredAmount = 0;
     if (intent.type === 'SWAP') requiredAmount = intent.amount;
     else if (intent.type === 'SEND') requiredAmount = intent.amount;
-    else if (intent.type === 'BATCH') requiredAmount = parseFloat((intent.count * intent.amountPerTx).toFixed(4));
+    else if (intent.type === 'BATCH') requiredAmount = intent.totalAmount || parseFloat((intent.count * intent.amountPerTx).toFixed(4));
     else if (intent.type === 'STAKE') requiredAmount = intent.amount;
 
     // Check Vault Balance
@@ -4160,8 +4246,7 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
 
     // 2. BATCH INTENT EXECUTION
     if (intent.type === 'BATCH') {
-        const { count, amountPerTx, recipient } = intent;
-        const totalAmt = (count * amountPerTx).toFixed(4);
+        const { count, amountPerTx, totalAmount, recipient } = intent;
         cardBubble.innerHTML = `
             <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center shrink-0">
                 <i data-lucide="layers" class="w-4 h-4 text-purple-300"></i>
@@ -4176,7 +4261,7 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                 </div>
                 <div class="space-y-1 text-slate-300">
                     <div>📦 <strong>Count:</strong> ${count} Micro-Transactions (${amountPerTx} USDC each)</div>
-                    <div>💰 <strong>Total Amount:</strong> ${totalAmt} USDC deducted from Vault</div>
+                    <div>💰 <strong>Total Amount:</strong> ${totalAmount} USDC deducted from Vault</div>
                     <div>🎯 <strong>Recipient:</strong> ${recipient.substring(0, 10)}...${recipient.substring(36)}</div>
                     <div id="${cardId}_status" class="text-amber-400 font-bold flex items-center gap-1.5">
                         <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
@@ -4200,14 +4285,14 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
             }
             if (resultEl) {
                 resultEl.innerHTML = `
-                    <div class="text-emerald-300">Dispatched ${count} payments of ${amountPerTx} USDC (Total: ${totalAmt} USDC) in 1 atomic block!</div>
+                    <div class="text-emerald-300">Dispatched ${count} payments of ${amountPerTx} USDC (Total: ${totalAmount} USDC) in 1 atomic block!</div>
                     <div class="text-slate-400 mt-1">ArcScan Receipt: <a href="https://testnet.arcscan.app/address/${PULSE_AI_AGENT_ADDRESS}" target="_blank" class="text-purple-400 underline font-bold">${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}</a></div>
                     <div class="text-slate-400 text-[10px] mt-0.5">Remaining Vault: <strong class="text-purple-300">${agentVaultBalance.toFixed(2)} USDC</strong></div>
                 `;
             }
             saveTxRecord(currentAccount, {
                 type: `AI Batch Transfers (${count}x ${amountPerTx} USDC)`,
-                amount: `${totalAmt} USDC`,
+                amount: `${totalAmount} USDC`,
                 hash: txHash,
                 date: new Date().toLocaleTimeString()
             });

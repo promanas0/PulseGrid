@@ -4093,6 +4093,25 @@ function parseNaturalIntent(text) {
     }
 
     // -------------------------------------------------------------
+    // INTENT 0D: PULSEPAY INVOICE / PAYMENT LINK GENERATION
+    // -------------------------------------------------------------
+    if (/(pulsepay|invoice|bill|payment.*link|checkout.*link)/i.test(clean) && !/(pay.*invoice|settle)/i.test(clean)) {
+        const parsedAmt = extractFirstAmount(clean);
+        const amount = parsedAmt !== null ? parsedAmt : 10.0;
+        let memo = "Arc Ecosystem Payment";
+        const forMatch = clean.match(/(?:for|memo|msg|regarding)\s+([a-zA-Z0-9\s]+)/i);
+        if (forMatch && forMatch[1]) {
+            memo = forMatch[1].trim();
+        }
+        return {
+            type: 'PULSEPAY_INVOICE',
+            amount: parseFloat(amount.toFixed(4)),
+            token: clean.includes('eurc') ? 'EURC' : 'USDC',
+            memo: memo
+        };
+    }
+
+    // -------------------------------------------------------------
     // INTENT A: BATCH TRANSFERS (1 TO 100 TRANSACTIONS)
     // -------------------------------------------------------------
     if (recipient && /(batch|bar|baar|times|multiple|lagatar|karke|txs|transactions|payments|transfers|micro)/i.test(clean)) {
@@ -4301,6 +4320,54 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
             throw relayerErr;
         }
         return null;
+    }
+
+    // -----------------------------------------------------------------
+    // SPECIAL INTENT 00: PULSEPAY INVOICE / PAYMENT LINK GENERATION
+    // -----------------------------------------------------------------
+    if (intent.type === 'PULSEPAY_INVOICE') {
+        const { amount, token, memo } = intent;
+        const recipient = currentAccount || '0x90503974A22c3497728AfbcAf1ae7C77023592E7';
+        const refId = generateRandomInvoiceRef();
+        const origin = window.location.origin && window.location.origin !== 'null' ? window.location.origin : 'https://pulsegrid-hub.vercel.app';
+        const checkoutLinkUrl = `${origin}/pay.html?to=${encodeURIComponent(recipient)}&amt=${encodeURIComponent(amount)}&token=${encodeURIComponent(token)}&msg=${encodeURIComponent(memo)}&ref=${encodeURIComponent(refId)}`;
+        const qrImgSrc = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(checkoutLinkUrl)}`;
+
+        const cardBubble = document.createElement('div');
+        cardBubble.className = 'flex gap-3';
+        cardBubble.innerHTML = `
+            <div class="w-8 h-8 rounded-full bg-emerald-600/30 border border-emerald-500 flex items-center justify-center shrink-0">
+                <i data-lucide="qr-code" class="w-4 h-4 text-emerald-300"></i>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-950 border-2 border-emerald-500/80 text-white font-mono text-xs space-y-3 shadow-xl max-w-[85%]">
+                <div class="flex items-center justify-between pb-2 border-b border-emerald-500/30">
+                    <span class="flex items-center gap-1.5 text-emerald-300 font-bold">
+                        <i data-lucide="receipt" class="w-4 h-4 text-emerald-400"></i>
+                        <span>PULSEPAY INVOICE GENERATED</span>
+                    </span>
+                    <span class="px-2 py-0.5 rounded-full bg-emerald-900/60 text-emerald-300 border border-emerald-500/40 text-[10px]">${amount} ${token}</span>
+                </div>
+                <div class="space-y-1 text-slate-300">
+                    <div>💰 <strong>Amount:</strong> ${amount} ${token}</div>
+                    <div>📝 <strong>Memo:</strong> "${memo}"</div>
+                    <div>🧾 <strong>Ref ID:</strong> ${refId}</div>
+                    <div>🎯 <strong>Payout Address:</strong> ${recipient.substring(0, 8)}...${recipient.substring(36)}</div>
+                </div>
+                <div class="flex items-center justify-center p-3 bg-white rounded-xl">
+                    <img src="${qrImgSrc}" alt="PulsePay Dynamic QR" class="w-32 h-32 object-contain rounded" />
+                </div>
+                <div class="pt-2 flex flex-col gap-2">
+                    <a href="${checkoutLinkUrl}" target="_blank" class="w-full py-2 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-600 hover:from-purple-800 hover:to-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition-all">
+                        <i data-lucide="external-link" class="w-4 h-4"></i>
+                        <span>Open 1-Click Web Checkout Page</span>
+                    </a>
+                </div>
+            </div>
+        `;
+        chatBox.appendChild(cardBubble);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        if (window.lucide) window.lucide.createIcons();
+        return true;
     }
 
     // -----------------------------------------------------------------

@@ -3742,7 +3742,7 @@ const PULSE_AI_AGENT_ABI = [
     "event AgentStakeExecuted(address indexed user, uint8 indexed validatorId, uint256 amount, uint256 timestamp)"
 ];
 
-const PULSE_LOCK_VAULT_ADDRESS = '0xE06900028a2B4c35123ff167e08865b88C6F1E3c';
+const PULSE_LOCK_VAULT_ADDRESS = '0xE36687501B69bb94af4c8de36D0cF7178D256347';
 
 const PULSE_LOCK_VAULT_ABI = [
     "function lockUSDC(uint256 durationInSeconds, string calldata reason) external payable returns (uint256)",

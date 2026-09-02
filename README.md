@@ -64,7 +64,7 @@ All contracts are deployed, functional, and verified on Circle Arc L1 Testnet (C
 | Protocol Module | Contract Description | Deployed Contract Address | Explorer Link |
 | :--- | :--- | :--- | :--- |
 | **PulseAIAgent Protocol** | Autonomous AI Session Key Vault, DEX Router & Natural Language Intent Executor | `0xB14040166Dc90e345333c99dC208A539801D595C` | [View on ArcScan](https://testnet.arcscan.app/address/0xB14040166Dc90e345333c99dC208A539801D595C) |
-| **PulseLockVault** | Non-Custodial USDC Time-Lock Savings Vault with Autonomous AI Lock/Unlock | `0xE06900028a2B4c35123ff167e08865b88C6F1E3c` | [View on ArcScan](https://testnet.arcscan.app/address/0xE06900028a2B4c35123ff167e08865b88C6F1E3c) |
+| **PulseLockVault** | Non-Custodial USDC Time-Lock Savings Vault with Autonomous AI Lock/Unlock | `0xE36687501B69bb94af4c8de36D0cF7178D256347` | [View on ArcScan](https://testnet.arcscan.app/address/0xE36687501B69bb94af4c8de36D0cF7178D256347) |
 | **PulsePay Engine** | Instant Payment Links, QR Settlement & Invoicing | `0xfa666800e07445ca35103a01f113Eb3CEAe4dcea` | [View on ArcScan](https://testnet.arcscan.app/address/0xfa666800e07445ca35103a01f113Eb3CEAe4dcea) |
 | **PulseStake Protocol** | Multi-Validator Liquid Staking & Yield Distributor | `0x9F6baFB6961aAd0fC133d32A559CaFdf32582801` | [View on ArcScan](https://testnet.arcscan.app/address/0x9F6baFB6961aAd0fC133d32A559CaFdf32582801) |
 | **PulseGrid CoinFlip** | Provably Fair 2.00x Token Flip Smart Contract | `0x3C6B9404e69288Bef09fcdcbB992C3661ed9b89b` | [View on ArcScan](https://testnet.arcscan.app/address/0x3C6B9404e69288Bef09fcdcbB992C3661ed9b89b) |

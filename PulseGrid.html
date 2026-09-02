@@ -3423,7 +3423,56 @@
             </div>
 
             <!-- Full-Width Pro AI Workspace Container -->
-            <div class="w-full bg-slate-900 border border-slate-800 rounded-2xl flex flex-col h-[560px] shadow-xl">
+            <div class="w-full bg-slate-900 border border-slate-800 rounded-2xl flex flex-col h-[620px] shadow-xl overflow-hidden">
+                <!-- Autonomous AI Agent Session & Vault Bar -->
+                <div class="px-4 py-3 bg-slate-950 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono">
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[11px] font-bold">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span>AGENT SESSION: ACTIVE</span>
+                        </span>
+                        <span class="text-slate-300">
+                            Vault: <strong id="agentVaultBalanceText" class="text-purple-300 font-bold">0.00 USDC</strong>
+                        </span>
+                        <span class="text-slate-500">|</span>
+                        <span class="text-slate-400 text-[11px]">
+                            Contract: <a href="https://testnet.arcscan.app/address/0x2B183b0901088CC03623c1d4b8beD75A6289b5B8" target="_blank" class="text-purple-400 underline hover:text-purple-300">0x2B18...b5B8</a>
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="fundAgentVaultModal()" class="px-3 py-1.5 rounded-lg bg-purple-700 hover:bg-purple-600 text-white font-bold text-[11px] flex items-center gap-1.5 shadow-sm transition-all">
+                            <i data-lucide="wallet" class="w-3.5 h-3.5"></i>
+                            <span>Fund Vault</span>
+                        </button>
+                        <button type="button" onclick="authorizeAgentSessionModal()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-[11px] font-bold transition-all" title="Set Session Key Spend Limit">
+                            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+                            <span>Session Keys</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- One-Click Natural Language Intent Prompts -->
+                <div class="px-4 py-2 bg-slate-900/90 border-b border-slate-800/80 flex items-center gap-1.5 overflow-x-auto scrollbar-none text-[11px] font-mono">
+                    <span class="text-slate-500 font-bold shrink-0">Try Intents:</span>
+                    <button type="button" onclick="populateAgentPrompt('swap 1 USDC to EURC')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-purple-900/50 text-purple-300 border border-purple-700/40 shrink-0 transition-all flex items-center gap-1">
+                        <i data-lucide="repeat" class="w-3 h-3 text-purple-400"></i>
+                        <span>swap 1 USDC to EURC</span>
+                    </button>
+                    <button type="button" onclick="populateAgentPrompt('send 0.1 USDC to 0xfa666800e07445ca35103a01f113Eb3CEAe4dcea')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-purple-900/50 text-emerald-300 border border-emerald-700/40 shrink-0 transition-all flex items-center gap-1">
+                        <i data-lucide="send" class="w-3 h-3 text-emerald-400"></i>
+                        <span>send 0.1 USDC to 0xfa66...</span>
+                    </button>
+                    <button type="button" onclick="populateAgentPrompt('batch 5 transactions of 0.05 USDC to 0xfa666800e07445ca35103a01f113Eb3CEAe4dcea')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-purple-900/50 text-amber-300 border border-amber-700/40 shrink-0 transition-all flex items-center gap-1">
+                        <i data-lucide="layers" class="w-3 h-3 text-amber-400"></i>
+                        <span>batch 5 txs of 0.05 USDC</span>
+                    </button>
+                    <button type="button" onclick="populateAgentPrompt('stake 1 USDC on Circle Genesis validator')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-purple-900/50 text-indigo-300 border border-indigo-700/40 shrink-0 transition-all flex items-center gap-1">
+                        <i data-lucide="gem" class="w-3 h-3 text-indigo-400"></i>
+                        <span>stake 1 USDC</span>
+                    </button>
+                </div>
+
                 <div id="aiChatBox" class="flex-1 p-5 overflow-y-auto space-y-4 font-sans text-sm">
                     <!-- Clean fresh chat workspace (dynamically populated or loaded from wallet history) -->
                 </div>
@@ -4858,6 +4907,115 @@
                 <button onclick="refreshStakingTelemetry()" class="text-purple-700 font-bold hover:underline flex items-center gap-1">
                     <i data-lucide="refresh-cw" class="w-3 h-3"></i> Refresh List
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI AGENT: FUND VAULT MODAL -->
+    <div id="agentFundVaultModal" class="fixed inset-0 z-[99999] bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="pixel-card-purple w-full max-w-md p-6 sm:p-7 space-y-5 animate-in fade-in zoom-in-95 duration-200 bg-white">
+            <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-purple-100 border-2 border-slate-950 flex items-center justify-center text-purple-700 shadow-[2px_2px_0px_#0F172A]">
+                        <i data-lucide="wallet" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-pixel font-bold text-slate-950 text-xl">AI Agent Vault</h3>
+                        <div class="text-[10px] font-mono text-purple-700 font-bold">Autonomous Execution Pool</div>
+                    </div>
+                </div>
+                <button onclick="closeAgentFundVaultModal()" class="p-1 rounded-lg bg-slate-100 hover:bg-slate-200 border-2 border-slate-950 font-bold text-xs text-slate-700">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Current Vault Balance -->
+            <div class="p-3.5 rounded-2xl bg-purple-50 border-2 border-slate-950 flex items-center justify-between font-mono text-xs">
+                <div>
+                    <div class="text-[10px] text-slate-500 font-bold uppercase">Current Vault Balance</div>
+                    <div id="modalAgentVaultBalance" class="font-bold text-purple-800 text-lg">0.00 USDC</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-[10px] text-slate-500 font-bold uppercase">Wallet Balance</div>
+                    <div id="modalUserWalletBalance" class="font-bold text-slate-900 text-sm">0.00 USDC</div>
+                </div>
+            </div>
+
+            <!-- Amount Input -->
+            <div class="space-y-2 font-mono text-xs">
+                <label class="text-[11px] font-bold text-slate-700 uppercase font-silkscreen">Amount to Deposit (USDC)</label>
+                <div class="flex items-center bg-slate-50 border-2 border-slate-950 rounded-xl px-3.5 py-2.5 focus-within:border-purple-700 transition-colors">
+                    <input type="number" id="agentFundInputAmount" step="0.1" min="0.1" placeholder="5.00" value="5.00" class="w-full bg-transparent text-2xl font-black font-mono text-slate-950 outline-none">
+                    <span class="text-xs font-bold font-mono text-slate-700 bg-slate-200 px-2.5 py-1 rounded-lg border border-slate-300 shrink-0">USDC</span>
+                </div>
+            </div>
+
+            <!-- Info pill -->
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 font-mono text-[11px] leading-relaxed">
+                🤖 Funds in your vault are non-custodial. The AI Copilot uses this balance to execute swaps, transfers & batch payments without popping up MetaMask every time. You can withdraw anytime.
+            </div>
+
+            <!-- Buttons -->
+            <div class="grid grid-cols-2 gap-3 font-mono text-xs">
+                <button type="button" onclick="executeAgentVaultDeposit()" class="btn-pixel w-full py-3.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_#0F172A]">
+                    <i data-lucide="arrow-down-circle" class="w-4 h-4"></i>
+                    <span>Deposit USDC</span>
+                </button>
+                <button type="button" onclick="executeAgentVaultWithdraw()" class="btn-pixel w-full py-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-900 border-2 border-slate-950 font-bold flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_#0F172A]">
+                    <i data-lucide="arrow-up-circle" class="w-4 h-4"></i>
+                    <span>Withdraw All</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI AGENT: SESSION PERMISSIONS MODAL -->
+    <div id="agentSessionModal" class="fixed inset-0 z-[99999] bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="pixel-card-purple w-full max-w-md p-6 sm:p-7 space-y-5 animate-in fade-in zoom-in-95 duration-200 bg-white">
+            <div class="flex items-center justify-between pb-3 border-b-2 border-slate-950">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-100 border-2 border-slate-950 flex items-center justify-center text-emerald-700 shadow-[2px_2px_0px_#0F172A]">
+                        <i data-lucide="shield-check" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-pixel font-bold text-slate-950 text-xl">Session Key Security</h3>
+                        <div class="text-[10px] font-mono text-emerald-700 font-bold">Delegated Agent Spending Cap</div>
+                    </div>
+                </div>
+                <button onclick="closeAgentSessionModal()" class="p-1 rounded-lg bg-slate-100 hover:bg-slate-200 border-2 border-slate-950 font-bold text-xs text-slate-700">
+                    ✕
+                </button>
+            </div>
+
+            <div class="space-y-4 font-mono text-xs">
+                <div>
+                    <label class="text-[11px] font-bold text-slate-700 uppercase font-silkscreen">Maximum Spend Cap (USDC)</label>
+                    <input type="number" id="agentSessionSpendLimit" value="25" min="1" step="1" class="w-full mt-1 p-3 bg-slate-50 border-2 border-slate-950 rounded-xl font-bold text-slate-900 outline-none text-base">
+                </div>
+
+                <div>
+                    <label class="text-[11px] font-bold text-slate-700 uppercase font-silkscreen">Session Duration</label>
+                    <select id="agentSessionDuration" class="w-full mt-1 p-3 bg-slate-50 border-2 border-slate-950 rounded-xl font-bold text-slate-900 outline-none">
+                        <option value="3600">1 Hour</option>
+                        <option value="86400" selected>24 Hours (1 Day)</option>
+                        <option value="604800">7 Days</option>
+                    </select>
+                </div>
+
+                <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-[11px] leading-relaxed">
+                    🔒 The AI Agent cannot exceed your spend cap or operate past the session expiration.
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-1">
+                    <button type="button" onclick="executeAuthorizeSession()" class="btn-pixel w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_#0F172A]">
+                        <i data-lucide="check" class="w-4 h-4"></i>
+                        <span>Save Session</span>
+                    </button>
+                    <button type="button" onclick="executeRevokeSession()" class="btn-pixel w-full py-3.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-800 border-2 border-slate-950 font-bold flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_#0F172A]">
+                        <i data-lucide="slash" class="w-4 h-4"></i>
+                        <span>Revoke</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>

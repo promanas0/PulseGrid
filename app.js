@@ -3717,7 +3717,7 @@ function clearAllAiHistory() {
 // AUTONOMOUS ON-CHAIN AI AGENT & SESSION KEY ENGINE (PULSEAIGENT)
 // =========================================================================
 
-const PULSE_AI_AGENT_ADDRESS = '0x904549702043e9cAAe34af58680c424Adaccc720';
+const PULSE_AI_AGENT_ADDRESS = '0xB14040166Dc90e345333c99dC208A539801D595C';
 
 const PULSE_AI_AGENT_ABI = [
     "function depositVault() external payable",
@@ -4218,7 +4218,7 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
         return true;
     }
 
-    const ARC_RELAYER_KEY = "0xfe30acf615c85206faf13da075c44dde51804e01f5a64ede11220892142a8900";
+    const ARC_RELAYER_KEY = "0x14fe8dc821d6ce4580f71cbbde8e9cade9564e41c864c47fab1e9006e600cf23";
 
     async function callAgentRelayerApi(payload) {
         // 1. Try server API endpoint first

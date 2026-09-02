@@ -3742,6 +3742,19 @@ const PULSE_AI_AGENT_ABI = [
     "event AgentStakeExecuted(address indexed user, uint8 indexed validatorId, uint256 amount, uint256 timestamp)"
 ];
 
+const PULSE_LOCK_VAULT_ADDRESS = '0xE06900028a2B4c35123ff167e08865b88C6F1E3c';
+
+const PULSE_LOCK_VAULT_ABI = [
+    "function lockUSDC(uint256 durationInSeconds, string calldata reason) external payable returns (uint256)",
+    "function executeLockByAgent(address user, uint256 durationInSeconds, string calldata reason) external payable returns (uint256)",
+    "function withdrawUnlocked(uint256 lockIndex) external",
+    "function executeUnlockByAgent(address user, uint256 lockIndex) external",
+    "function getUserLockSummary(address user) external view returns (uint256 totalLocked, uint256 activeLocksCount, uint256 unlockableAmount)",
+    "function getUserLocks(address user) external view returns (tuple(uint256 id, address user, uint256 amount, uint256 lockedAt, uint256 unlockTimestamp, string lockReason, bool withdrawn)[])",
+    "event USDCLocked(address indexed user, uint256 indexed lockId, uint256 amount, uint256 unlockTimestamp, string reason)",
+    "event USDCUnlocked(address indexed user, uint256 indexed lockId, uint256 amount, uint256 timestamp)"
+];
+
 let agentVaultBalance = 0.00;
 let agentSessionActive = true;
 let agentSpendLimit = 25.00;
@@ -4011,6 +4024,19 @@ function extractFirstAmount(text) {
     return isNaN(val) ? null : val;
 }
 
+function parseDurationSeconds(text) {
+    if (!text) return 86400; // default 1 day
+    const mDay = text.match(/([0-9]+)\s*(?:day|days|din)/i);
+    if (mDay) return parseInt(mDay[1]) * 86400;
+    const mHour = text.match(/([0-9]+)\s*(?:hour|hours|hr|hrs|ghanta|ghante)/i);
+    if (mHour) return parseInt(mHour[1]) * 3600;
+    const mMin = text.match(/([0-9]+)\s*(?:minute|minutes|min|mins)/i);
+    if (mMin) return parseInt(mMin[1]) * 60;
+    const mMonth = text.match(/([0-9]+)\s*(?:month|months|mahina|mahine)/i);
+    if (mMonth) return parseInt(mMonth[1]) * 30 * 86400;
+    return 86400;
+}
+
 function parseNaturalIntent(text) {
     if (!text || typeof text !== 'string') return null;
 
@@ -4038,17 +4064,46 @@ function parseNaturalIntent(text) {
     clean = clean.replace(/\s+/g, ' ').trim();
 
     // -------------------------------------------------------------
-    // INTENT A: BATCH TRANSFERS
+    // INTENT 0A: QUERY LOCKED USDC BALANCE
     // -------------------------------------------------------------
-    if (recipient && /(batch|bar|baar|times|multiple|lagatar|karke|txs|transactions|payments|transfers)/i.test(clean)) {
+    if (/(kitna.*lock|locked.*balance|show.*lock|check.*lock|how much.*lock|mera.*lock|view.*lock)/i.test(clean)) {
+        return { type: 'QUERY_LOCK' };
+    }
+
+    // -------------------------------------------------------------
+    // INTENT 0B: WITHDRAW / UNLOCK LOCKED USDC
+    // -------------------------------------------------------------
+    if (/(withdraw.*lock|unlock.*usdc|unlock.*lock|nikal.*lock|withdraw.*unlocked)/i.test(clean)) {
+        return { type: 'UNLOCK_USDC' };
+    }
+
+    // -------------------------------------------------------------
+    // INTENT 0C: LOCK USDC (TIME-LOCK SAVINGS VAULT)
+    // -------------------------------------------------------------
+    if (/\b(lock|time-lock|timelock)\b/i.test(clean) && !/(unlock|withdraw|show|check|kitna|view|balance)/i.test(clean)) {
+        const parsedAmt = extractFirstAmount(clean);
+        const amount = parsedAmt !== null ? parsedAmt : 1.0;
+        const durationSeconds = parseDurationSeconds(clean);
+        return {
+            type: 'LOCK_USDC',
+            amount: parseFloat(amount.toFixed(6)),
+            durationSeconds,
+            reason: "AI Copilot Savings Lock"
+        };
+    }
+
+    // -------------------------------------------------------------
+    // INTENT A: BATCH TRANSFERS (1 TO 100 TRANSACTIONS)
+    // -------------------------------------------------------------
+    if (recipient && /(batch|bar|baar|times|multiple|lagatar|karke|txs|transactions|payments|transfers|micro)/i.test(clean)) {
         let count = 5;
-        const countMatch = clean.match(/([0-9]+)\s*(?:transactions|txs|transfers|payments|bar|baar|times|baari)/i) || 
-                           clean.match(/(?:batch|execute|send|bhej|kar)\s*([0-9]+)/i);
+        const countMatch = clean.match(/([0-9]+)\s*(?:transactions|txs|transfers|payments|bar|baar|times|baari|micro)/i) || 
+                           clean.match(/(?:batch|execute|send|bhej|kar|kardo)\s*([0-9]+)/i);
         if (countMatch) {
             count = parseInt(countMatch[1]);
         }
 
-        let amountPerTx = 0.05;
+        let amountPerTx = 0.001;
         const allNumbers = clean.match(/(?:\d+(?:\.\d+)?|\.\d+)/g);
         if (allNumbers && allNumbers.length >= 2) {
             const nums = allNumbers.map(n => parseFloat(n));
@@ -4059,9 +4114,11 @@ function parseNaturalIntent(text) {
             if (single !== count) amountPerTx = single;
         }
 
+        count = Math.min(Math.max(1, count), 100);
+
         return {
             type: 'BATCH',
-            count: Math.min(Math.max(1, count), 100),
+            count,
             amountPerTx: parseFloat(amountPerTx.toFixed(6)),
             totalAmount: parseFloat((count * amountPerTx).toFixed(6)),
             recipient
@@ -4161,11 +4218,366 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
         return true;
     }
 
-    // Calculate required amount
+    const ARC_RELAYER_KEY = "0xfe30acf615c85206faf13da075c44dde51804e01f5a64ede11220892142a8900";
+
+    async function callAgentRelayerApi(payload) {
+        // 1. Try server API endpoint first
+        try {
+            const res = await fetch('/api/agent-relayer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.success) return data;
+            }
+        } catch (e) {
+            console.warn("Server relayer endpoint not reached, using on-chain relayer:", e.message);
+        }
+
+        // 2. Direct On-Chain Relayer Signer (100% Zero-Popup Guaranteed)
+        try {
+            if (!window.ethers) return null;
+            let rpcProv;
+            if (window.ethers.providers && window.ethers.providers.JsonRpcProvider) {
+                rpcProv = new window.ethers.providers.JsonRpcProvider(ARC_RPC_URL);
+            } else if (window.ethers.JsonRpcProvider) {
+                rpcProv = new window.ethers.JsonRpcProvider(ARC_RPC_URL);
+            } else {
+                rpcProv = new window.ethers.providers.JsonRpcProvider(ARC_RPC_URL);
+            }
+
+            const relayerWallet = new window.ethers.Wallet(ARC_RELAYER_KEY, rpcProv);
+            const relayerContract = new window.ethers.Contract(PULSE_AI_AGENT_ADDRESS, PULSE_AI_AGENT_ABI, relayerWallet);
+            const lockContract = new window.ethers.Contract(PULSE_LOCK_VAULT_ADDRESS, PULSE_LOCK_VAULT_ABI, relayerWallet);
+
+            const { action, user, amount, tokenIn, tokenOut, recipient, count, amountPerTx, validatorId, durationSeconds, reason, lockIndex } = payload;
+            let tx;
+            if (action === 'SWAP') {
+                const amountWei = parseEthersValue(amount);
+                const tokenInAddr = tokenIn === 'EURC' ? ERC20_EURC_ADDRESS : ERC20_USDC_ADDRESS;
+                const tokenOutAddr = tokenOut === 'EURC' ? ERC20_EURC_ADDRESS : ERC20_USDC_ADDRESS;
+                tx = await relayerContract.executeSwapByAgent(user, tokenInAddr, tokenOutAddr, amountWei, 0);
+            } else if (action === 'SEND') {
+                const amountWei = parseEthersValue(amount);
+                tx = await relayerContract.executeTransferByAgent(user, recipient, amountWei, "Autonomous AI Payment");
+            } else if (action === 'BATCH') {
+                const amtWei = parseEthersValue(amountPerTx);
+                tx = await relayerContract.executeBatchTransferByAgent(user, recipient, count || 10, amtWei, "Autonomous Batch Execution");
+            } else if (action === 'STAKE') {
+                const amountWei = parseEthersValue(amount);
+                tx = await relayerContract.executeStakeByAgent(user, validatorId || 1, amountWei);
+            } else if (action === 'LOCK_USDC') {
+                const amountWei = parseEthersValue(amount);
+                tx = await lockContract.executeLockByAgent(user, durationSeconds || 86400, reason || "AI Copilot Savings Lock", { value: amountWei });
+            } else if (action === 'UNLOCK_USDC') {
+                tx = await lockContract.executeUnlockByAgent(user, lockIndex !== undefined ? lockIndex : 0);
+            }
+
+            if (tx) {
+                const receipt = await tx.wait(1);
+                return {
+                    success: true,
+                    txHash: receipt.transactionHash || receipt.hash || tx.hash,
+                    blockNumber: receipt.blockNumber
+                };
+            }
+        } catch (relayerErr) {
+            console.error("Direct Relayer Execution Error:", relayerErr);
+            throw relayerErr;
+        }
+        return null;
+    }
+
+    // -----------------------------------------------------------------
+    // SPECIAL INTENT 0A: QUERY LOCKED USDC BALANCE (NO DEDUCTION)
+    // -----------------------------------------------------------------
+    if (intent.type === 'QUERY_LOCK') {
+        const cardBubble = document.createElement('div');
+        cardBubble.className = 'flex gap-3';
+        cardBubble.innerHTML = `
+            <div class="w-8 h-8 rounded-full bg-blue-600/30 border border-blue-500 flex items-center justify-center shrink-0">
+                <i data-lucide="lock" class="w-4 h-4 text-blue-300"></i>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-950 border-2 border-blue-500/80 text-white font-mono text-xs space-y-3 shadow-xl max-w-[85%]">
+                <div class="flex items-center justify-between pb-2 border-b border-blue-500/30">
+                    <span class="flex items-center gap-1.5 text-blue-300 font-bold">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-blue-400"></i>
+                        <span>ON-CHAIN LOCKED USDC SUMMARY</span>
+                    </span>
+                </div>
+                <div id="query_lock_loading" class="text-blue-300 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span>
+                    <span>Fetching locked savings from PulseLockVault...</span>
+                </div>
+                <div id="query_lock_content" class="hidden space-y-2"></div>
+            </div>
+        `;
+        chatBox.appendChild(cardBubble);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        if (window.lucide) window.lucide.createIcons();
+
+        (async () => {
+            try {
+                let rpcProv;
+                if (window.ethers.providers && window.ethers.providers.JsonRpcProvider) {
+                    rpcProv = new window.ethers.providers.JsonRpcProvider(ARC_RPC_URL);
+                } else {
+                    rpcProv = new window.ethers.providers.JsonRpcProvider(ARC_RPC_URL);
+                }
+                const lockContract = new window.ethers.Contract(PULSE_LOCK_VAULT_ADDRESS, PULSE_LOCK_VAULT_ABI, rpcProv);
+                const summary = await lockContract.getUserLockSummary(currentAccount).catch(() => [0, 0, 0]);
+                const totalLocked = parseFloat(formatEthersValue(summary[0]));
+                const activeCount = parseInt(summary[1]);
+                const unlockable = parseFloat(formatEthersValue(summary[2]));
+
+                const loadingEl = document.getElementById('query_lock_loading');
+                const contentEl = document.getElementById('query_lock_content');
+                if (loadingEl) loadingEl.style.display = 'none';
+
+                if (contentEl) {
+                    contentEl.classList.remove('hidden');
+                    contentEl.innerHTML = `
+                        <div class="grid grid-cols-2 gap-2 text-slate-300 text-xs">
+                            <div class="p-2 rounded-xl bg-slate-900 border border-slate-800">
+                                <div class="text-[10px] text-slate-400">Total Locked</div>
+                                <div class="text-sm font-bold text-blue-400">${totalLocked.toFixed(4)} USDC</div>
+                            </div>
+                            <div class="p-2 rounded-xl bg-slate-900 border border-slate-800">
+                                <div class="text-[10px] text-slate-400">Unlockable Now</div>
+                                <div class="text-sm font-bold text-emerald-400">${unlockable.toFixed(4)} USDC</div>
+                            </div>
+                        </div>
+                        <div class="text-[11px] text-slate-400">
+                            📊 <strong>Active Lock Positions:</strong> ${activeCount} position(s)<br/>
+                            🏦 <strong>Vault Address:</strong> <a href="https://testnet.arcscan.app/address/${PULSE_LOCK_VAULT_ADDRESS}" target="_blank" class="text-blue-400 underline font-bold">${PULSE_LOCK_VAULT_ADDRESS.substring(0, 10)}...${PULSE_LOCK_VAULT_ADDRESS.substring(36)}</a>
+                        </div>
+                        ${unlockable > 0 ? `
+                            <div class="pt-2">
+                                <button type="button" onclick="populateAgentPrompt('withdraw locked usdc')" class="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition-all">
+                                    <i data-lucide="unlock" class="w-4 h-4"></i>
+                                    <span>Withdraw Mature ${unlockable.toFixed(4)} USDC Now</span>
+                                </button>
+                            </div>
+                        ` : totalLocked === 0 ? `
+                            <div class="pt-1 text-[11px] text-amber-300">
+                                💡 Aapka abhi koi USDC lock nahi hai. Aap <em>"lock 1 usdc for 7 days"</em> bolkar lock kar sakte hain!
+                            </div>
+                        ` : `
+                            <div class="pt-1 text-[11px] text-slate-400">
+                                ⏳ Tokens locked for security. They will be unlockable automatically when maturity period ends!
+                            </div>
+                        `}
+                    `;
+                }
+                if (window.lucide) window.lucide.createIcons();
+            } catch (err) {
+                console.error("Query lock error:", err);
+            }
+        })();
+
+        return true;
+    }
+
+    // -----------------------------------------------------------------
+    // SPECIAL INTENT 0B: UNLOCK / WITHDRAW LOCKED USDC
+    // -----------------------------------------------------------------
+    if (intent.type === 'UNLOCK_USDC') {
+        const cardBubble = document.createElement('div');
+        cardBubble.className = 'flex gap-3';
+        const cardId = 'unlock_' + Date.now();
+        cardBubble.innerHTML = `
+            <div class="w-8 h-8 rounded-full bg-emerald-600/30 border border-emerald-500 flex items-center justify-center shrink-0">
+                <i data-lucide="unlock" class="w-4 h-4 text-emerald-300"></i>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-950 border-2 border-emerald-500/80 text-white font-mono text-xs space-y-3 shadow-xl max-w-[85%]">
+                <div class="flex items-center justify-between pb-2 border-b border-emerald-500/30">
+                    <span class="flex items-center gap-1.5 text-emerald-300 font-bold">
+                        <i data-lucide="unlock" class="w-4 h-4 text-emerald-400"></i>
+                        <span>WITHDRAW LOCKED USDC</span>
+                    </span>
+                </div>
+                <div id="${cardId}_status" class="text-amber-400 font-bold flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                    <span>Unlocking mature positions on Arc L1 in background...</span>
+                </div>
+                <div id="${cardId}_result" class="pt-2 border-t border-slate-800 text-[11px]"></div>
+            </div>
+        `;
+        chatBox.appendChild(cardBubble);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        if (window.lucide) window.lucide.createIcons();
+
+        (async () => {
+            const statusEl = document.getElementById(`${cardId}_status`);
+            const resultEl = document.getElementById(`${cardId}_result`);
+            try {
+                const relayerResult = await callAgentRelayerApi({
+                    action: 'UNLOCK_USDC',
+                    user: currentAccount,
+                    lockIndex: 0
+                });
+
+                await syncAgentVaultBalance();
+                await fetchBalances();
+
+                if (statusEl) {
+                    statusEl.className = "text-emerald-400 font-bold flex items-center gap-1.5";
+                    statusEl.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i><span>Unlocked Successfully!</span>`;
+                }
+                if (resultEl) {
+                    const txHash = relayerResult ? relayerResult.txHash : '';
+                    resultEl.innerHTML = `
+                        <div class="text-emerald-300 font-bold">✅ Mature Locked USDC Withdrawn!</div>
+                        <div class="text-slate-300 mt-0.5">Unlocked funds transferred directly to your wallet on Arc L1.</div>
+                        ${txHash ? `<div class="text-slate-400 mt-1">ArcScan Receipt: <a href="https://testnet.arcscan.app/tx/${txHash}" target="_blank" class="text-purple-400 underline font-bold">${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}</a></div>` : ''}
+                    `;
+                }
+            } catch (err) {
+                console.error("Unlock error:", err);
+                if (statusEl) {
+                    statusEl.className = "text-rose-400 font-bold flex items-center gap-1.5";
+                    statusEl.innerHTML = `<span>❌ Unlock Notice: ${err.reason || err.message || 'No mature locks ready to withdraw yet'}</span>`;
+                }
+            }
+            if (window.lucide) window.lucide.createIcons();
+        })();
+
+        return true;
+    }
+
+    // -----------------------------------------------------------------
+    // SPECIAL INTENT 0C: LOCK USDC (TIME-LOCK SAVINGS VAULT)
+    // -----------------------------------------------------------------
+    if (intent.type === 'LOCK_USDC') {
+        const { amount, durationSeconds, reason } = intent;
+        if (agentVaultBalance < amount) {
+            const warnBubble = document.createElement('div');
+            warnBubble.className = 'flex gap-3';
+            warnBubble.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-500 flex items-center justify-center shrink-0">
+                    <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>
+                </div>
+                <div class="p-4 rounded-2xl bg-slate-950 border-2 border-amber-500/80 text-white font-mono text-xs space-y-3 shadow-xl max-w-[85%]">
+                    <div class="flex items-center justify-between pb-2 border-b border-amber-500/30">
+                        <span class="flex items-center gap-1.5 text-amber-300 font-bold">
+                            <i data-lucide="wallet" class="w-4 h-4 text-amber-400"></i>
+                            <span>VAULT BALANCE REQUIRED</span>
+                        </span>
+                        <span class="px-2 py-0.5 rounded-full bg-amber-900/60 text-amber-300 border border-amber-500/40 text-[10px]">VAULT: ${agentVaultBalance.toFixed(2)} USDC</span>
+                    </div>
+                    <div class="space-y-1 text-slate-300 leading-relaxed">
+                        <div>⚠️ You need <strong>${amount} USDC</strong> in your AI Agent Vault to lock tokens autonomously.</div>
+                        <div class="text-[11px] text-slate-400">Your current vault balance is <strong>${agentVaultBalance.toFixed(2)} USDC</strong>.</div>
+                    </div>
+                    <div class="pt-2">
+                        <button type="button" onclick="fundAgentVaultModal()" class="px-3.5 py-2 rounded-xl bg-purple-700 hover:bg-purple-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all">
+                            <i data-lucide="arrow-down-circle" class="w-4 h-4"></i>
+                            <span>Fund Vault Now (${amount} USDC)</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            chatBox.appendChild(warnBubble);
+            chatBox.scrollTop = chatBox.scrollHeight;
+            if (window.lucide) window.lucide.createIcons();
+            return true;
+        }
+
+        // Deduct from Vault Balance
+        agentVaultBalance = Math.max(0, agentVaultBalance - amount);
+        safeSetText('agentVaultBalanceText', `${agentVaultBalance.toFixed(2)} USDC`);
+        safeSetText('modalAgentVaultBalance', `${agentVaultBalance.toFixed(2)} USDC`);
+
+        const cardId = 'lock_' + Date.now();
+        const cardBubble = document.createElement('div');
+        cardBubble.className = 'flex gap-3';
+        const durationText = durationSeconds >= 86400 ? `${(durationSeconds / 86400).toFixed(0)} Day(s)` : `${(durationSeconds / 3600).toFixed(0)} Hour(s)`;
+
+        cardBubble.innerHTML = `
+            <div class="w-8 h-8 rounded-full bg-blue-600/30 border border-blue-500 flex items-center justify-center shrink-0">
+                <i data-lucide="lock" class="w-4 h-4 text-blue-300"></i>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-950 border-2 border-blue-500/80 text-white font-mono text-xs space-y-3 shadow-xl max-w-[85%]">
+                <div class="flex items-center justify-between pb-2 border-b border-blue-500/30">
+                    <span class="flex items-center gap-1.5 text-blue-300 font-bold">
+                        <i data-lucide="shield" class="w-4 h-4 text-blue-400"></i>
+                        <span>ON-CHAIN USDC TIMELOCK</span>
+                    </span>
+                </div>
+                <div class="space-y-1 text-slate-300">
+                    <div>🔒 <strong>Amount:</strong> ${amount} USDC from Vault</div>
+                    <div>⏳ <strong>Duration:</strong> ${durationText}</div>
+                    <div>🏦 <strong>Contract:</strong> PulseLockVault (${PULSE_LOCK_VAULT_ADDRESS.substring(0, 6)}...${PULSE_LOCK_VAULT_ADDRESS.substring(38)})</div>
+                    <div id="${cardId}_status" class="text-amber-400 font-bold flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                        <span>Locking USDC securely in PulseLockVault on Arc L1...</span>
+                    </div>
+                </div>
+                <div id="${cardId}_result" class="pt-2 border-t border-slate-800 text-[11px]"></div>
+            </div>
+        `;
+        chatBox.appendChild(cardBubble);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        if (window.lucide) window.lucide.createIcons();
+
+        (async () => {
+            const statusEl = document.getElementById(`${cardId}_status`);
+            const resultEl = document.getElementById(`${cardId}_result`);
+            try {
+                let txHash = '';
+                const relayerResult = await callAgentRelayerApi({
+                    action: 'LOCK_USDC',
+                    user: currentAccount,
+                    amount: amount,
+                    durationSeconds: durationSeconds,
+                    reason: reason
+                });
+
+                if (relayerResult && relayerResult.success) {
+                    txHash = relayerResult.txHash;
+                }
+
+                await syncAgentVaultBalance();
+                await fetchBalances();
+
+                if (statusEl) {
+                    statusEl.className = "text-emerald-400 font-bold flex items-center gap-1.5";
+                    statusEl.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i><span>USDC Locked Successfully!</span>`;
+                }
+                if (resultEl) {
+                    resultEl.innerHTML = `
+                        <div class="text-emerald-300 font-bold">✅ ${amount} USDC Locked Securely!</div>
+                        <div class="text-slate-300 mt-0.5">Funds time-locked for ${durationText}. Safe from impulsive spending.</div>
+                        <div class="text-slate-400 mt-1">ArcScan Receipt: <a href="https://testnet.arcscan.app/tx/${txHash}" target="_blank" class="text-blue-400 underline font-bold">${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}</a></div>
+                        <div class="text-slate-400 text-[10px] mt-0.5">Live Vault Balance: <strong class="text-purple-300">${agentVaultBalance.toFixed(4)} USDC</strong></div>
+                    `;
+                }
+                saveTxRecord(currentAccount, {
+                    type: `AI Timelock (${amount} USDC / ${durationText})`,
+                    amount: `${amount} USDC`,
+                    hash: txHash,
+                    date: new Date().toLocaleTimeString()
+                });
+            } catch (err) {
+                console.error("Lock error:", err);
+                if (statusEl) {
+                    statusEl.className = "text-rose-400 font-bold flex items-center gap-1.5";
+                    statusEl.innerHTML = `<span>❌ Lock Failed: ${err.message || 'Error'}</span>`;
+                }
+            }
+            if (window.lucide) window.lucide.createIcons();
+        })();
+
+        return true;
+    }
+
+    // Calculate required amount for standard actions (SWAP, SEND, BATCH, STAKE)
     let requiredAmount = 0;
     if (intent.type === 'SWAP') requiredAmount = intent.amount;
     else if (intent.type === 'SEND') requiredAmount = intent.amount;
-    else if (intent.type === 'BATCH') requiredAmount = intent.totalAmount || parseFloat((intent.count * intent.amountPerTx).toFixed(4));
+    else if (intent.type === 'BATCH') requiredAmount = intent.totalAmount || parseFloat((intent.count * intent.amountPerTx).toFixed(6));
     else if (intent.type === 'STAKE') requiredAmount = intent.amount;
 
     // Check Vault Balance
@@ -4206,72 +4618,6 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
     agentVaultBalance = Math.max(0, agentVaultBalance - requiredAmount);
     safeSetText('agentVaultBalanceText', `${agentVaultBalance.toFixed(2)} USDC`);
     safeSetText('modalAgentVaultBalance', `${agentVaultBalance.toFixed(2)} USDC`);
-
-    const ARC_RELAYER_KEY = "0xfe30acf615c85206faf13da075c44dde51804e01f5a64ede11220892142a8900";
-
-    async function callAgentRelayerApi(payload) {
-        // 1. Try server API endpoint first
-        try {
-            const res = await fetch('/api/agent-relayer', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            if (res.ok) {
-                const data = await res.json();
-                if (data && data.success) return data;
-            }
-        } catch (e) {
-            console.warn("Server relayer endpoint not reached, using on-chain relayer:", e.message);
-        }
-
-        // 2. Direct On-Chain Relayer Signer (100% Zero-Popup Guaranteed)
-        try {
-            if (!window.ethers) return null;
-            let rpcProv;
-            if (window.ethers.providers && window.ethers.providers.JsonRpcProvider) {
-                rpcProv = new window.ethers.providers.JsonRpcProvider(ARC_RPC_URL);
-            } else if (window.ethers.JsonRpcProvider) {
-                rpcProv = new window.ethers.JsonRpcProvider(ARC_RPC_URL);
-            } else {
-                rpcProv = new window.ethers.providers.JsonRpcProvider(ARC_RPC_URL);
-            }
-
-            const relayerWallet = new window.ethers.Wallet(ARC_RELAYER_KEY, rpcProv);
-            const relayerContract = new window.ethers.Contract(PULSE_AI_AGENT_ADDRESS, PULSE_AI_AGENT_ABI, relayerWallet);
-
-            const { action, user, amount, tokenIn, tokenOut, recipient, count, amountPerTx, validatorId } = payload;
-            let tx;
-            if (action === 'SWAP') {
-                const amountWei = parseEthersValue(amount);
-                const tokenInAddr = tokenIn === 'EURC' ? ERC20_EURC_ADDRESS : ERC20_USDC_ADDRESS;
-                const tokenOutAddr = tokenOut === 'EURC' ? ERC20_EURC_ADDRESS : ERC20_USDC_ADDRESS;
-                tx = await relayerContract.executeSwapByAgent(user, tokenInAddr, tokenOutAddr, amountWei, 0);
-            } else if (action === 'SEND') {
-                const amountWei = parseEthersValue(amount);
-                tx = await relayerContract.executeTransferByAgent(user, recipient, amountWei, "Autonomous AI Payment");
-            } else if (action === 'BATCH') {
-                const amtWei = parseEthersValue(amountPerTx);
-                tx = await relayerContract.executeBatchTransferByAgent(user, recipient, count || 10, amtWei, "Autonomous Batch Execution");
-            } else if (action === 'STAKE') {
-                const amountWei = parseEthersValue(amount);
-                tx = await relayerContract.executeStakeByAgent(user, validatorId || 1, amountWei);
-            }
-
-            if (tx) {
-                const receipt = await tx.wait(1);
-                return {
-                    success: true,
-                    txHash: receipt.transactionHash || receipt.hash || tx.hash,
-                    blockNumber: receipt.blockNumber
-                };
-            }
-        } catch (relayerErr) {
-            console.error("Direct Relayer Execution Error:", relayerErr);
-            throw relayerErr;
-        }
-        return null;
-    }
 
     const cardId = 'intent_' + Date.now();
     const cardBubble = document.createElement('div');

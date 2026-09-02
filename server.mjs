@@ -19,7 +19,8 @@ const mimeTypes = {
 };
 
 const RPC_URL = process.env.ARC_RPC_URL || 'https://rpc.testnet.arc.network';
-const PULSE_AI_AGENT_ADDRESS = '0x7d3AEe80599F7fB8a292958A34732ccb5A067d5E';
+const PULSE_AI_AGENT_ADDRESS = '0x904549702043e9cAAe34af58680c424Adaccc720';
+const PULSE_LOCK_VAULT_ADDRESS = '0xE06900028a2B4c35123ff167e08865b88C6F1E3c';
 const ERC20_USDC_ADDRESS = '0x3600000000000000000000000000000000000000';
 const ERC20_EURC_ADDRESS = '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a';
 
@@ -32,16 +33,28 @@ const PULSE_AI_AGENT_ABI = [
   "function authorizedAgents(address agent) external view returns (bool)"
 ];
 
+const PULSE_LOCK_VAULT_ABI = [
+  "function lockUSDC(uint256 durationInSeconds, string calldata reason) external payable returns (uint256)",
+  "function executeLockByAgent(address user, uint256 durationInSeconds, string calldata reason) external payable returns (uint256)",
+  "function withdrawUnlocked(uint256 lockIndex) external",
+  "function executeUnlockByAgent(address user, uint256 lockIndex) external",
+  "function getUserLockSummary(address user) external view returns (uint256 totalLocked, uint256 activeLocksCount, uint256 unlockableAmount)"
+];
+
 let provider = null;
 let relayerWallet = null;
 let agentContract = null;
+let lockContract = null;
 
 if (process.env.PRIVATE_KEY) {
   try {
     provider = new ethers.JsonRpcProvider(RPC_URL);
     relayerWallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
     agentContract = new ethers.Contract(PULSE_AI_AGENT_ADDRESS, PULSE_AI_AGENT_ABI, relayerWallet);
+    lockContract = new ethers.Contract(PULSE_LOCK_VAULT_ADDRESS, PULSE_LOCK_VAULT_ABI, relayerWallet);
     console.log(`🤖 AI Agent Relayer initialized: ${relayerWallet.address}`);
+    console.log(`🏛️ PulseAIAgent Contract: ${PULSE_AI_AGENT_ADDRESS}`);
+    console.log(`🔒 PulseLockVault Contract: ${PULSE_LOCK_VAULT_ADDRESS}`);
   } catch (e) {
     console.warn('⚠️ Could not initialize AI Agent Relayer:', e.message);
   }
@@ -70,7 +83,7 @@ const server = createServer(async (req, res) => {
     req.on('end', async () => {
       try {
         const payload = JSON.parse(body || '{}');
-        const { action, user, amount, tokenIn, tokenOut, recipient, count, amountPerTx, validatorId } = payload;
+        const { action, user, amount, tokenIn, tokenOut, recipient, count, amountPerTx, validatorId, durationSeconds, reason, lockIndex } = payload;
 
         if (!user || !ethers.isAddress(user)) {
           res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -122,6 +135,19 @@ const server = createServer(async (req, res) => {
             user,
             validatorId || 1,
             amountWei
+          );
+        } else if (action === 'LOCK_USDC') {
+          const amountWei = ethers.parseEther(amount.toString());
+          tx = await lockContract.executeLockByAgent(
+            user,
+            durationSeconds || 86400,
+            reason || "AI Copilot Savings Lock",
+            { value: amountWei }
+          );
+        } else if (action === 'UNLOCK_USDC') {
+          tx = await lockContract.executeUnlockByAgent(
+            user,
+            lockIndex !== undefined ? lockIndex : 0
           );
         } else {
           res.writeHead(400, { 'Content-Type': 'application/json' });

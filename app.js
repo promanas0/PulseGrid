@@ -3804,12 +3804,28 @@ async function syncAgentVaultBalance() {
         const balWei = await contract.getUserVaultBalance(currentAccount).catch(() => 0);
         agentVaultBalance = parseFloat(formatEthersValue(balWei));
 
-        safeSetText('agentVaultBalanceText', `${agentVaultBalance.toFixed(2)} USDC`);
-        safeSetText('modalAgentVaultBalance', `${agentVaultBalance.toFixed(2)} USDC`);
-        safeSetText('modalUserWalletBalance', `${TOKENS[0].balance.toFixed(2)} USDC`);
+        const displayVault = agentVaultBalance > 0 && agentVaultBalance < 0.01 
+            ? `${agentVaultBalance.toFixed(4)} USDC` 
+            : `${agentVaultBalance.toFixed(2)} USDC`;
+
+        safeSetText('agentVaultBalanceText', displayVault);
+        safeSetText('modalAgentVaultBalance', displayVault);
+        if (TOKENS && TOKENS[0]) {
+            safeSetText('modalUserWalletBalance', `${TOKENS[0].balance.toFixed(2)} USDC`);
+        }
     } catch (e) {
         console.warn("syncAgentVaultBalance notice:", e);
     }
+}
+
+// Auto-sync live vault balance every 3 seconds
+if (!window._vaultSyncIntervalSet) {
+    window._vaultSyncIntervalSet = true;
+    setInterval(() => {
+        if (currentAccount && window.ethers) {
+            syncAgentVaultBalance();
+        }
+    }, 3000);
 }
 
 function fundAgentVaultModal() {
@@ -3987,6 +4003,14 @@ async function executeRevokeSession() {
 // (ZERO-POPUP AUTONOMOUS VAULT SETTLEMENT & DYNAMIC ARBITRARY PARSING)
 // =========================================================================
 
+function extractFirstAmount(text) {
+    if (!text || typeof text !== 'string') return null;
+    const m = text.match(/(?:\d+(?:\.\d+)?|\.\d+)/);
+    if (!m) return null;
+    const val = parseFloat(m[0]);
+    return isNaN(val) ? null : val;
+}
+
 function parseNaturalIntent(text) {
     if (!text || typeof text !== 'string') return null;
 
@@ -4009,7 +4033,7 @@ function parseNaturalIntent(text) {
     clean = clean.replace(/\b(eura|euro|euros|eur)\b/g, 'eurc');
     clean = clean.replace(/\b(usdt|usd|dollar|dollars)\b/g, 'usdc');
 
-    // Separate attached numbers and words: e.g. "10usdc" -> "10 usdc", "0.5eurc" -> "0.5 eurc"
+    // Separate attached numbers and words: e.g. ".01usdc" -> "0.01 usdc", "10usdc" -> "10 usdc"
     clean = clean.replace(/([0-9.]+)\s*([a-z]+)/g, '$1 $2');
     clean = clean.replace(/\s+/g, ' ').trim();
 
@@ -4025,7 +4049,7 @@ function parseNaturalIntent(text) {
         }
 
         let amountPerTx = 0.05;
-        const allNumbers = clean.match(/([0-9]+(?:\.[0-9]+)?)/g);
+        const allNumbers = clean.match(/(?:\d+(?:\.\d+)?|\.\d+)/g);
         if (allNumbers && allNumbers.length >= 2) {
             const nums = allNumbers.map(n => parseFloat(n));
             const candidate = nums.find(n => n !== count);
@@ -4038,8 +4062,8 @@ function parseNaturalIntent(text) {
         return {
             type: 'BATCH',
             count: Math.min(Math.max(1, count), 100),
-            amountPerTx: parseFloat(amountPerTx.toFixed(4)),
-            totalAmount: parseFloat((count * amountPerTx).toFixed(4)),
+            amountPerTx: parseFloat(amountPerTx.toFixed(6)),
+            totalAmount: parseFloat((count * amountPerTx).toFixed(6)),
             recipient
         };
     }
@@ -4048,11 +4072,11 @@ function parseNaturalIntent(text) {
     // INTENT B: SINGLE TRANSFER / SEND
     // -------------------------------------------------------------
     if (recipient) {
-        const amtMatch = clean.match(/([0-9]+(?:\.[0-9]+)?)/);
-        const amount = amtMatch ? parseFloat(amtMatch[1]) : 1.0;
+        const parsedAmt = extractFirstAmount(clean);
+        const amount = parsedAmt !== null ? parsedAmt : 0.001;
         return {
             type: 'SEND',
-            amount: parseFloat(amount.toFixed(4)),
+            amount: parseFloat(amount.toFixed(6)),
             recipient
         };
     }
@@ -4061,20 +4085,20 @@ function parseNaturalIntent(text) {
     // INTENT C: STAKE
     // -------------------------------------------------------------
     if (/(stake|staking|delegate|deposit.*stake)/i.test(clean)) {
-        const amtMatch = clean.match(/([0-9]+(?:\.[0-9]+)?)/);
-        const amount = amtMatch ? parseFloat(amtMatch[1]) : 1.0;
+        const parsedAmt = extractFirstAmount(clean);
+        const amount = parsedAmt !== null ? parsedAmt : 1.0;
         return {
             type: 'STAKE',
-            amount: parseFloat(amount.toFixed(4))
+            amount: parseFloat(amount.toFixed(6))
         };
     }
 
     // -------------------------------------------------------------
-    // INTENT D: SWAP (ANY ARBITRARY AMOUNT & TOKEN PAIR)
+    // INTENT D: SWAP (ANY ARBITRARY AMOUNT & TOKEN PAIR - FROM 0.001 TO 10,000+)
     // -------------------------------------------------------------
     const validTokens = ['USDC', 'EURC', 'ETH', 'PUSDC', 'ARC', 'BTC', 'SOL', 'USDT', 'DAI'];
-    const numMatch = clean.match(/([0-9]+(?:\.[0-9]+)?)/);
-    const amount = numMatch ? parseFloat(numMatch[1]) : 1.0;
+    const parsedAmt = extractFirstAmount(clean);
+    const amount = parsedAmt !== null ? parsedAmt : 1.0;
     const hasSwapKeywords = /(swap|convert|exchange|badal|bana|change|to|se|ko|into|for|->)/i.test(clean);
 
     const tokensFound = [];
@@ -4100,7 +4124,7 @@ function parseNaturalIntent(text) {
 
         return {
             type: 'SWAP',
-            amount: parseFloat(amount.toFixed(4)),
+            amount: parseFloat(amount.toFixed(6)),
             from,
             to
         };
@@ -4110,14 +4134,14 @@ function parseNaturalIntent(text) {
         const to = tok === 'USDC' ? 'EURC' : 'USDC';
         return {
             type: 'SWAP',
-            amount: parseFloat(amount.toFixed(4)),
+            amount: parseFloat(amount.toFixed(6)),
             from,
             to
         };
-    } else if (hasSwapKeywords && numMatch) {
+    } else if (hasSwapKeywords && parsedAmt !== null) {
         return {
             type: 'SWAP',
-            amount: parseFloat(amount.toFixed(4)),
+            amount: parseFloat(amount.toFixed(6)),
             from: 'USDC',
             to: 'EURC'
         };
@@ -4252,8 +4276,9 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
     const cardId = 'intent_' + Date.now();
     const cardBubble = document.createElement('div');
     cardBubble.className = 'flex gap-3';
+    const shortContract = `${PULSE_AI_AGENT_ADDRESS.substring(0, 6)}...${PULSE_AI_AGENT_ADDRESS.substring(38)}`;
 
-    // 1. SWAP INTENT EXECUTION (100% ZERO-POPUP AUTO-PAY WITH RELAYER)
+    // 1. SWAP INTENT EXECUTION
     if (intent.type === 'SWAP') {
         const { amount, from, to } = intent;
         let receiveAmt = from === 'USDC' && to === 'EURC' ? (amount * 0.9200) : (amount / 0.9200);
@@ -4268,12 +4293,11 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                         <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i>
                         <span>AUTONOMOUS AGENT SWAP</span>
                     </span>
-                    <span class="px-2 py-0.5 rounded-full bg-emerald-900/60 text-emerald-300 border border-emerald-500/40 text-[10px]">100% AUTO-PAID (0 POPUP)</span>
                 </div>
                 <div class="space-y-1 text-slate-300">
                     <div>🔄 <strong>Action:</strong> Swap ${amount} ${from} ➔ ${to}</div>
                     <div>🤖 <strong>Source:</strong> Non-Custodial Agent Vault (${amount} USDC)</div>
-                    <div>📡 <strong>Contract:</strong> PulseAIAgent (0x7d3A...7d5E)</div>
+                    <div>📡 <strong>Contract:</strong> PulseAIAgent (${shortContract})</div>
                     <div id="${cardId}_status" class="text-amber-400 font-bold flex items-center gap-1.5">
                         <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
                         <span>Auto-broadcasting to Arc L1 in background...</span>
@@ -4286,7 +4310,7 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
         chatBox.scrollTop = chatBox.scrollHeight;
         if (window.lucide) window.lucide.createIcons();
 
-        setTimeout(async () => {
+        (async () => {
             const statusEl = document.getElementById(`${cardId}_status`);
             const resultEl = document.getElementById(`${cardId}_result`);
             try {
@@ -4302,7 +4326,6 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                 if (relayerResult && relayerResult.success) {
                     txHash = relayerResult.txHash;
                 } else {
-                    // Fallback to direct wallet broadcast
                     const prov = activeWeb3Provider || window.ethereum || (window.eip6963Providers && window.eip6963Providers[0]?.provider);
                     if (!prov || !window.ethers) throw new Error("Web3 provider not connected.");
                     const { signer, contract } = getWeb3SignerAndContract(prov);
@@ -4335,14 +4358,14 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
 
                 if (statusEl) {
                     statusEl.className = "text-emerald-400 font-bold flex items-center gap-1.5";
-                    statusEl.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i><span>Swap Completed! 100% Auto-Paid</span>`;
+                    statusEl.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i><span>Swap Completed Successfully!</span>`;
                 }
                 if (resultEl) {
                     resultEl.innerHTML = `
                         <div class="text-emerald-300 font-bold">✅ Real On-Chain Swap Completed!</div>
                         <div class="text-slate-300 mt-0.5">Swapped ${amount} ${from} ➔ ${receiveAmt.toFixed(4)} ${to} permanently on Arc L1.</div>
                         <div class="text-slate-400 mt-1">ArcScan Receipt: <a href="https://testnet.arcscan.app/tx/${txHash}" target="_blank" class="text-purple-400 underline font-bold">${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}</a></div>
-                        <div class="text-slate-400 text-[10px] mt-0.5">Live Vault Balance: <strong class="text-purple-300">${agentVaultBalance.toFixed(2)} USDC</strong></div>
+                        <div class="text-slate-400 text-[10px] mt-0.5">Live Vault Balance: <strong class="text-purple-300">${agentVaultBalance.toFixed(4)} USDC</strong></div>
                     `;
                 }
                 saveTxRecord(currentAccount, {
@@ -4359,12 +4382,12 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                 }
             }
             if (window.lucide) window.lucide.createIcons();
-        }, 300);
+        })();
 
         return true;
     }
 
-    // 2. BATCH INTENT EXECUTION (100% ZERO-POPUP AUTO-PAY WITH RELAYER)
+    // 2. BATCH INTENT EXECUTION
     if (intent.type === 'BATCH') {
         const { count, amountPerTx, totalAmount, recipient } = intent;
         cardBubble.innerHTML = `
@@ -4377,7 +4400,6 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                         <i data-lucide="layers" class="w-4 h-4 text-amber-400"></i>
                         <span>ON-CHAIN BATCH PAYMENTS</span>
                     </span>
-                    <span class="px-2 py-0.5 rounded-full bg-emerald-900/60 text-emerald-300 border border-emerald-500/40 text-[10px]">100% AUTO-PAID (0 POPUP)</span>
                 </div>
                 <div class="space-y-1 text-slate-300">
                     <div>📦 <strong>Count:</strong> ${count} Micro-Transactions (${amountPerTx} USDC each)</div>
@@ -4395,7 +4417,7 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
         chatBox.scrollTop = chatBox.scrollHeight;
         if (window.lucide) window.lucide.createIcons();
 
-        setTimeout(async () => {
+        (async () => {
             const statusEl = document.getElementById(`${cardId}_status`);
             const resultEl = document.getElementById(`${cardId}_result`);
             try {
@@ -4439,7 +4461,7 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                         <div class="text-emerald-300 font-bold">✅ Real On-Chain Batch Dispatched!</div>
                         <div class="text-slate-300 mt-0.5">Dispatched ${count} payments of ${amountPerTx} USDC (Total: ${totalAmount} USDC) on Arc L1.</div>
                         <div class="text-slate-400 mt-1">ArcScan Receipt: <a href="https://testnet.arcscan.app/tx/${txHash}" target="_blank" class="text-purple-400 underline font-bold">${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}</a></div>
-                        <div class="text-slate-400 text-[10px] mt-0.5">Live Vault Balance: <strong class="text-purple-300">${agentVaultBalance.toFixed(2)} USDC</strong></div>
+                        <div class="text-slate-400 text-[10px] mt-0.5">Live Vault Balance: <strong class="text-purple-300">${agentVaultBalance.toFixed(4)} USDC</strong></div>
                     `;
                 }
                 saveTxRecord(currentAccount, {
@@ -4456,12 +4478,12 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                 }
             }
             if (window.lucide) window.lucide.createIcons();
-        }, 300);
+        })();
 
         return true;
     }
 
-    // 3. SINGLE SEND INTENT EXECUTION (100% ZERO-POPUP AUTO-PAY WITH RELAYER)
+    // 3. SINGLE SEND INTENT EXECUTION
     if (intent.type === 'SEND') {
         const { amount, recipient } = intent;
         cardBubble.innerHTML = `
@@ -4474,7 +4496,6 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                         <i data-lucide="send" class="w-4 h-4 text-emerald-400"></i>
                         <span>ON-CHAIN AGENT PAYMENT</span>
                     </span>
-                    <span class="px-2 py-0.5 rounded-full bg-emerald-900/60 text-emerald-300 border border-emerald-500/40 text-[10px]">100% AUTO-PAID (0 POPUP)</span>
                 </div>
                 <div class="space-y-1 text-slate-300">
                     <div>💸 <strong>Transfer:</strong> ${amount} USDC from Vault</div>
@@ -4491,7 +4512,7 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
         chatBox.scrollTop = chatBox.scrollHeight;
         if (window.lucide) window.lucide.createIcons();
 
-        setTimeout(async () => {
+        (async () => {
             const statusEl = document.getElementById(`${cardId}_status`);
             const resultEl = document.getElementById(`${cardId}_result`);
             try {
@@ -4526,14 +4547,14 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
 
                 if (statusEl) {
                     statusEl.className = "text-emerald-400 font-bold flex items-center gap-1.5";
-                    statusEl.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i><span>Payment Settled! 100% Auto-Paid</span>`;
+                    statusEl.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i><span>Payment Settled Successfully!</span>`;
                 }
                 if (resultEl) {
                     resultEl.innerHTML = `
                         <div class="text-emerald-300 font-bold">✅ Transfer Confirmed On ArcScan!</div>
                         <div class="text-slate-300 mt-0.5">Sent ${amount} USDC to ${recipient.substring(0, 6)}...${recipient.substring(38)}.</div>
                         <div class="text-slate-400 mt-1">ArcScan Receipt: <a href="https://testnet.arcscan.app/tx/${txHash}" target="_blank" class="text-purple-400 underline font-bold">${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}</a></div>
-                        <div class="text-slate-400 text-[10px] mt-0.5">Live Vault Balance: <strong class="text-purple-300">${agentVaultBalance.toFixed(2)} USDC</strong></div>
+                        <div class="text-slate-400 text-[10px] mt-0.5">Live Vault Balance: <strong class="text-purple-300">${agentVaultBalance.toFixed(4)} USDC</strong></div>
                     `;
                 }
                 saveTxRecord(currentAccount, {
@@ -4550,12 +4571,12 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                 }
             }
             if (window.lucide) window.lucide.createIcons();
-        }, 300);
+        })();
 
         return true;
     }
 
-    // 4. STAKE INTENT EXECUTION (100% ZERO-POPUP AUTO-PAY WITH RELAYER)
+    // 4. STAKE INTENT EXECUTION
     if (intent.type === 'STAKE') {
         const { amount } = intent;
         cardBubble.innerHTML = `
@@ -4568,7 +4589,6 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                         <i data-lucide="gem" class="w-4 h-4 text-indigo-400"></i>
                         <span>ON-CHAIN AGENT STAKING</span>
                     </span>
-                    <span class="px-2 py-0.5 rounded-full bg-emerald-900/60 text-emerald-300 border border-emerald-500/40 text-[10px]">100% AUTO-PAID (0 POPUP)</span>
                 </div>
                 <div class="space-y-1 text-slate-300">
                     <div>🥩 <strong>Staking:</strong> ${amount} USDC from Vault</div>
@@ -4585,7 +4605,7 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
         chatBox.scrollTop = chatBox.scrollHeight;
         if (window.lucide) window.lucide.createIcons();
 
-        setTimeout(async () => {
+        (async () => {
             const statusEl = document.getElementById(`${cardId}_status`);
             const resultEl = document.getElementById(`${cardId}_result`);
             try {
@@ -4619,14 +4639,14 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
 
                 if (statusEl) {
                     statusEl.className = "text-emerald-400 font-bold flex items-center gap-1.5";
-                    statusEl.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i><span>Staking Delegated! 100% Auto-Paid</span>`;
+                    statusEl.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i><span>Staking Delegated Successfully!</span>`;
                 }
                 if (resultEl) {
                     resultEl.innerHTML = `
                         <div class="text-emerald-300 font-bold">✅ Staking Delegated On ArcScan!</div>
                         <div class="text-slate-300 mt-0.5">Staked ${amount} USDC from Vault. Real-time yield accruing at 14.0% APY.</div>
                         <div class="text-slate-400 mt-1">ArcScan Receipt: <a href="https://testnet.arcscan.app/tx/${txHash}" target="_blank" class="text-purple-400 underline font-bold">${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}</a></div>
-                        <div class="text-slate-400 text-[10px] mt-0.5">Live Vault Balance: <strong class="text-purple-300">${agentVaultBalance.toFixed(2)} USDC</strong></div>
+                        <div class="text-slate-400 text-[10px] mt-0.5">Live Vault Balance: <strong class="text-purple-300">${agentVaultBalance.toFixed(4)} USDC</strong></div>
                     `;
                 }
                 saveTxRecord(currentAccount, {
@@ -4643,7 +4663,7 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                 }
             }
             if (window.lucide) window.lucide.createIcons();
-        }, 300);
+        })();
 
         return true;
     }

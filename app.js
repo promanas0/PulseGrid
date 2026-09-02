@@ -3747,14 +3747,54 @@ function populateAgentPrompt(promptText) {
     }
 }
 
+function getWeb3SignerAndContract(prov) {
+    let p;
+    if (window.ethers.providers && window.ethers.providers.Web3Provider) {
+        p = new window.ethers.providers.Web3Provider(prov);
+    } else if (window.ethers.BrowserProvider) {
+        p = new window.ethers.BrowserProvider(prov);
+    } else {
+        p = new window.ethers.providers.Web3Provider(prov);
+    }
+    const signer = typeof p.getSigner === 'function' ? p.getSigner() : p;
+    const contract = new window.ethers.Contract(PULSE_AI_AGENT_ADDRESS, PULSE_AI_AGENT_ABI, signer);
+    return { provider: p, signer, contract };
+}
+
+function parseEthersValue(amount) {
+    if (window.ethers.utils && window.ethers.utils.parseEther) {
+        return window.ethers.utils.parseEther(amount.toString());
+    }
+    if (window.ethers.parseEther) {
+        return window.ethers.parseEther(amount.toString());
+    }
+    return window.ethers.BigNumber.from(Math.floor(amount * 1e18).toString());
+}
+
+function formatEthersValue(wei) {
+    if (window.ethers.utils && window.ethers.utils.formatEther) {
+        return window.ethers.utils.formatEther(wei);
+    }
+    if (window.ethers.formatEther) {
+        return window.ethers.formatEther(wei);
+    }
+    return (Number(wei) / 1e18).toString();
+}
+
 async function syncAgentVaultBalance() {
-    const prov = activeWeb3Provider || window.ethereum || (window.eip6963Providers && window.eip6963Providers[0]?.provider);
     if (!currentAccount || !window.ethers) return;
     try {
-        const provider = new ethers.JsonRpcProvider(ARC_RPC_URL);
-        const contract = new ethers.Contract(PULSE_AI_AGENT_ADDRESS, PULSE_AI_AGENT_ABI, provider);
-        const balWei = await contract.getUserVaultBalance(currentAccount).catch(() => 0n);
-        agentVaultBalance = parseFloat(ethers.formatEther(balWei));
+        let rpcProv;
+        if (window.ethers.providers && window.ethers.providers.JsonRpcProvider) {
+            rpcProv = new window.ethers.providers.JsonRpcProvider(ARC_RPC_URL);
+        } else if (window.ethers.JsonRpcProvider) {
+            rpcProv = new window.ethers.JsonRpcProvider(ARC_RPC_URL);
+        } else {
+            rpcProv = new window.ethers.providers.JsonRpcProvider(ARC_RPC_URL);
+        }
+        const contract = new window.ethers.Contract(PULSE_AI_AGENT_ADDRESS, PULSE_AI_AGENT_ABI, rpcProv);
+        const balWei = await contract.getUserVaultBalance(currentAccount).catch(() => 0);
+        agentVaultBalance = parseFloat(formatEthersValue(balWei));
 
         safeSetText('agentVaultBalanceText', `${agentVaultBalance.toFixed(2)} USDC`);
         safeSetText('modalAgentVaultBalance', `${agentVaultBalance.toFixed(2)} USDC`);
@@ -3833,11 +3873,8 @@ async function executeAgentVaultDeposit() {
 
     try {
         showToast('Preparing Deposit...', `Sending ${amountVal} USDC to Agent Vault on Arc L1`, 'info');
-        const browserProvider = new ethers.BrowserProvider(prov);
-        const signer = await browserProvider.getSigner();
-
-        const amountWei = ethers.parseEther(amountVal.toString());
-        const contract = new ethers.Contract(PULSE_AI_AGENT_ADDRESS, PULSE_AI_AGENT_ABI, signer);
+        const amountWei = parseEthersValue(amountVal);
+        const { signer, contract } = getWeb3SignerAndContract(prov);
         
         let tx;
         try {
@@ -3871,12 +3908,10 @@ async function executeAgentVaultWithdraw() {
     }
     try {
         showToast('Withdrawing from Vault...', 'Withdrawing available balance back to wallet...', 'info');
-        const browserProvider = new ethers.BrowserProvider(prov);
-        const signer = await browserProvider.getSigner();
-        const contract = new ethers.Contract(PULSE_AI_AGENT_ADDRESS, PULSE_AI_AGENT_ABI, signer);
+        const { contract } = getWeb3SignerAndContract(prov);
 
         const balWei = await contract.getUserVaultBalance(currentAccount);
-        if (balWei === 0n) {
+        if (balWei === 0 || balWei === 0n) {
             showToast('Empty Vault', 'No balance available to withdraw.', 'info');
             return;
         }
@@ -3903,11 +3938,9 @@ async function executeAuthorizeSession() {
     const duration = parseInt(document.getElementById('agentSessionDuration')?.value || '86400');
 
     try {
-        const browserProvider = new ethers.BrowserProvider(prov);
-        const signer = await browserProvider.getSigner();
-        const contract = new ethers.Contract(PULSE_AI_AGENT_ADDRESS, PULSE_AI_AGENT_ABI, signer);
-
-        const tx = await contract.authorizeSession(ethers.ZeroAddress, ethers.parseEther(limit.toString()), duration);
+        const { contract } = getWeb3SignerAndContract(prov);
+        const zeroAddr = (window.ethers.constants && window.ethers.constants.AddressZero) || '0x0000000000000000000000000000000000000000';
+        const tx = await contract.authorizeSession(zeroAddr, parseEthersValue(limit), duration);
         await tx.wait(1);
 
         agentSessionActive = true;
@@ -3923,10 +3956,7 @@ async function executeRevokeSession() {
     let prov = activeWeb3Provider || window.ethereum || (window.eip6963Providers && window.eip6963Providers[0]?.provider);
     if (!prov || !currentAccount) return;
     try {
-        const browserProvider = new ethers.BrowserProvider(prov);
-        const signer = await browserProvider.getSigner();
-        const contract = new ethers.Contract(PULSE_AI_AGENT_ADDRESS, PULSE_AI_AGENT_ABI, signer);
-
+        const { contract } = getWeb3SignerAndContract(prov);
         const tx = await contract.revokeSession();
         await tx.wait(1);
 
@@ -3940,19 +3970,39 @@ async function executeRevokeSession() {
 
 // =========================================================================
 // NATURAL LANGUAGE ON-CHAIN INTENT PARSER & EXECUTION PIPELINE
+// (ENGLISH & HINGLISH NATIVE SUPPORT)
 // =========================================================================
 
 async function parseAndExecuteAgentIntent(userMsg, chatBox) {
     if (!userMsg) return false;
     const msg = userMsg.trim().toLowerCase();
 
-    // 1. INTENT: SWAP (e.g. "swap 1 usdc to eurc", "exchange 2 usdc for eth")
-    const swapMatch = userMsg.match(/(?:swap|exchange)\s+([0-9.]+)\s*([a-zA-Z0-9]+)\s*(?:to|for)\s*([a-zA-Z0-9]+)/i);
-    if (swapMatch) {
-        const amount = parseFloat(swapMatch[1]);
-        const fromSym = swapMatch[2].toUpperCase();
-        const toSym = swapMatch[3].toUpperCase();
+    // 1. INTENT: SWAP (e.g. "swap 1 usdc to eurc", "1 usdc se eurc kardo", "1 usdc ko eurc mai swap kardo", "exchange 2 usdc for eth", "1 usdc to eurc")
+    let isSwap = false;
+    let swapAmt = 1.0;
+    let swapFrom = 'USDC';
+    let swapTo = 'EURC';
 
+    const swapMatch1 = userMsg.match(/(?:swap|exchange|convert)\s+([0-9.]+)\s*([a-zA-Z0-9]+)?\s*(?:to|for|se|into)\s*([a-zA-Z0-9]+)/i);
+    const swapMatch2 = userMsg.match(/([0-9.]+)\s*([a-zA-Z0-9]+)?\s*(?:se|ko|to|for|into|me|mai|mein)\s*([a-zA-Z0-9]+)\s*(?:me|mai|mein|swap|kardo|kar\s*do|badal\s*do|convert|bana\s*do)?/i);
+
+    if (swapMatch1) {
+        isSwap = true;
+        swapAmt = parseFloat(swapMatch1[1]);
+        swapFrom = (swapMatch1[2] || 'USDC').toUpperCase();
+        swapTo = swapMatch1[3].toUpperCase();
+    } else if (swapMatch2) {
+        const target = (swapMatch2[3] || '').toUpperCase();
+        if (['EURC', 'USDC', 'ETH', 'PUSDC', 'ARC', 'BTC', 'SOL'].includes(target)) {
+            isSwap = true;
+            swapAmt = parseFloat(swapMatch2[1]);
+            swapFrom = (swapMatch2[2] || 'USDC').toUpperCase();
+            swapTo = target;
+            if (swapFrom === swapTo) swapFrom = swapTo === 'USDC' ? 'EURC' : 'USDC';
+        }
+    }
+
+    if (isSwap) {
         const cardId = 'intent_' + Date.now();
         const cardBubble = document.createElement('div');
         cardBubble.className = 'flex gap-3';
@@ -3969,7 +4019,7 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                     <span class="px-2 py-0.5 rounded-full bg-purple-900/60 text-purple-300 border border-purple-500/40 text-[10px]">ARC L1</span>
                 </div>
                 <div class="space-y-1 text-slate-300">
-                    <div>🔄 <strong>Action:</strong> Swap ${amount} ${fromSym} ➔ ${toSym}</div>
+                    <div>🔄 <strong>Action:</strong> Swap ${swapAmt} ${swapFrom} ➔ ${swapTo}</div>
                     <div>📡 <strong>Router:</strong> PulseAIAgent / AMM Pool</div>
                     <div id="${cardId}_status" class="text-amber-400 font-bold flex items-center gap-1.5">
                         <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
@@ -3983,29 +4033,28 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
         chatBox.scrollTop = chatBox.scrollHeight;
         if (window.lucide) window.lucide.createIcons();
 
-        // Perform on-chain swap execution
         setTimeout(async () => {
             try {
-                if (currentAccount && activeWeb3Provider && window.ethers) {
-                    const browserProvider = new ethers.BrowserProvider(activeWeb3Provider);
-                    const signer = await browserProvider.getSigner();
-                    const contract = new ethers.Contract(PULSE_AI_AGENT_ADDRESS, PULSE_AI_AGENT_ABI, signer);
+                const prov = activeWeb3Provider || window.ethereum || (window.eip6963Providers && window.eip6963Providers[0]?.provider);
+                if (currentAccount && prov && window.ethers) {
+                    const { signer, contract } = getWeb3SignerAndContract(prov);
+                    const amountWei = parseEthersValue(swapAmt);
 
-                    // Execute swap via Agent contract or direct simulation
-                    const amountWei = ethers.parseEther(amount.toString());
-                    const tx = await contract.executeSwapByAgent(
-                        currentAccount,
-                        ERC20_USDC_ADDRESS,
-                        '0x5200000000000000000000000000000000000000',
-                        amountWei,
-                        amountWei
-                    ).catch(async () => {
-                        // Fallback: direct send or router transaction
-                        return await signer.sendTransaction({
+                    let tx;
+                    try {
+                        tx = await contract.executeSwapByAgent(
+                            currentAccount,
+                            ERC20_USDC_ADDRESS,
+                            '0x5200000000000000000000000000000000000000',
+                            amountWei,
+                            amountWei
+                        );
+                    } catch (e) {
+                        tx = await signer.sendTransaction({
                             to: PULSE_AI_AGENT_ADDRESS,
                             value: amountWei
                         });
-                    });
+                    }
 
                     const txHash = tx.hash;
                     const statusEl = document.getElementById(`${cardId}_status`);
@@ -4016,13 +4065,13 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                     }
                     if (resultEl) {
                         resultEl.innerHTML = `
-                            <div class="text-emerald-300">Swapped ${amount} ${fromSym} for ${toSym} at 0.9200 parity.</div>
+                            <div class="text-emerald-300">Swapped ${swapAmt} ${swapFrom} for ${swapTo} at 0.9200 parity.</div>
                             <div class="text-slate-400 mt-1">ArcScan Hash: <a href="https://testnet.arcscan.app/tx/${txHash}" target="_blank" class="text-purple-400 underline font-bold">${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}</a></div>
                         `;
                     }
                     saveTxRecord(currentAccount, {
-                        type: `AI Agent Swap (${fromSym} ➔ ${toSym})`,
-                        amount: `${amount} ${fromSym}`,
+                        type: `AI Agent Swap (${swapFrom} ➔ ${swapTo})`,
+                        amount: `${swapAmt} ${swapFrom}`,
                         hash: txHash,
                         date: new Date().toLocaleTimeString()
                     });
@@ -4048,8 +4097,8 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
         return true;
     }
 
-    // 2. INTENT: BATCH TRANSFERS (e.g. "batch 5 txs of 0.05 usdc to 0x...", "send 10 transactions of 0.1 usdc to 0x...")
-    const batchMatch = userMsg.match(/(?:batch|send|execute)\s+([0-9]+)\s*(?:transactions|txs|transfers|payments)\s*(?:of|with)?\s*([0-9.]+)?\s*(?:usdc)?\s*(?:to)?\s*(0x[a-fA-F0-9]{40})/i);
+    // 2. INTENT: BATCH TRANSFERS (e.g. "batch 5 txs of 0.05 usdc to 0x...", "5 transactions 0.05 usdc ka bhejdo 0x... ko", "100 transactions 1 1 karke bhejdo 0x... ko")
+    const batchMatch = userMsg.match(/(?:batch|send|execute|bhej(?:do)?|kar(?:do)?)\s*([0-9]+)\s*(?:transactions|txs|transfers|payments|bar|baar|times)?\s*(?:of|with|ka)?\s*([0-9.]+)?\s*(?:usdc)?\s*(?:karke)?\s*(?:to|ko)?\s*(0x[a-fA-F0-9]{40})/i);
     if (batchMatch) {
         const count = parseInt(batchMatch[1]);
         const amtPerTx = parseFloat(batchMatch[2] || '0.05');
@@ -4089,24 +4138,26 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
 
         setTimeout(async () => {
             try {
-                if (currentAccount && activeWeb3Provider && window.ethers) {
-                    const browserProvider = new ethers.BrowserProvider(activeWeb3Provider);
-                    const signer = await browserProvider.getSigner();
-                    const contract = new ethers.Contract(PULSE_AI_AGENT_ADDRESS, PULSE_AI_AGENT_ABI, signer);
+                const prov = activeWeb3Provider || window.ethereum || (window.eip6963Providers && window.eip6963Providers[0]?.provider);
+                if (currentAccount && prov && window.ethers) {
+                    const { signer, contract } = getWeb3SignerAndContract(prov);
+                    const amtWei = parseEthersValue(amtPerTx);
 
-                    const amtWei = ethers.parseEther(amtPerTx.toString());
-                    const tx = await contract.executeBatchTransferByAgent(
-                        currentAccount,
-                        recipient,
-                        count,
-                        amtWei,
-                        "AI Copilot Automated Batch Execution"
-                    ).catch(async () => {
-                        return await signer.sendTransaction({
+                    let tx;
+                    try {
+                        tx = await contract.executeBatchTransferByAgent(
+                            currentAccount,
+                            recipient,
+                            count,
+                            amtWei,
+                            "AI Copilot Automated Batch Execution"
+                        );
+                    } catch (e) {
+                        tx = await signer.sendTransaction({
                             to: recipient,
-                            value: ethers.parseEther(totalAmt)
+                            value: parseEthersValue(totalAmt)
                         });
-                    });
+                    }
 
                     const txHash = tx.hash;
                     const statusEl = document.getElementById(`${cardId}_status`);
@@ -4143,8 +4194,8 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
         return true;
     }
 
-    // 3. INTENT: SINGLE TRANSFER (e.g. "send 0.1 usdc to 0x...", "transfer 2 usdc to 0x...")
-    const sendMatch = userMsg.match(/(?:send|transfer|pay)\s+([0-9.]+)\s*(?:usdc)?\s*(?:to)\s*(0x[a-fA-F0-9]{40})/i);
+    // 3. INTENT: SINGLE TRANSFER (e.g. "send 0.1 usdc to 0x...", "0.1 usdc bhejdo 0x... ko", "transfer 2 usdc to 0x...")
+    const sendMatch = userMsg.match(/(?:send|transfer|pay|bhej(?:do)?|de(?:do)?)\s*([0-9.]+)\s*(?:usdc)?\s*(?:to|ko)?\s*(0x[a-fA-F0-9]{40})/i) || userMsg.match(/([0-9.]+)\s*(?:usdc)?\s*(?:bhej(?:do)?|send|transfer)\s*(?:to|ko)?\s*(0x[a-fA-F0-9]{40})/i);
     if (sendMatch) {
         const amount = parseFloat(sendMatch[1]);
         const recipient = sendMatch[2];
@@ -4181,13 +4232,13 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
 
         setTimeout(async () => {
             try {
-                if (currentAccount && activeWeb3Provider && window.ethers) {
-                    const browserProvider = new ethers.BrowserProvider(activeWeb3Provider);
-                    const signer = await browserProvider.getSigner();
+                const prov = activeWeb3Provider || window.ethereum || (window.eip6963Providers && window.eip6963Providers[0]?.provider);
+                if (currentAccount && prov && window.ethers) {
+                    const { signer } = getWeb3SignerAndContract(prov);
 
                     const tx = await signer.sendTransaction({
                         to: recipient,
-                        value: ethers.parseEther(amount.toString())
+                        value: parseEthersValue(amount)
                     });
 
                     const txHash = tx.hash;
@@ -4225,8 +4276,8 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
         return true;
     }
 
-    // 4. INTENT: STAKE (e.g. "stake 1 usdc", "stake 5 usdc on circle")
-    const stakeMatch = userMsg.match(/(?:stake|delegate)\s+([0-9.]+)\s*(?:usdc)?\s*(?:on|to|with)?\s*(circle|coinbase|jump|galaxy|dtcc|fidelity|[1-6])?/i);
+    // 4. INTENT: STAKE (e.g. "stake 1 usdc", "1 usdc stake kardo", "stake 5 usdc on circle")
+    const stakeMatch = userMsg.match(/(?:stake|delegate)\s+([0-9.]+)\s*(?:usdc)?\s*(?:on|to|with)?\s*(circle|coinbase|jump|galaxy|dtcc|fidelity|[1-6])?/i) || userMsg.match(/([0-9.]+)\s*(?:usdc)?\s*(?:ko)?\s*stake/i);
     if (stakeMatch) {
         const amount = parseFloat(stakeMatch[1]);
         const nodeName = stakeMatch[2] ? stakeMatch[2].toUpperCase() : 'CIRCLE GENESIS';
@@ -4263,13 +4314,13 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
 
         setTimeout(async () => {
             try {
-                if (currentAccount && activeWeb3Provider && window.ethers) {
-                    const browserProvider = new ethers.BrowserProvider(activeWeb3Provider);
-                    const signer = await browserProvider.getSigner();
+                const prov = activeWeb3Provider || window.ethereum || (window.eip6963Providers && window.eip6963Providers[0]?.provider);
+                if (currentAccount && prov && window.ethers) {
+                    const { signer } = getWeb3SignerAndContract(prov);
 
                     const tx = await signer.sendTransaction({
                         to: PULSESTAKE_CONTRACT_ADDRESS,
-                        value: ethers.parseEther(amount.toString())
+                        value: parseEthersValue(amount)
                     });
 
                     const txHash = tx.hash;

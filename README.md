@@ -63,6 +63,7 @@ All contracts are deployed, functional, and verified on Circle Arc L1 Testnet (C
 
 | Protocol Module | Contract Description | Deployed Contract Address | Explorer Link |
 | :--- | :--- | :--- | :--- |
+| **PulseAIAgent Protocol** | Autonomous AI Session Key Vault & Natural Language Intent Router | `0x11d2Aba4c557c68d1e235144BC8a364657F415Fe` | [View on ArcScan](https://testnet.arcscan.app/address/0x11d2Aba4c557c68d1e235144BC8a364657F415Fe) |
 | **PulsePay Engine** | Instant Payment Links, QR Settlement & Invoicing | `0xfa666800e07445ca35103a01f113Eb3CEAe4dcea` | [View on ArcScan](https://testnet.arcscan.app/address/0xfa666800e07445ca35103a01f113Eb3CEAe4dcea) |
 | **PulseStake Protocol** | Multi-Validator Liquid Staking & Yield Distributor | `0x9F6baFB6961aAd0fC133d32A559CaFdf32582801` | [View on ArcScan](https://testnet.arcscan.app/address/0x9F6baFB6961aAd0fC133d32A559CaFdf32582801) |
 | **PulseGrid CoinFlip** | Provably Fair 2.00x Token Flip Smart Contract | `0x3C6B9404e69288Bef09fcdcbB992C3661ed9b89b` | [View on ArcScan](https://testnet.arcscan.app/address/0x3C6B9404e69288Bef09fcdcbB992C3661ed9b89b) |
@@ -135,10 +136,16 @@ Gamified on-chain activity tracker designed for community engagement and testnet
 - **On-Chain Builder XP**: Dynamic XP calculation rewarded for completing actions across swaps, staking, and payment link generation.
 - **Real-Time Leaderboard**: Transparent ranking of top network participants and builder achievements.
 
-### 11. AI Copilot & Market Intelligence
-Integrated machine learning and LLM intelligence layer powered by Google Gemini.
-- **Smart Contract Auditing**: Paste Solidity code or contract addresses for automated vulnerability analysis and gas optimization suggestions.
-- **On-Chain Analytics**: Natural language queries for Arc L1 network statistics, transaction deciphering, and wallet history interpretation.
+### 11. Autonomous AI Agent Copilot & Session Key Vault
+Integrated machine learning, autonomous Web3 transaction execution, and LLM intelligence layer powered by `PulseAIAgent.sol` (`0x11d2Aba4c557c68d1e235144BC8a364657F415Fe`) and Google Gemini.
+- **Natural Language On-Chain Intent Execution**: Converts plain conversational prompts into broadcasted, verified smart contract transactions without popup fatigue:
+  - *Autonomous Swaps*: e.g., `"swap 1 USDC to EURC"` -> Executes instant liquidity pool swap.
+  - *Automated Atomic Batch Transfers*: e.g., `"batch 5 txs of 0.05 USDC to 0x..."` -> Dispatches multi-transaction micro-payment sequences in a single atomic block.
+  - *Instant Sub-Second Payments*: e.g., `"send 0.1 USDC to 0x..."` -> Direct 0.4s settlement with receipt generation.
+  - *Validator Staking Delegation*: e.g., `"stake 1 USDC on Circle Genesis validator"` -> Delegates stake with 14% APY.
+- **Non-Custodial Session Key Vault**: Users deposit native USDC into a dedicated vault with customizable spending caps (`maxSpendLimit`) and session validity durations (1h, 24h, 7d). Users can withdraw 100% of their funds or revoke session keys at any moment.
+- **Interactive Terminal Action Cards**: Real-time terminal output embedded directly in the chat with execution progress indicators, gas consumption, and clickable ArcScan explorer transaction hashes.
+- **Polyglot Multimodal Intelligence**: Audits Solidity smart contracts, analyzes image/video/screenshot attachments, and answers queries across 30+ global languages.
 - **Market Forecast Matrix**: Predictive price trend analysis, support and resistance mapping, and volatility metrics for major cryptocurrency assets.
 
 ### 12. Developer Tools Matrix
@@ -164,11 +171,13 @@ Essential utilities for developers building on Circle Arc L1.
 ```plaintext
 archpulse/
 |-- contracts/                    # Solidity Smart Contracts
+|   |-- PulseAIAgent.sol          # Autonomous AI session key vault & intent executor
 |   |-- PulsePay.sol              # Payment Links & QR settlement engine
 |   |-- PulseStake.sol            # Liquid staking & yield distributor
 |   |-- PulseToken.sol            # Standard ERC-20 token implementation
 |   `-- PulseSwapRouter.sol       # DEX swap and liquidity router
 |-- scripts/                      # Deployment and Web3 automation scripts
+|   |-- deploy_pulseaiagent.mjs   # PulseAIAgent deployment script
 |   |-- deploy_pulsepay.mjs       # PulsePay deployment script
 |   |-- deploy_pulsestake.mjs     # PulseStake deployment script
 |   `-- check_balances.mjs        # Wallet balance and RPC test script

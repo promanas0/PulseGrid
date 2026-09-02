@@ -63,7 +63,7 @@ All contracts are deployed, functional, and verified on Circle Arc L1 Testnet (C
 
 | Protocol Module | Contract Description | Deployed Contract Address | Explorer Link |
 | :--- | :--- | :--- | :--- |
-| **PulseAIAgent Protocol** | Autonomous AI Session Key Vault & Natural Language Intent Router | `0x11d2Aba4c557c68d1e235144BC8a364657F415Fe` | [View on ArcScan](https://testnet.arcscan.app/address/0x11d2Aba4c557c68d1e235144BC8a364657F415Fe) |
+| **PulseAIAgent Protocol** | Autonomous AI Session Key Vault, DEX Router & Natural Language Intent Executor | `0x904549702043e9cAAe34af58680c424Adaccc720` | [View on ArcScan](https://testnet.arcscan.app/address/0x904549702043e9cAAe34af58680c424Adaccc720) |
 | **PulsePay Engine** | Instant Payment Links, QR Settlement & Invoicing | `0xfa666800e07445ca35103a01f113Eb3CEAe4dcea` | [View on ArcScan](https://testnet.arcscan.app/address/0xfa666800e07445ca35103a01f113Eb3CEAe4dcea) |
 | **PulseStake Protocol** | Multi-Validator Liquid Staking & Yield Distributor | `0x9F6baFB6961aAd0fC133d32A559CaFdf32582801` | [View on ArcScan](https://testnet.arcscan.app/address/0x9F6baFB6961aAd0fC133d32A559CaFdf32582801) |
 | **PulseGrid CoinFlip** | Provably Fair 2.00x Token Flip Smart Contract | `0x3C6B9404e69288Bef09fcdcbB992C3661ed9b89b` | [View on ArcScan](https://testnet.arcscan.app/address/0x3C6B9404e69288Bef09fcdcbB992C3661ed9b89b) |

@@ -3717,21 +3717,22 @@ function clearAllAiHistory() {
 // AUTONOMOUS ON-CHAIN AI AGENT & SESSION KEY ENGINE (PULSEAIGENT)
 // =========================================================================
 
-const PULSE_AI_AGENT_ADDRESS = '0x11d2Aba4c557c68d1e235144BC8a364657F415Fe';
+const PULSE_AI_AGENT_ADDRESS = '0x904549702043e9cAAe34af58680c424Adaccc720';
 
 const PULSE_AI_AGENT_ABI = [
     "function depositVault() external payable",
     "function withdrawVault(uint256 amount) external",
-    "function authorizeSession(address agentSigner, uint256 maxSpendLimit, uint256 durationInSeconds) external",
-    "function revokeSession() external",
+    "function executeSwapByAgent(address user, address tokenIn, address tokenOut, uint256 amountIn, uint256 minAmountOut) external",
     "function executeTransferByAgent(address user, address payable recipient, uint256 amount, string calldata memo) external",
     "function executeBatchTransferByAgent(address user, address payable recipient, uint256 count, uint256 amountPerTx, string calldata memo) external",
-    "function executeSwapByAgent(address user, address tokenIn, address tokenOut, uint256 amountIn, uint256 minAmountOut) external",
     "function executeStakeByAgent(address user, uint8 validatorId, uint256 amount) external",
-    "function getSessionDetails(address user) external view returns (address agentSigner, uint256 maxSpendLimit, uint256 spentAmount, uint256 remainingSpend, uint256 expiryTimestamp, bool isCurrentlyActive)",
     "function getUserVaultBalance(address user) external view returns (uint256)",
+    "function getUserStakesCount(address user) external view returns (uint256)",
+    "function totalVaultDeposited() external view returns (uint256)",
     "function totalAgentActionsExecuted() external view returns (uint256)",
     "function totalAgentVolumeUSDC() external view returns (uint256)",
+    "function dexRouter() external view returns (address)",
+    "function eurcToken() external view returns (address)",
     "event VaultDeposited(address indexed user, uint256 amount, uint256 timestamp)",
     "event VaultWithdrawn(address indexed user, uint256 amount, uint256 timestamp)",
     "event SessionAuthorized(address indexed user, address indexed agentSigner, uint256 maxSpendLimit, uint256 expiryTimestamp)",
@@ -4236,37 +4237,30 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                 }
 
                 let tx;
-                const routerContract = new ethers.Contract(SPENDER_ROUTER_ADDRESS, SPENDER_ROUTER_ABI, signer);
-
-                if (from === 'USDC' && to === 'EURC') {
-                    // Real DEX Swap: Send Native USDC and Receive Real On-Chain EURC (0x89B50855...)
-                    tx = await routerContract.swapNativeUSDCtoEURC({ value: amountWei });
-                } else if (from === 'EURC' && to === 'USDC') {
-                    // Real DEX Swap: Send ERC-20 EURC and Receive Native USDC
-                    const amountInUnits6 = ethers.utils.parseUnits(amount.toString(), 6);
-                    const erc20EURC = new ethers.Contract(ERC20_EURC_ADDRESS, ERC20_ABI, signer);
-                    let allowance = ethers.BigNumber.from(0);
-                    try {
-                        allowance = await erc20EURC.allowance(currentAccount, SPENDER_ROUTER_ADDRESS);
-                    } catch (e) { }
-
-                    if (allowance.lt(amountInUnits6)) {
-                        const approveTx = await erc20EURC.approve(SPENDER_ROUTER_ADDRESS, amountInUnits6);
-                        await approveTx.wait();
-                    }
-                    tx = await routerContract.swapEURCtoUSDC(amountInUnits6);
-                } else {
-                    // Other tokens fallback
-                    try {
-                        tx = await contract.executeSwapByAgent(
-                            currentAccount,
-                            ERC20_USDC_ADDRESS,
-                            ERC20_EURC_ADDRESS,
-                            amountWei,
-                            amountWei
-                        );
-                    } catch (callErr) {
+                try {
+                    tx = await contract.executeSwapByAgent(
+                        currentAccount,
+                        ERC20_USDC_ADDRESS,
+                        ERC20_EURC_ADDRESS,
+                        amountWei,
+                        0
+                    );
+                } catch (contractErr) {
+                    console.warn("Direct agent swap contract call, trying router fallback:", contractErr);
+                    const routerContract = new ethers.Contract(SPENDER_ROUTER_ADDRESS, SPENDER_ROUTER_ABI, signer);
+                    if (from === 'USDC' && to === 'EURC') {
                         tx = await routerContract.swapNativeUSDCtoEURC({ value: amountWei });
+                    } else if (from === 'EURC' && to === 'USDC') {
+                        const amountInUnits6 = ethers.utils.parseUnits(amount.toString(), 6);
+                        const erc20EURC = new ethers.Contract(ERC20_EURC_ADDRESS, ERC20_ABI, signer);
+                        const allowance = await erc20EURC.allowance(currentAccount, SPENDER_ROUTER_ADDRESS);
+                        if (allowance.lt(amountInUnits6)) {
+                            const approveTx = await erc20EURC.approve(SPENDER_ROUTER_ADDRESS, amountInUnits6);
+                            await approveTx.wait();
+                        }
+                        tx = await routerContract.swapEURCtoUSDC(amountInUnits6);
+                    } else {
+                        throw contractErr;
                     }
                 }
 

@@ -4026,13 +4026,15 @@ function extractFirstAmount(text) {
 
 function parseDurationSeconds(text) {
     if (!text) return 86400; // default 1 day
-    const mDay = text.match(/([0-9]+)\s*(?:day|days|din)/i);
-    if (mDay) return parseInt(mDay[1]) * 86400;
-    const mHour = text.match(/([0-9]+)\s*(?:hour|hours|hr|hrs|ghanta|ghante)/i);
-    if (mHour) return parseInt(mHour[1]) * 3600;
-    const mMin = text.match(/([0-9]+)\s*(?:minute|minutes|min|mins)/i);
+    const mSec = text.match(/([0-9]+)\s*(?:second|seconds|sec|secs|s)\b/i);
+    if (mSec) return Math.max(5, parseInt(mSec[1]));
+    const mMin = text.match(/([0-9]+)\s*(?:minute|minutes|min|mins|m)\b/i);
     if (mMin) return parseInt(mMin[1]) * 60;
-    const mMonth = text.match(/([0-9]+)\s*(?:month|months|mahina|mahine)/i);
+    const mHour = text.match(/([0-9]+)\s*(?:hour|hours|hr|hrs|h|ghanta|ghante)\b/i);
+    if (mHour) return parseInt(mHour[1]) * 3600;
+    const mDay = text.match(/([0-9]+)\s*(?:day|days|d|din)\b/i);
+    if (mDay) return parseInt(mDay[1]) * 86400;
+    const mMonth = text.match(/([0-9]+)\s*(?:month|months|mahina|mahine)\b/i);
     if (mMonth) return parseInt(mMonth[1]) * 30 * 86400;
     return 86400;
 }
@@ -4341,7 +4343,38 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                 }
                 tx = await lockContract.executeLockByAgent(user, durationSeconds || 86400, reason || "AI Copilot Savings Lock", { value: amountWei, gasLimit: 400000 });
             } else if (action === 'UNLOCK_USDC') {
-                tx = await lockContract.executeUnlockByAgent(user, lockIndex !== undefined ? lockIndex : 0, gasOptions);
+                const userLocks = await lockContract.getUserLocks(user).catch(() => []);
+                const now = Math.floor(Date.now() / 1000);
+                let matureIndex = -1;
+                let minRemaining = Infinity;
+                let activeCount = 0;
+
+                for (let i = 0; i < userLocks.length; i++) {
+                    const l = userLocks[i];
+                    if (!l.withdrawn) {
+                        activeCount++;
+                        const unlockTs = Number(l.unlockTimestamp);
+                        if (now >= unlockTs) {
+                            matureIndex = i;
+                            break;
+                        } else {
+                            const diff = unlockTs - now;
+                            if (diff < minRemaining) minRemaining = diff;
+                        }
+                    }
+                }
+
+                if (matureIndex === -1) {
+                    return {
+                        success: false,
+                        notMatureYet: true,
+                        activeLocksCount: activeCount,
+                        nextUnlockIn: minRemaining === Infinity ? 0 : minRemaining,
+                        message: "Tokens still locked under timelock. Maturity period has not ended yet."
+                    };
+                }
+
+                tx = await lockContract.executeUnlockByAgent(user, matureIndex, gasOptions);
             }
 
             if (tx) {
@@ -4579,17 +4612,57 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                 await syncAgentVaultBalance();
                 await fetchBalances();
 
-                if (statusEl) {
-                    statusEl.className = "text-emerald-400 font-bold flex items-center gap-1.5";
-                    statusEl.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i><span>Unlocked Successfully!</span>`;
-                }
-                if (resultEl) {
-                    const txHash = relayerResult ? relayerResult.txHash : '';
-                    resultEl.innerHTML = `
-                        <div class="text-emerald-300 font-bold">✅ Mature Locked USDC Withdrawn!</div>
-                        <div class="text-slate-300 mt-0.5">Unlocked funds transferred directly to your wallet on Arc L1.</div>
-                        ${txHash ? `<div class="text-slate-400 mt-1">ArcScan Receipt: <a href="https://testnet.arcscan.app/tx/${txHash}" target="_blank" class="text-purple-400 underline font-bold">${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}</a></div>` : ''}
-                    `;
+                if (relayerResult && relayerResult.notMatureYet) {
+                    const secs = relayerResult.nextUnlockIn;
+                    let timeStr = `${secs} seconds`;
+                    if (secs > 3600) {
+                        const hrs = Math.floor(secs / 3600);
+                        const mins = Math.floor((secs % 3600) / 60);
+                        timeStr = `${hrs} hour(s) ${mins} minute(s)`;
+                    } else if (secs > 60) {
+                        const mins = Math.floor(secs / 60);
+                        const remSecs = secs % 60;
+                        timeStr = `${mins} minute(s) ${remSecs}s`;
+                    }
+
+                    if (statusEl) {
+                        statusEl.className = "text-amber-400 font-bold flex items-center gap-1.5";
+                        statusEl.innerHTML = `<i data-lucide="clock" class="w-4 h-4 text-amber-400"></i><span>Tokens Still Under Timelock</span>`;
+                    }
+                    if (resultEl) {
+                        resultEl.innerHTML = `
+                            <div class="text-amber-300 font-bold">⏳ Timelock Period Active</div>
+                            <div class="text-slate-300 mt-1">Smart contract rules ke mutabiq locked USDC duration khatam hone par hi withdraw hoga.</div>
+                            <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-blue-300 mt-2 space-y-1">
+                                <div>⏳ <strong>Next Unlock Maturity:</strong> In ${timeStr}</div>
+                                <div>📊 <strong>Active Locked Positions:</strong> ${relayerResult.activeLocksCount} position(s)</div>
+                            </div>
+                            <div class="pt-2 text-[11px] text-slate-400">
+                                💡 Instant unlock test karne ke liye try karein: <button onclick="populateAgentPrompt('lock .01 usdc for 10 seconds')" class="text-purple-400 underline font-bold">"lock .01 usdc for 10 seconds"</button>
+                            </div>
+                        `;
+                    }
+                } else if (relayerResult && relayerResult.success) {
+                    if (statusEl) {
+                        statusEl.className = "text-emerald-400 font-bold flex items-center gap-1.5";
+                        statusEl.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i><span>Unlocked Successfully!</span>`;
+                    }
+                    if (resultEl) {
+                        const txHash = relayerResult.txHash || '';
+                        resultEl.innerHTML = `
+                            <div class="text-emerald-300 font-bold">✅ Mature Locked USDC Withdrawn!</div>
+                            <div class="text-slate-300 mt-0.5">Unlocked funds transferred directly to your wallet on Arc L1.</div>
+                            ${txHash ? `<div class="text-slate-400 mt-1">ArcScan Receipt: <a href="https://testnet.arcscan.app/tx/${txHash}" target="_blank" class="text-purple-400 underline font-bold">${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}</a></div>` : ''}
+                        `;
+                    }
+                } else {
+                    if (statusEl) {
+                        statusEl.className = "text-amber-400 font-bold flex items-center gap-1.5";
+                        statusEl.innerHTML = `<i data-lucide="info" class="w-4 h-4 text-amber-400"></i><span>No Mature Locks</span>`;
+                    }
+                    if (resultEl) {
+                        resultEl.innerHTML = `<div class="text-slate-300">Aapka koi mature lock position abhi unlock ke liye available nahi hai.</div>`;
+                    }
                 }
             } catch (err) {
                 console.error("Unlock error:", err);

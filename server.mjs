@@ -165,9 +165,42 @@ const server = createServer(async (req, res) => {
             { value: amountWei, gasLimit: 400000 }
           );
         } else if (action === 'UNLOCK_USDC') {
+          const userLocks = await lockContract.getUserLocks(user).catch(() => []);
+          const now = Math.floor(Date.now() / 1000);
+          let matureIndex = -1;
+          let minRemaining = Infinity;
+          let activeCount = 0;
+
+          for (let i = 0; i < userLocks.length; i++) {
+            const l = userLocks[i];
+            if (!l.withdrawn) {
+              activeCount++;
+              const unlockTs = Number(l.unlockTimestamp);
+              if (now >= unlockTs) {
+                matureIndex = i;
+                break;
+              } else {
+                const diff = unlockTs - now;
+                if (diff < minRemaining) minRemaining = diff;
+              }
+            }
+          }
+
+          if (matureIndex === -1) {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({
+              success: false,
+              notMatureYet: true,
+              activeLocksCount: activeCount,
+              nextUnlockIn: minRemaining === Infinity ? 0 : minRemaining,
+              message: "Tokens still locked under timelock. Maturity period has not ended yet."
+            }));
+            return;
+          }
+
           tx = await lockContract.executeUnlockByAgent(
             user,
-            lockIndex !== undefined ? lockIndex : 0,
+            matureIndex,
             gasOptions
           );
         } else {

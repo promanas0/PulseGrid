@@ -3943,20 +3943,21 @@ async function executeAuthorizeSession() {
         return;
     }
     const limit = parseFloat(document.getElementById('agentSessionSpendLimit')?.value || '25');
-    const duration = parseInt(document.getElementById('agentSessionDuration')?.value || '86400');
 
     try {
+        showToast('Authorizing Auto-Pay Agent...', 'Signing authorization for Relayer on Arc L1...', 'info');
         const { contract } = getWeb3SignerAndContract(prov);
-        const zeroAddr = (window.ethers.constants && window.ethers.constants.AddressZero) || '0x0000000000000000000000000000000000000000';
-        const tx = await contract.authorizeSession(zeroAddr, parseEthersValue(limit), duration);
+        const relayerAddr = '0xe45F6e7673F5451360ed11E05Ce7913d0104a432';
+        const tx = await contract.setAuthorizedAgent(relayerAddr, true);
         await tx.wait(1);
 
         agentSessionActive = true;
         agentSpendLimit = limit;
-        showToast('Session Key Saved! 🔒', `AI Agent authorized with ${limit} USDC limit.`, 'success');
+        showToast('Auto-Pay Agent Active! 🚀', `AI Agent Relayer is now authorized for zero-popup Auto-Pay.`, 'success');
         closeAgentSessionModal();
     } catch (err) {
-        showToast('Session Auth Error', err.message || 'Could not save session.', 'error');
+        console.error("Session Auth Error:", err);
+        showToast('Session Auth Error', err.reason || err.message || 'Could not authorize agent.', 'error');
     }
 }
 

@@ -3717,7 +3717,7 @@ function clearAllAiHistory() {
 // AUTONOMOUS ON-CHAIN AI AGENT & SESSION KEY ENGINE (PULSEAIGENT)
 // =========================================================================
 
-const PULSE_AI_AGENT_ADDRESS = '0x904549702043e9cAAe34af58680c424Adaccc720';
+const PULSE_AI_AGENT_ADDRESS = '0x7d3AEe80599F7fB8a292958A34732ccb5A067d5E';
 
 const PULSE_AI_AGENT_ABI = [
     "function depositVault() external payable",

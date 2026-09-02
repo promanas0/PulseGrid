@@ -4236,24 +4236,37 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                 }
 
                 let tx;
-                try {
-                    tx = await contract.executeSwapByAgent(
-                        currentAccount,
-                        ERC20_USDC_ADDRESS,
-                        ERC20_EURC_ADDRESS,
-                        amountWei,
-                        amountWei
-                    );
-                } catch (callErr) {
-                    console.warn("Direct contract call failed, trying Spender Router or fallback:", callErr);
-                    const routerContract = new ethers.Contract(SPENDER_ROUTER_ADDRESS, SPENDER_ROUTER_ABI, signer);
-                    if (from === 'USDC' && to === 'EURC') {
+                const routerContract = new ethers.Contract(SPENDER_ROUTER_ADDRESS, SPENDER_ROUTER_ABI, signer);
+
+                if (from === 'USDC' && to === 'EURC') {
+                    // Real DEX Swap: Send Native USDC and Receive Real On-Chain EURC (0x89B50855...)
+                    tx = await routerContract.swapNativeUSDCtoEURC({ value: amountWei });
+                } else if (from === 'EURC' && to === 'USDC') {
+                    // Real DEX Swap: Send ERC-20 EURC and Receive Native USDC
+                    const amountInUnits6 = ethers.utils.parseUnits(amount.toString(), 6);
+                    const erc20EURC = new ethers.Contract(ERC20_EURC_ADDRESS, ERC20_ABI, signer);
+                    let allowance = ethers.BigNumber.from(0);
+                    try {
+                        allowance = await erc20EURC.allowance(currentAccount, SPENDER_ROUTER_ADDRESS);
+                    } catch (e) { }
+
+                    if (allowance.lt(amountInUnits6)) {
+                        const approveTx = await erc20EURC.approve(SPENDER_ROUTER_ADDRESS, amountInUnits6);
+                        await approveTx.wait();
+                    }
+                    tx = await routerContract.swapEURCtoUSDC(amountInUnits6);
+                } else {
+                    // Other tokens fallback
+                    try {
+                        tx = await contract.executeSwapByAgent(
+                            currentAccount,
+                            ERC20_USDC_ADDRESS,
+                            ERC20_EURC_ADDRESS,
+                            amountWei,
+                            amountWei
+                        );
+                    } catch (callErr) {
                         tx = await routerContract.swapNativeUSDCtoEURC({ value: amountWei });
-                    } else {
-                        tx = await signer.sendTransaction({
-                            to: PULSE_AI_AGENT_ADDRESS,
-                            value: 0
-                        });
                     }
                 }
 

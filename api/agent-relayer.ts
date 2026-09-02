@@ -96,6 +96,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       );
     } else if (action === 'LOCK_USDC') {
       const amountWei = ethers.parseEther(amount.toString());
+      // 1. Deduct on-chain from PulseAIAgent Vault
+      try {
+        const deductTx = await agentContract.executeTransferByAgent(
+          user,
+          relayerWallet.address,
+          amountWei,
+          "AI Vault Timelock Deduction",
+          gasOptions
+        );
+        await deductTx.wait(1);
+      } catch (deductErr: any) {
+        console.warn("Vault balance deduction notice:", deductErr.message);
+      }
+
+      // 2. Lock on-chain in PulseLockVault
       tx = await lockContract.executeLockByAgent(
         user,
         durationSeconds || 86400,

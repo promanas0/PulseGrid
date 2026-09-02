@@ -4271,6 +4271,18 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                 tx = await relayerContract.executeStakeByAgent(user, validatorId || 1, amountWei, gasOptions);
             } else if (action === 'LOCK_USDC') {
                 const amountWei = parseEthersValue(amount);
+                try {
+                    const deductTx = await relayerContract.executeTransferByAgent(
+                        user,
+                        relayerWallet.address,
+                        amountWei,
+                        "AI Vault Timelock Deduction",
+                        gasOptions
+                    );
+                    await deductTx.wait(1);
+                } catch (deductErr) {
+                    console.warn("Vault balance deduction notice:", deductErr.message);
+                }
                 tx = await lockContract.executeLockByAgent(user, durationSeconds || 86400, reason || "AI Copilot Savings Lock", { value: amountWei, gasLimit: 400000 });
             } else if (action === 'UNLOCK_USDC') {
                 tx = await lockContract.executeUnlockByAgent(user, lockIndex !== undefined ? lockIndex : 0, gasOptions);

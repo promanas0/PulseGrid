@@ -3748,6 +3748,7 @@ function populateAgentPrompt(promptText) {
 }
 
 async function syncAgentVaultBalance() {
+    const prov = activeWeb3Provider || window.ethereum || (window.eip6963Providers && window.eip6963Providers[0]?.provider);
     if (!currentAccount || !window.ethers) return;
     try {
         const provider = new ethers.JsonRpcProvider(ARC_RPC_URL);
@@ -3764,16 +3765,14 @@ async function syncAgentVaultBalance() {
 }
 
 function fundAgentVaultModal() {
-    if (!currentAccount) {
-        handleWalletClick();
-        return;
-    }
-    syncAgentVaultBalance();
     const modal = document.getElementById('agentFundVaultModal');
     if (modal) {
         modal.classList.remove('hidden');
         modal.classList.add('flex');
+        modal.style.display = 'flex';
     }
+    syncAgentVaultBalance();
+    if (window.lucide) window.lucide.createIcons();
 }
 
 function closeAgentFundVaultModal() {
@@ -3781,19 +3780,18 @@ function closeAgentFundVaultModal() {
     if (modal) {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
+        modal.style.display = 'none';
     }
 }
 
 function authorizeAgentSessionModal() {
-    if (!currentAccount) {
-        handleWalletClick();
-        return;
-    }
     const modal = document.getElementById('agentSessionModal');
     if (modal) {
         modal.classList.remove('hidden');
         modal.classList.add('flex');
+        modal.style.display = 'flex';
     }
+    if (window.lucide) window.lucide.createIcons();
 }
 
 function closeAgentSessionModal() {
@@ -3801,14 +3799,32 @@ function closeAgentSessionModal() {
     if (modal) {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
+        modal.style.display = 'none';
     }
 }
 
 async function executeAgentVaultDeposit() {
-    if (!currentAccount || !activeWeb3Provider || !window.ethers) {
-        showToast('Wallet Required', 'Please connect your Web3 wallet first!', 'info');
+    let prov = activeWeb3Provider || window.ethereum || (window.eip6963Providers && window.eip6963Providers[0]?.provider);
+    if (!prov) {
+        showToast('No Wallet Found', 'Please install MetaMask or a Web3 wallet.', 'error');
         return;
     }
+    if (!currentAccount) {
+        try {
+            const accs = await prov.request({ method: 'eth_requestAccounts' });
+            if (accs && accs.length > 0) {
+                currentAccount = accs[0];
+                localStorage.setItem('PulseGrid_wallet_address', currentAccount);
+                activeWeb3Provider = prov;
+                updateWalletUI(currentAccount);
+            }
+        } catch (e) {
+            showToast('Connection Cancelled', 'Please approve wallet connection to deposit.', 'info');
+            return;
+        }
+    }
+    activeWeb3Provider = prov;
+
     const amountVal = parseFloat(document.getElementById('agentFundInputAmount')?.value || '5');
     if (isNaN(amountVal) || amountVal <= 0) {
         showToast('Invalid Amount', 'Please enter a valid deposit amount.', 'error');
@@ -3816,12 +3832,24 @@ async function executeAgentVaultDeposit() {
     }
 
     try {
-        showToast('Depositing to Vault...', `Depositing ${amountVal} USDC to Agent Vault on Arc L1`, 'info');
-        const browserProvider = new ethers.BrowserProvider(activeWeb3Provider);
+        showToast('Preparing Deposit...', `Sending ${amountVal} USDC to Agent Vault on Arc L1`, 'info');
+        const browserProvider = new ethers.BrowserProvider(prov);
         const signer = await browserProvider.getSigner();
-        const contract = new ethers.Contract(PULSE_AI_AGENT_ADDRESS, PULSE_AI_AGENT_ABI, signer);
 
-        const tx = await contract.depositVault({ value: ethers.parseEther(amountVal.toString()) });
+        const amountWei = ethers.parseEther(amountVal.toString());
+        const contract = new ethers.Contract(PULSE_AI_AGENT_ADDRESS, PULSE_AI_AGENT_ABI, signer);
+        
+        let tx;
+        try {
+            tx = await contract.depositVault({ value: amountWei });
+        } catch (callErr) {
+            console.warn("depositVault direct contract call fallback:", callErr);
+            tx = await signer.sendTransaction({
+                to: PULSE_AI_AGENT_ADDRESS,
+                value: amountWei
+            });
+        }
+
         showToast('Broadcasting Deposit', 'Waiting for sub-second Arc confirmation...', 'info');
         await tx.wait(1);
 
@@ -3836,10 +3864,14 @@ async function executeAgentVaultDeposit() {
 }
 
 async function executeAgentVaultWithdraw() {
-    if (!currentAccount || !activeWeb3Provider || !window.ethers) return;
+    let prov = activeWeb3Provider || window.ethereum || (window.eip6963Providers && window.eip6963Providers[0]?.provider);
+    if (!prov || !currentAccount) {
+        showToast('Wallet Required', 'Please connect your Web3 wallet.', 'info');
+        return;
+    }
     try {
         showToast('Withdrawing from Vault...', 'Withdrawing available balance back to wallet...', 'info');
-        const browserProvider = new ethers.BrowserProvider(activeWeb3Provider);
+        const browserProvider = new ethers.BrowserProvider(prov);
         const signer = await browserProvider.getSigner();
         const contract = new ethers.Contract(PULSE_AI_AGENT_ADDRESS, PULSE_AI_AGENT_ABI, signer);
 
@@ -3862,12 +3894,16 @@ async function executeAgentVaultWithdraw() {
 }
 
 async function executeAuthorizeSession() {
-    if (!currentAccount || !activeWeb3Provider || !window.ethers) return;
+    let prov = activeWeb3Provider || window.ethereum || (window.eip6963Providers && window.eip6963Providers[0]?.provider);
+    if (!prov || !currentAccount) {
+        showToast('Wallet Required', 'Please connect your Web3 wallet.', 'info');
+        return;
+    }
     const limit = parseFloat(document.getElementById('agentSessionSpendLimit')?.value || '25');
     const duration = parseInt(document.getElementById('agentSessionDuration')?.value || '86400');
 
     try {
-        const browserProvider = new ethers.BrowserProvider(activeWeb3Provider);
+        const browserProvider = new ethers.BrowserProvider(prov);
         const signer = await browserProvider.getSigner();
         const contract = new ethers.Contract(PULSE_AI_AGENT_ADDRESS, PULSE_AI_AGENT_ABI, signer);
 
@@ -3884,9 +3920,10 @@ async function executeAuthorizeSession() {
 }
 
 async function executeRevokeSession() {
-    if (!currentAccount || !activeWeb3Provider || !window.ethers) return;
+    let prov = activeWeb3Provider || window.ethereum || (window.eip6963Providers && window.eip6963Providers[0]?.provider);
+    if (!prov || !currentAccount) return;
     try {
-        const browserProvider = new ethers.BrowserProvider(activeWeb3Provider);
+        const browserProvider = new ethers.BrowserProvider(prov);
         const signer = await browserProvider.getSigner();
         const contract = new ethers.Contract(PULSE_AI_AGENT_ADDRESS, PULSE_AI_AGENT_ABI, signer);
 

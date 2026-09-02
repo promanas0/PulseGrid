@@ -53,6 +53,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const lockContract = new ethers.Contract(PULSE_LOCK_VAULT_ADDRESS, PULSE_LOCK_VAULT_ABI, relayerWallet);
 
     let tx;
+    const gasOptions = { gasLimit: 400000 };
     if (action === 'SWAP') {
       const amountWei = ethers.parseEther(amount.toString());
       const tokenInAddr = tokenIn === 'EURC' ? ERC20_EURC_ADDRESS : ERC20_USDC_ADDRESS;
@@ -63,7 +64,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         tokenInAddr,
         tokenOutAddr,
         amountWei,
-        0
+        0,
+        gasOptions
       );
     } else if (action === 'SEND') {
       const amountWei = ethers.parseEther(amount.toString());
@@ -71,7 +73,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         user,
         recipient,
         amountWei,
-        "AI Copilot Autonomous Transfer"
+        "AI Copilot Autonomous Transfer",
+        gasOptions
       );
     } else if (action === 'BATCH') {
       const amountPerTxWei = ethers.parseEther(amountPerTx.toString());
@@ -80,14 +83,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         recipient,
         count || 10,
         amountPerTxWei,
-        "AI Copilot Autonomous Batch Execution"
+        "AI Copilot Autonomous Batch Execution",
+        { gasLimit: 2000000 }
       );
     } else if (action === 'STAKE') {
       const amountWei = ethers.parseEther(amount.toString());
       tx = await agentContract.executeStakeByAgent(
         user,
         validatorId || 1,
-        amountWei
+        amountWei,
+        gasOptions
       );
     } else if (action === 'LOCK_USDC') {
       const amountWei = ethers.parseEther(amount.toString());
@@ -95,12 +100,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         user,
         durationSeconds || 86400,
         reason || "AI Copilot Savings Lock",
-        { value: amountWei }
+        { value: amountWei, gasLimit: 400000 }
       );
     } else if (action === 'UNLOCK_USDC') {
       tx = await lockContract.executeUnlockByAgent(
         user,
-        lockIndex !== undefined ? lockIndex : 0
+        lockIndex !== undefined ? lockIndex : 0,
+        gasOptions
       );
     } else {
       return res.status(400).json({ error: `Unknown action: ${action}` });

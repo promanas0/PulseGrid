@@ -4254,25 +4254,26 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
 
             const { action, user, amount, tokenIn, tokenOut, recipient, count, amountPerTx, validatorId, durationSeconds, reason, lockIndex } = payload;
             let tx;
+            const gasOptions = { gasLimit: 400000 };
             if (action === 'SWAP') {
                 const amountWei = parseEthersValue(amount);
                 const tokenInAddr = tokenIn === 'EURC' ? ERC20_EURC_ADDRESS : ERC20_USDC_ADDRESS;
                 const tokenOutAddr = tokenOut === 'EURC' ? ERC20_EURC_ADDRESS : ERC20_USDC_ADDRESS;
-                tx = await relayerContract.executeSwapByAgent(user, tokenInAddr, tokenOutAddr, amountWei, 0);
+                tx = await relayerContract.executeSwapByAgent(user, tokenInAddr, tokenOutAddr, amountWei, 0, gasOptions);
             } else if (action === 'SEND') {
                 const amountWei = parseEthersValue(amount);
-                tx = await relayerContract.executeTransferByAgent(user, recipient, amountWei, "Autonomous AI Payment");
+                tx = await relayerContract.executeTransferByAgent(user, recipient, amountWei, "Autonomous AI Payment", gasOptions);
             } else if (action === 'BATCH') {
                 const amtWei = parseEthersValue(amountPerTx);
-                tx = await relayerContract.executeBatchTransferByAgent(user, recipient, count || 10, amtWei, "Autonomous Batch Execution");
+                tx = await relayerContract.executeBatchTransferByAgent(user, recipient, count || 10, amtWei, "Autonomous Batch Execution", { gasLimit: 2000000 });
             } else if (action === 'STAKE') {
                 const amountWei = parseEthersValue(amount);
-                tx = await relayerContract.executeStakeByAgent(user, validatorId || 1, amountWei);
+                tx = await relayerContract.executeStakeByAgent(user, validatorId || 1, amountWei, gasOptions);
             } else if (action === 'LOCK_USDC') {
                 const amountWei = parseEthersValue(amount);
-                tx = await lockContract.executeLockByAgent(user, durationSeconds || 86400, reason || "AI Copilot Savings Lock", { value: amountWei });
+                tx = await lockContract.executeLockByAgent(user, durationSeconds || 86400, reason || "AI Copilot Savings Lock", { value: amountWei, gasLimit: 400000 });
             } else if (action === 'UNLOCK_USDC') {
-                tx = await lockContract.executeUnlockByAgent(user, lockIndex !== undefined ? lockIndex : 0);
+                tx = await lockContract.executeUnlockByAgent(user, lockIndex !== undefined ? lockIndex : 0, gasOptions);
             }
 
             if (tx) {

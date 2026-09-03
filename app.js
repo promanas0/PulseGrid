@@ -1257,6 +1257,15 @@ function updateWalletUI() {
         if (connectBtn) connectBtn.classList.add('hidden');
         if (disconnectBtn) disconnectBtn.classList.remove('hidden');
 
+        safeSetText('settingsWalletAddressDisplay', currentAccount);
+        const settingsBadge = document.getElementById('settingsWalletStatusBadge');
+        if (settingsBadge) {
+            settingsBadge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30";
+            settingsBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span>Connected (Circle Arc L1)</span>`;
+        }
+        const settingsDiscBtn = document.getElementById('settingsDisconnectBtn');
+        if (settingsDiscBtn) settingsDiscBtn.classList.remove('hidden');
+
         if (typeof syncAgentVaultBalance === 'function') {
             syncAgentVaultBalance();
         }
@@ -1268,6 +1277,15 @@ function updateWalletUI() {
         safeSetText('heroWalletBtnText', 'Connect Wallet');
         safeSetText('mobileHeaderWalletBtnText', 'Connect');
         safeSetText('mobileDrawerWalletBtnText', 'Connect Wallet');
+
+        safeSetText('settingsWalletAddressDisplay', 'Not Connected');
+        const settingsBadge = document.getElementById('settingsWalletStatusBadge');
+        if (settingsBadge) {
+            settingsBadge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-400 border border-slate-700";
+            settingsBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-slate-500"></span><span>Not Connected</span>`;
+        }
+        const settingsDiscBtn = document.getElementById('settingsDisconnectBtn');
+        if (settingsDiscBtn) settingsDiscBtn.classList.add('hidden');
 
         if (desktopHeaderPill) {
             desktopHeaderPill.classList.add('hidden');
@@ -1281,6 +1299,18 @@ function updateWalletUI() {
         if (connectBtn) connectBtn.classList.remove('hidden');
         if (disconnectBtn) disconnectBtn.classList.add('hidden');
     }
+}
+
+function copyCurrentAddress() {
+    if (!currentAccount) {
+        showToast('No Wallet', 'Please connect a wallet first', 'warning');
+        return;
+    }
+    navigator.clipboard.writeText(currentAccount).then(() => {
+        showToast('Address Copied 📋', `${currentAccount.substring(0, 8)}... copied to clipboard!`, 'success');
+    }).catch(() => {
+        showToast('Address Copied', currentAccount, 'info');
+    });
 }
 
 async function fetchBalances(accountAddress = currentAccount) {

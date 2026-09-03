@@ -351,6 +351,7 @@
         }
 
         /* ══════════════════ COMPREHENSIVE DARK MODE STYLES ══════════════════ */
+        /* ══════════════════ COMPREHENSIVE DARK MODE STYLES ══════════════════ */
         html.dark body {
             background-color: #0B0F17 !important;
             color: #F8FAFC !important;
@@ -364,6 +365,7 @@
             border-color: #1E293B !important;
         }
 
+        /* Modern cards & panels in dark mode */
         html.dark .pixel-card,
         html.dark .card,
         html.dark .modern-card,
@@ -371,51 +373,97 @@
         html.dark .pixel-card-teal,
         html.dark .pixel-card-emerald {
             background-color: #111827 !important;
+            background: #111827 !important;
+            background-image: none !important;
             border-color: #1E293B !important;
-            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.3) !important;
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35) !important;
             color: #F8FAFC !important;
         }
 
         html.dark .pixel-card:hover,
         html.dark .card:hover,
-        html.dark .modern-card:hover {
-            box-shadow: 0 12px 30px -4px rgba(124, 58, 237, 0.18) !important;
+        html.dark .modern-card:hover,
+        html.dark .pixel-card-purple:hover,
+        html.dark .pixel-card-teal:hover,
+        html.dark .pixel-card-emerald:hover {
+            box-shadow: 0 12px 30px -4px rgba(124, 58, 237, 0.22) !important;
             border-color: rgba(168, 85, 247, 0.4) !important;
         }
 
-        html.dark .bg-white {
+        /* Fix all white background variations (including opacity /80, /90, /95) */
+        html.dark .bg-white,
+        html.dark [class*="bg-white"] {
             background-color: #111827 !important;
+            background-image: none !important;
         }
 
+        /* Fix all slate and gray background boxes */
         html.dark .bg-slate-50,
-        html.dark .bg-slate-100 {
+        html.dark .bg-slate-100,
+        html.dark .bg-slate-200,
+        html.dark [class*="bg-slate-50"],
+        html.dark [class*="bg-slate-100"],
+        html.dark [class*="bg-slate-200"] {
             background-color: #1E293B !important;
+            background-image: none !important;
         }
 
-        html.dark .bg-purple-50 {
+        /* Fix all tinted colored boxes in dark mode */
+        html.dark .bg-purple-50,
+        html.dark .bg-purple-100,
+        html.dark .bg-purple-200,
+        html.dark [class*="bg-purple-50"],
+        html.dark [class*="bg-purple-100"] {
             background-color: rgba(124, 58, 237, 0.15) !important;
+            background-image: none !important;
         }
 
-        html.dark .bg-emerald-50 {
+        html.dark .bg-emerald-50,
+        html.dark .bg-emerald-100,
+        html.dark [class*="bg-emerald-50"],
+        html.dark [class*="bg-emerald-100"] {
             background-color: rgba(16, 185, 129, 0.12) !important;
+            background-image: none !important;
         }
 
-        html.dark .bg-teal-50 {
+        html.dark .bg-teal-50,
+        html.dark .bg-teal-100,
+        html.dark .bg-teal-200,
+        html.dark [class*="bg-teal-50"],
+        html.dark [class*="bg-teal-100"] {
             background-color: rgba(13, 148, 136, 0.12) !important;
+            background-image: none !important;
         }
 
-        html.dark .bg-indigo-50 {
-            background-color: rgba(79, 70, 229, 0.12) !important;
+        html.dark .bg-blue-50,
+        html.dark .bg-blue-100,
+        html.dark .bg-blue-200,
+        html.dark [class*="bg-blue-50"],
+        html.dark [class*="bg-blue-100"] {
+            background-color: rgba(59, 130, 246, 0.12) !important;
+            background-image: none !important;
         }
 
-        html.dark .bg-rose-50 {
+        html.dark .bg-rose-50,
+        html.dark .bg-rose-100,
+        html.dark [class*="bg-rose-50"],
+        html.dark [class*="bg-rose-100"] {
             background-color: rgba(225, 29, 72, 0.12) !important;
+            background-image: none !important;
         }
 
-        html.dark .bg-amber-50 {
+        html.dark .bg-amber-50,
+        html.dark .bg-amber-100,
+        html.dark .bg-amber-200,
+        html.dark .bg-orange-50,
+        html.dark .bg-orange-100,
+        html.dark [class*="bg-amber-50"],
+        html.dark [class*="bg-amber-100"] {
             background-color: rgba(217, 119, 6, 0.12) !important;
+            background-image: none !important;
         }
 
+        /* Typography colors in dark mode */
         html.dark .text-slate-900,
         html.dark .text-slate-950,
         html.dark .text-slate-800 {
@@ -428,14 +476,18 @@
             color: #94A3B8 !important;
         }
 
+        /* Border colors in dark mode */
         html.dark .border-slate-950,
         html.dark .border-slate-900,
         html.dark .border-slate-300,
-        html.dark .border-slate-200 {
-            border-color: #1E293B !important;
-        }
-
-        html.dark .border-slate-100 {
+        html.dark .border-slate-200,
+        html.dark .border-slate-100,
+        html.dark .border-purple-200,
+        html.dark .border-purple-300,
+        html.dark .border-emerald-200,
+        html.dark .border-teal-200,
+        html.dark .border-blue-200,
+        html.dark .border-amber-200 {
             border-color: #1E293B !important;
         }
 
@@ -482,7 +534,8 @@
         }
 
         html.dark #mobileBottomNav,
-        html.dark #mobileTopHeader {
+        html.dark #mobileTopHeader,
+        html.dark header {
             background-color: rgba(15, 23, 42, 0.95) !important;
             border-color: #1E293B !important;
         }
@@ -3832,18 +3885,54 @@
             </div>
 
             <div class="space-y-6">
-                <!-- User & Wallet Management -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300 border-b border-slate-800 pb-2">User & Wallet Manager</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                        <div class="space-y-1.5">
-                            <label class="block text-slate-400 font-semibold">Active Connected Address</label>
-                            <input id="settingsWalletAddress" type="text" readonly value="Not Connected" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-slate-200 font-mono focus:outline-none">
+                <!-- Wallet Connection & Session Management -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-sm">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-purple-600/20 border border-purple-500/40 flex items-center justify-center text-purple-400">
+                                <i data-lucide="wallet" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-bold text-white tracking-wide">Wallet Connection</h3>
+                                <p class="text-xs text-slate-400">Manage active Web3 session, network, and account disconnection</p>
+                            </div>
                         </div>
-                        <div class="space-y-1.5">
-                            <label class="block text-slate-400 font-semibold">Arc Network RPC Endpoint</label>
-                            <input id="settingsRpcUrl" type="text" value="https://rpc.testnet.arc.io" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-slate-200 font-mono focus:outline-none">
+                        <div id="settingsWalletStatusBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-400 border border-slate-700">
+                            <span class="w-2 h-2 rounded-full bg-slate-500"></span>
+                            <span>Not Connected</span>
                         </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-1">
+                        <div class="p-3.5 rounded-xl bg-slate-800/80 border border-slate-700/80 space-y-1">
+                            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Connected Address</span>
+                            <div class="flex items-center justify-between gap-2">
+                                <span id="settingsWalletAddressDisplay" class="font-mono text-sm font-bold text-white truncate">Not Connected</span>
+                                <button type="button" onclick="copyCurrentAddress()" class="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors" title="Copy Address">
+                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="p-3.5 rounded-xl bg-slate-800/80 border border-slate-700/80 space-y-1">
+                            <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Network & Chain ID</span>
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-purple-300 text-sm">Circle Arc L1 Testnet</span>
+                                <span class="font-mono text-xs px-2 py-0.5 rounded bg-purple-900/60 text-purple-300 border border-purple-700/60 font-bold">5042002</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons: Disconnect & Switch -->
+                    <div class="flex flex-col sm:flex-row items-center gap-3 pt-2">
+                        <button type="button" onclick="disconnectWallet()" id="settingsDisconnectBtn" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all">
+                            <i data-lucide="power" class="w-4 h-4"></i>
+                            <span>Disconnect Wallet</span>
+                        </button>
+                        <button type="button" onclick="handleWalletClick()" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition-all">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                            <span>Connect / Switch Account</span>
+                        </button>
                     </div>
                 </div>
 
@@ -3882,26 +3971,6 @@
                             <option value="ru">Русский (Russian)</option>
                             <option value="pt">Português (Portuguese)</option>
                         </select>
-                    </div>
-                </div>
-
-                <!-- Google Gemini AI Configuration -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-lg">
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300">Google Gemini AI Engine Integration</h3>
-                        <span class="px-2.5 py-0.5 rounded-full bg-purple-600/20 text-purple-300 border border-purple-500/40 text-[10px] font-bold">100% FREE API KEY</span>
-                    </div>
-                    <div class="space-y-3 text-xs">
-                        <p class="text-slate-400 leading-relaxed">
-                            Connect your official <strong>Google Gemini API Key</strong> for 100% direct AI responses just like Gemini Web AI! Get your free key instantly without credit card at 
-                            <a href="https://aistudio.google.com/" target="_blank" class="text-purple-400 font-bold hover:underline">Google AI Studio (aistudio.google.com)</a>.
-                        </p>
-                        <div class="flex flex-col sm:flex-row items-center gap-2">
-                            <input id="geminiApiKeyInput" type="password" placeholder="Paste your Gemini API Key (e.g. AIzaSy...)" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white font-mono focus:outline-none focus:border-purple-500 text-xs">
-                            <button onclick="saveGeminiApiKey()" class="w-full sm:w-auto px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl transition-all shrink-0">
-                                Save Key
-                            </button>
-                        </div>
                     </div>
                 </div>
             </div>

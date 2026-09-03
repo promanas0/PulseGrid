@@ -4375,9 +4375,10 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
             } else if (action === 'UNLOCK_USDC') {
                 const userLocks = await lockContract.getUserLocks(user).catch(() => []);
                 const now = Math.floor(Date.now() / 1000);
-                let matureIndex = -1;
+                const matureIndices = [];
                 let minRemaining = Infinity;
                 let activeCount = 0;
+                let totalWithdrawnWei = 0n;
 
                 for (let i = 0; i < userLocks.length; i++) {
                     const l = userLocks[i];
@@ -4385,8 +4386,8 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                         activeCount++;
                         const unlockTs = Number(l.unlockTimestamp);
                         if (now >= unlockTs) {
-                            matureIndex = i;
-                            break;
+                            matureIndices.push({ index: i, amount: l.amount });
+                            totalWithdrawnWei += BigInt(l.amount);
                         } else {
                             const diff = unlockTs - now;
                             if (diff < minRemaining) minRemaining = diff;
@@ -4394,7 +4395,7 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                     }
                 }
 
-                if (matureIndex === -1) {
+                if (matureIndices.length === 0) {
                     return {
                         success: false,
                         notMatureYet: true,
@@ -4404,7 +4405,20 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                     };
                 }
 
-                tx = await lockContract.executeUnlockByAgent(user, matureIndex, gasOptions);
+                const txHashes = [];
+                for (const m of matureIndices) {
+                    const unlockTx = await lockContract.executeUnlockByAgent(user, m.index, gasOptions);
+                    await unlockTx.wait(1);
+                    txHashes.push(unlockTx.hash);
+                }
+
+                return {
+                    success: true,
+                    totalWithdrawn: formatEthersValue(totalWithdrawnWei.toString()),
+                    withdrawnCount: matureIndices.length,
+                    txHash: txHashes[0],
+                    txHashes: txHashes
+                };
             }
 
             if (tx) {
@@ -4679,10 +4693,32 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
                     }
                     if (resultEl) {
                         const txHash = relayerResult.txHash || '';
+                        const withdrawnAmt = relayerResult.totalWithdrawn ? `${parseFloat(relayerResult.totalWithdrawn).toFixed(4)} USDC` : 'Mature USDC';
                         resultEl.innerHTML = `
-                            <div class="text-emerald-300 font-bold">✅ Mature Locked USDC Withdrawn!</div>
-                            <div class="text-slate-300 mt-0.5">Unlocked funds transferred directly to your wallet on Arc L1.</div>
-                            ${txHash ? `<div class="text-slate-400 mt-1">ArcScan Receipt: <a href="https://testnet.arcscan.app/tx/${txHash}" target="_blank" class="text-purple-400 underline font-bold">${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}</a></div>` : ''}
+                            <div class="text-emerald-300 font-bold">✅ ${withdrawnAmt} Withdrawn to Main Wallet!</div>
+                            <div class="text-slate-300 mt-1 leading-relaxed text-xs">
+                                Unlocked funds have been transferred <strong>directly into your Arc L1 Personal Wallet</strong> (${currentAccount ? `${currentAccount.substring(0,6)}...${currentAccount.substring(currentAccount.length-4)}` : ''}).
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs mt-2 space-y-1.5">
+                                <div class="flex justify-between items-center text-slate-300">
+                                    <span>Main Wallet (USDC Gas):</span>
+                                    <span class="font-bold text-emerald-400">${TOKENS[0].balance.toFixed(2)} USDC</span>
+                                </div>
+                                <div class="flex justify-between items-center text-slate-400">
+                                    <span>AI Agent Vault Balance:</span>
+                                    <span class="font-bold text-purple-400">${agentVaultBalance.toFixed(2)} USDC</span>
+                                </div>
+                                <div class="text-[10px] text-slate-400 border-t border-slate-800/80 pt-1">
+                                    💡 <em>Security Rule:</em> Timelocked savings always return directly to your <strong>personal wallet</strong> (not internal contract vault).
+                                </div>
+                            </div>
+                            ${txHash ? `<div class="text-slate-400 mt-2 text-[11px]">ArcScan Receipt: <a href="https://testnet.arcscan.app/tx/${txHash}" target="_blank" class="text-purple-400 underline font-bold">${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}</a></div>` : ''}
+                            <div class="pt-2">
+                                <button onclick="openAgentSessionModal()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-600 hover:from-purple-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition-all">
+                                    <i data-lucide="arrow-down-to-dot" class="w-4 h-4"></i>
+                                    <span>Move to AI Agent Vault</span>
+                                </button>
+                            </div>
                         `;
                     }
                 } else {

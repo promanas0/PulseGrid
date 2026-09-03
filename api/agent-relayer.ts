@@ -120,9 +120,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     } else if (action === 'UNLOCK_USDC') {
       const userLocks = await lockContract.getUserLocks(user).catch(() => []);
       const now = Math.floor(Date.now() / 1000);
-      let matureIndex = -1;
+      const matureIndices = [];
       let minRemaining = Infinity;
       let activeCount = 0;
+      let totalWithdrawnWei = 0n;
 
       for (let i = 0; i < userLocks.length; i++) {
         const l = userLocks[i];
@@ -130,8 +131,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           activeCount++;
           const unlockTs = Number(l.unlockTimestamp);
           if (now >= unlockTs) {
-            matureIndex = i;
-            break;
+            matureIndices.push({ index: i, amount: l.amount });
+            totalWithdrawnWei += BigInt(l.amount);
           } else {
             const diff = unlockTs - now;
             if (diff < minRemaining) minRemaining = diff;
@@ -139,7 +140,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
       }
 
-      if (matureIndex === -1) {
+      if (matureIndices.length === 0) {
         return res.status(200).json({
           success: false,
           notMatureYet: true,
@@ -149,11 +150,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
       }
 
-      tx = await lockContract.executeUnlockByAgent(
-        user,
-        matureIndex,
-        gasOptions
-      );
+      const txHashes = [];
+      for (const m of matureIndices) {
+        const unlockTx = await lockContract.executeUnlockByAgent(
+          user,
+          m.index,
+          gasOptions
+        );
+        await unlockTx.wait(1);
+        txHashes.push(unlockTx.hash);
+      }
+
+      return res.status(200).json({
+        success: true,
+        totalWithdrawn: ethers.formatEther(totalWithdrawnWei),
+        withdrawnCount: matureIndices.length,
+        txHash: txHashes[0],
+        txHashes: txHashes
+      });
     } else {
       return res.status(400).json({ error: `Unknown action: ${action}` });
     }

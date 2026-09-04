@@ -606,6 +606,7 @@ function switchPage(pageId) {
         } else if (pageId === 'prediction') {
             if (typeof renderPredictionCoins === 'function' && typeof PREDICTION_COINS !== 'undefined') renderPredictionCoins(PREDICTION_COINS);
             if (typeof renderPredictionMarkets === 'function' && typeof PREDICTION_MARKETS !== 'undefined') renderPredictionMarkets(PREDICTION_MARKETS);
+            if (typeof fetchLivePredictionPrices === 'function') fetchLivePredictionPrices();
         } else if (pageId === 'settings') {
             const settingsAddr = document.getElementById('settingsWalletAddress');
             if (settingsAddr) settingsAddr.value = currentAccount || 'Not Connected';
@@ -3354,10 +3355,20 @@ function generateSmartAiResponse(userMsg) {
         return "### PulseGrid DEX AMM Swap\nPulseGrid DEX par aap USDC ➔ EURC aur EURC ➔ USDC zero-slippage AMM swaps perform kar sakte hain:\n\n1. **Sub-second Finality**: Swaps complete in < 500ms.\n2. **Ultra-Low Gas Fee**: ~0.001 USDC native gas fee.\n3. **Points Reward**: Har confirmed swap par **+50 Builder PTS** milte hain!";
     }
     if (q.includes("btc") || q.includes("bitcoin")) {
-        return "### Bitcoin (BTC) Intelligence & Forecast\n- **Current Price**: ~$64,250.00\n- **Market Trend**: Bullish (+4.2% 24h)\n- **Key Support**: $62,000.00\n- **Resistance Target**: $66,900.00\n\n*Analysis*: Institutional inflows and ETF volume remain strong.";
+        const btc = (typeof PREDICTION_COINS !== 'undefined') ? PREDICTION_COINS.find(c => c.symbol === 'BTC') : null;
+        const price = btc ? btc.price : '$80,850.00';
+        const change = btc ? btc.change : '+4.2%';
+        const sup = btc ? btc.support : '$78,500.00';
+        const res = btc ? btc.resistance : '$84,200.00';
+        return `### Bitcoin (BTC) Intelligence & Forecast\n- **Current Price**: ${price}\n- **Market Trend**: ${btc && btc.isBull ? 'Bullish' : 'Neutral'} (${change} 24h)\n- **Key Support**: ${sup}\n- **Resistance Target**: ${res}\n\n*Analysis*: Institutional spot inflows and network hash rate indicate sustained market momentum.`;
     }
     if (q.includes("eth") || q.includes("ethereum")) {
-        return "### Ethereum (ETH) Intelligence & Forecast\n- **Current Price**: ~$3,240.50\n- **Market Trend**: Bullish (+5.8% 24h)\n- **Key Support**: $3,100.00\n- **Resistance Target**: $3,450.00\n\n*Analysis*: Layer-2 activity and staking queue reaching multi-month highs.";
+        const eth = (typeof PREDICTION_COINS !== 'undefined') ? PREDICTION_COINS.find(c => c.symbol === 'ETH') : null;
+        const price = eth ? eth.price : '$2,505.00';
+        const change = eth ? eth.change : '+4.8%';
+        const sup = eth ? eth.support : '$2,420.00';
+        const res = eth ? eth.resistance : '$2,650.00';
+        return `### Ethereum (ETH) Intelligence & Forecast\n- **Current Price**: ${price}\n- **Market Trend**: ${eth && eth.isBull ? 'Bullish' : 'Neutral'} (${change} 24h)\n- **Key Support**: ${sup}\n- **Resistance Target**: ${res}\n\n*Analysis*: Layer-2 settlement activity and staking queue momentum remain robust.`;
     }
     if (q.includes("code") || q.includes("solidity") || q.includes("function") || q.includes("contract")) {
         return "### Solidity Smart Contract Example\nHere is a complete ERC-20 token interface snippet:\n\n```solidity\n// SPDX-License-Identifier: MIT\npragma solidity ^0.8.20;\n\ninterface IERC20 {\n    function totalSupply() external view returns (uint256);\n    function balanceOf(address account) external view returns (uint256);\n    function transfer(address recipient, uint256 amount) external returns (bool);\n    function allowance(address owner, address spender) external view returns (uint256);\n    function approve(address spender, uint256 amount) external returns (bool);\n}\n```";
@@ -5567,7 +5578,7 @@ let activeChartType = 'area';
 let activeBetMarket = null;
 let selectedBetOutcome = 'YES';
 
-// HIGH-CONVICTION MULTI-COIN FORECAST DATASET
+// HIGH-CONVICTION MULTI-COIN FORECAST DATASET (WITH REAL-TIME LIVE PRICE FEEDS)
 const PREDICTION_COINS = [
     {
         symbol: 'BTC',
@@ -5575,30 +5586,30 @@ const PREDICTION_COINS = [
         category: 'Digital Gold #1',
         type: 'l1',
         rank: '#1',
-        price: '$64,850.00',
-        priceNum: 64850,
-        target: '$68,200.00',
-        targetNum: 68200,
-        change: '+4.35%',
+        price: '$80,850.00',
+        priceNum: 80850,
+        target: '$85,200.00',
+        targetNum: 85200,
+        change: '+4.45%',
         isBull: true,
-        gainPct: '+5.17%',
+        gainPct: '+5.38%',
         signal: 'Strong Buy 🚀',
         signalType: 'buy',
-        rsi: '62.8 (Bullish)',
-        macd: '+145.2 (Golden Cross)',
-        support: '$62,800',
-        resistance: '$67,400',
-        entry: '$64,200',
-        tp: '$68,200',
-        sl: '$62,400',
+        rsi: '64.2 (Bullish)',
+        macd: '+152.4 (Golden Cross)',
+        support: '$78,400',
+        resistance: '$83,500',
+        entry: '$79,800',
+        tp: '$85,200',
+        sl: '$77,200',
         leverage: '5x - 10x',
         confidence: '89%',
         longRatio: '74% Long',
         shortRatio: '26% Short',
-        vol24h: '$32.4B',
-        reason: 'Institutional spot ETF accumulation (+14,200 BTC net weekly) and exchange reserves hitting a 4-year low indicate sustained supply shock.',
+        vol24h: '$48.2B',
+        reason: 'Institutional spot ETF accumulation and exchange reserves hitting multi-year lows indicate sustained supply shock.',
         logo: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png',
-        sparkline: [62800, 63100, 63450, 62900, 63800, 64200, 63900, 64500, 64850]
+        sparkline: [78400, 78900, 79200, 79800, 79400, 80100, 80300, 80600, 80850]
     },
     {
         symbol: 'ETH',
@@ -5606,30 +5617,30 @@ const PREDICTION_COINS = [
         category: 'Smart Contracts L1 #2',
         type: 'l1',
         rank: '#2',
-        price: '$3,420.50',
-        priceNum: 3420.5,
-        target: '$3,680.00',
-        targetNum: 3680,
-        change: '+5.82%',
+        price: '$2,505.00',
+        priceNum: 2505,
+        target: '$2,680.00',
+        targetNum: 2680,
+        change: '+4.80%',
         isBull: true,
-        gainPct: '+7.58%',
+        gainPct: '+6.98%',
         signal: 'Breakout Target ⚡',
         signalType: 'buy',
         rsi: '65.4 (Bullish)',
         macd: '+38.6 (Upward Trend)',
-        support: '$3,280',
-        resistance: '$3,550',
-        entry: '$3,380',
-        tp: '$3,680',
-        sl: '$3,260',
+        support: '$2,420',
+        resistance: '$2,600',
+        entry: '$2,470',
+        tp: '$2,680',
+        sl: '$2,380',
         leverage: '5x - 8x',
         confidence: '86%',
         longRatio: '71% Long',
         shortRatio: '29% Short',
-        vol24h: '$18.6B',
-        reason: 'L2 gas settlement volume surges and staking deposit queues expanding (+220k ETH locked in 14 days) fuel upward momentum.',
+        vol24h: '$22.6B',
+        reason: 'L2 gas settlement volume surges and staking deposit queues expanding fuel upward momentum.',
         logo: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png',
-        sparkline: [3220, 3260, 3290, 3250, 3340, 3380, 3350, 3400, 3420.5]
+        sparkline: [2410, 2430, 2425, 2460, 2450, 2480, 2475, 2495, 2505]
     },
     {
         symbol: 'ARC',
@@ -5658,7 +5669,7 @@ const PREDICTION_COINS = [
         longRatio: '96% Long',
         shortRatio: '4% Short',
         vol24h: '$4.8M',
-        reason: 'Deterministic deterministic zero-slippage USDC gas architecture backed 1:1 by Circle liquidity vaults with sub-cent transaction settlements.',
+        reason: 'Deterministic zero-slippage USDC gas architecture backed 1:1 by Circle liquidity vaults with sub-cent transaction settlements.',
         logo: 'logo.png',
         sparkline: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
     },
@@ -5668,30 +5679,30 @@ const PREDICTION_COINS = [
         category: 'High-Speed L1 #5',
         type: 'l1',
         rank: '#5',
-        price: '$154.20',
-        priceNum: 154.2,
-        target: '$168.00',
-        targetNum: 168,
-        change: '+6.40%',
+        price: '$103.50',
+        priceNum: 103.5,
+        target: '$112.00',
+        targetNum: 112,
+        change: '+3.30%',
         isBull: true,
-        gainPct: '+8.95%',
+        gainPct: '+8.21%',
         signal: 'High Momentum 🚀',
         signalType: 'buy',
-        rsi: '68.2 (Strong Overbought)',
-        macd: '+4.85 (Accelerating)',
-        support: '$144.00',
-        resistance: '$160.00',
-        entry: '$150.00',
-        tp: '$168.00',
-        sl: '$143.50',
+        rsi: '63.2 (Bullish)',
+        macd: '+3.85 (Accelerating)',
+        support: '$99.00',
+        resistance: '$108.00',
+        entry: '$101.50',
+        tp: '$112.00',
+        sl: '$97.50',
         leverage: '4x - 6x',
         confidence: '82%',
         longRatio: '69% Long',
         shortRatio: '31% Short',
-        vol24h: '$8.2B',
-        reason: 'DEX daily trading volume surpassing all competitors with steady Firedancer validator testnet milestones.',
+        vol24h: '$6.8B',
+        reason: 'DEX daily trading volume surpassing key competitors with steady validator testnet milestones.',
         logo: 'https://assets.coingecko.com/coins/images/4128/small/solana.png',
-        sparkline: [142, 145, 144, 148, 147, 151, 150, 153, 154.2]
+        sparkline: [98.5, 99.2, 100.1, 99.8, 101.2, 102.0, 101.8, 102.9, 103.5]
     },
     {
         symbol: 'BNB',
@@ -5699,30 +5710,30 @@ const PREDICTION_COINS = [
         category: 'Exchange & L1 #4',
         type: 'l1',
         rank: '#4',
-        price: '$588.40',
-        priceNum: 588.4,
-        target: '$615.00',
-        targetNum: 615,
-        change: '+3.15%',
+        price: '$720.50',
+        priceNum: 720.5,
+        target: '$765.00',
+        targetNum: 765,
+        change: '+4.55%',
         isBull: true,
-        gainPct: '+4.52%',
+        gainPct: '+6.17%',
         signal: 'Accumulation ⚖️',
         signalType: 'buy',
-        rsi: '58.1 (Healthy)',
-        macd: '+6.20 (Steady)',
-        support: '$565.00',
-        resistance: '$600.00',
-        entry: '$580.00',
-        tp: '$615.00',
-        sl: '$560.00',
+        rsi: '59.1 (Healthy)',
+        macd: '+7.20 (Steady)',
+        support: '$695.00',
+        resistance: '$740.00',
+        entry: '$710.00',
+        tp: '$765.00',
+        sl: '$685.00',
         leverage: '3x - 5x',
         confidence: '81%',
         longRatio: '63% Long',
         shortRatio: '37% Short',
-        vol24h: '$1.9B',
+        vol24h: '$2.4B',
         reason: 'Continuous Launchpool staking lockups and aggressive quarterly auto-burn schedule reducing circulating supply.',
         logo: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png',
-        sparkline: [568, 572, 570, 578, 575, 582, 580, 585, 588.4]
+        sparkline: [692, 698, 705, 702, 712, 715, 714, 718, 720.5]
     },
     {
         symbol: 'SUI',
@@ -5730,30 +5741,30 @@ const PREDICTION_COINS = [
         category: 'Move L1 High TPS #18',
         type: 'l1',
         rank: '#18',
-        price: '$1.040',
-        priceNum: 1.04,
-        target: '$1.250',
-        targetNum: 1.25,
-        change: '+17.4%',
+        price: '$0.7765',
+        priceNum: 0.7765,
+        target: '$0.8450',
+        targetNum: 0.845,
+        change: '+2.40%',
         isBull: true,
-        gainPct: '+20.19%',
+        gainPct: '+8.82%',
         signal: 'Super Bull 🚀',
         signalType: 'buy',
-        rsi: '74.5 (High Velocity)',
-        macd: '+0.12 (Parabolic Wave)',
-        support: '$0.880',
-        resistance: '$1.120',
-        entry: '$0.980',
-        tp: '$1.250',
-        sl: '$0.860',
+        rsi: '68.5 (High Velocity)',
+        macd: '+0.08 (Parabolic Wave)',
+        support: '$0.740',
+        resistance: '$0.810',
+        entry: '$0.760',
+        tp: '$0.845',
+        sl: '$0.725',
         leverage: '5x - 10x',
         confidence: '92%',
         longRatio: '86% Long',
         shortRatio: '14% Short',
-        vol24h: '$980M',
-        reason: 'DeFi TVL skyrocketing past $700M with institutional liquidity injections from native USDC bridge integrations.',
+        vol24h: '$680M',
+        reason: 'DeFi TVL expansion with institutional liquidity injections from native bridge integrations.',
         logo: 'https://assets.coingecko.com/coins/images/26375/small/sui_asset.png',
-        sparkline: [0.86, 0.89, 0.92, 0.90, 0.96, 0.98, 1.01, 1.02, 1.04]
+        sparkline: [0.745, 0.752, 0.748, 0.761, 0.758, 0.768, 0.765, 0.772, 0.7765]
     },
     {
         symbol: 'LINK',
@@ -5761,30 +5772,30 @@ const PREDICTION_COINS = [
         category: 'DeFi Oracle & CCIP #14',
         type: 'defi',
         rank: '#14',
-        price: '$12.45',
-        priceNum: 12.45,
-        target: '$14.20',
-        targetNum: 14.2,
-        change: '+11.8%',
+        price: '$11.82',
+        priceNum: 11.82,
+        target: '$13.20',
+        targetNum: 13.2,
+        change: '+6.20%',
         isBull: true,
-        gainPct: '+14.05%',
+        gainPct: '+11.67%',
         signal: 'Institutional Buy 💎',
         signalType: 'buy',
-        rsi: '69.0 (Bullish Momentum)',
-        macd: '+0.64 (Golden Divergence)',
-        support: '$10.80',
-        resistance: '$13.00',
-        entry: '$11.80',
-        tp: '$14.20',
-        sl: '$10.60',
+        rsi: '67.0 (Bullish Momentum)',
+        macd: '+0.58 (Golden Divergence)',
+        support: '$11.20',
+        resistance: '$12.50',
+        entry: '$11.50',
+        tp: '$13.20',
+        sl: '$10.90',
         leverage: '5x',
         confidence: '89%',
         longRatio: '78% Long',
         shortRatio: '22% Short',
-        vol24h: '$640M',
-        reason: 'Major tier-1 banking consortiums expand live settlement pilots utilizing Chainlink CCIP cross-chain token messaging.',
+        vol24h: '$580M',
+        reason: 'Major tier-1 banking consortiums expand live settlement pilots utilizing Chainlink CCIP messaging.',
         logo: 'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png',
-        sparkline: [10.9, 11.2, 11.1, 11.6, 11.5, 12.0, 11.9, 12.3, 12.45]
+        sparkline: [11.15, 11.3, 11.25, 11.45, 11.4, 11.65, 11.6, 11.75, 11.82]
     },
     {
         symbol: 'AVAX',
@@ -5792,30 +5803,30 @@ const PREDICTION_COINS = [
         category: 'Subnet L1 #12',
         type: 'l1',
         rank: '#12',
-        price: '$24.80',
-        priceNum: 24.8,
-        target: '$28.50',
-        targetNum: 28.5,
-        change: '+7.40%',
+        price: '$7.49',
+        priceNum: 7.49,
+        target: '$8.25',
+        targetNum: 8.25,
+        change: '+3.90%',
         isBull: true,
-        gainPct: '+14.91%',
+        gainPct: '+10.14%',
         signal: 'Subnet Surge ⚡',
         signalType: 'buy',
-        rsi: '63.4 (Bullish)',
-        macd: '+1.15 (Upward Slope)',
-        support: '$22.40',
-        resistance: '$26.00',
-        entry: '$23.80',
-        tp: '$28.50',
-        sl: '$21.90',
+        rsi: '61.4 (Bullish)',
+        macd: '+0.85 (Upward Slope)',
+        support: '$7.10',
+        resistance: '$7.90',
+        entry: '$7.30',
+        tp: '$8.25',
+        sl: '$6.90',
         leverage: '4x - 6x',
         confidence: '84%',
         longRatio: '68% Long',
         shortRatio: '32% Short',
-        vol24h: '$520M',
-        reason: 'Institutional asset tokenization subnets deployed by multi-billion dollar private credit fund managers.',
+        vol24h: '$340M',
+        reason: 'Institutional asset tokenization subnets deployed by private credit fund managers.',
         logo: 'https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png',
-        sparkline: [22.8, 23.2, 23.0, 23.8, 23.6, 24.2, 24.0, 24.5, 24.8]
+        sparkline: [7.15, 7.22, 7.18, 7.31, 7.28, 7.39, 7.36, 7.44, 7.49]
     },
     {
         symbol: 'PEPE',
@@ -5823,30 +5834,30 @@ const PREDICTION_COINS = [
         category: 'Meme Liquidity #22',
         type: 'memes',
         rank: '#22',
-        price: '$0.0000084',
-        priceNum: 0.0000084,
-        target: '$0.0000105',
-        targetNum: 0.0000105,
-        change: '+17.9%',
+        price: '$0.00000365',
+        priceNum: 0.00000365,
+        target: '$0.00000420',
+        targetNum: 0.0000042,
+        change: '+6.05%',
         isBull: true,
-        gainPct: '+25.00%',
+        gainPct: '+15.06%',
         signal: 'Whale Accumulation 🐋',
         signalType: 'buy',
-        rsi: '72.1 (Overheated)',
-        macd: '+0.0000008 (Expansion)',
-        support: '$0.0000072',
-        resistance: '$0.0000092',
-        entry: '$0.0000078',
-        tp: '$0.0000105',
-        sl: '$0.0000069',
+        rsi: '69.1 (Strong Activity)',
+        macd: '+0.0000004 (Expansion)',
+        support: '$0.00000340',
+        resistance: '$0.00000390',
+        entry: '$0.00000355',
+        tp: '$0.00000420',
+        sl: '$0.00000330',
         leverage: '3x - 5x',
         confidence: '78%',
         longRatio: '85% Long',
         shortRatio: '15% Short',
-        vol24h: '$1.4B',
-        reason: 'Massive on-chain DEX wallet clustering and top 100 whale holder balances increasing +12% over 7 days.',
+        vol24h: '$950M',
+        reason: 'On-chain DEX wallet clustering and whale holder balances increasing over the past 7 days.',
         logo: 'https://assets.coingecko.com/coins/images/29850/small/pepe-token.png',
-        sparkline: [0.0000069, 0.0000072, 0.0000070, 0.0000076, 0.0000075, 0.0000080, 0.0000079, 0.0000082, 0.0000084]
+        sparkline: [0.00000342, 0.00000348, 0.00000345, 0.00000354, 0.00000352, 0.00000359, 0.00000358, 0.00000362, 0.00000365]
     },
     {
         symbol: 'POL',
@@ -5854,30 +5865,30 @@ const PREDICTION_COINS = [
         category: 'ZK Layer 2 Ecosystem #19',
         type: 'defi',
         rank: '#19',
-        price: '$0.4280',
-        priceNum: 0.428,
-        target: '$0.4850',
-        targetNum: 0.485,
-        change: '+5.20%',
+        price: '$0.0943',
+        priceNum: 0.0943,
+        target: '$0.1080',
+        targetNum: 0.108,
+        change: '+2.15%',
         isBull: true,
-        gainPct: '+13.31%',
+        gainPct: '+14.52%',
         signal: 'ZK Expansion 🛡️',
         signalType: 'buy',
-        rsi: '56.8 (Positive)',
-        macd: '+0.015 (Crossover)',
-        support: '$0.3950',
-        resistance: '$0.4500',
-        entry: '$0.4150',
-        tp: '$0.4850',
-        sl: '$0.3880',
+        rsi: '55.8 (Positive)',
+        macd: '+0.008 (Crossover)',
+        support: '$0.0890',
+        resistance: '$0.0990',
+        entry: '$0.0920',
+        tp: '$0.1080',
+        sl: '$0.0860',
         leverage: '4x',
         confidence: '82%',
         longRatio: '67% Long',
         shortRatio: '33% Short',
-        vol24h: '$290M',
-        reason: 'AggLayer aggregation protocol onboarding 4 new zkEVM gaming rollups, increasing cross-chain fee burn.',
+        vol24h: '$160M',
+        reason: 'AggLayer aggregation protocol onboarding new zkEVM rollups, increasing cross-chain fee burn.',
         logo: 'https://assets.coingecko.com/coins/images/4713/small/polygon.png',
-        sparkline: [0.395, 0.402, 0.400, 0.412, 0.410, 0.420, 0.418, 0.424, 0.428]
+        sparkline: [0.091, 0.092, 0.0915, 0.0928, 0.0925, 0.0935, 0.0932, 0.094, 0.0943]
     },
     {
         symbol: 'XRP',
@@ -5885,30 +5896,30 @@ const PREDICTION_COINS = [
         category: 'Settlements & FX #6',
         type: 'defi',
         rank: '#6',
-        price: '$0.5840',
-        priceNum: 0.584,
-        target: '$0.6450',
-        targetNum: 0.645,
-        change: '+8.50%',
+        price: '$1.4390',
+        priceNum: 1.439,
+        target: '$1.5800',
+        targetNum: 1.58,
+        change: '+5.80%',
         isBull: true,
-        gainPct: '+10.44%',
+        gainPct: '+9.79%',
         signal: 'Legal Clarity ⚖️',
         signalType: 'buy',
-        rsi: '67.3 (Bullish)',
-        macd: '+0.024 (Ascending)',
-        support: '$0.5350',
-        resistance: '$0.6100',
-        entry: '$0.5600',
-        tp: '$0.6450',
-        sl: '$0.5280',
+        rsi: '66.3 (Bullish)',
+        macd: '+0.038 (Ascending)',
+        support: '$1.3600',
+        resistance: '$1.5000',
+        entry: '$1.4000',
+        tp: '$1.5800',
+        sl: '$1.3200',
         leverage: '5x',
         confidence: '85%',
         longRatio: '76% Long',
         shortRatio: '24% Short',
-        vol24h: '$2.1B',
-        reason: 'RLUSD enterprise stablecoin rollout and cross-border bank pilot expansions in APAC markets.',
+        vol24h: '$3.8B',
+        reason: 'RLUSD enterprise stablecoin rollout and cross-border bank pilot expansions across global corridors.',
         logo: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png',
-        sparkline: [0.53, 0.545, 0.54, 0.56, 0.555, 0.575, 0.57, 0.58, 0.584]
+        sparkline: [1.36, 1.38, 1.37, 1.40, 1.39, 1.42, 1.41, 1.43, 1.439]
     },
     {
         symbol: 'DOGE',
@@ -5916,32 +5927,270 @@ const PREDICTION_COINS = [
         category: 'Original Meme Coin #8',
         type: 'memes',
         rank: '#8',
-        price: '$0.1140',
-        priceNum: 0.114,
-        target: '$0.1320',
-        targetNum: 0.132,
-        change: '+13.4%',
+        price: '$0.0870',
+        priceNum: 0.087,
+        target: '$0.0980',
+        targetNum: 0.098,
+        change: '+5.60%',
         isBull: true,
-        gainPct: '+15.78%',
+        gainPct: '+12.64%',
         signal: 'Social Surge 🐕',
         signalType: 'buy',
-        rsi: '71.0 (Overbought)',
-        macd: '+0.008 (High Volume)',
-        support: '$0.0980',
-        resistance: '$0.1220',
-        entry: '$0.1060',
-        tp: '$0.1320',
-        sl: '$0.0950',
+        rsi: '68.0 (Positive Momentum)',
+        macd: '+0.005 (Active Volume)',
+        support: '$0.0820',
+        resistance: '$0.0920',
+        entry: '$0.0850',
+        tp: '$0.0980',
+        sl: '$0.0790',
         leverage: '3x - 5x',
         confidence: '79%',
         longRatio: '81% Long',
         shortRatio: '19% Short',
-        vol24h: '$1.8B',
-        reason: 'Social sentiment momentum surge and whale wallet accumulation surpassing 2.4 Billion DOGE.',
+        vol24h: '$1.2B',
+        reason: 'Social sentiment momentum surge and steady whale wallet accumulation.',
         logo: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png',
-        sparkline: [0.098, 0.102, 0.100, 0.107, 0.105, 0.111, 0.109, 0.112, 0.114]
+        sparkline: [0.0825, 0.0838, 0.0832, 0.0851, 0.0846, 0.0861, 0.0858, 0.0866, 0.087]
     }
 ];
+
+// ==========================================
+// REAL-TIME LIVE CRYPTO PRICE FEED ENGINE
+// ==========================================
+
+const LIVE_CRYPTO_CONFIG = {
+    'BTC': { gecko: 'bitcoin', binance: 'BTCUSDT' },
+    'ETH': { gecko: 'ethereum', binance: 'ETHUSDT' },
+    'ARC': { isPegged: true, price: 1.0000, change: 0.00 },
+    'SOL': { gecko: 'solana', binance: 'SOLUSDT' },
+    'BNB': { gecko: 'binancecoin', binance: 'BNBUSDT' },
+    'SUI': { gecko: 'sui', binance: 'SUIUSDT' },
+    'LINK': { gecko: 'chainlink', binance: 'LINKUSDT' },
+    'AVAX': { gecko: 'avalanche-2', binance: 'AVAXUSDT' },
+    'PEPE': { gecko: 'pepe', binance: 'PEPEUSDT' },
+    'POL': { gecko: 'polygon-ecosystem-token', binance: 'POLUSDT', altBinance: 'MATICUSDT' },
+    'XRP': { gecko: 'ripple', binance: 'XRPUSDT' },
+    'DOGE': { gecko: 'dogecoin', binance: 'DOGEUSDT' }
+};
+
+let isFetchingLivePrices = false;
+let lastLivePriceFetchTime = 0;
+
+function formatLivePrice(val) {
+    if (typeof val !== 'number' || isNaN(val)) return '$0.00';
+    if (val >= 1000) {
+        return '$' + val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    } else if (val >= 1) {
+        return '$' + val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+    } else if (val >= 0.0001) {
+        return '$' + val.toFixed(4);
+    } else {
+        return '$' + val.toFixed(8);
+    }
+}
+
+function formatLiveChange(val) {
+    if (typeof val !== 'number' || isNaN(val)) return '+0.00%';
+    const sign = val >= 0 ? '+' : '';
+    return `${sign}${val.toFixed(2)}%`;
+}
+
+function updateCoinWithLiveData(coin, livePrice, liveChange) {
+    if (coin.symbol === 'ARC') {
+        coin.price = '$1.0000';
+        coin.priceNum = 1.0;
+        coin.target = '$1.0000';
+        coin.targetNum = 1.0;
+        coin.change = '+0.00%';
+        coin.isBull = true;
+        coin.support = '$0.9998';
+        coin.resistance = '$1.0002';
+        coin.entry = '$1.0000';
+        coin.tp = '$1.0000';
+        coin.sl = '$0.9990';
+        return;
+    }
+
+    coin.priceNum = livePrice;
+    coin.price = formatLivePrice(livePrice);
+    coin.change = formatLiveChange(liveChange);
+    coin.isBull = liveChange >= 0;
+
+    // AI Forecast 7D Target (Calculated dynamically)
+    const targetMult = coin.isBull ? 1.062 : 0.945;
+    coin.targetNum = livePrice * targetMult;
+    coin.target = formatLivePrice(coin.targetNum);
+    const gainPct = ((coin.targetNum - livePrice) / livePrice) * 100;
+    coin.gainPct = (gainPct >= 0 ? '+' : '') + gainPct.toFixed(2) + '%';
+
+    // Technical Levels
+    const supportPrice = livePrice * (coin.isBull ? 0.955 : 0.92);
+    const resistancePrice = livePrice * (coin.isBull ? 1.055 : 1.02);
+    const entryPrice = livePrice * (coin.isBull ? 0.988 : 0.975);
+    const slPrice = livePrice * (coin.isBull ? 0.935 : 0.89);
+
+    coin.support = formatLivePrice(supportPrice);
+    coin.resistance = formatLivePrice(resistancePrice);
+    coin.entry = formatLivePrice(entryPrice);
+    coin.tp = coin.target;
+    coin.sl = formatLivePrice(slPrice);
+
+    // Sparkline reconstruction leading to live price
+    const startPrice = livePrice / (1 + (liveChange / 100));
+    const spark = [];
+    for (let i = 0; i < 9; i++) {
+        if (i === 8) {
+            spark.push(livePrice);
+        } else {
+            const progress = i / 8;
+            const noise = (Math.sin(i * 1.8) * 0.006) * livePrice;
+            spark.push(startPrice + ((livePrice - startPrice) * progress) + noise);
+        }
+    }
+    coin.sparkline = spark;
+}
+
+async function fetchLivePredictionPrices(force = false) {
+    if (isFetchingLivePrices && !force) return;
+    const now = Date.now();
+    if (!force && (now - lastLivePriceFetchTime < 10000)) return; // Throttling 10s
+
+    isFetchingLivePrices = true;
+    lastLivePriceFetchTime = now;
+
+    updateLivePriceStatus('fetching');
+
+    let updatedCount = 0;
+
+    // Strategy 1: CoinGecko Simple Price (includes USD & 24h change)
+    try {
+        const geckoIds = Object.values(LIVE_CRYPTO_CONFIG)
+            .filter(c => c.gecko)
+            .map(c => c.gecko)
+            .join(',');
+
+        const resp = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${geckoIds}&vs_currencies=usd&include_24hr_change=true`, {
+            headers: { 'Accept': 'application/json' }
+        });
+
+        if (resp.ok) {
+            const data = await resp.json();
+            PREDICTION_COINS.forEach(coin => {
+                const conf = LIVE_CRYPTO_CONFIG[coin.symbol];
+                if (!conf) return;
+                if (conf.isPegged) {
+                    updateCoinWithLiveData(coin, 1.0, 0.0);
+                    updatedCount++;
+                } else if (conf.gecko && data[conf.gecko] && data[conf.gecko].usd) {
+                    const price = data[conf.gecko].usd;
+                    const change = data[conf.gecko].usd_24h_change || 0;
+                    updateCoinWithLiveData(coin, price, change);
+                    updatedCount++;
+                }
+            });
+        }
+    } catch (eGecko) {
+        console.warn("CoinGecko live fetch error, will fallback to Binance:", eGecko);
+    }
+
+    // Strategy 2: Fallback to Binance 24hr ticker API if any coins remain un-updated
+    if (updatedCount < 5) {
+        try {
+            const binanceSymbols = Object.values(LIVE_CRYPTO_CONFIG)
+                .filter(c => c.binance)
+                .map(c => `"${c.binance}"`);
+            
+            const url = `https://api.binance.com/api/v3/ticker/24hr?symbols=[${encodeURIComponent(binanceSymbols.join(','))}]`;
+            const resp = await fetch(url);
+            if (resp.ok) {
+                const list = await resp.json();
+                const tickerMap = {};
+                list.forEach(item => {
+                    tickerMap[item.symbol] = {
+                        price: parseFloat(item.lastPrice),
+                        change: parseFloat(item.priceChangePercent)
+                    };
+                });
+
+                PREDICTION_COINS.forEach(coin => {
+                    const conf = LIVE_CRYPTO_CONFIG[coin.symbol];
+                    if (!conf) return;
+                    if (conf.isPegged) {
+                        updateCoinWithLiveData(coin, 1.0, 0.0);
+                    } else if (conf.binance && tickerMap[conf.binance]) {
+                        const { price, change } = tickerMap[conf.binance];
+                        updateCoinWithLiveData(coin, price, change);
+                        updatedCount++;
+                    }
+                });
+            }
+        } catch (eBinance) {
+            console.warn("Binance live fetch fallback error:", eBinance);
+        }
+    }
+
+    isFetchingLivePrices = false;
+
+    // Refresh UI
+    if (updatedCount > 0) {
+        updateLivePriceStatus('active');
+        if (typeof filterPredictionCoins === 'function') {
+            filterPredictionCoins();
+        } else if (typeof renderPredictionCoins === 'function') {
+            renderPredictionCoins(PREDICTION_COINS);
+        }
+
+        // If active chart modal is open, refresh its data & chart live
+        if (typeof activeChartCoin !== 'undefined' && activeChartCoin) {
+            const latest = PREDICTION_COINS.find(c => c.symbol === activeChartCoin.symbol);
+            if (latest) {
+                activeChartCoin = latest;
+                safeSetText('modalCoinPrice', latest.price);
+                safeSetText('modalCoinChange', `${latest.change} (24h)`);
+                safeSetText('modalSupport', latest.support);
+                safeSetText('modalResistance', latest.resistance);
+                safeSetText('modalEntry', latest.entry);
+                safeSetText('modalTp', latest.tp);
+                safeSetText('modalSl', latest.sl);
+                if (typeof renderModalDynamicChart === 'function') {
+                    renderModalDynamicChart(latest, activeChartTimeframe, activeChartType);
+                }
+            }
+        }
+    } else {
+        updateLivePriceStatus('error');
+    }
+}
+
+function updateLivePriceStatus(status) {
+    if (typeof document === 'undefined') return;
+    const el = document.getElementById('forecastLiveStatus');
+    const badge = document.getElementById('forecastLiveIndicator');
+    if (!el) return;
+    if (status === 'fetching') {
+        el.innerText = 'Updating Live...';
+    } else if (status === 'active') {
+        const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        el.innerText = `Live (${timeStr})`;
+        if (badge) {
+            badge.className = "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold font-mono";
+        }
+    } else if (status === 'error') {
+        el.innerText = 'Live Reconnecting...';
+    }
+}
+
+// Auto fetch live prices every 30 seconds
+if (typeof window !== 'undefined') {
+    window.fetchLivePredictionPrices = fetchLivePredictionPrices;
+    setTimeout(() => {
+        fetchLivePredictionPrices(true);
+    }, 1200);
+    setInterval(() => {
+        fetchLivePredictionPrices();
+    }, 30000);
+}
+
 
 // ON-CHAIN BINARY EVENT PREDICTION MARKETS (Polymarket / Arc Style)
 const PREDICTION_MARKETS = [
@@ -6042,6 +6291,7 @@ function switchPredictionSubTab(tab) {
         }
         if (subForecasts) subForecasts.classList.remove('hidden');
         if (subMarkets) subMarkets.classList.add('hidden');
+        if (typeof fetchLivePredictionPrices === 'function') fetchLivePredictionPrices();
     } else {
         if (btnMarkets) {
             btnMarkets.className = 'px-4 py-2 rounded-xl bg-purple-600 text-white shadow-md transition-all flex items-center gap-2 font-bold';

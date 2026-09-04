@@ -3656,6 +3656,17 @@
                     <button onclick="setPredictionCategory('defi')" id="predCatBtn-defi" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold border border-slate-300 shrink-0">DeFi & Infra</button>
                     <button onclick="setPredictionCategory('memes')" id="predCatBtn-memes" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold border border-slate-300 shrink-0">Memes</button>
                 </div>
+
+                <!-- Live Price Status Badge & Manual Refresh -->
+                <div class="flex items-center gap-2 shrink-0">
+                    <div id="forecastLiveIndicator" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold font-mono">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span id="forecastLiveStatus">Live Feed Active</span>
+                    </div>
+                    <button onclick="fetchLivePredictionPrices(true)" title="Refresh Live Prices" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all border border-slate-300">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- SUB-VIEW 1: Multi-Coin AI Forecast Grid -->

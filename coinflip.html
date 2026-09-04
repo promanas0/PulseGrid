@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" href="logo.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PulseGrid Token Flip — Provably Fair Web3 Coin Flip</title>
+    <meta name="description" content="Provably fair Coin Flip on Circle Arc Testnet (Chain ID 5042002). Predict Heads or Tails for 2.00x USDC payout. Multi-server rooms, instant non-custodial payouts.">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        pixel: {
+                            purple: '#7B2CBF',
+                            purpleDark: '#5B21B6',
+                            indigo: '#4F46E5',
+                            gold: '#F59E0B',
+                            goldDark: '#B45309',
+                            emerald: '#10B981',
+                            rose: '#F43F5E',
+                            dark: '#080B11',
+                            card: '#0F172A',
+                            border: '#1E293B'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
+                        mono: ['"Fira Code"', 'monospace']
+                    }
+                }
+            }
+        };
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons & Ethers.js -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            background-color: #060913;
+            color: #E2E8F0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(245, 158, 11, 0.05) 0px, transparent 50%);
+        }
+
+        /* 3D Coin Styles */
+        .coin-scene {
+            width: 200px;
+            height: 200px;
+            perspective: 1000px;
+            margin: 0 auto;
+        }
+
+        .coin {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.1s linear;
+        }
+
+        .coin.flipping {
+            animation: flipAnimation 2.4s cubic-bezier(0.15, 0.85, 0.35, 1.0) forwards;
+        }
+
+        .coin-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            box-shadow: 
+                0 0 0 6px #F59E0B,
+                0 0 0 10px #78350F,
+                0 16px 32px rgba(0,0,0,0.6),
+                inset 0 0 30px rgba(0,0,0,0.5);
+        }
+
+        .coin-front {
+            background: radial-gradient(circle at 35% 35%, #FDE68A, #F59E0B 50%, #B45309 85%, #78350F 100%);
+            transform: rotateY(0deg);
+        }
+
+        .coin-back {
+            background: radial-gradient(circle at 35% 35%, #E0E7FF, #6366F1 50%, #4338CA 85%, #1E1B4B 100%);
+            box-shadow: 
+                0 0 0 6px #818CF8,
+                0 0 0 10px #312E81,
+                0 16px 32px rgba(0,0,0,0.6),
+                inset 0 0 30px rgba(0,0,0,0.5);
+            transform: rotateY(180deg);
+        }
+
+        @keyframes flipAnimation {
+            0% {
+                transform: rotateY(0deg) translateY(0) scale(1);
+            }
+            30% {
+                transform: rotateY(900deg) translateY(-80px) scale(1.15);
+            }
+            60% {
+                transform: rotateY(1800deg) translateY(-40px) scale(1.08);
+            }
+            85% {
+                transform: rotateY(var(--target-rotation, 2160deg)) translateY(-8px) scale(1.02);
+            }
+            100% {
+                transform: rotateY(var(--target-rotation, 2160deg)) translateY(0) scale(1);
+            }
+        }
+
+        /* Minimalist Clean Cards */
+        .clean-card {
+            background: #0B1120;
+            border: 1px solid #1E293B;
+        }
+
+        .clean-card-glow {
+            background: #0B1120;
+            border: 1px solid #334155;
+        }
+
+        /* Server Lobby Card */
+        .server-lobby-card {
+            background: #0B1120;
+            border: 1px solid #1E293B;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .server-lobby-card:hover {
+            transform: translateY(-2px);
+            border-color: #F59E0B;
+            background: #0F172A;
+        }
+
+        /* Choice Buttons */
+        .choice-btn {
+            transition: all 0.15s ease;
+        }
+        .choice-btn.selected-heads {
+            border-color: #F59E0B;
+            background: rgba(245, 158, 11, 0.12);
+        }
+        .choice-btn.selected-tails {
+            border-color: #818CF8;
+            background: rgba(99, 102, 241, 0.12);
+        }
+
+        /* Clean Solid Action Button */
+        .btn-action-gold {
+            background: #F59E0B;
+            color: #020617;
+            transition: all 0.15s ease;
+        }
+        .btn-action-gold:hover {
+            background: #D97706;
+        }
+        .btn-action-gold:active {
+            transform: scale(0.99);
+        }
+
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #060913; }
+        ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+    <!-- TOP NAVIGATION -->
+    <header class="sticky top-0 z-50 bg-[#080D1A]/90 backdrop-blur-md border-b border-slate-800/80 px-4 lg:px-8 py-3 flex items-center justify-between gap-4">
+        <!-- Logo & Back Link -->
+        <div class="flex items-center gap-4">
+            <a href="PulseGrid.html" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-xs font-semibold transition-all">
+                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                <span class="hidden sm:inline">PulseGrid Hub</span>
+            </a>
+            <div class="h-4 w-px bg-slate-800 hidden sm:block"></div>
+            <div class="flex items-center gap-2.5">
+                <img src="logo.png" alt="PulseGrid" class="w-7 h-7 rounded">
+                <div>
+                    <div class="font-bold text-white text-sm tracking-tight">PULSEGRID TOKEN FLIP</div>
+                    <div class="text-[10px] text-slate-500 font-mono hidden md:block">Arc L1 Testnet (5042002)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mode Switcher, Balance, Audio & Wallet -->
+        <div class="flex items-center gap-3">
+            <!-- Audio Toggle -->
+            <button id="soundToggleBtn" onclick="toggleSound()" class="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-all" title="Toggle Sound">
+                <i id="soundIcon" data-lucide="volume-2" class="w-4 h-4"></i>
+            </button>
+
+            <!-- Mode Switcher -->
+            <div class="p-0.5 rounded-lg bg-slate-950 border border-slate-800 flex items-center">
+                <button id="modeDemoBtn" onclick="switchMode('demo')" class="px-3 py-1 rounded-md text-xs font-bold transition-all bg-amber-500 text-slate-950">
+                    Demo
+                </button>
+                <button id="modeRealBtn" onclick="switchMode('real')" class="px-3 py-1 rounded-md text-xs font-bold text-slate-400 hover:text-white transition-all">
+                    Real USDC
+                </button>
+            </div>
+
+            <!-- Balance Pill -->
+            <div class="px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 flex items-center gap-2 font-mono text-xs">
+                <span class="text-slate-500" id="balanceLabel">Demo:</span>
+                <span class="font-bold text-amber-400" id="currentBalanceDisplay">1,000.00 USDC</span>
+                <button id="refillBtn" onclick="refillDemoBalance()" class="text-[11px] text-slate-400 hover:text-white underline font-sans ml-1">
+                    Refill
+                </button>
+            </div>
+
+            <!-- Web3 Wallet Button -->
+            <button id="walletBtn" onclick="handleWalletClick()" class="hidden px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-semibold text-xs transition-all">
+                <span id="walletBtnText">Connect Wallet</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 space-y-6">
+
+        <!-- ========================================== -->
+        <!-- SCREEN 1: SERVER SELECTION LOBBY VIEW     -->
+        <!-- ========================================== -->
+        <section id="view-server-lobby" class="space-y-6">
+            
+            <!-- Clean Header -->
+            <div class="clean-card rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div class="space-y-1">
+                    <div class="text-xs text-slate-500 font-mono uppercase tracking-wider">Step 1 — Select Server</div>
+                    <h1 class="text-xl sm:text-2xl font-bold text-white tracking-tight">Game Server Lobby</h1>
+                    <p class="text-xs text-slate-400 max-w-lg">Select your preferred stake server to enter the coin flip arena. Payout is fixed at 2.00x for winning predictions.</p>
+                </div>
+
+                <!-- Stats Summary -->
+                <div class="grid grid-cols-3 gap-4 bg-slate-950 border border-slate-800/80 p-3.5 rounded-xl font-mono text-center shrink-0 w-full md:w-auto">
+                    <div class="px-2">
+                        <div class="text-[10px] text-slate-500">Multiplier</div>
+                        <div class="text-sm font-bold text-amber-400">2.00x</div>
+                    </div>
+                    <div class="px-2 border-x border-slate-800">
+                        <div class="text-[10px] text-slate-500">House Reserve</div>
+                        <div id="lobbyHouseBankroll" class="text-sm font-bold text-white">60.00 USDC</div>
+                    </div>
+                    <div class="px-2">
+                        <div class="text-[10px] text-slate-500">Randomness</div>
+                        <div class="text-sm font-bold text-slate-300">50 / 50</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Server Cards Grid -->
+            <div class="space-y-3">
+                <div class="flex items-center justify-between text-xs text-slate-400 font-mono">
+                    <span>Available Stake Servers</span>
+                    <span>7 Servers Active</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
+                    
+                    <!-- Server 1: Bronze -->
+                    <div onclick="enterServerArena(0)" class="server-lobby-card rounded-xl p-4 flex flex-col justify-between space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-bold text-white text-sm">Bronze Room</h3>
+                                <span class="text-[11px] text-slate-500 font-mono">Entry Tier</span>
+                            </div>
+                            <span class="text-[11px] text-slate-500 font-mono">12ms</span>
+                        </div>
+
+                        <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-900 space-y-1 font-mono text-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-500">Bet Amount:</span>
+                                <strong class="text-white">0.10 USDC</strong>
+                            </div>
+                            <div class="flex items-center justify-between text-[11px] text-slate-500">
+                                <span>Payout (2.00x):</span>
+                                <span class="text-emerald-400 font-semibold">0.20 USDC</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between text-[11px] text-slate-500 font-mono">
+                            <span>142 Active</span>
+                            <span>$1.4k Vol</span>
+                        </div>
+
+                        <button class="w-full py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs transition-all flex items-center justify-center gap-1.5">
+                            <span>Enter Room</span>
+                            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+
+                    <!-- Server 2: Silver -->
+                    <div onclick="enterServerArena(1)" class="server-lobby-card rounded-xl p-4 flex flex-col justify-between space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-bold text-white text-sm">Silver Room</h3>
+                                <span class="text-[11px] text-slate-500 font-mono">Casual Tier</span>
+                            </div>
+                            <span class="text-[11px] text-slate-500 font-mono">14ms</span>
+                        </div>
+
+                        <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-900 space-y-1 font-mono text-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-500">Bet Amount:</span>
+                                <strong class="text-white">0.50 USDC</strong>
+                            </div>
+                            <div class="flex items-center justify-between text-[11px] text-slate-500">
+                                <span>Payout (2.00x):</span>
+                                <span class="text-emerald-400 font-semibold">1.00 USDC</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between text-[11px] text-slate-500 font-mono">
+                            <span>98 Active</span>
+                            <span>$3.8k Vol</span>
+                        </div>
+
+                        <button class="w-full py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs transition-all flex items-center justify-center gap-1.5">
+                            <span>Enter Room</span>
+                            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+
+                    <!-- Server 3: Gold (Standard) -->
+                    <div onclick="enterServerArena(2)" class="server-lobby-card rounded-xl p-4 flex flex-col justify-between space-y-4 border-slate-700 bg-slate-900/60">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-bold text-amber-400 text-sm">Gold Room</h3>
+                                <span class="text-[11px] text-slate-500 font-mono">Standard 1.00 USDC</span>
+                            </div>
+                            <span class="text-[11px] text-slate-500 font-mono">10ms</span>
+                        </div>
+
+                        <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-900 space-y-1 font-mono text-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-500">Bet Amount:</span>
+                                <strong class="text-amber-400">1.00 USDC</strong>
+                            </div>
+                            <div class="flex items-center justify-between text-[11px] text-slate-500">
+                                <span>Payout (2.00x):</span>
+                                <span class="text-emerald-400 font-semibold">2.00 USDC</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between text-[11px] text-slate-500 font-mono">
+                            <span>310 Active</span>
+                            <span>$18.4k Vol</span>
+                        </div>
+
+                        <button class="w-full py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition-all flex items-center justify-center gap-1.5">
+                            <span>Enter Room</span>
+                            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+
+                    <!-- Server 4: Platinum -->
+                    <div onclick="enterServerArena(3)" class="server-lobby-card rounded-xl p-4 flex flex-col justify-between space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-bold text-white text-sm">Platinum Room</h3>
+                                <span class="text-[11px] text-slate-500 font-mono">High Stakes</span>
+                            </div>
+                            <span class="text-[11px] text-slate-500 font-mono">15ms</span>
+                        </div>
+
+                        <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-900 space-y-1 font-mono text-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-500">Bet Amount:</span>
+                                <strong class="text-white">5.00 USDC</strong>
+                            </div>
+                            <div class="flex items-center justify-between text-[11px] text-slate-500">
+                                <span>Payout (2.00x):</span>
+                                <span class="text-emerald-400 font-semibold">10.00 USDC</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between text-[11px] text-slate-500 font-mono">
+                            <span>64 Active</span>
+                            <span>$12.9k Vol</span>
+                        </div>
+
+                        <button class="w-full py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs transition-all flex items-center justify-center gap-1.5">
+                            <span>Enter Room</span>
+                            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+
+                    <!-- Server 5: Diamond -->
+                    <div onclick="enterServerArena(4)" class="server-lobby-card rounded-xl p-4 flex flex-col justify-between space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-bold text-white text-sm">Diamond Room</h3>
+                                <span class="text-[11px] text-slate-500 font-mono">Pro Stakes</span>
+                            </div>
+                            <span class="text-[11px] text-slate-500 font-mono">11ms</span>
+                        </div>
+
+                        <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-900 space-y-1 font-mono text-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-500">Bet Amount:</span>
+                                <strong class="text-white">10.00 USDC</strong>
+                            </div>
+                            <div class="flex items-center justify-between text-[11px] text-slate-500">
+                                <span>Payout (2.00x):</span>
+                                <span class="text-emerald-400 font-semibold">20.00 USDC</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between text-[11px] text-slate-500 font-mono">
+                            <span>41 Active</span>
+                            <span>$24.1k Vol</span>
+                        </div>
+
+                        <button class="w-full py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs transition-all flex items-center justify-center gap-1.5">
+                            <span>Enter Room</span>
+                            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+
+                    <!-- Server 6: Whale Suite -->
+                    <div onclick="enterServerArena(5)" class="server-lobby-card rounded-xl p-4 flex flex-col justify-between space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-bold text-white text-sm">Whale Suite</h3>
+                                <span class="text-[11px] text-slate-500 font-mono">VIP Tier</span>
+                            </div>
+                            <span class="text-[11px] text-slate-500 font-mono">16ms</span>
+                        </div>
+
+                        <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-900 space-y-1 font-mono text-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-500">Bet Amount:</span>
+                                <strong class="text-white">25.00 USDC</strong>
+                            </div>
+                            <div class="flex items-center justify-between text-[11px] text-slate-500">
+                                <span>Payout (2.00x):</span>
+                                <span class="text-emerald-400 font-semibold">50.00 USDC</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between text-[11px] text-slate-500 font-mono">
+                            <span>19 Active</span>
+                            <span>$45.8k Vol</span>
+                        </div>
+
+                        <button class="w-full py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs transition-all flex items-center justify-center gap-1.5">
+                            <span>Enter Room</span>
+                            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+
+                    <!-- Server 7: Custom Room -->
+                    <div onclick="enterServerArena(6)" class="server-lobby-card rounded-xl p-4 flex flex-col justify-between space-y-4 sm:col-span-2 lg:col-span-2">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-bold text-white text-sm">Custom Stakes</h3>
+                                <span class="text-[11px] text-slate-500 font-mono">Flexible Amount</span>
+                            </div>
+                            <span class="text-[11px] text-slate-500 font-mono">Live</span>
+                        </div>
+
+                        <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-900 space-y-1 font-mono text-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-500">Limits:</span>
+                                <strong class="text-white">0.01 – 50.00 USDC</strong>
+                            </div>
+                            <div class="flex items-center justify-between text-[11px] text-slate-500">
+                                <span>Payout:</span>
+                                <span class="text-emerald-400 font-semibold">Strict 2.00x</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between text-[11px] text-slate-500 font-mono">
+                            <span>All Stakes Supported</span>
+                            <span>Flexible Limits</span>
+                        </div>
+
+                        <button class="w-full py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs transition-all flex items-center justify-center gap-1.5">
+                            <span>Enter Custom Room</span>
+                            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- SCREEN 2: DEDICATED COIN FLIP GAME ARENA   -->
+        <!-- ========================================== -->
+        <section id="view-coinflip-arena" class="hidden space-y-6">
+
+            <!-- Back to Lobby & Room Header -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl clean-card">
+                <div class="flex items-center gap-3">
+                    <button onclick="backToLobby()" class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white font-medium text-xs flex items-center gap-1.5 transition-all">
+                        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                        <span>Change Server</span>
+                    </button>
+                    <div class="h-4 w-px bg-slate-800"></div>
+                    <div class="text-xs font-mono text-slate-400">
+                        Room: <strong id="arenaActiveServerBadge" class="text-white font-semibold">Gold Room (1.00 USDC)</strong>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 font-mono text-xs text-slate-500">
+                    <span>Multiplier: <strong class="text-amber-400 font-semibold">2.00x</strong></span>
+                    <span>•</span>
+                    <span>Probability: <strong class="text-slate-300 font-semibold">50/50</strong></span>
+                </div>
+            </div>
+
+            <!-- 2-COLUMN GRID -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                <!-- LEFT: 3D COIN & CONTROLS -->
+                <div class="lg:col-span-7 clean-card rounded-2xl p-6 sm:p-7 space-y-7 flex flex-col justify-between">
+                    
+                    <!-- Status & Streak Header -->
+                    <div class="flex items-center justify-between text-xs font-mono">
+                        <div id="gameStatusBadge" class="text-slate-400">
+                            Status: <span class="text-slate-200 font-medium">Ready</span>
+                        </div>
+                        <div class="text-slate-500">
+                            Streak: <span id="streakBadge" class="text-white font-bold">0</span>
+                        </div>
+                    </div>
+
+                    <!-- 3D COIN DISPLAY -->
+                    <div class="py-2">
+                        <div class="coin-scene">
+                            <div id="coinElement" class="coin">
+                                <!-- Heads Face -->
+                                <div class="coin-face coin-front">
+                                    <span class="font-extrabold text-amber-950 text-base tracking-widest">HEADS</span>
+                                    <span class="text-[9px] font-mono font-bold text-amber-900 mt-1">ARC L1</span>
+                                </div>
+                                <!-- Tails Face -->
+                                <div class="coin-face coin-back">
+                                    <span class="font-extrabold text-white text-base tracking-widest">TAILS</span>
+                                    <span class="text-[9px] font-mono font-bold text-indigo-200 mt-1">ARC L1</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PREDICTION CHOICES: HEADS VS TAILS -->
+                    <div class="space-y-2.5">
+                        <div class="text-xs font-semibold text-slate-400">1. Select Prediction (50% Chance)</div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <!-- Choice Heads -->
+                            <button onclick="selectChoice(0)" id="choiceHeadsBtn" class="choice-btn selected-heads p-3.5 rounded-xl border border-slate-700 bg-slate-950/60 flex items-center justify-between">
+                                <div class="text-left">
+                                    <div class="font-bold text-white text-sm">HEADS</div>
+                                    <div class="text-[11px] text-slate-500 font-mono">Front Side</div>
+                                </div>
+                                <span class="text-xs font-mono font-bold text-amber-400">2.00x</span>
+                            </button>
+
+                            <!-- Choice Tails -->
+                            <button onclick="selectChoice(1)" id="choiceTailsBtn" class="choice-btn p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 flex items-center justify-between">
+                                <div class="text-left">
+                                    <div class="font-bold text-white text-sm">TAILS</div>
+                                    <div class="text-[11px] text-slate-500 font-mono">Back Side</div>
+                                </div>
+                                <span class="text-xs font-mono font-bold text-indigo-400">2.00x</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- BET AMOUNT CONTROLS -->
+                    <div class="space-y-2.5">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-semibold text-slate-400">2. Bet Amount</span>
+                            <div class="font-mono text-slate-500">
+                                Payout: <strong id="potentialPayoutText" class="text-emerald-400 font-semibold">2.00 USDC</strong>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <div class="relative flex items-center">
+                                <input type="number" id="betAmountInput" value="1.0" min="0.01" max="100" step="0.1" oninput="handleBetInputChange()" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-3.5 pr-20 font-mono font-bold text-sm text-white focus:outline-none focus:border-amber-500">
+                                <span class="absolute right-3.5 font-mono text-xs text-slate-500">USDC</span>
+                            </div>
+
+                            <!-- Presets -->
+                            <div class="grid grid-cols-5 gap-2">
+                                <button onclick="setBetPreset(0.1)" class="py-1.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[11px] font-mono text-slate-300">0.1</button>
+                                <button onclick="setBetPreset(1.0)" class="py-1.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[11px] font-mono text-slate-300">1.0</button>
+                                <button onclick="multiplyBet(0.5)" class="py-1.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[11px] font-mono text-slate-300">1/2</button>
+                                <button onclick="multiplyBet(2.0)" class="py-1.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[11px] font-mono text-slate-300">2X</button>
+                                <button onclick="setMaxBet()" class="py-1.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[11px] font-mono text-amber-400 font-semibold">MAX</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FLIP BUTTON -->
+                    <div>
+                        <button id="mainFlipBtn" onclick="executeFlip()" class="btn-action-gold w-full py-3.5 rounded-xl font-bold text-sm tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer">
+                            <span id="flipBtnText">Flip Coin (Win 2.00 USDC)</span>
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- RIGHT: RESULT & VERIFICATION -->
+                <div class="lg:col-span-5 space-y-4">
+
+                    <!-- RESULT CARD -->
+                    <div id="resultCard" class="clean-card rounded-2xl p-5 space-y-3">
+                        <div class="flex items-center justify-between pb-2.5 border-b border-slate-800 text-xs font-mono text-slate-500">
+                            <span>Latest Outcome</span>
+                            <span id="resultTime">Awaiting roll...</span>
+                        </div>
+
+                        <div id="resultContent" class="text-center py-6 space-y-1.5">
+                            <div class="text-sm font-semibold text-slate-300">Ready for Next Flip</div>
+                            <div class="text-xs text-slate-500">Press Flip Coin to play. Correct prediction returns 2.00x USDC.</div>
+                        </div>
+                    </div>
+
+                    <!-- PROVABLY FAIR DRAWER -->
+                    <div class="clean-card rounded-2xl p-5 space-y-3 font-mono text-xs">
+                        <div class="flex items-center justify-between pb-2.5 border-b border-slate-800">
+                            <span class="font-semibold text-slate-300 font-sans">Provably Fair Engine</span>
+                            <span class="text-[10px] text-slate-500">50/50 Unbiased</span>
+                        </div>
+
+                        <div class="space-y-2.5">
+                            <div>
+                                <div class="text-[10px] text-slate-500">Client Seed:</div>
+                                <div class="flex items-center gap-1.5 mt-1">
+                                    <input type="text" id="clientSeedInput" value="arc-pulse-player-entropy" class="bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-[11px] text-slate-300 w-full outline-none font-mono">
+                                    <button onclick="regenerateClientSeed()" class="p-1.5 rounded bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white" title="New Seed">
+                                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="text-[10px] text-slate-500">Server Seed Hash (SHA-256):</div>
+                                <div id="serverSeedHash" class="p-1.5 rounded bg-slate-950 border border-slate-900 text-[10px] text-slate-500 truncate mt-1">
+                                    e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between text-[11px] text-slate-500 pt-1">
+                                <span>Nonce: <strong id="nonceDisplay" class="text-white">1</strong></span>
+                                <span>Entropy: WebCrypto</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CONTRACT REFERENCE -->
+                    <div class="clean-card rounded-2xl p-4 flex items-center justify-between gap-3 text-xs font-mono">
+                        <div>
+                            <div class="text-slate-300 font-semibold font-sans">ArcPulseCoinFlip.sol</div>
+                            <div class="text-[10px] text-slate-500">0xb0c7A2F22BB7b1B63a84Ed26f6c85E167EEd45e3</div>
+                        </div>
+                        <a href="https://testnet.arcscan.app/address/0xb0c7A2F22BB7b1B63a84Ed26f6c85E167EEd45e3" target="_blank" rel="noopener noreferrer" class="p-2 rounded bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white transition-all text-xs" title="View on ArcScan">
+                            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ACTIVITY FEED (BOTTOM) -->
+        <div class="clean-card rounded-2xl p-5 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+                <div class="flex items-center gap-2">
+                    <button onclick="switchTab('live')" id="tabLiveBtn" class="px-3 py-1.5 rounded-lg bg-slate-800 text-white font-medium text-xs transition-all">
+                        Live Bets
+                    </button>
+                    <button onclick="switchTab('history')" id="tabHistoryBtn" class="px-3 py-1.5 rounded-lg bg-transparent text-slate-400 hover:text-white font-medium text-xs transition-all">
+                        My History
+                    </button>
+                </div>
+                <div class="text-[11px] text-slate-500 font-mono">
+                    24h Volume: <strong class="text-slate-300">$184,920.00 USDC</strong>
+                </div>
+            </div>
+
+            <!-- LIVE FEED -->
+            <div id="tabLiveContent" class="overflow-x-auto">
+                <table class="w-full text-left font-mono text-xs">
+                    <thead>
+                        <tr class="text-slate-600 border-b border-slate-800/80">
+                            <th class="pb-2">Time</th>
+                            <th class="pb-2">Player</th>
+                            <th class="pb-2">Server</th>
+                            <th class="pb-2">Choice</th>
+                            <th class="pb-2">Outcome</th>
+                            <th class="pb-2">Wager</th>
+                            <th class="pb-2 text-right">Payout</th>
+                        </tr>
+                    </thead>
+                    <tbody id="liveBetsTableBody" class="divide-y divide-slate-900">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- MY HISTORY -->
+            <div id="tabHistoryContent" class="hidden overflow-x-auto">
+                <table class="w-full text-left font-mono text-xs">
+                    <thead>
+                        <tr class="text-slate-600 border-b border-slate-800/80">
+                            <th class="pb-2">Time</th>
+                            <th class="pb-2">Mode</th>
+                            <th class="pb-2">Server</th>
+                            <th class="pb-2">Choice</th>
+                            <th class="pb-2">Outcome</th>
+                            <th class="pb-2">Bet Amount</th>
+                            <th class="pb-2 text-right">Profit / Loss</th>
+                        </tr>
+                    </thead>
+                    <tbody id="myHistoryTableBody" class="divide-y divide-slate-900">
+                        <tr>
+                            <td colspan="7" class="py-6 text-center text-slate-600">No flips recorded yet. Start flipping above.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-slate-900 py-6 px-4 text-center text-xs text-slate-600 space-y-1">
+        <p>© 2026 PulseGrid Ecosystem • Arc Testnet (5042002)</p>
+        <p class="text-[10px] text-slate-700">Provably Fair Non-Custodial Smart Contract</p>
+    </footer>
+
+    <!-- LOGIC SCRIPT -->
+    <script>
+        let gameMode = 'demo';
+        let demoBalance = 1000.00;
+        let realBalance = 0.00;
+        let selectedChoice = 0; // 0 = Heads, 1 = Tails
+        let activeServerIndex = 2; // Default: Gold
+        let isFlipping = false;
+        let currentStreak = 0;
+        let nonce = 1;
+        let soundEnabled = true;
+        let audioCtx = null;
+
+        let currentAccount = null;
+        let web3Provider = null;
+        let web3Signer = null;
+
+        const ARC_CHAIN_ID_HEX = '0x4CEF52';
+        const ARC_RPC_URL = 'https://rpc.testnet.arc.network';
+        const ARC_RPC_URL_FALLBACK = 'https://rpc.testnet.arc.io';
+        const ERC20_USDC_ADDRESS = '0x3600000000000000000000000000000000000000';
+        const COINFLIP_CONTRACT_ADDRESS = '0xb0c7A2F22BB7b1B63a84Ed26f6c85E167EEd45e3';
+
+        const COINFLIP_ABI = [
+            "function flipUSDC(uint8 choice, uint256 betAmount, string calldata clientSeed) external returns (bool won, uint8 outcome, uint256 payout)",
+            "function flipNative(uint8 choice, string calldata clientSeed) external payable returns (bool won, uint8 outcome, uint256 payout)",
+            "function getHouseStats() external view returns (uint256 _totalFlips, uint256 _totalUSDCWagered, uint256 _totalUSDCPaidOut, uint256 _usdcReserve, uint256 _nativeReserve, uint256 _minUSDC, uint256 _maxUSDC)",
+            "function playerStats(address) external view returns (uint256 flipsCount, uint256 winsCount, uint256 lossesCount, uint256 totalWageredUSDC, uint256 totalWonUSDC)",
+            "event CoinFlipped(address indexed player, uint8 indexed choice, uint8 indexed outcome, bool won, uint256 betAmount, uint256 payoutAmount, bool isNative, uint256 timestamp, bytes32 seedHash)"
+        ];
+
+        const ERC20_ABI = [
+            "function allowance(address owner, address spender) view returns (uint256)",
+            "function approve(address spender, uint256 amount) returns (bool)",
+            "function balanceOf(address account) view returns (uint256)"
+        ];
+
+        const SERVERS = [
+            { name: "Bronze Room", bet: 0.10, tag: "0.10 USDC" },
+            { name: "Silver Room", bet: 0.50, tag: "0.50 USDC" },
+            { name: "Gold Room", bet: 1.00, tag: "1.00 USDC" },
+            { name: "Platinum Room", bet: 5.00, tag: "5.00 USDC" },
+            { name: "Diamond Room", bet: 10.00, tag: "10.00 USDC" },
+            { name: "Whale Suite", bet: 25.00, tag: "25.00 USDC" },
+            { name: "Custom Stakes", bet: 1.00, tag: "Custom Bet" }
+        ];
+
+        let personalHistory = [];
+
+        function enterServerArena(serverIndex) {
+            playSound('click');
+            activeServerIndex = serverIndex;
+            const server = SERVERS[serverIndex];
+
+            const betInput = document.getElementById('betAmountInput');
+            if (betInput) {
+                betInput.value = server.bet.toString();
+                handleBetInputChange();
+            }
+
+            const badge = document.getElementById('arenaActiveServerBadge');
+            if (badge) {
+                badge.innerText = `${server.name} (${server.tag})`;
+            }
+
+            document.getElementById('view-server-lobby').classList.add('hidden');
+            document.getElementById('view-coinflip-arena').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function backToLobby() {
+            playSound('click');
+            document.getElementById('view-coinflip-arena').classList.add('hidden');
+            document.getElementById('view-server-lobby').classList.remove('hidden');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function getCryptoRandomOutcome() {
+            const randomBuffer = new Uint32Array(1);
+            window.crypto.getRandomValues(randomBuffer);
+            return (randomBuffer[0] % 2 === 0) ? 0 : 1;
+        }
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) audioCtx = new AudioContext();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+
+                if (type === 'click') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(800, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.04);
+                    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.04);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.04);
+                } else if (type === 'flip') {
+                    for (let i = 0; i < 5; i++) {
+                        setTimeout(() => {
+                            if (!soundEnabled) return;
+                            const osc = ctx.createOscillator();
+                            const gain = ctx.createGain();
+                            osc.type = 'triangle';
+                            osc.frequency.setValueAtTime(550 + (i * 100), ctx.currentTime);
+                            gain.gain.setValueAtTime(0.08, ctx.currentTime);
+                            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.035);
+                            osc.connect(gain);
+                            gain.connect(ctx.destination);
+                            osc.start();
+                            osc.stop(ctx.currentTime + 0.035);
+                        }, i * 160);
+                    }
+                } else if (type === 'win') {
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, idx) => {
+                        setTimeout(() => {
+                            if (!soundEnabled) return;
+                            const osc = ctx.createOscillator();
+                            const gain = ctx.createGain();
+                            osc.type = 'triangle';
+                            osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                            gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+                            osc.connect(gain);
+                            gain.connect(ctx.destination);
+                            osc.start();
+                            osc.stop(ctx.currentTime + 0.35);
+                        }, idx * 90);
+                    });
+                } else if (type === 'lose') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(240, ctx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(130, ctx.currentTime + 0.3);
+                    gain.gain.setValueAtTime(0.18, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.3);
+                }
+            } catch(e) {
+                console.warn("Audio error:", e);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('soundIcon');
+            if (icon) {
+                icon.setAttribute('data-lucide', soundEnabled ? 'volume-2' : 'volume-x');
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+            playSound('click');
+        }
+
+        function switchMode(mode) {
+            gameMode = mode;
+            playSound('click');
+
+            const demoBtn = document.getElementById('modeDemoBtn');
+            const realBtn = document.getElementById('modeRealBtn');
+            const balanceLabel = document.getElementById('balanceLabel');
+            const refillBtn = document.getElementById('refillBtn');
+            const walletBtn = document.getElementById('walletBtn');
+
+            if (mode === 'demo') {
+                demoBtn.className = "px-3 py-1 rounded-md text-xs font-bold transition-all bg-amber-500 text-slate-950";
+                realBtn.className = "px-3 py-1 rounded-md text-xs font-bold text-slate-400 hover:text-white transition-all";
+                balanceLabel.innerText = "Demo:";
+                refillBtn.classList.remove('hidden');
+                walletBtn.classList.add('hidden');
+                updateBalanceDisplay();
+            } else {
+                realBtn.className = "px-3 py-1 rounded-md text-xs font-bold transition-all bg-emerald-500 text-slate-950";
+                demoBtn.className = "px-3 py-1 rounded-md text-xs font-bold text-slate-400 hover:text-white transition-all";
+                balanceLabel.innerText = "Real:";
+                refillBtn.classList.add('hidden');
+                walletBtn.classList.remove('hidden');
+                
+                if (!currentAccount) {
+                    promptConnectWallet();
+                } else {
+                    fetchRealUSDCBalance();
+                }
+            }
+            updateButtonState();
+        }
+
+        function updateBalanceDisplay() {
+            const el = document.getElementById('currentBalanceDisplay');
+            if (!el) return;
+            if (gameMode === 'demo') {
+                el.innerText = `${demoBalance.toFixed(2)} USDC`;
+                el.className = "font-bold text-amber-400";
+            } else {
+                el.innerText = `${realBalance.toFixed(2)} USDC`;
+                el.className = "font-bold text-emerald-400";
+            }
+        }
+
+        function refillDemoBalance() {
+            demoBalance = 1000.00;
+            updateBalanceDisplay();
+            playSound('win');
+        }
+
+        function selectChoice(choice) {
+            if (isFlipping) return;
+            playSound('click');
+            selectedChoice = choice;
+
+            const headsBtn = document.getElementById('choiceHeadsBtn');
+            const tailsBtn = document.getElementById('choiceTailsBtn');
+
+            if (choice === 0) {
+                headsBtn.className = "choice-btn selected-heads p-3.5 rounded-xl border border-slate-700 bg-slate-950/60 flex items-center justify-between";
+                tailsBtn.className = "choice-btn p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 flex items-center justify-between";
+            } else {
+                headsBtn.className = "choice-btn p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 flex items-center justify-between";
+                tailsBtn.className = "choice-btn selected-tails p-3.5 rounded-xl border border-slate-700 bg-slate-950/60 flex items-center justify-between";
+            }
+            updateButtonState();
+        }
+
+        function handleBetInputChange() {
+            const input = document.getElementById('betAmountInput');
+            const payoutEl = document.getElementById('potentialPayoutText');
+            if (!input || !payoutEl) return;
+
+            let val = parseFloat(input.value) || 0;
+            const potential = val * 2;
+            payoutEl.innerText = `${potential.toFixed(2)} USDC`;
+            updateButtonState();
+        }
+
+        function setBetPreset(amount) {
+            if (isFlipping) return;
+            playSound('click');
+            const input = document.getElementById('betAmountInput');
+            if (input) {
+                input.value = amount.toString();
+                handleBetInputChange();
+            }
+        }
+
+        function multiplyBet(factor) {
+            if (isFlipping) return;
+            playSound('click');
+            const input = document.getElementById('betAmountInput');
+            if (input) {
+                let current = parseFloat(input.value) || 1.0;
+                let next = current * factor;
+                if (next < 0.01) next = 0.01;
+                if (next > 100) next = 100;
+                input.value = (Math.round(next * 100) / 100).toString();
+                handleBetInputChange();
+            }
+        }
+
+        function setMaxBet() {
+            if (isFlipping) return;
+            playSound('click');
+            const curBalance = gameMode === 'demo' ? demoBalance : realBalance;
+            const maxAmount = Math.min(curBalance > 0 ? curBalance : 10, 50);
+            const input = document.getElementById('betAmountInput');
+            if (input) {
+                input.value = (Math.round(maxAmount * 100) / 100).toString();
+                handleBetInputChange();
+            }
+        }
+
+        function updateButtonState() {
+            const btn = document.getElementById('mainFlipBtn');
+            const text = document.getElementById('flipBtnText');
+            if (!btn || !text) return;
+
+            const input = document.getElementById('betAmountInput');
+            const bet = parseFloat(input ? input.value : '1.0') || 1.0;
+            const winAmount = (bet * 2).toFixed(2);
+
+            if (isFlipping) {
+                text.innerText = "Flipping...";
+                btn.classList.add('opacity-60', 'cursor-not-allowed');
+                return;
+            }
+
+            btn.classList.remove('opacity-60', 'cursor-not-allowed');
+
+            if (gameMode === 'real' && !currentAccount) {
+                text.innerText = "Connect Wallet";
+            } else {
+                const choiceName = selectedChoice === 0 ? "Heads" : "Tails";
+                text.innerText = `Flip ${choiceName} (Win ${winAmount} USDC)`;
+            }
+        }
+
+        async function executeFlip() {
+            if (isFlipping) return;
+
+            if (gameMode === 'real' && !currentAccount) {
+                await promptConnectWallet();
+                return;
+            }
+
+            const input = document.getElementById('betAmountInput');
+            const betAmount = parseFloat(input ? input.value : '1.0') || 1.0;
+
+            if (betAmount <= 0) {
+                alert("Please enter a valid bet amount.");
+                return;
+            }
+
+            const currentBal = (gameMode === 'demo') ? demoBalance : realBalance;
+            if (betAmount > currentBal) {
+                alert(`Insufficient balance. Current balance: ${currentBal.toFixed(2)} USDC.`);
+                return;
+            }
+
+            isFlipping = true;
+            updateButtonState();
+
+            const statusBadge = document.getElementById('gameStatusBadge');
+            const flipText = document.getElementById('flipBtnText');
+            const clientSeed = (document.getElementById('clientSeedInput')?.value || 'arc-pulse-entropy').trim();
+
+            if (gameMode === 'real') {
+                try {
+                    if (!web3Signer) {
+                        await setupWeb3Provider();
+                    }
+
+                    const usdcContract = new ethers.Contract(ERC20_USDC_ADDRESS, ERC20_ABI, web3Signer);
+                    const coinflipContract = new ethers.Contract(COINFLIP_CONTRACT_ADDRESS, COINFLIP_ABI, web3Signer);
+
+                    const betAmountUnits = ethers.utils.parseUnits(betAmount.toFixed(6), 6);
+
+                    if (flipText) flipText.innerText = "Checking Allowance...";
+                    if (statusBadge) statusBadge.innerHTML = 'Status: <span class="text-amber-400">Checking Approval</span>';
+
+                    const currentAllowance = await usdcContract.allowance(currentAccount, COINFLIP_CONTRACT_ADDRESS);
+                    if (currentAllowance.lt(betAmountUnits)) {
+                        if (flipText) flipText.innerText = "Approve in Wallet...";
+                        if (statusBadge) statusBadge.innerHTML = 'Status: <span class="text-amber-400">Awaiting Wallet Approval</span>';
+                        
+                        const approveTx = await usdcContract.approve(COINFLIP_CONTRACT_ADDRESS, ethers.constants.MaxUint256);
+                        await approveTx.wait(1);
+                    }
+
+                    if (flipText) flipText.innerText = "Confirming Transaction...";
+                    if (statusBadge) statusBadge.innerHTML = 'Status: <span class="text-amber-400">Awaiting Transaction Confirmation</span>';
+                    playSound('flip');
+
+                    const flipTx = await coinflipContract.flipUSDC(selectedChoice, betAmountUnits, clientSeed, {
+                        gasLimit: 350000
+                    });
+
+                    const coinEl = document.getElementById('coinElement');
+                    if (coinEl) {
+                        coinEl.classList.remove('flipping');
+                        void coinEl.offsetWidth;
+                        coinEl.style.setProperty('--target-rotation', '2160deg');
+                        coinEl.classList.add('flipping');
+                    }
+
+                    const receipt = await flipTx.wait(1);
+                    const txHash = receipt.transactionHash;
+
+                    let won = false;
+                    let outcome = 0;
+                    let payoutAmount = 0;
+
+                    try {
+                        const iface = new ethers.utils.Interface(COINFLIP_ABI);
+                        for (const log of receipt.logs) {
+                            try {
+                                const parsed = iface.parseLog(log);
+                                if (parsed && parsed.name === 'CoinFlipped') {
+                                    outcome = parsed.args.outcome;
+                                    won = parsed.args.won;
+                                    payoutAmount = parseFloat(ethers.utils.formatUnits(parsed.args.payoutAmount, 6));
+                                    break;
+                                }
+                            } catch (eLog) {}
+                        }
+                    } catch (eParse) {
+                        console.warn("Event parse fallback:", eParse);
+                    }
+
+                    if (coinEl) {
+                        const targetRotation = (6 * 360) + (outcome === 0 ? 0 : 180);
+                        coinEl.style.setProperty('--target-rotation', `${targetRotation}deg`);
+                    }
+
+                    isFlipping = false;
+                    nonce++;
+                    document.getElementById('nonceDisplay').innerText = nonce.toString();
+
+                    if (won) {
+                        currentStreak++;
+                        playSound('win');
+                        if (typeof confetti === 'function') {
+                            confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
+                        }
+                        renderResultCard(true, outcome, betAmount, payoutAmount > 0 ? payoutAmount : (betAmount * 2), txHash);
+                    } else {
+                        currentStreak = 0;
+                        playSound('lose');
+                        renderResultCard(false, outcome, betAmount, 0, txHash);
+                    }
+
+                    const streakEl = document.getElementById('streakBadge');
+                    if (streakEl) streakEl.innerText = currentStreak.toString();
+
+                    recordFlipHistory(won, selectedChoice, outcome, betAmount, won ? (payoutAmount > 0 ? payoutAmount : betAmount * 2) : 0);
+                    updateButtonState();
+                    fetchRealUSDCBalance();
+                    loadHouseBankroll();
+
+                    if (statusBadge) {
+                        statusBadge.innerHTML = won 
+                            ? 'Status: <span class="text-emerald-400">Win (2.00x Payout)</span>'
+                            : 'Status: <span class="text-rose-400">Loss</span>';
+                    }
+
+                } catch (err) {
+                    console.error("Flip Error:", err);
+                    isFlipping = false;
+                    updateButtonState();
+                    if (statusBadge) statusBadge.innerHTML = 'Status: <span class="text-rose-400">Transaction Cancelled</span>';
+                    alert("Transaction Failed: " + (err.reason || err.message || err));
+                }
+            } else {
+                // Demo Mode
+                demoBalance -= betAmount;
+                updateBalanceDisplay();
+                playSound('flip');
+
+                if (statusBadge) statusBadge.innerHTML = 'Status: <span class="text-amber-400">Flipping...</span>';
+
+                const outcome = getCryptoRandomOutcome();
+                const won = (selectedChoice === outcome);
+                const payout = won ? (betAmount * 2) : 0;
+
+                const coinEl = document.getElementById('coinElement');
+                if (coinEl) {
+                    coinEl.classList.remove('flipping');
+                    void coinEl.offsetWidth;
+                    const baseSpins = 6 * 360;
+                    const targetRotation = baseSpins + (outcome === 0 ? 0 : 180);
+                    coinEl.style.setProperty('--target-rotation', `${targetRotation}deg`);
+                    coinEl.classList.add('flipping');
+                }
+
+                setTimeout(() => {
+                    isFlipping = false;
+                    nonce++;
+                    document.getElementById('nonceDisplay').innerText = nonce.toString();
+
+                    if (won) {
+                        currentStreak++;
+                        demoBalance += payout;
+                        updateBalanceDisplay();
+                        playSound('win');
+                        if (typeof confetti === 'function') {
+                            confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
+                        }
+                        renderResultCard(true, outcome, betAmount, payout, null);
+                    } else {
+                        currentStreak = 0;
+                        playSound('lose');
+                        renderResultCard(false, outcome, betAmount, 0, null);
+                    }
+
+                    const streakEl = document.getElementById('streakBadge');
+                    if (streakEl) streakEl.innerText = currentStreak.toString();
+
+                    recordFlipHistory(won, selectedChoice, outcome, betAmount, payout);
+                    updateButtonState();
+
+                    if (statusBadge) {
+                        statusBadge.innerHTML = won 
+                            ? 'Status: <span class="text-emerald-400">Win (2.00x Payout)</span>'
+                            : 'Status: <span class="text-rose-400">Loss</span>';
+                    }
+                }, 2400);
+            }
+        }
+
+        function renderResultCard(won, outcome, bet, payout, txHash) {
+            const timeEl = document.getElementById('resultTime');
+            const contentEl = document.getElementById('resultContent');
+            if (timeEl) timeEl.innerText = new Date().toLocaleTimeString();
+
+            const outcomeName = outcome === 0 ? "Heads" : "Tails";
+            const profit = won ? `+${(payout - bet).toFixed(2)} USDC` : `-${bet.toFixed(2)} USDC`;
+
+            const txLinkHtml = txHash ? `
+                <div class="pt-2 border-t border-slate-800 flex items-center justify-center gap-1.5 text-[11px]">
+                    <span class="text-slate-500">Transaction:</span>
+                    <a href="https://testnet.arcscan.app/tx/${txHash}" target="_blank" rel="noopener noreferrer" class="text-slate-300 hover:text-white underline font-mono">
+                        ${txHash.substring(0, 8)}...${txHash.substring(txHash.length - 6)}
+                    </a>
+                </div>
+            ` : '';
+
+            if (contentEl) {
+                if (won) {
+                    contentEl.innerHTML = `
+                        <div class="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 space-y-1.5">
+                            <div class="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Win (2.00x Payout)</div>
+                            <div class="text-2xl font-bold text-white font-mono">${payout.toFixed(2)} USDC</div>
+                            <div class="text-xs text-slate-400">Coin landed on <strong class="text-white">${outcomeName}</strong>. Net Profit: <strong class="text-emerald-400">${profit}</strong></div>
+                            ${txLinkHtml}
+                        </div>
+                    `;
+                } else {
+                    contentEl.innerHTML = `
+                        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
+                            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Loss</div>
+                            <div class="text-xl font-bold text-slate-300 font-mono">${profit}</div>
+                            <div class="text-xs text-slate-500">Coin landed on <strong class="text-slate-300">${outcomeName}</strong>.</div>
+                            ${txLinkHtml}
+                        </div>
+                    `;
+                }
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+        }
+
+        async function loadHouseBankroll() {
+            try {
+                let readProvider = web3Provider;
+                if (!readProvider) {
+                    try {
+                        readProvider = new ethers.providers.JsonRpcProvider(ARC_RPC_URL);
+                    } catch (eRpc) {
+                        readProvider = new ethers.providers.JsonRpcProvider(ARC_RPC_URL_FALLBACK);
+                    }
+                }
+                const usdcContract = new ethers.Contract(ERC20_USDC_ADDRESS, ["function balanceOf(address) view returns (uint256)"], readProvider);
+                const rawBal = await usdcContract.balanceOf(COINFLIP_CONTRACT_ADDRESS);
+                const usdcBal = parseFloat(ethers.utils.formatUnits(rawBal, 6));
+                const lobbyDisplay = document.getElementById('lobbyHouseBankroll');
+                if (lobbyDisplay) {
+                    lobbyDisplay.innerText = `${usdcBal.toFixed(2)} USDC`;
+                }
+            } catch(e) {
+                console.warn("Could not query house bankroll:", e);
+            }
+        }
+
+        function recordFlipHistory(won, choice, outcome, bet, payout) {
+            const server = SERVERS[activeServerIndex];
+            const record = {
+                time: new Date().toLocaleTimeString(),
+                mode: gameMode.toUpperCase(),
+                server: server.name,
+                choice: choice === 0 ? "Heads" : "Tails",
+                outcome: outcome === 0 ? "Heads" : "Tails",
+                bet: bet.toFixed(2),
+                payout: payout.toFixed(2),
+                won: won
+            };
+            personalHistory.unshift(record);
+            renderPersonalHistory();
+        }
+
+        function renderPersonalHistory() {
+            const tbody = document.getElementById('myHistoryTableBody');
+            if (!tbody) return;
+
+            if (personalHistory.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-600">No flips recorded yet.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = personalHistory.slice(0, 10).map(r => `
+                <tr class="hover:bg-slate-900/50 transition-colors">
+                    <td class="py-2.5 text-slate-500">${r.time}</td>
+                    <td class="py-2.5 text-slate-400 font-semibold">${r.mode}</td>
+                    <td class="py-2.5 text-slate-300">${r.server}</td>
+                    <td class="py-2.5 text-slate-300 font-medium">${r.choice}</td>
+                    <td class="py-2.5 text-slate-300 font-medium">${r.outcome}</td>
+                    <td class="py-2.5 text-slate-300">${r.bet} USDC</td>
+                    <td class="py-2.5 text-right font-semibold ${r.won ? 'text-emerald-400' : 'text-slate-500'}">
+                        ${r.won ? `+${r.payout} USDC` : `-${r.bet} USDC`}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function switchTab(tab) {
+            playSound('click');
+            const liveBtn = document.getElementById('tabLiveBtn');
+            const historyBtn = document.getElementById('tabHistoryBtn');
+            const liveContent = document.getElementById('tabLiveContent');
+            const historyContent = document.getElementById('tabHistoryContent');
+
+            if (tab === 'live') {
+                liveBtn.className = "px-3 py-1.5 rounded-lg bg-slate-800 text-white font-medium text-xs transition-all";
+                historyBtn.className = "px-3 py-1.5 rounded-lg bg-transparent text-slate-400 hover:text-white font-medium text-xs transition-all";
+                liveContent.classList.remove('hidden');
+                historyContent.classList.add('hidden');
+            } else {
+                historyBtn.className = "px-3 py-1.5 rounded-lg bg-slate-800 text-white font-medium text-xs transition-all";
+                liveBtn.className = "px-3 py-1.5 rounded-lg bg-transparent text-slate-400 hover:text-white font-medium text-xs transition-all";
+                historyContent.classList.remove('hidden');
+                liveContent.classList.add('hidden');
+                renderPersonalHistory();
+            }
+        }
+
+        const RANDOM_ADDRESSES = [
+            '0x71C...a829', '0x94B...f102', '0x32A...4b7e', '0xE89...99dc', '0x1F4...c810',
+            '0x6B1...2a9f', '0xA5C...d381', '0x2D7...881a', '0xF03...6e41', '0x88A...1109'
+        ];
+
+        function generateRandomLiveBet() {
+            const player = RANDOM_ADDRESSES[Math.floor(Math.random() * RANDOM_ADDRESSES.length)];
+            const server = SERVERS[Math.floor(Math.random() * (SERVERS.length - 1))];
+            const choice = Math.random() < 0.5 ? "Heads" : "Tails";
+            const outcome = Math.random() < 0.5 ? "Heads" : "Tails";
+            const won = (choice === outcome);
+            const bet = server.bet;
+            const payout = won ? (bet * 2).toFixed(2) : "0.00";
+
+            return {
+                time: new Date().toLocaleTimeString(),
+                player: player,
+                server: server.name,
+                choice: choice,
+                outcome: outcome,
+                wager: `${bet.toFixed(2)} USDC`,
+                payout: won ? `+${payout} USDC` : `-${bet.toFixed(2)} USDC`,
+                won: won
+            };
+        }
+
+        let liveFeed = [
+            generateRandomLiveBet(),
+            generateRandomLiveBet(),
+            generateRandomLiveBet(),
+            generateRandomLiveBet()
+        ];
+
+        function renderLiveFeed() {
+            const tbody = document.getElementById('liveBetsTableBody');
+            if (!tbody) return;
+
+            tbody.innerHTML = liveFeed.map(r => `
+                <tr class="hover:bg-slate-900/50 transition-colors">
+                    <td class="py-2 text-slate-500">${r.time}</td>
+                    <td class="py-2 text-slate-300 font-medium">${r.player}</td>
+                    <td class="py-2 text-slate-400">${r.server}</td>
+                    <td class="py-2 text-slate-300">${r.choice}</td>
+                    <td class="py-2 text-slate-300">${r.outcome}</td>
+                    <td class="py-2 text-slate-300">${r.wager}</td>
+                    <td class="py-2 text-right font-semibold ${r.won ? 'text-emerald-400' : 'text-slate-500'}">${r.payout}</td>
+                </tr>
+            `).join('');
+        }
+
+        setInterval(() => {
+            liveFeed.unshift(generateRandomLiveBet());
+            if (liveFeed.length > 8) liveFeed.pop();
+            renderLiveFeed();
+        }, 4000);
+
+        function regenerateClientSeed() {
+            playSound('click');
+            const randomString = 'arc-' + Math.random().toString(36).substring(2, 12);
+            const input = document.getElementById('clientSeedInput');
+            if (input) input.value = randomString;
+        }
+
+        async function promptConnectWallet() {
+            if (typeof window.ethereum === 'undefined') {
+                alert("No Web3 wallet found. Please install MetaMask, Rabby, or OKX Wallet.");
+                return;
+            }
+
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                if (accounts && accounts.length > 0) {
+                    currentAccount = accounts[0];
+                    setupWeb3Provider();
+                    checkNetwork();
+                }
+            } catch(e) {
+                console.error("Wallet connection error:", e);
+            }
+        }
+
+        function handleWalletClick() {
+            if (!currentAccount) {
+                promptConnectWallet();
+            } else {
+                alert(`Connected Wallet: ${currentAccount}\nNetwork: Arc Testnet (5042002)`);
+            }
+        }
+
+        async function setupWeb3Provider() {
+            if (typeof window.ethereum !== 'undefined') {
+                web3Provider = new ethers.providers.Web3Provider(window.ethereum);
+                web3Signer = web3Provider.getSigner();
+                updateWalletUI();
+                fetchRealUSDCBalance();
+            }
+        }
+
+        function updateWalletUI() {
+            const btnText = document.getElementById('walletBtnText');
+            if (btnText && currentAccount) {
+                btnText.innerText = `${currentAccount.substring(0, 6)}...${currentAccount.substring(currentAccount.length - 4)}`;
+            }
+            updateButtonState();
+        }
+
+        async function checkNetwork() {
+            if (!window.ethereum) return;
+            try {
+                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                if (chainId !== ARC_CHAIN_ID_HEX) {
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: ARC_CHAIN_ID_HEX }]
+                        });
+                    } catch (switchError) {
+                        if (switchError.code === 4902) {
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: ARC_CHAIN_ID_HEX,
+                                    chainName: 'Arc Testnet',
+                                    nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
+                                    rpcUrls: [ARC_RPC_URL],
+                                    blockExplorerUrls: ['https://testnet.arcscan.app']
+                                }]
+                            });
+                        }
+                    }
+                }
+            } catch(err) {
+                console.warn("checkNetwork warning:", err);
+            }
+        }
+
+        async function fetchRealUSDCBalance() {
+            if (!currentAccount || !web3Provider) return;
+            try {
+                const erc20Abi = ["function balanceOf(address) view returns (uint256)"];
+                const tokenContract = new ethers.Contract(ERC20_USDC_ADDRESS, erc20Abi, web3Provider);
+                const rawBal = await tokenContract.balanceOf(currentAccount);
+                realBalance = parseFloat(ethers.utils.formatUnits(rawBal, 6));
+                updateBalanceDisplay();
+            } catch(e) {
+                try {
+                    const rawNative = await web3Provider.getBalance(currentAccount);
+                    realBalance = parseFloat(ethers.utils.formatEther(rawNative));
+                    updateBalanceDisplay();
+                } catch(e2) {
+                    console.warn("Could not query balance:", e2);
+                }
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            updateBalanceDisplay();
+            renderLiveFeed();
+            loadHouseBankroll();
+
+            if (typeof window.ethereum !== 'undefined' && window.ethereum.selectedAddress) {
+                currentAccount = window.ethereum.selectedAddress;
+                setupWeb3Provider();
+            }
+        });
+    </script>
+</body>
+</html>

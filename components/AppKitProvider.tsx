@@ -8,7 +8,7 @@ import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // 1. Reown Project ID
-export const projectId = '20272da6a3b2b8d0e527d9255a40f1a6';
+export const projectId = 'aed09fc7bcbfbe5615fa2f991b92e8b3';
 
 // 2. Define Arc Testnet L1 Chain
 export const arcTestnet = defineChain({

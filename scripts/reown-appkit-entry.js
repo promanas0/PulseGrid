@@ -4,7 +4,7 @@ import { defineChain } from 'viem';
 import { watchAccount, reconnect } from '@wagmi/core';
 
 // 1. Official Reown Project ID
-const projectId = '20272da6a3b2b8d0e527d9255a40f1a6';
+const projectId = 'aed09fc7bcbfbe5615fa2f991b92e8b3';
 
 // 2. Define Arc Testnet L1 Chain (ID 5042002)
 const arcTestnet = defineChain({

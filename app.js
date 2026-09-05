@@ -638,6 +638,10 @@ if (typeof window !== 'undefined') {
 }
 
 function openWalletConnectModal() {
+    if (typeof window.openReownAppKit === 'function') {
+        window.openReownAppKit();
+        return;
+    }
     const modal = document.getElementById('walletConnectModal');
     if (modal) {
         modal.classList.remove('hidden');
@@ -662,6 +666,10 @@ function closeWalletConnectModal() {
 function handleWalletClick() {
     if (currentAccount) {
         disconnectWallet();
+        return;
+    }
+    if (typeof window.openReownAppKit === 'function') {
+        window.openReownAppKit();
         return;
     }
     openWalletConnectModal();
@@ -1174,6 +1182,11 @@ function onWalletConnected(account, providerName, isAutoReconnect = false) {
 }
 
 async function disconnectWallet() {
+    try {
+        if (window.reownAppKit && typeof window.reownAppKit.disconnect === 'function') {
+            await window.reownAppKit.disconnect();
+        }
+    } catch (e) { }
     try {
         if (activeWeb3Provider && typeof activeWeb3Provider.disconnect === 'function') {
             await activeWeb3Provider.disconnect();

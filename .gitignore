@@ -1,12 +1,43 @@
-node_modules
-.next
+# Dependencies & Package Managers
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js Build Output & Cache
+.next/
+out/
+build/
+dist/
+
+# Environment Variables & Secrets
 .env
+.env*.local
+*.pem
+pubkey.pem
+publickey.txt
+ciphertext.txt
+recovery/
+my-swap/.env
+
+# Smart Contract Bytecode & Hidden Source Contracts
 *.sol
 *.bin
 *.abi
-build/
-my-swap/.env
-pubkey.pem
-publickey.txt
-recovery/
-ciphertext.txt
+
+# Temporary, Scratch & Test Artifacts
+scratch_*
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.tmp
+
+# Local Standalone Sub-Projects & Experiments
+hello-arc/
+app-kit-send-browser-wallet/
+app-kit-swap-same-chain-circle-wallets/
+my-swap/
+
+# Operating System Files
+.DS_Store
+Thumbs.db

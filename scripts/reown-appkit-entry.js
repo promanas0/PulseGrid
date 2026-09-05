@@ -3,7 +3,7 @@ import { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
 import { defineChain } from 'viem';
 import { watchAccount, reconnect } from '@wagmi/core';
 
-// 1. Official Reown Project ID
+// 1. Official Reown Project ID (Configured by User)
 const projectId = 'aed09fc7bcbfbe5615fa2f991b92e8b3';
 
 // 2. Define Arc Testnet L1 Chain (ID 5042002)
@@ -43,68 +43,86 @@ const wagmiAdapter = new WagmiAdapter({
 });
 
 // 4. Create AppKit instance with Arc L1 Branding
-const modal = createAppKit({
-  adapters: [wagmiAdapter],
-  projectId,
-  networks: [arcTestnet],
-  defaultNetwork: arcTestnet,
-  metadata: {
-    name: 'PulseGrid',
-    description: 'Arc L1 Web3 Ecosystem & DEX Engine',
-    url: 'https://pulsegrid-hub.vercel.app',
-    icons: ['https://pulsegrid-hub.vercel.app/logo.png'],
-  },
-  themeMode: 'light',
-  themeVariables: {
-    '--w3m-accent': '#7E22CE',
-    '--w3m-border-radius-master': '16px',
-    '--w3m-z-index': 99999
-  },
-  features: {
-    analytics: false,
-    email: false,
-    socials: false,
-    emailShowWallets: true,
-  },
-});
+let modal = null;
+try {
+  modal = createAppKit({
+    adapters: [wagmiAdapter],
+    projectId,
+    networks: [arcTestnet],
+    defaultNetwork: arcTestnet,
+    metadata: {
+      name: 'PulseGrid',
+      description: 'Arc L1 Web3 Ecosystem & DEX Engine',
+      url: window.location?.origin || 'https://pulsegrid-hub.vercel.app',
+      icons: ['https://pulsegrid-hub.vercel.app/logo.png'],
+    },
+    themeMode: 'light',
+    themeVariables: {
+      '--w3m-accent': '#7E22CE',
+      '--w3m-border-radius-master': '16px',
+      '--w3m-z-index': 999999
+    },
+    features: {
+      analytics: false,
+      email: false,
+      socials: false,
+      emailShowWallets: true,
+    },
+  });
+  console.log('[PulseGrid] Official Reown AppKit initialized successfully!');
+} catch (initErr) {
+  console.error('[PulseGrid] Error initializing Reown AppKit:', initErr);
+}
 
 // 5. Expose globally to window
 window.reownAppKit = modal;
 window.reownWagmiConfig = wagmiAdapter.wagmiConfig;
 
-window.openReownAppKit = function() {
+window.openReownAppKit = async function() {
   try {
-    modal.open();
+    if (modal && typeof modal.open === 'function') {
+      console.log('[PulseGrid] Opening Reown AppKit modal...');
+      await modal.open();
+      return true;
+    }
   } catch (e) {
-    console.error('Error opening Reown AppKit:', e);
+    console.error('[PulseGrid] Error opening Reown AppKit:', e);
   }
+  // Fallback if modal fails to open
+  const fallback = document.getElementById('walletConnectModal');
+  if (fallback) {
+    fallback.classList.remove('hidden');
+    fallback.style.display = 'flex';
+  }
+  return false;
 };
 
 window.closeReownAppKit = function() {
   try {
-    modal.close();
+    if (modal && typeof modal.close === 'function') {
+      modal.close();
+    }
   } catch (e) {
-    console.error('Error closing Reown AppKit:', e);
+    console.error('[PulseGrid] Error closing Reown AppKit:', e);
   }
 };
 
 // 6. Listen to Account changes and sync with PulseGrid app.js
 if (typeof window !== 'undefined') {
   try {
-    // Reconnect existing session on load
     reconnect(wagmiAdapter.wagmiConfig).catch(() => {});
 
     watchAccount(wagmiAdapter.wagmiConfig, {
       async onChange(account) {
         if (account && account.address) {
-          console.log('Reown Wallet Connected:', account.address);
+          console.log('[PulseGrid] Reown Wallet Connected:', account.address);
           let provider = window.ethereum || null;
           if (account.connector && typeof account.connector.getProvider === 'function') {
             try {
               const p = await account.connector.getProvider();
               if (p) provider = p;
             } catch (err) {
-              console.warn('Could not get provider from connector:', err);
+              console.warn('[PulseGrid] Could not get provider from connector:', err);
             }
           }
           window.activeWeb3Provider = provider;
@@ -112,7 +130,7 @@ if (typeof window !== 'undefined') {
             window.onWalletConnected(account.address, 'Reown AppKit');
           }
         } else {
-          console.log('Reown Wallet Disconnected');
+          console.log('[PulseGrid] Reown Wallet Disconnected');
           window.activeWeb3Provider = null;
           if (typeof window.disconnectWallet === 'function' && window.currentAccount) {
             window.disconnectWallet();
@@ -121,6 +139,6 @@ if (typeof window !== 'undefined') {
       }
     });
   } catch (err) {
-    console.warn('Reown watchAccount notice:', err);
+    console.warn('[PulseGrid] Reown watchAccount notice:', err);
   }
 }

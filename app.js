@@ -639,9 +639,25 @@ if (typeof window !== 'undefined') {
 
 function openWalletConnectModal() {
     if (typeof window.openReownAppKit === 'function') {
-        window.openReownAppKit();
-        return;
+        try {
+            const res = window.openReownAppKit();
+            if (res && typeof res.then === 'function') {
+                res.then(opened => {
+                    if (opened === false) openFallbackWalletModal();
+                }).catch(() => openFallbackWalletModal());
+                return;
+            }
+            return;
+        } catch (err) {
+            console.warn("[PulseGrid] Reown open error, showing fallback modal:", err);
+            openFallbackWalletModal();
+            return;
+        }
     }
+    openFallbackWalletModal();
+}
+
+function openFallbackWalletModal() {
     const modal = document.getElementById('walletConnectModal');
     if (modal) {
         modal.classList.remove('hidden');
@@ -666,10 +682,6 @@ function closeWalletConnectModal() {
 function handleWalletClick() {
     if (currentAccount) {
         disconnectWallet();
-        return;
-    }
-    if (typeof window.openReownAppKit === 'function') {
-        window.openReownAppKit();
         return;
     }
     openWalletConnectModal();

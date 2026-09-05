@@ -640,11 +640,18 @@ if (typeof window !== 'undefined') {
 function openWalletConnectModal() {
     if (typeof window.openReownAppKit === 'function') {
         try {
+            showToast('Connecting Wallet...', 'Opening official Reown AppKit modal', 'info');
             const res = window.openReownAppKit();
             if (res && typeof res.then === 'function') {
                 res.then(opened => {
-                    if (opened === false) openFallbackWalletModal();
-                }).catch(() => openFallbackWalletModal());
+                    if (opened === false) {
+                        console.warn("[PulseGrid] Reown returned false, opening fallback");
+                        openFallbackWalletModal();
+                    }
+                }).catch(err => {
+                    console.warn("[PulseGrid] Reown promise rejected, opening fallback:", err);
+                    openFallbackWalletModal();
+                });
                 return;
             }
             return;
@@ -654,14 +661,32 @@ function openWalletConnectModal() {
             return;
         }
     }
-    openFallbackWalletModal();
+
+    // If Reown bundle is still loading, wait up to 1.5 seconds
+    let attempts = 0;
+    const maxAttempts = 15;
+    const checkInterval = setInterval(() => {
+        attempts++;
+        if (typeof window.openReownAppKit === 'function') {
+            clearInterval(checkInterval);
+            try {
+                showToast('Connecting Wallet...', 'Opening official Reown AppKit modal', 'info');
+                window.openReownAppKit();
+            } catch (e) {
+                openFallbackWalletModal();
+            }
+        } else if (attempts >= maxAttempts) {
+            clearInterval(checkInterval);
+            openFallbackWalletModal();
+        }
+    }, 100);
 }
 
 function openFallbackWalletModal() {
     const modal = document.getElementById('walletConnectModal');
     if (modal) {
         modal.classList.remove('hidden');
-        modal.style.display = 'flex';
+        modal.style.setProperty('display', 'flex', 'important');
         try {
             detectInstalledWallets();
         } catch (e) {
@@ -675,7 +700,7 @@ function closeWalletConnectModal() {
     const modal = document.getElementById('walletConnectModal');
     if (modal) {
         modal.classList.add('hidden');
-        modal.style.display = 'none';
+        modal.style.setProperty('display', 'none', 'important');
     }
 }
 

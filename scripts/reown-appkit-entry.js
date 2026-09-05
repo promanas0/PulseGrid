@@ -1,14 +1,16 @@
 import { createAppKit } from '@reown/appkit';
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
-import { defineChain } from 'viem';
+import { defineChain } from '@reown/appkit/networks';
 import { watchAccount, reconnect } from '@wagmi/core';
 
 // 1. Official Reown Project ID (Configured by User)
 const projectId = 'aed09fc7bcbfbe5615fa2f991b92e8b3';
 
-// 2. Define Arc Testnet L1 Chain (ID 5042002)
+// 2. Define Arc Testnet L1 Chain (ID 5042002) via Reown Networks
 const arcTestnet = defineChain({
   id: 5042002,
+  caipNetworkId: 'eip155:5042002',
+  chainNamespace: 'eip155',
   name: 'Arc Testnet',
   nativeCurrency: {
     name: 'USDC',

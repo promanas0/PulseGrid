@@ -2047,10 +2047,12 @@ async function executePulseSwap(payTok, recTok, amt) {
     const provider = activeWeb3Provider || window.ethereum;
     if (!provider) throw new Error("No wallet connected");
     const web3Provider = new ethers.providers.Web3Provider(provider);
+    clearSwapSuccessBox();
     const signer = web3Provider.getSigner();
 
     const isBuy = (payTok.symbol === 'USDC');
     const customToken = isBuy ? recTok : payTok;
+    const quotedEstAmt = parseFloat(document.getElementById('receiveAmountInput')?.value || 0);
 
     const routerContract = new ethers.Contract(PULSESWAP_ROUTER_ADDRESS, PULSESWAP_ROUTER_ABI, signer);
 
@@ -2072,15 +2074,40 @@ async function executePulseSwap(payTok, recTok, amt) {
 
         const tx = await routerContract.swapUSDCForTokens(customToken.address, minTokensOut, { value: usdcWei });
         showToast('Swap Broadcasted', `Tx: ${tx.hash.substring(0, 10)}... Confirming block on Arc Testnet`, 'info');
-        await tx.wait();
-        showToast('Swap Successful! 🚀', `Bought $${customToken.symbol} on Arc L1 via PulseSwap!`, 'success');
+        const receipt = await tx.wait();
+        const txHash = receipt.transactionHash || tx.hash;
+
+        let actualFeeStr = '< 0.001 USDC';
+        try {
+            if (receipt && receipt.gasUsed) {
+                const gasPrice = receipt.effectiveGasPrice || ethers.utils.parseUnits('1', 'gwei');
+                const feeWei = receipt.gasUsed.mul(gasPrice);
+                actualFeeStr = `${parseFloat(ethers.utils.formatEther(feeWei)).toFixed(6)} USDC`;
+            }
+        } catch (e) { }
+
+        showToast('Swap Confirmed!', `Bought $${customToken.symbol} on Arc L1 via PulseSwap!`, 'success');
 
         saveTxRecord(currentAccount, {
-            txHash: tx.hash,
+            txHash: txHash,
             type: 'PulseSwap AMM Buy',
             pair: `Swapped ${amt} USDC ➔ $${customToken.symbol}`,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         });
+
+        const successBox = document.getElementById('swapSuccessArcscanBox');
+        const successLink = document.getElementById('swapSuccessArcscanLink');
+        if (successBox) {
+            safeSetText('receiptSwapSentText', `-${amt} USDC`);
+            safeSetText('receiptSwapQuotedText', `~${quotedEstAmt > 0 ? quotedEstAmt.toFixed(6) : '0.000000'} $${customToken.symbol}`);
+            safeSetText('receiptSwapReceivedText', `+${quotedEstAmt > 0 ? quotedEstAmt.toFixed(6) : '0.000000'} $${customToken.symbol}`);
+            safeSetText('receiptSwapActualFeeText', actualFeeStr);
+            safeSetText('receiptSwapRouteText', 'PulseSwap AMM Pool');
+            safeSetText('receiptSwapTxShort', `Tx: ${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}`);
+            if (successLink) successLink.href = `https://testnet.arcscan.app/tx/${txHash}`;
+            successBox.classList.remove('hidden');
+            safeInitIcons();
+        }
     } else {
         // Custom Tokens -> Sell for Native USDC
         const tokenDecimals = customToken.decimals || 18;
@@ -2111,15 +2138,40 @@ async function executePulseSwap(payTok, recTok, amt) {
 
         const tx = await routerContract.swapTokensForUSDC(customToken.address, tokenAmountUnits, minUsdcOut);
         showToast('Swap Broadcasted', `Tx: ${tx.hash.substring(0, 10)}... Confirming block on Arc Testnet`, 'info');
-        await tx.wait();
-        showToast('Swap Successful! 🚀', `Sold $${customToken.symbol} for native USDC on Arc L1!`, 'success');
+        const receipt = await tx.wait();
+        const txHash = receipt.transactionHash || tx.hash;
+
+        let actualFeeStr = '< 0.001 USDC';
+        try {
+            if (receipt && receipt.gasUsed) {
+                const gasPrice = receipt.effectiveGasPrice || ethers.utils.parseUnits('1', 'gwei');
+                const feeWei = receipt.gasUsed.mul(gasPrice);
+                actualFeeStr = `${parseFloat(ethers.utils.formatEther(feeWei)).toFixed(6)} USDC`;
+            }
+        } catch (e) { }
+
+        showToast('Swap Confirmed!', `Sold $${customToken.symbol} for native USDC on Arc L1!`, 'success');
 
         saveTxRecord(currentAccount, {
-            txHash: tx.hash,
+            txHash: txHash,
             type: 'PulseSwap AMM Sell',
             pair: `Sold ${amt} $${customToken.symbol} ➔ USDC`,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         });
+
+        const successBox = document.getElementById('swapSuccessArcscanBox');
+        const successLink = document.getElementById('swapSuccessArcscanLink');
+        if (successBox) {
+            safeSetText('receiptSwapSentText', `-${amt} $${customToken.symbol}`);
+            safeSetText('receiptSwapQuotedText', `~${quotedEstAmt > 0 ? quotedEstAmt.toFixed(6) : '0.000000'} USDC`);
+            safeSetText('receiptSwapReceivedText', `+${quotedEstAmt > 0 ? quotedEstAmt.toFixed(6) : '0.000000'} USDC`);
+            safeSetText('receiptSwapActualFeeText', actualFeeStr);
+            safeSetText('receiptSwapRouteText', 'PulseSwap AMM Pool');
+            safeSetText('receiptSwapTxShort', `Tx: ${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}`);
+            if (successLink) successLink.href = `https://testnet.arcscan.app/tx/${txHash}`;
+            successBox.classList.remove('hidden');
+            safeInitIcons();
+        }
     }
 
     await fetchBalances();
@@ -2167,13 +2219,25 @@ function onCustomSlippageInput(val) {
     }
 }
 
+function clearSwapSuccessBox() {
+    const box = document.getElementById('swapSuccessArcscanBox');
+    if (box && !box.classList.contains('hidden')) {
+        box.classList.add('hidden');
+    }
+}
+
 function updateSlippageBadges() {
     const badge = document.getElementById('slippageCurrentBadge');
     const warn = document.getElementById('slippageWarningBadge');
     const tableBadge = document.getElementById('tableSlippageText');
 
     if (badge) badge.textContent = `${currentSlippage}%`;
-    if (tableBadge) tableBadge.textContent = `${currentSlippage}% (${currentSlippage === 0.5 ? 'Auto' : 'Custom'})`;
+    if (tableBadge) {
+        const presets = [0.1, 0.5, 1.0, 2.5];
+        const isPreset = presets.includes(parseFloat(currentSlippage));
+        const label = currentSlippage === 0.5 ? 'Auto' : (isPreset ? 'Preset' : 'Custom');
+        tableBadge.textContent = `${currentSlippage}% (${label})`;
+    }
 
     if (warn) {
         if (currentSlippage > 5.0) {
@@ -2196,6 +2260,7 @@ function updateSlippageBadges() {
 
 // ACCURATE SWAP CONVERSION SUPPORTING AMM CUSTOM POOLS AND SDK STABLES
 function calculateSwap() {
+    clearSwapSuccessBox();
     const input = document.getElementById('payAmountInput');
     const output = document.getElementById('receiveAmountInput');
     if (!input || !output) return;
@@ -2203,6 +2268,7 @@ function calculateSwap() {
     const val = parseFloat(input.value);
     if (isNaN(val) || val <= 0) {
         output.value = '';
+        safeSetText('minimumReceivedText', `0.000000 ${receiveToken.symbol}`);
         return;
     }
 
@@ -2224,10 +2290,13 @@ function calculateSwap() {
             output.value = est > 0.000001 ? est.toFixed(6) : est.toExponential(4);
             const currentPrice = pool.usdcReserve / pool.tokenReserve;
             safeSetText('exchangeRateText', `1 $${customToken.symbol} ≈ ${currentPrice < 0.00001 ? currentPrice.toExponential(4) : currentPrice.toFixed(6)} USDC (PulseSwap AMM)`);
+            const minRec = est * (1 - (currentSlippage / 100));
+            safeSetText('minimumReceivedText', `${minRec > 0 ? (minRec >= 0.000001 ? minRec.toFixed(6) : minRec.toExponential(4)) : '0.000000'} ${receiveToken.symbol}`);
             return;
         } else {
             safeSetText('exchangeRateText', `No active pool for $${customToken.symbol}. Go to Pools tab to seed liquidity!`);
             output.value = '';
+            safeSetText('minimumReceivedText', `0.000000 ${receiveToken.symbol}`);
             return;
         }
     }
@@ -2236,9 +2305,12 @@ function calculateSwap() {
     const est = val * ratio;
     output.value = est.toFixed(6);
     safeSetText('exchangeRateText', `1 ${payToken.symbol} ≈ ${ratio.toFixed(6)} ${receiveToken.symbol}`);
+    const minRec = est * (1 - (currentSlippage / 100));
+    safeSetText('minimumReceivedText', `${minRec > 0 ? (minRec >= 0.000001 ? minRec.toFixed(6) : minRec.toExponential(4)) : '0.000000'} ${receiveToken.symbol}`);
 }
 
 function setMaxPayAmount() {
+    clearSwapSuccessBox();
     const input = document.getElementById('payAmountInput');
     if (input) {
         input.value = payToken.balance;
@@ -2247,6 +2319,7 @@ function setMaxPayAmount() {
 }
 
 function switchSwapTokens() {
+    clearSwapSuccessBox();
     const temp = payToken;
     payToken = receiveToken;
     receiveToken = temp;
@@ -2298,6 +2371,7 @@ function switchSwapTokens() {
 
 // REAL WEB3 SPENDER ROUTER SWAP EXECUTION (SUPPORTING NATIVE USDC & ERC-20 TOKENS)
 async function executeRealSwap() {
+    clearSwapSuccessBox();
     if (!currentAccount) {
         handleWalletClick();
         return;
@@ -2321,6 +2395,8 @@ async function executeRealSwap() {
         showToast('No Wallet Found', 'Please connect MetaMask or WalletConnect', 'error');
         return;
     }
+
+    const quotedEstAmt = parseFloat(document.getElementById('receiveAmountInput')?.value || 0);
 
     try {
         if (!window.ethers) {
@@ -2396,8 +2472,8 @@ async function executeRealSwap() {
         }
 
         showToast('Swap Broadcasted!', `Tx: ${swapTx.hash.substring(0, 10)}... Confirming block on Arc Testnet`, 'info');
-        await swapTx.wait();
-        const txHash = swapTx.hash;
+        const receipt = await swapTx.wait();
+        const txHash = receipt.transactionHash || swapTx.hash;
 
         // Update UI Balances cleanly from RPC
         await fetchBalances();
@@ -2413,12 +2489,27 @@ async function executeRealSwap() {
             time: timeStr
         });
 
-        showToast('Swap Confirmed! 🎉', `Tx Hash: ${txHash.substring(0, 10)}... Verified on ArcScan`, 'success');
+        let actualFeeStr = '< 0.001 USDC';
+        try {
+            if (receipt && receipt.gasUsed) {
+                const gasPrice = receipt.effectiveGasPrice || ethers.utils.parseUnits('1', 'gwei');
+                const feeWei = receipt.gasUsed.mul(gasPrice);
+                actualFeeStr = `${parseFloat(ethers.utils.formatEther(feeWei)).toFixed(6)} USDC`;
+            }
+        } catch (e) { }
+
+        showToast('Swap Confirmed!', `Tx Hash: ${txHash.substring(0, 10)}... Verified on ArcScan`, 'success');
 
         const successBox = document.getElementById('swapSuccessArcscanBox');
         const successLink = document.getElementById('swapSuccessArcscanLink');
-        if (successBox && successLink) {
-            successLink.href = `https://testnet.arcscan.app/tx/${txHash}`;
+        if (successBox) {
+            safeSetText('receiptSwapSentText', `-${amt.toFixed(2)} ${payToken.symbol}`);
+            safeSetText('receiptSwapQuotedText', `~${quotedEstAmt > 0 ? quotedEstAmt.toFixed(6) : receiveAmt.toFixed(6)} ${receiveToken.symbol}`);
+            safeSetText('receiptSwapReceivedText', `+${receiveAmt.toFixed(6)} ${receiveToken.symbol}`);
+            safeSetText('receiptSwapActualFeeText', actualFeeStr);
+            safeSetText('receiptSwapRouteText', 'Spender Router (Arc L1)');
+            safeSetText('receiptSwapTxShort', `Tx: ${txHash.substring(0, 10)}...${txHash.substring(txHash.length - 6)}`);
+            if (successLink) successLink.href = `https://testnet.arcscan.app/tx/${txHash}`;
             successBox.classList.remove('hidden');
             safeInitIcons();
         }
@@ -2920,9 +3011,28 @@ async function refreshTelemetry() {
 
 
 
+function dismissBroadcastToasts() {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const toasts = container.querySelectorAll('.toast-broadcast');
+    toasts.forEach(t => {
+        t.style.opacity = '0';
+        t.style.transition = 'opacity 0.2s ease';
+        setTimeout(() => t.remove(), 200);
+    });
+}
+
 function showToast(title, message, type = 'info') {
     const container = document.getElementById('toastContainer');
     if (!container) return;
+
+    const lowerTitle = (title || '').toLowerCase();
+    const isBroadcast = lowerTitle.includes('broadcast') || lowerTitle.includes('waiting') || lowerTitle.includes('confirming') || lowerTitle.includes('step 1') || lowerTitle.includes('step 2');
+    const isConfirmed = type === 'success' || lowerTitle.includes('confirmed') || lowerTitle.includes('successful') || lowerTitle.includes('approved');
+
+    if (isConfirmed) {
+        dismissBroadcastToasts();
+    }
 
     const toast = document.createElement('div');
     let borderClass = 'border-purple-600 bg-white';
@@ -2936,7 +3046,7 @@ function showToast(title, message, type = 'info') {
         icon = 'alert-triangle';
     }
 
-    toast.className = `pointer-events-auto p-4 rounded-xl border-3 border-slate-950 shadow-[4px_4px_0px_#0F172A] ${borderClass} flex items-start gap-3 min-w-[280px] max-w-sm page-view`;
+    toast.className = `pointer-events-auto p-4 rounded-xl border-3 border-slate-950 shadow-[4px_4px_0px_#0F172A] ${borderClass} flex items-start gap-3 min-w-[280px] max-w-sm page-view ${isBroadcast ? 'toast-broadcast' : ''}`;
     toast.innerHTML = `
                 <i data-lucide="${icon}" class="w-5 h-5 text-slate-950 shrink-0 mt-0.5"></i>
                 <div class="flex-1">

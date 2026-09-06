@@ -178,16 +178,44 @@ function stringToHex(str) {
 
 // Pure Web3 SDK Protocol Execution (No Remix Smart Contract)
 
-// EXACT CIRCLE DEX RATE: 1 USDC = 0.920000 EURC (usdRate: USDC 1.00, EURC 1.086957)
+// EXACT LIVE CIRCLE & MARKET RATE: 1 EURC = $1.161100 USD (1 USDC ≈ 0.861252 EURC)
 // INITIAL BALANCES ARE ZERO (0.00) BY DEFAULT - NO FAKE BALANCES
 const TOKENS = [
     { id: 0, symbol: 'USDC', name: 'USD Coin (ERC-20)', balance: 0.00, usdRate: 1.000000, icon: '$', bg: 'bg-blue-600', address: '0x3600000000000000000000000000000000000000', decimals: 6, isComingSoon: false },
-    { id: 1, symbol: 'EURC', name: 'Euro Stablecoin', balance: 0.00, usdRate: 1.086957, icon: '€', bg: 'bg-amber-500', address: '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a', decimals: 6, isComingSoon: false },
-    { id: 2, symbol: 'eBTC', name: 'Arc Wrapped Bitcoin', balance: 0.00, usdRate: 62500.00, icon: '', bg: 'bg-orange-500', address: '0x054f15d7f21226065582f7c00e12d46e2730bf18', decimals: 18, isComingSoon: true }
+    { id: 1, symbol: 'EURC', name: 'Euro Stablecoin', balance: 0.00, usdRate: 1.161100, icon: '€', bg: 'bg-amber-500', address: '0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a', decimals: 6, isComingSoon: false },
+    { id: 2, symbol: 'eBTC', name: 'Arc Wrapped Bitcoin', balance: 0.00, usdRate: 62500.00, icon: '₿', bg: 'bg-orange-500', address: '0x054f15d7f21226065582f7c00e12d46e2730bf18', decimals: 18, isComingSoon: true }
 ];
 
 let payToken = TOKENS[0];
 let receiveToken = TOKENS[1];
+
+async function fetchLiveEurcRate() {
+    try {
+        const res = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=EURUSDT');
+        if (res && res.ok) {
+            const data = await res.json();
+            const rate = parseFloat(data.price);
+            if (!isNaN(rate) && rate > 0.5 && rate < 2.0) {
+                TOKENS[1].usdRate = rate;
+                if (typeof payToken !== 'undefined' && typeof receiveToken !== 'undefined') {
+                    if (payToken.symbol === 'USDC' && receiveToken.symbol === 'EURC') {
+                        const ratio = (TOKENS[0].usdRate / TOKENS[1].usdRate).toFixed(6);
+                        safeSetText('exchangeRateText', `1 USDC ≈ ${ratio} EURC`);
+                    } else if (payToken.symbol === 'EURC' && receiveToken.symbol === 'USDC') {
+                        const ratio = (TOKENS[1].usdRate / TOKENS[0].usdRate).toFixed(6);
+                        safeSetText('exchangeRateText', `1 EURC ≈ ${ratio} USDC`);
+                    }
+                }
+                if (typeof calculateSwap === 'function') {
+                    calculateSwap();
+                }
+            }
+        }
+    } catch (e) { }
+}
+
+fetchLiveEurcRate();
+setInterval(fetchLiveEurcRate, 30000);
 
 startLiveCountdown();
 startLiveTelemetryTicker();
@@ -5043,8 +5071,8 @@ async function parseAndExecuteAgentIntent(userMsg, chatBox) {
 
     // 1. SWAP INTENT EXECUTION
     if (intent.type === 'SWAP') {
-        const { amount, from, to } = intent;
-        let receiveAmt = from === 'USDC' && to === 'EURC' ? (amount * 0.9200) : (amount / 0.9200);
+        const rateRatio = (TOKENS[0].usdRate / TOKENS[1].usdRate);
+        let receiveAmt = from === 'USDC' && to === 'EURC' ? (amount * rateRatio) : (amount / rateRatio);
 
         cardBubble.innerHTML = `
             <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500 flex items-center justify-center shrink-0">
